@@ -1,33 +1,16 @@
 ---
 enable: true
-title: "Discover the **Office Location**"
+title: "We're just around the corner"
 
 list:
   - enable: true
-    title: "Singapore HQ"
-    image: "/images/office/1.jpg"
+    title: "Texas HQ"
+    image: "/images/office/barn.png"
     content: |
-      123 Lowe Street,
+      03 Ranch Road,
 
-      Green City, State, 12345
+      Fort Davis, Texas, 79734
 
-      Phone: (123) 456-7890
+      Email: info@javelinaworks.com
 
-      Email: hq@javelinaworks.com
-
-      Business Hours: Monday - Friday: 9:00 AM - 6:00 PM
-
-  - enable: true
-    title: "London HQ"
-    image: "/images/office/2.jpg"
-    content: |
-      123 Lowe Street,
-
-      Green City, State, 12345
-
-      Phone: (123) 456-7890
-
-      Email: hq@javelinaworks.com
-
-      Business Hours: Monday - Friday: 9:00 AM - 6:00 PM
 ---

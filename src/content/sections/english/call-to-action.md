@@ -1,14 +1,14 @@
 ---
 enable: true
-title: Get Started and Streamline Your **Workflow Today**
+title: Get Started and Streamline Your Land Management Today
 description: |
-  No credit card required. Cancel anytime
+  No credit card required. No obligations.
 
-  Enjoy a 14-day free trial — experience every feature, risk-free.
+  See how our platform can fit your land managment needs. 
 
 button:
   enable: true
-  label: GET A FREE DEMO
+  label: Get a Free Quote
   url: /contact/
   rel: ""
   target: ""

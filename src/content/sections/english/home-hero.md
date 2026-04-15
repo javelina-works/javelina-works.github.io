@@ -1,22 +1,23 @@
 ---
-title: The **Smartest Way** to Bring Best ROI for Sales
-preTitle:
-  label: Preview Our Fall Release
-  url: "/changelog/"
-  badge:
-    enable: true
-    label: "New"
-description: Streamline your business processes, improve efficiency, and deliver exceptional customer interactions at every touchpoint.
+title: The Intelligent Platform for Land Management
+# preTitle:
+#   enable: false
+#   label: Preview Our Fall Release
+#   url: "/changelog/"
+#   badge:
+#     enable: true
+#     label: "New"
+description: Get environmental insights, boost efficiency, and improve outcomes for your brush management needs.
 image: "/images/product-for-hero.jpg" # image dimensions: 1320x745
 buttons:
   - enable: true
-    label: "GET A FREE DEMO"
+    label: "GET IN TOUCH"
     variant: "fill" # "fill", "outline", "text"
     url: "/contact"
     rel: ""
     target: ""
     hoverEffect: "magnetic-text-flip" # "text-flip", "creative-fill", "magnetic", "magnetic-text-flip"
-  - enable: false
+  - enable: true
     label: "Watch Video"
     tag: "button"
     type: "video"
