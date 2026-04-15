@@ -1,0 +1,65 @@
+---
+import { markdownify } from "@/lib/utils/textConverter";
+import { getCollectionCTM } from "@/lib/contentParser.astro";
+import IntegrationCard from "../cards/IntegrationCard.astro";
+
+type Props = {
+  content: {
+    title?: string;
+    description?: string;
+    category: string;
+  };
+  collection: string;
+};
+
+let {
+  collection,
+  content: { title, description, category },
+} = Astro.props;
+
+const integrations = await getCollectionCTM(
+  collection as "integration",
+  Astro.currentLocale,
+);
+
+// Take category as section title if not provided
+if (!title) {
+  title = category;
+}
+
+const integrationsByCategory = integrations.filter((integration) =>
+  integration.data.categories
+    ?.map((item) => item.toLowerCase())
+    ?.includes(category.toLocaleLowerCase() as string),
+);
+---
+
+<section id={category}>
+  <div class="container space-y-8">
+    <div>
+      <h2 class="h4 capitalize" set:html={markdownify(title)} />
+      {
+        description && (
+          <p
+            class="opacity-80 xl:max-w-3xl"
+            set:html={markdownify(description)}
+          />
+        )
+      }
+    </div>
+
+    {
+      integrationsByCategory && (
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {integrationsByCategory.map((item) => (
+            <IntegrationCard
+              collection={item.collection}
+              slug={item.data.customSlug || item.id}
+              content={item.data}
+            />
+          ))}
+        </div>
+      )
+    }
+  </div>
+</section>

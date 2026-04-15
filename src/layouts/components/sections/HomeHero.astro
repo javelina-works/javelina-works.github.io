@@ -1,0 +1,226 @@
+---
+import type { z } from "astro/zod";
+import type { Section } from "@/types";
+import Customers from "./Customers.astro";
+import { plainify } from "@/lib/utils/textConverter";
+import VideoModal from "../widgets/VideoModal.astro";
+import { getEntryCTM } from "@/lib/contentParser.astro";
+import { markdownify } from "@/lib/utils/textConverter";
+import AnimatedText from "../widgets/AnimatedText.astro";
+import overrideObjects from "@/lib/utils/overrideObjects";
+import type { heroSectionSchema } from "@/sections.schema";
+import CustomButton from "@/components/CustomButton.astro";
+import OptimizedImage from "@/components/utilities/OptimizedImage.astro";
+
+// Type for this section data
+type SectionType = Section & NonNullable<z.infer<typeof heroSectionSchema>>;
+
+type Props = {
+  content?: SectionType;
+};
+
+// Fetching the default content for the this section
+let defaultContent = (
+  await getEntryCTM("sections", "home-hero", Astro.currentLocale)
+)?.data as SectionType;
+
+// Enables content customization (e.g., title, description) with a fallback to 'defaultContent' if not provided.
+// The 'content' prop should match the structure of 'defaultContent'.
+// Allows using this section with different content across multiple pages.
+// If 'content' is missing, 'defaultContent' will be used.
+let actualContent = overrideObjects(
+  { ...defaultContent },
+  Astro.props.content,
+) as SectionType;
+
+// Extracting required values from 'content' object
+let { title, preTitle, description, image, buttons } =
+  actualContent as SectionType;
+
+const videoButton = buttons?.find((button: any) => button.type === "video");
+---
+
+<section class="home-hero overflow-hidden">
+  <div class="relative">
+    <div class="container">
+      <div class="relative z-10 mx-auto max-w-3xl space-y-10">
+        <div>
+          {
+            preTitle && (
+              <div
+                data-aos="reveal-anim-left"
+                data-aos-offset="0"
+                data-aos-delay="200"
+                data-aos-duration="1000"
+                class="group relative mx-auto mb-5 max-w-fit overflow-hidden rounded-full border p-px">
+                <div class="translate-y-centered to-primary absolute left-1/2 -z-10 h-6 w-1/2 origin-left rotate-90 animate-spin rounded-full bg-linear-to-b from-white [animation-duration:10000ms]" />
+                {preTitle.url && (
+                  <div class="flex items-center rounded-full bg-white">
+                    {preTitle.badge?.enable && (
+                      <span
+                        class="bg-dark inline-block gap-1 rounded-full px-3 py-1 text-sm font-normal text-white"
+                        set:html={markdownify(preTitle.badge.label)}
+                      />
+                    )}
+                    <div class="text-text-default ms-3 flex items-center rounded-full py-px font-normal">
+                      {markdownify(preTitle.label)}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        data-icon
+                        class="w-6 transition duration-300 group-hover:translate-x-0.5">
+                        <path d="m9 18 6-6-6-6" />
+                      </svg>
+                    </div>
+                    <a
+                      title={markdownify(preTitle.label) as string}
+                      class="absolute inset-0 size-full"
+                      href={preTitle.url}
+                    />
+                  </div>
+                )}
+              </div>
+            )
+          }
+          {
+            title && (
+              <h1>
+                <AnimatedText
+                  delay={200}
+                  delay={0.1}
+                  class="has-italic-text lg:text-display-1 text-display-3 md:text-display-2 mb-8 text-center leading-[1.15] font-normal capitalize md:mb-10"
+                  content={markdownify(title)}
+                />
+              </h1>
+            )
+          }
+          {
+            description && (
+              <AnimatedText
+                delay={0.9}
+                stagger={0.03}
+                content={markdownify(description)}
+                class="mx-auto max-w-xl text-center text-lg/normal"
+              />
+            )
+          }
+        </div>
+
+        <div
+          data-aos="fade-up-sm"
+          data-aos-delay="1000"
+          data-aos-duration="1000"
+          class="has-video-modal flex flex-wrap items-center justify-center gap-5">
+          {
+            buttons &&
+              buttons.map((button: any) =>
+                button.type !== "video" ? (
+                  <CustomButton class="btn-md" {...button} />
+                ) : (
+                  <CustomButton
+                    class="btn-md"
+                    {...button}
+                    title="Play Video"
+                    aria-haspopup="dialog"
+                    aria-expanded="false"
+                    aria-controls={"#" + button.video.id}
+                    data-hs-overlay={"#" + button.video.id}
+                    data-hs-overlay-options={`{"emulateScrollbarSpace" : true}`}
+                  />
+                ),
+              )
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Banner Image -->
+    {
+      image && (
+        <div class="relative mx-6 mt-12 max-w-425 rounded-b-[6.25rem] md:m-0 md:mx-auto md:mt-20">
+          <div class="banner-image container">
+            <OptimizedImage
+              src={image}
+              width={1320}
+              class="mx-auto rounded-3xl border-8 border-white/35 md:rounded-[2.25rem] md:border-[1.25rem]"
+              alt={"About " + plainify(title).toLowerCase()}
+            />
+          </div>
+          <Customers
+            tag="div"
+            class="prose-p:text-light pt-8 pb-8 md:pt-24 md:pb-16"
+          />
+          <div class="translate-x-centered absolute bottom-0 -z-10 h-full w-full max-w-425 overflow-hidden rounded-b-3xl border-4 border-white md:w-[99%] md:rounded-b-[3.125rem] xl:rounded-b-[6.25rem]">
+            <svg
+              class="translate-x-centered absolute h-full w-full border bg-white text-white opacity-20"
+              width="914"
+              height="458"
+              viewBox="0 0 914 458"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg">
+              <path d="M0.5 0.5L457 457L913.5 0.5" stroke="currentColor" />
+            </svg>
+
+            <OptimizedImage
+              src="/images/hero-bg.png"
+              class="h-full w-full object-cover opacity-80 mix-blend-multiply"
+            />
+            <div class="to-primary absolute inset-0 -z-10 bg-linear-to-b from-transparent" />
+          </div>
+        </div>
+      )
+    }
+  </div>
+
+  {
+    videoButton?.enable && videoButton.video?.src && (
+      <VideoModal
+        video={{
+          id: videoButton.video?.id,
+          src: videoButton.video.src,
+          provider: videoButton.video?.provider,
+        }}
+      />
+    )
+  }
+  <script>
+    import { animate, scroll } from "motion";
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const section = document.querySelector(".home-hero");
+      if (!section) return;
+
+      const mediaQuery = window.matchMedia("(min-width: 1024px)");
+
+      function initAnimation() {
+        if (mediaQuery.matches && section) {
+          scroll(
+            animate(".banner-image", {
+              transform: [
+                "perspective(75em) rotateX(20deg)",
+                "perspective(75em) rotateX(0deg)",
+              ],
+              zoom: ["0.8", "1"],
+            }),
+            {
+              target: section,
+              offset: ["start start", "90% end"],
+            },
+          );
+        }
+      }
+
+      initAnimation();
+
+      // Listen for viewport changes
+      mediaQuery.addEventListener("change", initAnimation);
+    });
+  </script>
+</section>

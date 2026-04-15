@@ -1,0 +1,134 @@
+---
+import Marquee from "@/components/widgets/Marquee.astro";
+import { getEntryCTM } from "@/lib/contentParser.astro";
+import overrideObjects from "@/lib/utils/overrideObjects.ts";
+import OptimizedImage from "@/components/utilities/OptimizedImage.astro";
+import type { customersSectionType } from "@/types";
+import { markdownify } from "@/lib/utils/textConverter";
+
+type Props = {
+  content?: customersSectionType;
+  lightLogo?: boolean;
+  class?: string;
+  tag?: "div";
+};
+
+// Fetching the default content for the this section
+let defaultContent = (
+  await getEntryCTM("sections", "customers", Astro.currentLocale)
+)?.data as customersSectionType;
+
+// Enables content customization (e.g., title, description) with a fallback to 'defaultContent' if not provided.
+// The 'content' prop should match the structure of 'defaultContent'.
+// Allows using this section with different content across multiple pages.
+// If 'content' is missing, 'defaultContent' will be used.
+let actualContent = overrideObjects(
+  { ...defaultContent },
+  Astro.props.content,
+) as customersSectionType;
+
+// Extracting required values from 'content' object
+let {
+  enable = true,
+  description,
+  marquee,
+  list,
+} = actualContent as customersSectionType;
+
+const {
+  tag: Element = "section",
+  class: className,
+  lightLogo = true,
+} = Astro.props;
+
+let duplicatedList = list;
+
+// If list length is less then 3 then duplicate the list at at least 3 times
+if (list.length <= 3) {
+  Array.from({ length: 3 }, () => [...list]).flat();
+} else if (list.length > 3) {
+  Array.from({ length: 2 }, () => [...list]).flat();
+}
+
+if (!enable) return;
+---
+
+<Element class:list={[className]}>
+  <div class="container">
+    <div class="mx-auto text-center">
+      {
+        description && (
+          <p
+            data-aos="fade-up-sm"
+            class="text-center text-lg font-normal md:text-xl"
+            set:html={markdownify(description)}
+          />
+        )
+      }
+      <div
+        data-aos="fade-up-sm"
+        data-aos-delay={200}
+        class="relative mt-6 flex items-center overflow-hidden md:mt-8">
+        <Marquee
+          marqueeElements={duplicatedList.length}
+          marqueePauseOnHover={marquee.pauseOnHover}
+          marqueeReverse={marquee.reverse}
+          marqueeDuration={marquee.duration}
+          marqueeElementWidth={marquee.elementWidth}
+          marqueeElementWidthAuto={marquee.elementWidthAuto}
+          marqueeElementWidthResponsive={marquee.elementWidthInSmallDevices}>
+          {
+            duplicatedList.map((item) => (
+              <div
+                class:list={[
+                  "px-4 md:px-8",
+                  {
+                    "min-w-(--marquee-element-width-responsive) md:min-w-(--marquee-element-width)":
+                      !marquee.elementWidthAuto,
+                  },
+                  {
+                    "min-w-fit": marquee.elementWidthAuto,
+                  },
+                ]}>
+                <OptimizedImage
+                  src={item.src}
+                  alt={item.alt}
+                  height={46}
+                  class:list={[
+                    "h-8 min-h-8 min-w-fit md:h-11",
+                    lightLogo && "brightness-0 invert filter",
+                  ]}
+                />
+              </div>
+            ))
+          }
+          {
+            duplicatedList.map((item) => (
+              <div
+                class:list={[
+                  "px-4 md:px-8",
+                  {
+                    "min-w-(--marquee-element-width-responsive) md:min-w-(--marquee-element-width)":
+                      !marquee.elementWidthAuto,
+                  },
+                  {
+                    "min-w-fit": marquee.elementWidthAuto,
+                  },
+                ]}>
+                <OptimizedImage
+                  src={item.src}
+                  alt={item.alt}
+                  height={46}
+                  class:list={[
+                    "h-8 min-h-8 min-w-fit md:h-11",
+                    lightLogo && "brightness-0 invert filter",
+                  ]}
+                />
+              </div>
+            ))
+          }
+        </Marquee>
+      </div>
+    </div>
+  </div>
+</Element>

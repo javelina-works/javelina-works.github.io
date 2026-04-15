@@ -1,0 +1,102 @@
+---
+import type { Section } from "@/types";
+import SquareElem from "../widgets/SquareElem.astro";
+import { markdownify } from "@/lib/utils/textConverter";
+import { getEntryCTM } from "@/lib/contentParser.astro";
+import OptimizedImage from "../utilities/OptimizedImage.astro";
+
+type OfficeInfo = {
+  enable: boolean;
+  title: string;
+  image: string;
+  content: string;
+};
+
+// Type for service section data
+export type SectionType = Section & {
+  list: OfficeInfo[];
+};
+type Props = {
+  content?: SectionType;
+};
+
+// Fetching the default content for the service section
+let defaultContent = (
+  await getEntryCTM("sections", "office-locations", Astro.currentLocale)
+)?.data as SectionType;
+
+// Enables content customization (e.g., title, description) with a fallback to 'defaultContent' if not provided.
+// The 'content' prop should match the structure of 'defaultContent'.
+// Allows using this section with different content across multiple pages.
+// If 'content' is missing, 'defaultContent' will be used.
+let actual_content = {
+  ...defaultContent,
+  ...Astro.props.content,
+} as SectionType;
+
+// Extracting required values from 'content' object
+let { title, enable, list } = actual_content as SectionType;
+---
+
+{
+  enable && (
+    <section class="overflow-hidden">
+      <div class="container">
+        <div class="flex flex-col justify-start gap-12 md:gap-16">
+          <div class="flex flex-col flex-wrap justify-between gap-8 lg:flex-row lg:items-center">
+            {title && (
+              <div class="max-w-lg">
+                <h2
+                  class="has-italic-text capitalize"
+                  set:html={markdownify(title)}
+                />
+              </div>
+            )}
+          </div>
+          <div class="grid gap-x-32 gap-y-16 md:max-w-4xl lg:grid-cols-2 lg:grid-rows-1">
+            {list?.map((item) => (
+              <div class="space-y-5">
+                {item.image && (
+                  <div class="relative mb-16">
+                    <OptimizedImage
+                      width={600}
+                      class="size-full object-cover"
+                      src={item.image}
+                      alt={title || ""}
+                    />
+                    <div class="pointer-events-none absolute inset-0 size-full select-none">
+                      <span class="translate-x-centered absolute -top-1 h-1 w-[115%] border-b border-dashed border-black/50" />
+                      <span class="translate-x-centered absolute -bottom-px h-1 w-[115%] border-b border-dashed border-black/50" />
+                      <span class="translate-y-centered absolute -left-px h-[115%] w-1 border-s border-dashed border-black/50" />
+                      <span class="translate-y-centered absolute -right-1 h-[115%] w-1 border-s border-dashed border-black/50" />
+                      <SquareElem class="absolute -top-3.5 -left-3.5 fill-white" />
+                      <SquareElem class="absolute -top-3.5 -right-3.5 fill-white" />
+                      <SquareElem class="absolute -bottom-3.5 -left-3.5 fill-white" />
+                      <SquareElem class="absolute -right-3.5 -bottom-3.5 fill-white" />
+                    </div>
+                    <OptimizedImage
+                      src="/images/about/image-shape.png"
+                      class="pointer-events-none absolute bottom-0 left-0 w-full select-none"
+                    />
+                  </div>
+                )}
+                {item.title && (
+                  <h3
+                    class="md:text-h4 text-h4-sm font-medium"
+                    set:html={item.title}
+                  />
+                )}
+                {item.content && (
+                  <div
+                    class="prose-styles space-y-1.5"
+                    set:html={markdownify(item.content, true)}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}

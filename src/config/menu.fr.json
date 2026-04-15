@@ -1,0 +1,303 @@
+{
+  "main": [
+    {
+      "name": "Pages",
+      "enable": true,
+      "weight": 3,
+      "hasChildren": true,
+      "children": [
+        {
+          "enable": true,
+          "name": "Menu Niv.",
+          "hasChildren": true,
+          "weight": 2,
+          "children": [
+            {
+              "enable": true,
+              "name": "Menu 01",
+              "weight": 1
+            },
+            {
+              "enable": true,
+              "name": "Menu Niv.",
+              "hasChildren": true,
+              "weight": 4,
+              "children": [
+                {
+                  "enable": true,
+                  "name": "Élément Menu",
+                  "weight": 1
+                },
+                {
+                  "enable": true,
+                  "name": "Élément Menu",
+                  "weight": 2
+                },
+                {
+                  "enable": true,
+                  "name": "Élément Menu",
+                  "weight": 3
+                },
+                {
+                  "enable": true,
+                  "name": "Élément Menu",
+                  "weight": 4
+                }
+              ]
+            },
+            {
+              "enable": true,
+              "name": "Menu 02",
+              "weight": 2
+            },
+            {
+              "enable": true,
+              "name": "Menu 03",
+              "weight": 3
+            }
+          ]
+        },
+        {
+          "enable": true,
+          "name": "Tarifs",
+          "url": "/pricing/",
+          "weight": 1
+        },
+        {
+          "enable": true,
+          "name": "Avis",
+          "url": "/testimonial/",
+          "weight": 2
+        },
+        {
+          "enable": true,
+          "name": "Société",
+          "url": "/company/",
+          "weight": 2
+        },
+        {
+          "enable": true,
+          "name": "Fonctions",
+          "url": "/features/",
+          "weight": 3
+        },
+        {
+          "enable": true,
+          "name": "FAQ",
+          "url": "/faq/",
+          "weight": 3
+        },
+        {
+          "enable": true,
+          "name": "Journal",
+          "url": "/changelog/",
+          "weight": 4
+        },
+        {
+          "enable": true,
+          "name": "Carrière",
+          "url": "/career/",
+          "weight": 5
+        },
+        {
+          "enable": true,
+          "name": "Poste",
+          "url": "/career/with-custom-slug",
+          "weight": 6
+        },
+        {
+          "enable": true,
+          "name": "Intégration",
+          "url": "/integration/",
+          "weight": 7
+        },
+        {
+          "enable": true,
+          "name": "Intégration Détail",
+          "url": "/integration/discord/",
+          "weight": 8
+        },
+        {
+          "enable": true,
+          "name": "Blog",
+          "url": "/blog/",
+          "weight": 9
+        },
+        {
+          "enable": true,
+          "name": "Article",
+          "url": "/blog/post-1/",
+          "weight": 10
+        },
+        {
+          "enable": true,
+          "name": "Conditions",
+          "url": "/terms-conditions/",
+          "weight": 11
+        }
+      ]
+    },
+    {
+      "enable": true,
+      "name": "Fonctions",
+      "weight": 2,
+      "hasMegaMenu": true,
+      "cta": {
+        "enable": true,
+        "image": "/images/menu-cta.png",
+        "title": "Obtenez des infos utiles",
+        "description": "Lancez vite, grandissez malin, évoluez sans effort.",
+        "button": {
+          "enable": true,
+          "hoverEffect": "text-flip",
+          "hoverEffect_comment": "text-flip, creative-fill, magnetic, magnetic-text-flip",
+          "label": "Essai Gratuit",
+          "url": "/contact/",
+          "rel": "",
+          "target": ""
+        }
+      },
+      "menus": [
+        {
+          "enable": true,
+          "children": [
+            {
+              "enable": true,
+              "icon": "Focus",
+              "name": "Rapports Temps Réel",
+              "description": "Suivez les données en direct et réagissez vite aux changements.",
+              "url": "/features/"
+            },
+            {
+              "enable": true,
+              "icon": "Shield",
+              "name": "Collab. Facile",
+              "description": "Gardez l’équipe alignée et avancez vos projets simplement.",
+              "url": "/features/"
+            },
+            {
+              "enable": true,
+              "icon": "Database",
+              "name": "Satisfaction",
+              "description": "Suivez la joie, l’insatisfaction ou l’hésitation des usagers.",
+              "url": "/features/"
+            },
+            {
+              "enable": true,
+              "icon": "Clock",
+              "name": "Hub Auto. IA",
+              "description": "De la planif au code, allez plus vite avec des outils IA intégrés.",
+              "url": "/features/"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "enable": true,
+      "name": "Composants",
+      "url": "/components/",
+      "weight": 4,
+      "badge": {
+        "enable": true,
+        "label": "NOUVEAU",
+        "color": "accent",
+        "_color_comment": "color expected value - accent, info, success, danger, dark",
+        "type": "text",
+        "_type_comment": "type expected value - text, dot"
+      }
+    },
+    {
+      "enable": true,
+      "name": "Contact",
+      "url": "/contact/",
+      "weight": 5,
+      "badge": {
+        "enable": true,
+        "label": "NOUVEAU",
+        "color": "accent",
+        "_color_comment": "color expected value - accent, info, success, danger, dark",
+        "type": "dot",
+        "_type_comment": "type expected value - text, dot"
+      }
+    }
+  ],
+  "footerMenu": [
+    {
+      "enable": true,
+      "name": "Conditions",
+      "url": "/terms-conditions/",
+      "weight": 0
+    },
+    {
+      "enable": true,
+      "name": "Confidentialité",
+      "url": "/privacy-policy/",
+      "weight": 0
+    }
+  ],
+  "footerMenuOne": [
+    {
+      "enable": true,
+      "name": "À propos",
+      "url": "/company/",
+      "weight": 0
+    },
+    {
+      "enable": true,
+      "name": "Carrières",
+      "url": "/career/",
+      "weight": 0
+    },
+    {
+      "enable": true,
+      "name": "Blog",
+      "url": "/blog/",
+      "weight": 0
+    },
+    {
+      "enable": true,
+      "name": "Presse",
+      "url": "/",
+      "weight": 0
+    },
+    {
+      "enable": true,
+      "name": "Contact",
+      "url": "/contact/",
+      "weight": 0
+    }
+  ],
+  "footerMenuTwo": [
+    {
+      "enable": true,
+      "name": "Aide",
+      "url": "/",
+      "weight": 0
+    },
+    {
+      "enable": true,
+      "name": "État API",
+      "url": "/",
+      "weight": 0
+    },
+    {
+      "enable": true,
+      "name": "Communauté",
+      "url": "/",
+      "weight": 0
+    },
+    {
+      "enable": true,
+      "name": "Docs",
+      "url": "/",
+      "weight": 0
+    },
+    {
+      "enable": true,
+      "name": "Vie privée",
+      "url": "/",
+      "weight": 0
+    }
+  ]
+}

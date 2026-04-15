@@ -1,0 +1,106 @@
+---
+import type { Section } from "@/types";
+import CustomButton from "../CustomButton.astro";
+import { getEntryCTM } from "@/lib/contentParser.astro";
+import { markdownify } from "@/lib/utils/textConverter";
+import overrideObjects from "@/lib/utils/overrideObjects.ts";
+import AnimatedText from "../widgets/AnimatedText.astro";
+
+// Type for this section data
+type ctaSectionType = Section & {
+  ratingContent: string;
+};
+
+type Props = {
+  content?: ctaSectionType;
+};
+
+// Fetching the default content for the this section
+let defaultContent = (
+  await getEntryCTM("sections", "call-to-action", Astro.currentLocale)
+)?.data as ctaSectionType;
+
+// Enables content customization (e.g., title, description) with a fallback to 'defaultContent' if not provided.
+// The 'content' prop should match the structure of 'defaultContent'.
+// Allows using this section with different content across multiple pages.
+// If 'content' is missing, 'defaultContent' will be used.
+let actualContent = overrideObjects(
+  { ...defaultContent },
+  Astro.props.content,
+) as ctaSectionType;
+
+// Extracting required values from 'content' object
+let {
+  enable = true,
+  title,
+  description,
+  button,
+} = actualContent as ctaSectionType;
+
+if (!enable) return;
+---
+
+<section class="call-to-action overflow-hidden">
+  <div class="relative container py-20 md:py-40">
+    <div class="mx-auto space-y-8 text-center lg:max-w-3xl">
+      {
+        title && (
+          <h2 class="has-italic-text text-display-3 md:text-display-2 mb-8 text-center leading-[1.15] font-normal capitalize">
+            <AnimatedText
+              delay={0.2}
+              stagger={0.09}
+              content={markdownify(title)}
+            />
+          </h2>
+        )
+      }
+      {
+        description && (
+          <div
+            data-aos="fade-down-sm"
+            data-aos-delay="100"
+            class="mx-auto max-w-2xl space-y-1 text-center *:first:text-lg *:first:font-medium *:last:opacity-80"
+            set:html={markdownify(description, true)}
+          />
+        )
+      }
+      {
+        button && button.enable && (
+          <div data-aos="fade-down-sm" data-aos-delay="200">
+            <CustomButton class="btn-md btn-primary" {...button} />
+          </div>
+        )
+      }
+    </div>
+
+    <div
+      class="pattern-shape pointer-events-none absolute top-0 left-0 -z-10 flex h-full w-[150%] opacity-40 select-none">
+      {
+        new Array(12)
+          .fill("")
+          .map((_, index) => (
+            <div
+              class:list={[
+                "from-primary/10 h-full w-1/12 border-2 border-white to-transparent md:w-1/5",
+                index % 2 !== 0 ? "bg-linear-to-t" : "bg-linear-to-b",
+              ]}
+            />
+          ))
+      }
+    </div>
+  </div>
+  <script>
+    import { animate, scroll } from "motion";
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const section = document.querySelector(".call-to-action");
+      if (!section) return;
+
+      scroll(
+        animate(".pattern-shape", {
+          x: [-1000, 100],
+        }),
+      );
+    });
+  </script>
+</section>

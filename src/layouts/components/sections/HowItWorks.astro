@@ -1,0 +1,92 @@
+---
+import type { Section } from "@/types";
+import type { z } from "astro/zod";
+import { getEntryCTM } from "@/lib/contentParser.astro";
+import { markdownify } from "@/lib/utils/textConverter";
+import overrideObjects from "@/lib/utils/overrideObjects.ts";
+import type { howItWorksSectionSchema } from "@/sections.schema";
+import AnimatedText from "../widgets/AnimatedText.astro";
+
+// Type
+type SectionType = Section & z.infer<typeof howItWorksSectionSchema>;
+type Props = {
+  content?: SectionType;
+  hideButton?: boolean;
+};
+
+// Default content fetch
+let defaultContent = (
+  await getEntryCTM("sections", "how-it-works", Astro.currentLocale)
+)?.data as SectionType;
+
+let actualContent = overrideObjects(
+  { ...defaultContent },
+  Astro.props.content,
+) as SectionType;
+
+let { enable = true, title, list } = actualContent as SectionType;
+
+if (!enable) return;
+---
+
+<section>
+  <div class="bg-theme-light py-20 md:py-32">
+    <div class="container space-y-10 md:space-y-16">
+      {
+        title && (
+          <div class="mx-auto max-w-lg text-center">
+            <h2 class="has-italic-text capitalize">
+              <AnimatedText
+                delay={0.2}
+                stagger={0.09}
+                content={markdownify(title)}
+              />
+            </h2>
+          </div>
+        )
+      }
+      {
+        list && (
+          <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {list.map((item, index) => (
+              <div
+                data-aos="fade-right-sm"
+                data-aos-delay={(index + 2.5) * 100}
+                class="space-y-16 rounded-4xl bg-white p-8 md:space-y-32">
+                <div class="prose-em:not-italic prose-em:text-dark/80 flex flex-wrap items-center justify-between gap-y-4 font-medium text-black">
+                  {item.step && (
+                    <div
+                      class="md:text-h3 text-h3-sm"
+                      set:html={markdownify(item.step)}
+                    />
+                  )}
+                  {item.button && !Astro.props.hideButton && (
+                    <a
+                      class="text-text-default rounded-full border px-9 py-1.5 text-sm! capitalize transition-colors duration-300 hover:border-black/50"
+                      href={item.button.url}
+                      set:html={markdownify(item.button.label)}
+                    />
+                  )}
+                </div>
+                <div class="space-y-4">
+                  {item.title && (
+                    <h3
+                      class="md:text-h5 text-h5-sm text-black"
+                      set:html={markdownify(item.title)}
+                    />
+                  )}
+                  {item.description && (
+                    <p
+                      class="border-t pt-4 text-gray-600"
+                      set:html={markdownify(item.description)}
+                    />
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )
+      }
+    </div>
+  </div>
+</section>

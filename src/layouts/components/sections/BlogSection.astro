@@ -1,0 +1,134 @@
+---
+import type { Section } from "@/types";
+import { sortByDate } from "@/lib/utils/sortFunctions";
+import Pagination from "../widgets/Pagination.astro";
+import { getEntryCTM } from "@/lib/contentParser.astro";
+import { markdownify } from "@/lib/utils/textConverter";
+import { getCollectionCTM } from "@/lib/contentParser.astro";
+import overrideObjects from "@/lib/utils/overrideObjects.ts";
+import BlogCard from "@/layouts/components/cards/BlogCard.astro";
+import config from ".astro/config.generated.json";
+import AnimatedText from "../widgets/AnimatedText.astro";
+
+const { blogFolder } = config.settings;
+
+// Type for this section data
+type blogSectionType = Section & {
+  featuredPost?: boolean;
+};
+type Props = {
+  listPage?: boolean;
+  content?: blogSectionType;
+  pagination?: {
+    enable: boolean;
+    currentPage: number;
+  };
+};
+
+// Fetching the default content for the this section
+let defaultContent = (
+  await getEntryCTM("sections", "blog-section", Astro.currentLocale)
+)?.data as blogSectionType;
+
+// Enables content customization (e.g., title, description) with a fallback to 'defaultContent' if not provided.
+// The 'content' prop should match the structure of 'defaultContent'.
+// Allows using this section with different content across multiple pages.
+// If 'content' is missing, 'defaultContent' will be used.
+let actualContent = overrideObjects(
+  { ...defaultContent },
+  Astro.props.content,
+) as blogSectionType;
+
+// Extracting required values from 'content' object
+let { enable = true, limit, title } = actualContent as blogSectionType;
+let { listPage = false } = Astro.props as Props;
+
+let posts = await getCollectionCTM(blogFolder as "blog", Astro.currentLocale);
+
+// Sort posts by date
+posts = sortByDate(posts);
+
+// Limit the number of items to be displayed
+let totalPages = Math.ceil(posts?.length / config.settings.pagination);
+
+const featuredPost = posts.find((post) => post.data.featured);
+
+// Remove featured posts from the main list
+if (featuredPost) {
+  posts = posts.filter((post) => post.data.featured !== true);
+}
+
+if (Astro.props.pagination) {
+  const indexOfLastPost =
+    Astro.props.pagination?.currentPage * config.settings.pagination;
+  const indexOfFirstPost = indexOfLastPost - config.settings.pagination;
+  posts = posts.slice(indexOfFirstPost, indexOfLastPost);
+}
+
+// Limit the number of items to be displayed
+if (limit && !Astro.props.pagination) {
+  posts = posts.slice(0, limit);
+}
+
+if (!enable) return;
+---
+
+{
+  listPage && featuredPost && Astro.props.pagination?.currentPage === 1 && (
+    <section>
+      <div class="container">
+        <BlogCard
+          layout="horizontal"
+          content={{ ...featuredPost.data, ...featuredPost }}
+        />
+      </div>
+    </section>
+  )
+}
+
+<section>
+  <div class="container space-y-10 md:space-y-16">
+    {
+      !listPage && title && (
+        <div class="mx-auto max-w-2xl text-center">
+          <h2 class="has-italic-text capitalize">
+            <AnimatedText
+              delay={0.2}
+              stagger={0.09}
+              content={markdownify(title)}
+            />
+          </h2>
+        </div>
+      )
+    }
+
+    <div class="grid gap-x-6 gap-y-10 md:grid-cols-2 xl:grid-cols-3">
+      {
+        posts &&
+          posts.map((post, index) => (
+            <BlogCard
+              content={{ ...post.data, ...post }}
+              data-aos-delay={
+                !Astro.props.pagination && ((index % 3) + 1) * 100
+              }
+              data-aos={
+                !Astro.props.pagination &&
+                (Math.floor(index / 3) % 2 === 0
+                  ? "fade-right-sm"
+                  : "fade-left-sm")
+              }
+            />
+          ))
+      }
+    </div>
+    {
+      listPage && (
+        <Pagination
+          collection={blogFolder}
+          currentPage={Astro.props.pagination?.currentPage || 1}
+          totalPages={totalPages}
+        />
+      )
+    }
+  </div>
+</section>

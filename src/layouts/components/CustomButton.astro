@@ -1,0 +1,109 @@
+---
+/**
+ * Example Usage
+
+  // Default button (anchor tag)
+  <CustomButton label="Visit Home" url="/" />
+
+  // Outline variant linking externally
+  <CustomButton variant="outline" label="Astro Docs" url="https://astro.build" />
+
+  // Text variant with hover effect
+  <CustomButton variant="text" hoverEffect="text-flip" label="Learn More" url="/learn" />
+
+  // Button tag for form actions
+  <CustomButton tag="button" label="Submit" onClick={() => alert('Submitted!')} />
+
+  // Creative hover effect with fill variant
+  <CustomButton hoverEffect="creative-fill" label="Explore" url="/explore" />
+
+  // Magnetic text flip with outline variant
+  <CustomButton hoverEffect="magnetic-text-flip" variant="outline" label="Join Now" url="/join" />
+ */
+
+import { getLocaleUrlCTM } from "@/lib/utils/i18nUtils";
+import CustomButtonContent from "./CustomButtonContent.astro";
+import type { sharedButton, sharedButtonTag } from "@/sections.schema";
+import type { z } from "astro/zod";
+
+type Props = z.infer<typeof sharedButton | typeof sharedButtonTag>;
+
+const {
+  enable = true,
+  tag = "a",
+  title,
+  label,
+  url = "#",
+  rel,
+  target,
+  hoverEffect = "text-flip",
+  variant = "fill",
+  class: className,
+  ...rest
+} = Astro.props;
+
+if (!enable) return;
+
+const isCreativeHoverEffect = hoverEffect === "creative-fill";
+const isTextFlipHoverEffect = hoverEffect === "text-flip";
+const isMagneticHoverEffect = hoverEffect === "magnetic";
+const isMagneticTextFlipHoverEffect = hoverEffect === "magnetic-text-flip";
+
+const resolvedRel = url.startsWith("http")
+  ? rel || "noopener noreferrer"
+  : rel || undefined;
+const resolvedTarget = url.startsWith("http")
+  ? target || "_blank"
+  : target || undefined;
+
+const buttonClasses = [
+  "btn",
+  {
+    "creative-hover-anim": isCreativeHoverEffect,
+    "btn-outline": variant === "outline",
+    "btn-primary": variant === "fill",
+    "btn-text has-icon-moving-animation no-underline": variant === "text",
+  },
+
+  (isTextFlipHoverEffect || isMagneticTextFlipHoverEffect) &&
+    "text-flip-hover-anim",
+  (isMagneticHoverEffect || isMagneticTextFlipHoverEffect) &&
+    "magnetic-hover-anim",
+  className,
+];
+---
+
+{
+  tag === "a" ? (
+    <a
+      rel={resolvedRel}
+      target={resolvedTarget}
+      class:list={buttonClasses}
+      href={getLocaleUrlCTM(url, Astro.currentLocale)}
+      {...rest}>
+      <CustomButtonContent
+        {...{
+          label,
+          title,
+          variant,
+          isCreativeHoverEffect,
+          isTextFlipHoverEffect,
+          isMagneticTextFlipHoverEffect,
+        }}
+      />
+    </a>
+  ) : (
+    <button class:list={buttonClasses} {...rest}>
+      <CustomButtonContent
+        {...{
+          label,
+          title,
+          variant,
+          isCreativeHoverEffect,
+          isTextFlipHoverEffect,
+          isMagneticTextFlipHoverEffect,
+        }}
+      />
+    </button>
+  )
+}

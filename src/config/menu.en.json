@@ -1,0 +1,309 @@
+{
+  "main": [
+    {
+      "enable": true,
+      "name": "Home",
+      "weight": 0,
+      "url": ""
+    },
+    {
+      "enable": true,
+      "name": "Features",
+      "weight": 0,
+      "hasMegaMenu": true,
+      "cta": {
+        "enable": true,
+        "image": "/images/menu-cta.png",
+        "title": "Gain Actionable Insights",
+        "description": "Launch faster, grow smarter, and scale effortlessly.",
+        "button": {
+          "enable": true,
+          "hoverEffect": "text-flip",
+          "hoverEffect_comment": "text-flip, creative-fill, magnetic, magnetic-text-flip",
+          "label": "Get A Free Trial",
+          "url": "/contact/",
+          "rel": "",
+          "target": ""
+        }
+      },
+      "menus": [
+        {
+          "enable": true,
+          "children": [
+            {
+              "enable": true,
+              "icon": "Focus",
+              "name": "Real-Time Reporting",
+              "description": "Monitor live data streams.",
+              "url": "/features/"
+            },
+            {
+              "enable": true,
+              "icon": "Shield",
+              "name": "Seamless Collaboration",
+              "description": "Keep your team aligned.",
+              "url": "/features/"
+            },
+            {
+              "enable": true,
+              "icon": "Database",
+              "name": "Satisfaction Metrics",
+              "description": "Keep track of your users satisfaction.",
+              "url": "/features/"
+            },
+            {
+              "enable": true,
+              "icon": "Clock",
+              "name": "Smart Automation Hub",
+              "description": "Get everything done with AI tools.",
+              "url": "/features/"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Pages",
+      "enable": true,
+      "weight": 0,
+      "hasChildren": true,
+      "children": [
+        {
+          "enable": true,
+          "name": "Company",
+          "url": "/company/",
+          "weight": 0
+        },
+        {
+          "enable": true,
+          "name": "Features",
+          "url": "/features/",
+          "weight": 0
+        },
+        {
+          "enable": true,
+          "name": "Pricing",
+          "url": "/pricing/",
+          "weight": 0
+        },
+        {
+          "enable": true,
+          "name": "Nested Menu",
+          "hasChildren": true,
+          "weight": 0,
+          "children": [
+            {
+              "enable": true,
+              "name": "Menu 01",
+              "weight": 0
+            },
+            {
+              "enable": true,
+              "name": "Nested Menu",
+              "hasChildren": true,
+              "weight": 0,
+              "children": [
+                {
+                  "enable": true,
+                  "name": "Nested Menu Item",
+                  "weight": 0
+                },
+                {
+                  "enable": true,
+                  "name": "Nested Menu Item",
+                  "weight": 0
+                },
+                {
+                  "enable": true,
+                  "name": "Nested Menu Item",
+                  "weight": 0
+                },
+                {
+                  "enable": true,
+                  "name": "Nested Menu Item",
+                  "weight": 0
+                }
+              ]
+            },
+            {
+              "enable": true,
+              "name": "Menu 02",
+              "weight": 0
+            },
+            {
+              "enable": true,
+              "name": "Menu 03",
+              "weight": 0
+            }
+          ]
+        },
+        {
+          "enable": true,
+          "name": "Testimonial",
+          "url": "/testimonial/",
+          "weight": 0
+        },
+        {
+          "enable": true,
+          "name": "Faq",
+          "url": "/faq/",
+          "weight": 0
+        },
+        {
+          "enable": true,
+          "name": "Changelog",
+          "url": "/changelog/",
+          "weight": 0
+        },
+        {
+          "enable": true,
+          "name": "Career",
+          "url": "/career/",
+          "weight": 0
+        },
+        {
+          "enable": true,
+          "name": "Career Single",
+          "url": "/career/with-custom-slug",
+          "weight": 0
+        },
+        {
+          "enable": true,
+          "name": "Integration",
+          "url": "/integration/",
+          "weight": 0
+        },
+        {
+          "enable": true,
+          "name": "Integration Single",
+          "url": "/integration/discord/",
+          "weight": 0
+        },
+        {
+          "enable": true,
+          "name": "Blog",
+          "url": "/blog/",
+          "weight": 0
+        },
+        {
+          "enable": true,
+          "name": "Blog Single",
+          "url": "/blog/post-1/",
+          "weight": 0
+        },
+        {
+          "enable": true,
+          "name": "Terms & Conditions",
+          "url": "/terms-conditions/",
+          "weight": 0
+        }
+      ]
+    },
+    {
+      "enable": true,
+      "name": "Components",
+      "url": "/components/",
+      "weight": 0,
+      "badge": {
+        "enable": true,
+        "label": "NEW",
+        "color": "accent",
+        "_color_comment": "color expected value - accent, info, success, danger, dark",
+        "type": "text",
+        "_type_comment": "type expected value - text, dot"
+      }
+    },
+    {
+      "enable": true,
+      "name": "Contact",
+      "url": "/contact/",
+      "weight": 0,
+      "badge": {
+        "enable": true,
+        "label": "NEW",
+        "color": "accent",
+        "_color_comment": "color expected value - accent, info, success, danger, dark",
+        "type": "dot",
+        "_type_comment": "type expected value - text, dot"
+      }
+    }
+  ],
+  "footerMenu": [
+    {
+      "enable": true,
+      "name": "Terms & Conditions",
+      "url": "/terms-conditions/",
+      "weight": 0
+    },
+    {
+      "enable": true,
+      "name": "Privacy & Policy",
+      "url": "/privacy-policy/",
+      "weight": 0
+    }
+  ],
+  "footerMenuOne": [
+    {
+      "enable": true,
+      "name": "About Us",
+      "url": "/company/",
+      "weight": 0
+    },
+    {
+      "enable": true,
+      "name": "Careers",
+      "url": "/career/",
+      "weight": 0
+    },
+    {
+      "enable": true,
+      "name": "Blog",
+      "url": "/blog/",
+      "weight": 0
+    },
+    {
+      "enable": true,
+      "name": "Press",
+      "url": "/",
+      "weight": 0
+    },
+    {
+      "enable": true,
+      "name": "Contact",
+      "url": "/contact/",
+      "weight": 0
+    }
+  ],
+  "footerMenuTwo": [
+    {
+      "enable": true,
+      "name": "Help Center",
+      "url": "/",
+      "weight": 0
+    },
+    {
+      "enable": true,
+      "name": "API Status",
+      "url": "/",
+      "weight": 0
+    },
+    {
+      "enable": true,
+      "name": "Community",
+      "url": "/",
+      "weight": 0
+    },
+    {
+      "enable": true,
+      "name": "Documentation",
+      "url": "/",
+      "weight": 0
+    },
+    {
+      "enable": true,
+      "name": "Privacy & Terms",
+      "url": "/",
+      "weight": 0
+    }
+  ]
+}

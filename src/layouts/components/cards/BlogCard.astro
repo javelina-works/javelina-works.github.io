@@ -1,0 +1,119 @@
+---
+import type { Section } from "@/types";
+import dateFormat from "@/lib/utils/dateFormat";
+import OptimizedImage from "@/components/utilities/OptimizedImage.astro";
+import {
+  humanize,
+  markdownify,
+  plainify,
+  slugifyyy,
+} from "@/lib/utils/textConverter";
+import { getLocaleUrlCTM, useTranslations } from "@/lib/utils/i18nUtils";
+import CustomButton from "../CustomButton.astro";
+import Icons from "@/helpers/Icons.astro";
+
+interface Props {
+  content: Section & {
+    id: string;
+    collection: string;
+  };
+  class?: string;
+  layout?: "horizontal" | "vertical";
+}
+
+const t = await useTranslations(Astro.currentLocale as string);
+
+let { content, layout = "vertical", class: className, ...rest } = Astro.props;
+let { title, image, excerpt, date, categories } = content || {};
+
+// Format categories
+const categoriesArray = categories?.map((category: string) => ({
+  name: category,
+  slug: slugifyyy(category),
+}));
+
+let slug = getLocaleUrlCTM(content.id, Astro.currentLocale, content.collection);
+
+const isHorizontal = layout === "horizontal";
+---
+
+<article
+  class:list={[
+    "bg-theme-light rounded-2xl p-6",
+    isHorizontal &&
+      "flex flex-col items-start gap-5 md:flex-row md:items-center md:gap-10",
+    className,
+  ]}
+  {...rest}>
+  <div
+    class="group after:from-theme-light relative flex items-center justify-center overflow-hidden rounded-xl via-20% after:pointer-events-none after:absolute after:inset-0 after:z-10 after:hidden after:bg-linear-to-t after:to-transparent after:transition-opacity after:duration-500 after:md:block after:md:opacity-0 hover:md:after:opacity-100">
+    <span
+      class="text-dark pointer-events-none absolute z-20 hidden h-16 w-16 items-center justify-center rounded-full bg-white transition duration-500 md:flex md:opacity-0 group-hover:md:opacity-100">
+      <Icons class="text-2xl" icon="ArrowUpRight" />
+    </span>
+    {
+      image && (
+        <div class="overflow-hidden rounded-2xl border-4 border-white">
+          <OptimizedImage
+            src={image}
+            width={800}
+            height={800}
+            alt={"Related to " + title?.toLowerCase()}
+            class:list={[
+              "min-w-full object-cover transition duration-500 group-hover:scale-105",
+              isHorizontal ? "h-[300px]! md:h-[400px]!" : "h-62.5!",
+            ]}
+          />
+        </div>
+      )
+    }
+    <a class="absolute inset-0 z-30" href={slug}>
+      <span class="sr-only">
+        {"Learn more about " + title?.toLowerCase()}
+      </span>
+    </a>
+  </div>
+  <div class:list={["space-y-4", layout !== "horizontal" && "mt-4"]}>
+    <div
+      class="font-primary text-text-default flex flex-wrap items-center gap-x-2.5 gap-y-px text-sm font-medium">
+      <span>{date && dateFormat(date)}</span>
+      <span class="bg-dark inline-block h-0.75 w-0.75 rounded-full"></span>
+
+      {
+        categoriesArray?.map((category: any, index: number) => (
+          <>
+            <span class="text-inherit">{humanize(category.name)}</span>
+            {index !== categoriesArray.length - 1 && (
+              <span class="bg-dark inline-block h-0.75 w-0.75 rounded-full" />
+            )}
+          </>
+        ))
+      }
+    </div>
+    {
+      title && (
+        <h2
+          class:list={[
+            isHorizontal
+              ? "md:text-h4 text-h4-sm mb-8 font-medium"
+              : "md:text-h5 text-h5-sm mb-4",
+          ]}
+          set:html={plainify(title)}
+        />
+      )
+    }
+    {
+      isHorizontal && excerpt && (
+        <p class="text-lg" set:html={markdownify(excerpt)} />
+      )
+    }
+    <CustomButton
+      variant="outline"
+      hoverEffect="text-flip"
+      class="btn-sm btn-outline-white mt-3 capitalize"
+      title={"Read more about " + title?.toLowerCase()}
+      label={t("common.readMore")}
+      url={slug}
+    />
+  </div>
+</article>

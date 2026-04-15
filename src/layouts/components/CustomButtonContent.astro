@@ -1,0 +1,79 @@
+---
+import Icons from "@/helpers/Icons.astro";
+
+const {
+  label,
+  variant,
+  title,
+  isCreativeHoverEffect,
+  isTextFlipHoverEffect,
+  isMagneticTextFlipHoverEffect,
+} = Astro.props;
+
+// Applcable only if button have the text-flip hover animation
+let dataContent;
+if (isTextFlipHoverEffect || isMagneticTextFlipHoverEffect) {
+  dataContent = variant !== "text" ? label : undefined;
+}
+
+// Check if the label contain "learn more" "read more" type of text that need to add support for accessibility
+let addAriaLabel = false;
+if (
+  label?.toLowerCase().includes("learn more") ||
+  label?.toLowerCase().includes("read more")
+) {
+  addAriaLabel = true;
+}
+---
+
+{
+  (isTextFlipHoverEffect || isMagneticTextFlipHoverEffect) &&
+  variant !== "text" ? (
+    <>
+      <span
+        class="text-flip-inner"
+        set:html={label}
+        data-content={dataContent}
+      />
+      {addAriaLabel && <span class="sr-only" set:html={title} />}
+    </>
+  ) : (
+    <>
+      <Fragment set:html={label} />
+      {addAriaLabel && <span class="sr-only" set:html={title} />}
+    </>
+  )
+}
+
+{
+  variant === "text" ? (
+    <span class="icons-wrapper ms-2 -mb-px inline-flex min-h-[.9em] min-w-[1em] items-center justify-center">
+      <span class="icon icon-before flex items-center justify-center">
+        <Icons class="[font-size:inherit]" icon="ArrowUpRight" />
+      </span>
+      <span
+        class="icon icon-after flex items-center justify-center"
+        aria-hidden="true">
+        <Icons class="[font-size:inherit]" icon="ArrowUpRight" />
+      </span>
+    </span>
+  ) : isCreativeHoverEffect ? (
+    <span class="hover-bg" />
+  ) : (
+    <span class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]">
+      <svg
+        class="gradient-shape"
+        width="150"
+        height="28"
+        viewBox="0 0 147 11"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433"
+          stroke="currentColor"
+          stroke-width="8"
+        />
+      </svg>
+    </span>
+  )
+}

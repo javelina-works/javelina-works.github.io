@@ -1,0 +1,167 @@
+---
+import type { Section } from "@/types";
+import type { z } from "astro/zod";
+import { getEntryCTM } from "@/lib/contentParser.astro";
+import { markdownify } from "@/lib/utils/textConverter";
+import overrideObjects from "@/lib/utils/overrideObjects.ts";
+import type { aboutSectionSchema } from "@/sections.schema";
+import OptimizedImage from "../utilities/OptimizedImage.astro";
+import SquareElem from "../widgets/SquareElem.astro";
+import AnimatedNumber from "../widgets/AnimatedNumber.astro";
+import AnimatedText from "../widgets/AnimatedText.astro";
+
+// Type
+type SectionType = Section & z.infer<typeof aboutSectionSchema>;
+type Props = {
+  content?: SectionType;
+};
+
+// Default content fetch
+let defaultContent = (
+  await getEntryCTM("sections", "about-us", Astro.currentLocale)
+)?.data as SectionType;
+
+let actualContent = overrideObjects(
+  { ...defaultContent },
+  Astro.props.content,
+) as SectionType;
+
+let {
+  enable = true,
+  title,
+  about,
+  officeImages,
+  stats,
+} = actualContent as SectionType;
+
+if (!enable) return;
+---
+
+<section class="overflow-hidden">
+  <div class="container space-y-16 md:space-y-32">
+    <div class="space-y-10 md:space-y-16">
+      {
+        title && (
+          <div class="mx-auto max-w-2xl text-center">
+            <h2 class="has-italic-text capitalize">
+              <AnimatedText
+                delay={0.2}
+                stagger={0.09}
+                content={markdownify(title)}
+              />
+            </h2>
+          </div>
+        )
+      }
+      {
+        officeImages && (
+          <div class="grid gap-4 md:gap-8 lg:grid-cols-3 lg:grid-rows-[300px_300px]">
+            {officeImages.map((item, index) => (
+              <div
+                data-aos="zoom-in-sm"
+                data-aos-delay="200"
+                data-aos-offset="0"
+                class:list={[
+                  index === 0 && "row-span-2",
+                  index === 3 && "col-span-2",
+                ]}>
+                <OptimizedImage
+                  src={item}
+                  class="size-full object-cover"
+                  alt="Office Image"
+                />
+              </div>
+            ))}
+          </div>
+        )
+      }
+    </div>
+    {
+      about && (
+        <div class="space-y-8 p-0 md:space-y-16 lg:px-12 xl:px-24">
+          {about.title && (
+            <h2
+              data-aos="fade-up-sm"
+              class="has-italic-text capitalize"
+              set:html={markdownify(about.title)}
+            />
+          )}
+          <div class="grid gap-14 md:grid-cols-12">
+            {about.image && (
+              <div class="relative md:col-span-4" data-aos="fade-right-sm">
+                <OptimizedImage
+                  width={310}
+                  height={270}
+                  class="size-full object-cover"
+                  src={about.image}
+                  alt={about.title || ""}
+                />
+                <div class="pointer-events-none absolute inset-0 size-full select-none">
+                  <span class="translate-x-centered absolute -top-1 h-1 w-[115%] border-b border-dashed border-black/50" />
+                  <span class="translate-x-centered absolute -bottom-px h-1 w-[115%] border-b border-dashed border-black/50" />
+                  <span class="translate-y-centered absolute -left-px h-[115%] w-1 border-s border-dashed border-black/50" />
+                  <span class="translate-y-centered absolute -right-1 h-[115%] w-1 border-s border-dashed border-black/50" />
+                  <SquareElem class="absolute -top-3.5 -left-3.5 fill-white" />
+                  <SquareElem class="absolute -top-3.5 -right-3.5 fill-white" />
+                  <SquareElem class="absolute -bottom-3.5 -left-3.5 fill-white" />
+                  <SquareElem class="absolute -right-3.5 -bottom-3.5 fill-white" />
+                </div>
+                <OptimizedImage
+                  src="/images/about/image-shape.png"
+                  class="absolute bottom-0 left-0 w-full"
+                />
+              </div>
+            )}
+            <div
+              data-aos="fade-right-sm"
+              data-aos-delay="150"
+              class="space-y-7 md:col-span-8 md:space-y-14">
+              {about.description && (
+                <p class="text-lg" set:html={markdownify(about.description)} />
+              )}
+              {about.list && about.list.length > 0 && (
+                <div class="flex flex-wrap gap-7 md:flex-nowrap md:gap-14">
+                  {about.list.map((item) => (
+                    <div class="space-y-4">
+                      <h3
+                        class="text-h5-sm md:text-h5 font-medium"
+                        set:html={markdownify(item.title)}
+                      />
+                      <p set:html={markdownify(item.description)} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )
+    }
+    {
+      stats && (
+        <div class="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-4">
+          {stats.map((item) => (
+            <div class="space-y-3.5 md:text-center">
+              {item.value && (
+                <AnimatedNumber
+                  class="text-h2-sm md:text-h2 block"
+                  transitionTime="1.2s"
+                  content={item}
+                />
+              )}
+              {item.title && (
+                <h3
+                  class="text-h6-sm md:text-h6"
+                  set:html={markdownify(item.title)}
+                />
+              )}
+              {item.description && (
+                <p set:html={markdownify(item.description)} />
+              )}
+            </div>
+          ))}
+        </div>
+      )
+    }
+  </div>
+</section>

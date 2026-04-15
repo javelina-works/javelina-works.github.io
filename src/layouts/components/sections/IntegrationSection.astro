@@ -1,0 +1,117 @@
+---
+import type { MarqueeConfig, Section } from "@/types";
+import { markdownify } from "@/lib/utils/textConverter";
+import overrideObjects from "@/lib/utils/overrideObjects.ts";
+import OptimizedImage from "../utilities/OptimizedImage.astro";
+import { getCollectionCTM, getEntryCTM } from "@/lib/contentParser.astro";
+import config from ".astro/config.generated.json";
+import SquareElem from "../widgets/SquareElem.astro";
+import AnimatedText from "../widgets/AnimatedText.astro";
+
+// Type for this section data
+type SectionType = Section & {
+  list: {
+    title: string;
+    description: string;
+  }[];
+  marquee: MarqueeConfig;
+};
+type Props = {
+  content?: SectionType;
+};
+
+// Fetching the default content for the this section
+let defaultContent = (
+  await getEntryCTM("sections", "integration-section", Astro.currentLocale)
+)?.data as SectionType;
+
+// Enables content customization (e.g., title, description) with a fallback to 'defaultContent' if not provided.
+// The 'content' prop should match the structure of 'defaultContent'.
+// Allows using this section with different content across multiple pages.
+// If 'content' is missing, 'defaultContent' will be used.
+let actualContent = overrideObjects(
+  { ...defaultContent },
+  Astro.props.content,
+) as SectionType;
+
+// Extracting required values from 'content' object
+let { title } = actualContent as SectionType;
+
+let integrations = await getCollectionCTM(
+  config?.settings?.integrationFolder as "integration",
+  Astro.currentLocale,
+);
+---
+
+<section class="overflow-hidden">
+  <div class="container space-y-10 md:space-y-16">
+    {
+      title && (
+        <div class="mx-auto max-w-lg text-center">
+          <h2 class="has-italic-text capitalize">
+            <AnimatedText
+              delay={0.2}
+              stagger={0.09}
+              content={markdownify(title)}
+            />
+          </h2>
+        </div>
+      )
+    }
+    <div class="relative mb-10">
+      <div
+        class="draggable-wrapper flex min-h-96 flex-wrap items-center gap-4 border">
+        {
+          integrations.map((item) => (
+            <div class="bg-theme-light draggable invisible flex items-center rounded-full p-1 [&.active]:visible">
+              {item.data.image && (
+                <OptimizedImage
+                  src={item.data.image}
+                  class="pointer-events-none w-full max-w-6 rounded-full select-none md:max-w-11"
+                  alt={item.data.title}
+                />
+              )}
+              {item.data.title && (
+                <h3
+                  class="has-italic-text pointer-events-none mx-4 text-xs capitalize select-none md:text-xl"
+                  set:html={markdownify(item.data.title)}
+                />
+              )}
+            </div>
+          ))
+        }
+      </div>
+      <OptimizedImage
+        class="pointer-events-none absolute inset-0 left-0 h-full w-full object-cover opacity-25 select-none"
+        src="/images/integration-bg.png"
+        alt=""
+      />
+      <!-- Beautify Elems -->
+      <div class="pointer-events-none absolute inset-0 size-full select-none">
+        <span
+          class="translate-x-centered bg-border-light absolute top-0 h-px w-[105%]">
+        </span>
+        <span
+          class="translate-x-centered bg-border-light absolute bottom-0 h-px w-[105%]">
+        </span>
+        <span
+          class="translate-y-centered bg-border-light absolute left-0 h-[115%] w-px">
+        </span>
+        <span
+          class="translate-y-centered bg-border-light absolute right-0 h-[115%] w-px">
+        </span>
+        <span></span>
+        <span></span>
+        <SquareElem class="absolute -top-3.5 -left-3.5" />
+        <SquareElem class="absolute -top-3.5 -right-3.5" />
+        <SquareElem class="absolute -bottom-3.5 -left-3.5" />
+        <SquareElem class="absolute -right-3.5 -bottom-3.5" />
+      </div>
+    </div>
+  </div>
+  <script>
+    import draggable from "@/lib/utils/draggable";
+
+    window.addEventListener("load", draggable);
+  </script>
+</section>

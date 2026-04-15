@@ -1,0 +1,41 @@
+{
+  "common": {
+    "readMore": "Lire la suite",
+    "category": "Catégorie",
+    "publishedOn": "Publié le",
+    "learnMoreAbout": "En savoir plus sur",
+    "emailPlaceholder": "Adresse e-mail",
+    "paginationNext": "Suivant",
+    "paginationPrevious": "Précédent",
+    "backToHome": "Retour à l'accueil",
+    "careerJobOverview": "Aperçu du poste",
+    "contactDropdownSearch404": "Aucun résultat trouvé",
+    "careerApplyNow": "Postuler maintenant"
+  },
+  "navigation": {
+    "buttonLabel": "S'inscrire"
+  },
+  "contactInfo": {
+    "locationLabel": "Lieu",
+    "location": "2627 Park Street, San Francisco, CA",
+    "phoneLabel": "Numéro de téléphone",
+    "phone": "925-465-3762",
+    "emailLabel": "Email",
+    "email": "stella@example.com"
+  },
+  "subscription": {
+    "label": "Abonnez-vous à notre newsletter",
+    "term": "Je suis d'accord avec la [politique de confidentialité](/privacy-policy/)"
+  },
+  "integration": {
+    "relatedIntegrationSectionTitle": "Vous pourriez être **intéressé par**",
+    "backToIntegration": "Parcourir"
+  },
+  "footer": {
+    "colTitleOne": "Entreprise",
+    "colTitleTwo": "Ressources",
+    "colTitleThree": "Contact",
+    "description": "Nous fournissons des solutions fluides aux petites et moyennes entreprises. Quel que soit votre travail, nous pouvons vous aider.",
+    "copyright": "Copyright © 2024 Stella. Tous droits réservés."
+  }
+}

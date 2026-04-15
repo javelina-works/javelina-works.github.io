@@ -1,0 +1,102 @@
+---
+import Base from "@/layouts/Base.astro";
+import { getEntryCTM } from "@/lib/contentParser.astro";
+import config from ".astro/config.generated.json";
+import { getCollectionCTM } from "@/lib/contentParser.astro";
+import CallToAction from "@/components/sections/CallToAction.astro";
+import { supportedLanguages, useTranslations } from "@/lib/utils/i18nUtils";
+import SinglePageLayout from "@/components/SinglePageLayout.astro";
+import { markdownify } from "@/lib/utils/textConverter";
+import CustomButton from "@/components/CustomButton.astro";
+
+export async function getStaticPaths() {
+  const paths = await Promise.all(
+    supportedLanguages.map(async (lang) => {
+      const { careerFolder } = config.settings;
+      const { defaultLanguage, showDefaultLangInUrl } =
+        config.settings.multilingual;
+
+      const careerIndex = await getEntryCTM(
+        careerFolder as "career",
+        "-index",
+        lang.languageCode,
+      );
+
+      let careers = await getCollectionCTM(
+        careerFolder as "career",
+        lang.languageCode,
+      );
+
+      // If draft true in index.md file frontmatter don't include any page related to this page collection in production
+      if (careerIndex?.data.draft && import.meta.env.PROD) {
+        return [];
+      }
+
+      return careers.map((career) => ({
+        params: {
+          lang:
+            lang.languageCode === defaultLanguage && !showDefaultLangInUrl
+              ? undefined
+              : lang.languageCode,
+          single:
+            career.data?.customSlug ||
+            career.id
+              .replace(/\.mdx?|\.md/g, "")
+              .split("/")
+              .pop(),
+        },
+        props: {
+          career,
+        },
+      }));
+    }),
+  );
+
+  return paths.flat();
+}
+
+const { career } = Astro.props;
+const t = await useTranslations(Astro.currentLocale as string);
+---
+
+<Base {...career.data}>
+  <SinglePageLayout content={career}>
+    <div slot="content" class="bg-theme-light rounded-xl p-5 md:p-8">
+      {
+        t("common.careerJobOverview") && (
+          <h2
+            class="text-h6-sm md:text-h6"
+            set:html={markdownify(t("common.careerJobOverview"))}
+          />
+        )
+      }
+      <div class="mt-5 flex flex-wrap gap-6">
+        {
+          career.data.fields.map(
+            (field: { name: unknown; content: unknown }) => (
+              <div class="flex flex-wrap gap-2 sm:flex-nowrap sm:items-center">
+                <p class="text-black/55 capitalize">{field.name}:</p>
+                <p class="text-black">{field.content}</p>
+              </div>
+            ),
+          )
+        }
+      </div>
+      {
+        career.data.button && (
+          <div class="mt-8">
+            <CustomButton
+              target="_blank"
+              class="btn-black"
+              hoverEffect="text-flip"
+              rel="noopener noreferrer"
+              label={t("common.careerApplyNow")}
+              {...career.data.button}
+            />
+          </div>
+        )
+      }
+    </div>
+  </SinglePageLayout>
+  <CallToAction />
+</Base>

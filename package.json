@@ -1,0 +1,76 @@
+{
+  "name": "stella",
+  "type": "module",
+  "version": "2.0.0",
+  "author": "getastrothemes",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "dev": "npm run toml:watch -- --watch & astro dev",
+    "build": "npm run toml:watch && astro build && npm run remove-draft-from-sitemap",
+    "preview": "npm run build && astro preview",
+    "astro-check": "astro check",
+    "toml:watch": "node scripts/toml-watcher.mjs",
+    "generate-favicons": "node ./scripts/generate-favicons.mjs",
+    "generate-multilingual-content": "node ./scripts/generate-multilingual-content.mjs",
+    "remove-multilingual": "node ./scripts/remove-multilingual.mjs",
+    "remove-draft-from-sitemap": "node ./scripts/remove-draft-from-sitemap.mjs",
+    "format": "prettier -w ./src",
+    "test": "cross-env TS_NODE_PROJECT=\"./tsconfig.jest.json\" jest --watch"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "dependencies": {
+    "@floating-ui/dom": "^1.7.6",
+    "aos": "^2.3.4",
+    "date-fns": "^4.1.0",
+    "lucide": "^0.577.0",
+    "marked": "^17.0.4",
+    "matter-js": "^0.20.0",
+    "motion": "^12.37.0",
+    "plyr": "^3.8.4",
+    "preline": "^4.1.2",
+    "sharp": "^0.34.5",
+    "smoothscroll-for-websites": "^1.5.1"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.8",
+    "@astrojs/mdx": "^5.0.1",
+    "@astrojs/sitemap": "^3.7.1",
+    "@realfavicongenerator/generate-favicon": "^0.6.3",
+    "@realfavicongenerator/image-adapter-node": "^0.6.3",
+    "@tailwindcss/forms": "^0.5.11",
+    "@tailwindcss/typography": "^0.5.19",
+    "@tailwindcss/vite": "^4.2.1",
+    "@types/jest": "^30.0.0",
+    "@types/matter-js": "^0.20.2",
+    "astro": "^6.0.5",
+    "astro-auto-import": "^0.5.1",
+    "cross-env": "^10.1.0",
+    "gray-matter": "^4.0.3",
+    "ignore": "^7.0.5",
+    "jest": "^30.3.0",
+    "linkedom": "^0.18.12",
+    "prettier": "^3.8.1",
+    "prettier-plugin-astro": "^0.14.1",
+    "prettier-plugin-tailwindcss": "^0.7.2",
+    "prettier-plugin-toml": "^2.0.6",
+    "prop-types": "^15.8.1",
+    "rehype-external-links": "^3.0.0",
+    "remark-toc": "^9.0.0",
+    "slugify": "^1.6.8",
+    "tailwindcss": "^4.2.1",
+    "toml": "^3.0.0",
+    "ts-jest": "^29.4.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "unist-util-visit": "^5.1.0",
+    "xml2js": "^0.6.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "glob": "^13.0.6"
+    }
+  }
+}
