@@ -15,7 +15,7 @@ button:
 # showTitle: true
 
 list:
-  - label: "Product & Features"
+  - label: "Planning"
     list:
       - active: true
         title: "What can I build with this SaaS?"

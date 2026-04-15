@@ -1,8 +1,8 @@
 {
-  "name": "stella",
+  "name": "javelina-works-website",
   "type": "module",
   "version": "2.0.0",
-  "author": "getastrothemes",
+  "author": "Kellan Cerveny",
   "license": "UNLICENSED",
   "private": true,
   "scripts": {
