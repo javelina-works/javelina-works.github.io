@@ -1,12 +1,12 @@
 # Site Configuration
 [site]
-  title            = "Stella" # Shared title for SEO and OpenGraph
+  title            = "Javelina Works" # Shared title for SEO and OpenGraph
   description      = "A customizable and multipurpose saas & startup astro theme built with Tailwind CSS and Astro Js" # Shared description for SEO and OpenGraph
   tagline          = "Multipurpose Saas & Startup Astro Js Theme"
-  taglineSeparator = "" # default is " - " 
+  taglineSeparator = "" # default is " - "
   baseUrl          = "https://stella-astro.netlify.app" # Base URL for the site and used in OpenGraph meta tags.
   logo             = "/images/logo.svg" # Path to the site's logo
-  logoText         = "Stella" # Text displayed next to the logo
+  logoText         = "Javelina Works" # Text displayed next to the logo
   logoWidth        = "2rem" # Width of the logo
   logoHeight       = "2rem" # Height of the logo
 
@@ -61,10 +61,10 @@
   # Form action URL for the contact form (For more settings related to form see "src/content/sections/contact-section.md")
   contactFormAction = "https://formsubmit.co/temp.gats@gmail.com" # https://formspree.io/f/your_form_id | https://formsubmit.co/your_form_submission_receive_email | "/"
 
-  # formspree | formsubmit.co | netlify (default is formsubmit.co) 
+  # formspree | formsubmit.co | netlify (default is formsubmit.co)
   contactFormProvider = "formsubmit.co"
 
-  brandName         = "Stella"
+  brandName         = "Javelina Works"
   footerDescription = "" # Check src/i18n/en.json and src/i18n/fr.json for changing the footer description in different languages or directly add value here if you are not using internationalization feature
 
   # For changing footer description and footer copyright in different languages see src/i18n/en.json and src/i18n/fr.json
@@ -83,7 +83,7 @@
   [settings.multilingual]
     # Set `enable` to `true` for enabling the multilingual feature or `false` for disabling it.
     # Run `npm run remove-multilingual` for removing multilingual content files after disabling the feature.
-    enable               = true
+    enable               = false
     defaultLanguage      = "en"
     disableLanguages     = [] # List of languages to disable (eg: ["fr", "es"])
     showDefaultLangInUrl = false # Show default language in URL (eg: https://getastrothemes.com/en/)

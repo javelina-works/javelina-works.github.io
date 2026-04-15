@@ -1,28 +1,34 @@
 {
   "main": [
     {
-      "enable": true,
+      "enable": false,
       "label": "facebook",
       "icon": "/images/icons/svg/facebook.svg",
       "url": "https://www.facebook.com"
     },
     {
-      "enable": true,
+      "enable": false,
       "label": "twitter",
       "icon": "/images/icons/svg/twitter.svg",
       "url": "https://twitter.com"
     },
     {
-      "enable": true,
+      "enable": false,
       "label": "instagram",
       "icon": "/images/icons/svg/instagram.svg",
       "url": "https://www.instagram.com"
     },
     {
-      "enable": true,
+      "enable": false,
       "label": "linkedin",
       "icon": "/images/icons/svg/linkedin.svg",
       "url": "https://www.linkedin.com"
+    },
+    {
+      "enable": true,
+      "label": "github",
+      "icon": "/images/icons/svg/instagram.svg",
+      "url": "https://github.com/javelina-works"
     }
   ]
 }

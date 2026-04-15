@@ -5,13 +5,23 @@
   --leading-inherit: inherit;
 
   /* Colors */
-  --color-primary: #6B1AFF;
-  --color-accent: #630FFD;
-  --color-body: #fff;
+  /* --color-primary: #62281E; */
+  /* --color-accent: #630FFD; */
+  /* --color-body: #fff; */
   --color-border-light: #ECEEF1;
   --color-theme-light: #F8F8F8;
   --color-theme-dark: #372D3F;
-  
+
+  /* This came from https://hexcolor.co/color-scheme-generator */
+  --color-primary: #c52c03;
+  --color-border-dark: #03c48d;
+  --color-accent: #033ac4;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-body: #faeeeb;
+  /* --color-text-default: #fdf8f6; */
+
   --color-text-default: #3B3B3B;
   --color-dark: #322B2B; /* Heading colors */
   --color-light: #fff6f6;

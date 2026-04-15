@@ -13,15 +13,16 @@
     "careerApplyNow": "Apply Now"
   },
   "navigation": {
-    "buttonLabel": "Sign Up"
+    "buttonLabel": "Contact"
+
   },
   "contactInfo": {
     "locationLabel": "Location",
-    "location": "2627 Park Street, San Francisco, CA",
+    "location": "03 Ranch Road, Fort Davis, Texas",
     "phoneLabel": "Phone Number",
     "phone": "925-465-3762",
     "emailLabel": "Email",
-    "email": "stella@example.com"
+    "email": "info@javelinaworks.com"
   },
   "subscription": {
     "label": "Subscribe to our newsletter",
@@ -36,6 +37,6 @@
     "colTitleTwo": "Resources",
     "colTitleThree": "Contact",
     "description": "We provide seamless solutions to Small and Medium Businesses. Whatever work you do, we can help.",
-    "copyright": "Copyright © 2024 Stella. All Rights Reserved."
+    "copyright": "Copyright © 2024 Javelina Works, Inc. All Rights Reserved."
   }
 }
