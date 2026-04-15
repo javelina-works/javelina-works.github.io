@@ -58,13 +58,13 @@
           ]
         },
         {
-          "enable": true,
+          "enable": false,
           "name": "Tarifs",
           "url": "/pricing/",
           "weight": 1
         },
         {
-          "enable": true,
+          "enable": false,
           "name": "Avis",
           "url": "/testimonial/",
           "weight": 2
@@ -88,43 +88,43 @@
           "weight": 3
         },
         {
-          "enable": true,
+          "enable": false,
           "name": "Journal",
           "url": "/changelog/",
           "weight": 4
         },
         {
-          "enable": true,
+          "enable": false,
           "name": "Carrière",
           "url": "/career/",
           "weight": 5
         },
         {
-          "enable": true,
+          "enable": false,
           "name": "Poste",
           "url": "/career/with-custom-slug",
           "weight": 6
         },
         {
-          "enable": true,
+          "enable": false,
           "name": "Intégration",
           "url": "/integration/",
           "weight": 7
         },
         {
-          "enable": true,
+          "enable": false,
           "name": "Intégration Détail",
           "url": "/integration/discord/",
           "weight": 8
         },
         {
-          "enable": true,
+          "enable": false,
           "name": "Blog",
           "url": "/blog/",
           "weight": 9
         },
         {
-          "enable": true,
+          "enable": false,
           "name": "Article",
           "url": "/blog/post-1/",
           "weight": 10
@@ -244,13 +244,13 @@
       "weight": 0
     },
     {
-      "enable": true,
+      "enable": false,
       "name": "Carrières",
       "url": "/career/",
       "weight": 0
     },
     {
-      "enable": true,
+      "enable": false,
       "name": "Blog",
       "url": "/blog/",
       "weight": 0

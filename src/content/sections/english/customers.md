@@ -1,6 +1,6 @@
 ---
 enable: true # Control the visibility of this section across all pages where it is used
-description: "Over 500 successful companies trust Stella."
+description: "Over 500 successful companies trust Javelina Works."
 
 marquee:
   # elementWidth: # width in rem (eg: 10rem or blank if width should be based on item width)

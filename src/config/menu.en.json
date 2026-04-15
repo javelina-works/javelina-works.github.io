@@ -81,13 +81,13 @@
           "weight": 0
         },
         {
-          "enable": true,
+          "enable": false,
           "name": "Pricing",
           "url": "/pricing/",
           "weight": 0
         },
         {
-          "enable": true,
+          "enable": false,
           "name": "Nested Menu",
           "hasChildren": true,
           "weight": 0,
@@ -138,7 +138,7 @@
           ]
         },
         {
-          "enable": true,
+          "enable": false,
           "name": "Testimonial",
           "url": "/testimonial/",
           "weight": 0
@@ -150,43 +150,43 @@
           "weight": 0
         },
         {
-          "enable": true,
+          "enable": false,
           "name": "Changelog",
           "url": "/changelog/",
           "weight": 0
         },
         {
-          "enable": true,
+          "enable": false,
           "name": "Career",
           "url": "/career/",
           "weight": 0
         },
         {
-          "enable": true,
+          "enable": false,
           "name": "Career Single",
           "url": "/career/with-custom-slug",
           "weight": 0
         },
         {
-          "enable": true,
+          "enable": false,
           "name": "Integration",
           "url": "/integration/",
           "weight": 0
         },
         {
-          "enable": true,
+          "enable": false,
           "name": "Integration Single",
           "url": "/integration/discord/",
           "weight": 0
         },
         {
-          "enable": true,
+          "enable": false,
           "name": "Blog",
           "url": "/blog/",
           "weight": 0
         },
         {
-          "enable": true,
+          "enable": false,
           "name": "Blog Single",
           "url": "/blog/post-1/",
           "weight": 0
@@ -256,13 +256,13 @@
       "weight": 0
     },
     {
-      "enable": true,
+      "enable": false,
       "name": "Careers",
       "url": "/career/",
       "weight": 0
     },
     {
-      "enable": true,
+      "enable": false,
       "name": "Blog",
       "url": "/blog/",
       "weight": 0

@@ -13,7 +13,7 @@ list:
 
       Téléphone : (123) 456-7890
 
-      Email : hq@stella.com
+      Email : hq@javelinaworks.com
 
       Horaires d'ouverture : Lundi - Vendredi : 9h00 - 18h00
 
@@ -27,7 +27,7 @@ list:
 
       Téléphone : (123) 456-7890
 
-      Email : hq@stella.com
+      Email : hq@javelinaworks.com
 
       Horaires d'ouverture : Lundi - Vendredi : 9h00 - 18h00
 ---

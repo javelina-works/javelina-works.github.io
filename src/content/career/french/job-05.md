@@ -1,4 +1,5 @@
 ---
+draft: true
 title: "Stratège en Marketing de Contenu"
 
 fields:

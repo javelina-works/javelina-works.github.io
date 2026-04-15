@@ -1,7 +1,7 @@
 ---
 title: "Start Your Journey"
 metaDescription: "This is a example description"
-draft: false
+draft: true
 
 # Career List Section
 careerSection:

@@ -2,7 +2,7 @@
 title: "Ce que nos clients disent **de nous**"
 description: "Découvrez des histoires réelles et les retours de nos clients qui utilisent notre plateforme pour lancer, développer et faire croître leur entreprise avec succès."
 metaDescription: Il s'agit d'un exemple de description
-draft: false
+draft: true
 
 testimonialSection:
   enable: true

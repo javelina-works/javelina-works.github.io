@@ -1,7 +1,7 @@
 ---
 title: "Intégration"
 metaDescription: "Ceci est une description exemple"
-draft: false
+draft: true
 
 sections:
   - title: "" # Titre optionnel pour la section - (par défaut : nom de la catégorie)

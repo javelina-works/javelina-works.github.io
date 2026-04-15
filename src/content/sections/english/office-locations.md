@@ -13,7 +13,7 @@ list:
 
       Phone: (123) 456-7890
 
-      Email: hq@stella.com
+      Email: hq@javelinaworks.com
 
       Business Hours: Monday - Friday: 9:00 AM - 6:00 PM
 
@@ -27,7 +27,7 @@ list:
 
       Phone: (123) 456-7890
 
-      Email: hq@stella.com
+      Email: hq@javelinaworks.com
 
       Business Hours: Monday - Friday: 9:00 AM - 6:00 PM
 ---

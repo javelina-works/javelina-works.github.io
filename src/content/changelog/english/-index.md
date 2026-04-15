@@ -2,7 +2,7 @@
 title: Changelog
 description: Track new features, bug fixes, and version history to make the most of your website’s capabilities.
 metaDescription: This is a example description
-draft: false
+draft: true
 
 list:
   - title: Priority for projects

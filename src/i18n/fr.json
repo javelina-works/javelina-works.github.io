@@ -21,7 +21,7 @@
     "phoneLabel": "Numéro de téléphone",
     "phone": "925-465-3762",
     "emailLabel": "Email",
-    "email": "stella@example.com"
+    "email": "info@javelinaworks.com"
   },
   "subscription": {
     "label": "Abonnez-vous à notre newsletter",
@@ -36,6 +36,6 @@
     "colTitleTwo": "Ressources",
     "colTitleThree": "Contact",
     "description": "Nous fournissons des solutions fluides aux petites et moyennes entreprises. Quel que soit votre travail, nous pouvons vous aider.",
-    "copyright": "Copyright © 2024 Stella. Tous droits réservés."
+    "copyright": "Copyright © 2024 Javelina Works. Tous droits réservés."
   }
 }

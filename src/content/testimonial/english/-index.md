@@ -2,7 +2,7 @@
 title: "What our client says **about Us**"
 description: "Showcasing real stories and feedback from our customers who use our platform to launch, scale, and grow their businesses successfully."
 metaDescription: This is a example description
-draft: false
+draft: true
 
 # Content for testimonial section shown on pages other than the list page
 testimonialSection:

@@ -22,7 +22,7 @@ let {
 
 // https://astro.build/config
 export default defineConfig({
-  site: config.site.baseUrl ? config.site.baseUrl : "http://examplesite.com",
+  site: config.site.baseUrl ? config.site.baseUrl : "http://javelinaworks.com",
   trailingSlash: config.site.trailingSlash ? "always" : "never",
   image: {
     layout: "constrained",
@@ -35,24 +35,23 @@ export default defineConfig({
       prefixDefaultLocale: showDefaultLangInUrl,
     },
   },
-  integrations: [
-    sitemapConfig.enable ? sitemap() : null,
-    AutoImport({
-      imports: [
-        "@/components/CustomButton.astro",
-        "@/shortcodes/Accordion.astro",
-        "@/shortcodes/Notice.astro",
-        "@/shortcodes/Tabs.astro",
-        "@/shortcodes/Tab.astro",
-        "@/shortcodes/Testimonial.astro",
-        "@/shortcodes/CardGrid.astro",
-        "@/shortcodes/ImageList.astro",
-        "@/shortcodes/ImageItem.astro",
-        "@/shortcodes/Card.astro",
-        "@/shortcodes/VideoInline.astro",
-      ],
-    }),
+  integrations: [sitemapConfig.enable ? sitemap() : null, AutoImport({
+    imports: [
+      "@/components/CustomButton.astro",
+      "@/shortcodes/Accordion.astro",
+      "@/shortcodes/Notice.astro",
+      "@/shortcodes/Tabs.astro",
+      "@/shortcodes/Tab.astro",
+      "@/shortcodes/Testimonial.astro",
+      "@/shortcodes/CardGrid.astro",
+      "@/shortcodes/ImageList.astro",
+      "@/shortcodes/ImageItem.astro",
+      "@/shortcodes/Card.astro",
+      "@/shortcodes/VideoInline.astro",
+    ],
+  }),
     mdx(),
+    sitemap(),
   ],
   markdown: {
     rehypePlugins: [

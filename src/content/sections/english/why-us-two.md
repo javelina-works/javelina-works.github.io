@@ -5,7 +5,7 @@ title: Real-Time Insights & **Comprehensive** Tracking
 layoutType: modern # creative / modern
 
 list:
-  - title: Data available in seconds, not days. The data that Stella collects is immediately available on your dashboard
+  - title: Data available in seconds, not days. The data that Javelina Works collects is immediately available on your dashboard
     titleSize: sm # sm | md (default - md)
     image: "/images/why-us/4.png"
     descriptionFontSize: "" # sm | lg (default - sm)

@@ -1,7 +1,7 @@
 ---
 title: Integration
 metaDescription: This is a example description
-draft: false
+draft: true
 
 sections:
   - title: "" # Optional title for section - (default - category name)

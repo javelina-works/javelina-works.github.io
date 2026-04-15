@@ -245,7 +245,7 @@ export const formspreeSubmit = async (
   } catch (error) {
     setMessage(
       error +
-        "! Please use this mail - [stella-astro-theme@gmail.com](mailto:stella-astro-theme@gmail.com) to submit a ticket!",
+        "! Please use this mail - [info@javelinaworks.com](mailto:info@javelinaworks.com) to submit a ticket!",
       true,
       false,
       form,

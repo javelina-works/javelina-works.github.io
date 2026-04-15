@@ -6,7 +6,7 @@ draft: false
 
 Effective Date: July, 2022
 
-Welcome to Stella ("we," "our," or "us"). By accessing or using our website, <https://www.stella.com> ("Website"), you agree to comply with and be bound by the following Terms and Conditions ("Terms"). If you do not agree with these Terms, please do not use our Website.
+Welcome to Javelina Works ("we," "our," or "us"). By accessing or using our website, <https://www.javelinaworks.com> ("Website"), you agree to comply with and be bound by the following Terms and Conditions ("Terms"). If you do not agree with these Terms, please do not use our Website.
 
 ### Acceptance of Terms
 
@@ -27,7 +27,7 @@ If you create an account on our Website, you are responsible for maintaining the
 
 ### Intellectual Property
 
-All content on the Website, including but not limited to text, images, logos, and software, is the property of Stella or its licensors and is protected by copyright, trademark, and other intellectual property laws. You may not reproduce, distribute, or modify any content without prior written consent from Stella.
+All content on the Website, including but not limited to text, images, logos, and software, is the property of Javelina Works or its licensors and is protected by copyright, trademark, and other intellectual property laws. You may not reproduce, distribute, or modify any content without prior written consent from Javelina Works.
 
 ### Purchases and Payments
 
@@ -39,7 +39,7 @@ The Website and its content are provided "as is" without warranties of any kind,
 
 ### Limitation of Liability
 
-To the fullest extent permitted by law, Stella shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Website or inability to access it. Our total liability for any claims related to the Website shall not exceed the amount paid by you, if any, to Stella.
+To the fullest extent permitted by law, Javelina Works shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Website or inability to access it. Our total liability for any claims related to the Website shall not exceed the amount paid by you, if any, to Javelina Works.
 
 ### Termination
 
@@ -61,9 +61,9 @@ We reserve the right to update or modify these Terms at any time without prior n
 
 If you have any questions or concerns about these Terms, please contact us at:
 
-Stella
+Javelina Works
 
-Email: <support@stella.com>  
-Address: 123 Stella Lane, Imaginary City, IC 12345, USA
+Email: <support@javelinaworks.com>  
+Address: 123 Javelina Works Lane, Imaginary City, IC 12345, USA
 
-Thank you for using Stella!
+Thank you for using Javelina Works!

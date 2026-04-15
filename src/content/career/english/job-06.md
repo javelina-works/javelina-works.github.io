@@ -1,4 +1,5 @@
 ---
+draft: true
 title: "Industry Analyst"
 
 fields:

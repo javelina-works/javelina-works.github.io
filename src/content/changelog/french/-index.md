@@ -2,7 +2,7 @@
 title: Journal des modifications
 description: Suivez les nouvelles fonctionnalités, corrections de bugs, améliorations et l’historique des versions pour tirer le meilleur parti des capacités de votre site web.
 metaDescription: Ceci est un exemple de description
-draft: false
+draft: true
 
 list:
   - title: Priorité pour les projets
