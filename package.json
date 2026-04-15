@@ -12,8 +12,6 @@
     "astro-check": "astro check",
     "toml:watch": "node scripts/toml-watcher.mjs",
     "generate-favicons": "node ./scripts/generate-favicons.mjs",
-    "generate-multilingual-content": "node ./scripts/generate-multilingual-content.mjs",
-    "remove-multilingual": "node ./scripts/remove-multilingual.mjs",
     "remove-draft-from-sitemap": "node ./scripts/remove-draft-from-sitemap.mjs",
     "format": "prettier -w ./src",
     "test": "cross-env TS_NODE_PROJECT=\"./tsconfig.jest.json\" jest --watch"
