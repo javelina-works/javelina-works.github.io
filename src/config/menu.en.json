@@ -7,7 +7,7 @@
       "url": ""
     },
     {
-      "enable": true,
+      "enable": false,
       "name": "Features",
       "weight": 0,
       "hasMegaMenu": true,
@@ -64,7 +64,7 @@
     },
     {
       "name": "Pages",
-      "enable": true,
+      "enable": false,
       "weight": 0,
       "hasChildren": true,
       "children": [
@@ -250,7 +250,7 @@
   ],
   "footerMenuOne": [
     {
-      "enable": true,
+      "enable": false,
       "name": "About Us",
       "url": "/company/",
       "weight": 0
@@ -268,7 +268,7 @@
       "weight": 0
     },
     {
-      "enable": true,
+      "enable": false,
       "name": "Press",
       "url": "/",
       "weight": 0
@@ -282,25 +282,25 @@
   ],
   "footerMenuTwo": [
     {
-      "enable": true,
+      "enable": false,
       "name": "Help Center",
       "url": "/",
       "weight": 0
     },
     {
-      "enable": true,
+      "enable": false,
       "name": "API Status",
       "url": "/",
       "weight": 0
     },
     {
-      "enable": true,
+      "enable": false,
       "name": "Community",
       "url": "/",
       "weight": 0
     },
     {
-      "enable": true,
+      "enable": false,
       "name": "Documentation",
       "url": "/",
       "weight": 0

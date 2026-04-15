@@ -41,7 +41,9 @@ const copyrightText = copyright.text || t("footer.copyright");
           }
           <ul class="flex flex-col gap-y-1.5">
             {
-              t("footerMenuOne")?.map((menu: { name: string; url: string }) => (
+              t("footerMenuOne")
+                ?.filter((menu: { enable?: boolean }) => menu.enable !== false)
+                .map((menu: { name: string; url: string }) => (
                 <li>
                   <a
                     class="has-underline-anim inline-block py-px text-inherit"
@@ -65,7 +67,9 @@ const copyrightText = copyright.text || t("footer.copyright");
           }
           <ul class="flex flex-col gap-2">
             {
-              t("footerMenuTwo").map((menu: { name: string; url: string }) => (
+              t("footerMenuTwo")
+                .filter((menu: { enable?: boolean }) => menu.enable !== false)
+                .map((menu: { name: string; url: string }) => (
                 <li class="inline-block">
                   <a
                     class="has-underline-anim inline-block py-px text-inherit"
