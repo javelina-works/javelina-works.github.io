@@ -2,9 +2,10 @@
 [site]
   title            = "Javelina Works" # Shared title for SEO and OpenGraph
   description      = "A customizable and multipurpose saas & startup astro theme built with Tailwind CSS and Astro Js" # Shared description for SEO and OpenGraph
-  tagline          = "Multipurpose Saas & Startup Astro Js Theme"
+  tagline          = "Ranch Management Intelligence Platform"
   taglineSeparator = "" # default is " - "
   baseUrl          = "https://javelinaworks.com" # Base URL for the site and used in OpenGraph meta tags.
+  # baseUrl          = "https://stella-astro.netlify.com" # Base URL for the site and used in OpenGraph meta tags.
   logo             = "/images/logo.svg" # Path to the site's logo
   logoText         = "Javelina Works" # Text displayed next to the logo
   logoWidth        = "2rem" # Width of the logo
