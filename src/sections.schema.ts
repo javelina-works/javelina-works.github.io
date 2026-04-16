@@ -163,6 +163,19 @@ export const heroSectionSchema = z.object({
   buttons: z.array(heroButtonSchema).optional(),
 });
 
+// Background video config for video hero sections
+const backgroundVideoSchema = z.object({
+  src: z.string(),
+  type: z.string().optional().default("video/mp4"),
+  poster: z.string(),
+  mobileFallbackImage: z.string().optional(),
+});
+
+// Video hero section schema — extends hero with fullscreen background video
+export const videoHeroSectionSchema = heroSectionSchema.extend({
+  backgroundVideo: backgroundVideoSchema,
+});
+
 export const pricingSectionSchema = z
   .object({
     enable: z.boolean().default(false),
@@ -435,6 +448,7 @@ export const sectionsSchema = {
   testimonialSection: testimonialSectionSchema,
   pricingSectionSchema,
   heroSectionSchema,
+  videoHeroSectionSchema,
   featuresSectionSchema,
   featuresSectionTwoSchema,
   howItWorksSectionSchema,

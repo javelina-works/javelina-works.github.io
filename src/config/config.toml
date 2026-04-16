@@ -24,7 +24,7 @@
 # Specific SEO configurations that complement the general site settings.
 # -----------------------------------------------------------------------------------------------------------------------------------
 [seo]
-  author = "Getastrothemes"
+  author = "Javelina Works, Inc."
   keywords = [
     "saas astro theme",
     "saas business astro theme",

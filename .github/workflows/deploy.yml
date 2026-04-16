@@ -1,4 +1,4 @@
-name: Deploy site to GitHub Pages
+name: Deploy Astro site to GitHub Pages
 
 on:
   # Trigger the workflow every time you push to the `main` branch
@@ -44,3 +44,4 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+

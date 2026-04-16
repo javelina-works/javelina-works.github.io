@@ -12,14 +12,14 @@ engines on the live site.
 
 ### Config (`src/config/config.toml`)
 
-- [ ] **baseUrl** (line 8) — currently `https://stella-astro.netlify.com`.
+- [x] **baseUrl** (line 8) — currently `https://stella-astro.netlify.com`.
       Change to `https://javelinaworks.com` (or your canonical URL).
 - [ ] **Site description** (line 4) — currently generic SaaS template copy:
       _"A customizable and multipurpose saas & startup astro theme…"_.
       Replace with a 1–2 sentence Javelina Works description.
 - [ ] **Tagline** (line 5) — currently `"Multipurpose Saas & Startup Astro Js Theme"`.
       Replace with your actual tagline.
-- [ ] **SEO author** (line 28) — currently `"Getastrothemes"`.
+- [x] **SEO author** (line 28) — currently `"Getastrothemes"`.
       Change to `"Javelina Works, Inc."` or the real author.
 - [ ] **SEO keywords** (lines 29–33) — currently `["saas astro theme", …]`.
       Replace with real business keywords.
@@ -40,7 +40,7 @@ engines on the live site.
 
 ### Contact info (`src/i18n/en.json`)
 
-- [ ] **Address** — `"03 Ranch Road, Fort Davis, Texas"` → confirm or correct.
+- [x] **Address** — `"03 Ranch Road, Fort Davis, Texas"` → confirm or correct.
 - [ ] **Phone** — `"925-465-3762"` → confirm or correct.
 - [ ] **Email** — `"info@javelinaworks.com"` → confirm or correct.
 
@@ -49,10 +49,10 @@ engines on the live site.
 - [ ] `src/content/pages/english/privacy-policy.md` (line 91) — placeholder
       address: `"123 Javelina Works Lane, Imaginary City, IC 12345, USA"`.
       Replace with real business address.
-- [ ] `src/content/pages/english/privacy-policy.md` (line 71) —
+- [x] `src/content/pages/english/privacy-policy.md` (line 71) —
       `privacy@javelinaworks.com`. Verify this email exists or replace.
-- [ ] `src/content/pages/english/privacy-policy.md` (line 7) — effective date
-      is `"July, 2022"`. Update to the real effective date.
+- [x] `src/content/pages/english/privacy-policy.md` (line 7) — effective date
+      is `"Jan, 2026"`. Update to the real effective date.
 - [ ] `src/content/pages/english/terms-conditions.md` (line 7) — same outdated
       effective date. Update.
 
@@ -166,9 +166,9 @@ Multilingual is disabled in config (`settings.multilingual.enable = false`)
 but French content files still exist throughout the repo:
 
 - [ ] Delete all `french/` subdirectories under `src/content/`
-- [ ] Delete `src/config/menu.fr.json`
-- [ ] Delete `src/i18n/fr.json`
-- [ ] Remove French entry from `src/config/language.json`
+- [x] Delete `src/config/menu.fr.json`
+- [x] Delete `src/i18n/fr.json`
+- [x] Remove French entry from `src/config/language.json`
 - [ ] Remove `generate-multilingual-content` and `remove-multilingual` scripts
       from `package.json` and `scripts/`
 - [ ] (Optional, bigger refactor) Remove `[...lang]` routing machinery entirely
@@ -200,9 +200,9 @@ the menu. Either populate them with real content or delete:
 
 If GitHub Pages is the only target, these can be removed:
 
-- [ ] `netlify.toml`
-- [ ] `vercel.json` / `vercel.sh`
-- [ ] `wrangler.toml`
+- [x] `netlify.toml`
+- [x] `vercel.json` / `vercel.sh`
+- [?] `wrangler.toml`
 
 ### Misc
 
