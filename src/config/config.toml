@@ -5,7 +5,6 @@
   tagline          = "Ranch Management Intelligence Platform"
   taglineSeparator = "" # default is " - "
   baseUrl          = "https://javelinaworks.com" # Base URL for the site and used in OpenGraph meta tags.
-  # baseUrl          = "https://stella-astro.netlify.com" # Base URL for the site and used in OpenGraph meta tags.
   logo             = "/images/logo.svg" # Path to the site's logo
   logoText         = "Javelina Works" # Text displayed next to the logo
   logoWidth        = "2rem" # Width of the logo
@@ -41,7 +40,8 @@
     enable = true # Enables or disables sitemap generation on site build
     exclude = [
       "blog",
-
+      "career",
+      "changelog",
     ] # exclude all pages that include these folder names (e.g., "blog", "services")
 
 
