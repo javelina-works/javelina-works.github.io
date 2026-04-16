@@ -1,0 +1,85 @@
+---
+import { getEntryCTM } from "@/lib/contentParser.astro";
+import overrideObjects from "@/lib/utils/overrideObjects.ts";
+import type { featuresSectionTwoSchema } from "@/sections.schema";
+import type { Section } from "@/types";
+import type { z } from "astro/zod";
+import OptimizedImage from "../utilities/OptimizedImage.astro";
+import { markdownify } from "@/lib/utils/textConverter";
+
+// Type for this section data
+type FeatureSectionType = Section &
+  NonNullable<z.infer<typeof featuresSectionTwoSchema>>;
+
+type Props = {
+  content?: FeatureSectionType;
+};
+
+// Fetching the default content for the this section
+let defaultContent = (
+  await getEntryCTM("sections", "features-section-two", Astro.currentLocale)
+)?.data as FeatureSectionType;
+
+// Enables content customization (e.g., title, description) with a fallback to 'defaultContent' if not provided.
+// The 'content' prop should match the structure of 'defaultContent'.
+// Allows using this section with different content across multiple pages.
+// If 'content' is missing, 'defaultContent' will be used.
+let actualContent = overrideObjects(
+  { ...defaultContent },
+  Astro.props.content,
+) as FeatureSectionType;
+
+// Extracting required values from 'content' object
+let { enable = true, items } = actualContent as FeatureSectionType;
+
+if (!enable) return;
+---
+
+<section>
+  <div class="container space-y-20">
+    {
+      items.map((item, index) => (
+        <div
+          class:list={[
+            "grid grid-cols-1 items-center gap-16 lg:grid-cols-2 lg:gap-32",
+            item.imagePosition === "right" && "lg:*:first:order-2",
+          ]}>
+          <div
+            data-aos={index % 2 === 0 ? "fade-left-sm" : "fade-right-sm"}
+            data-aos-delay={index % 2 === 0 ? 200 : 250}
+            class="to-primary/5 flex items-center justify-center rounded-2xl bg-linear-to-b from-transparent py-8">
+            <OptimizedImage
+              src={item.image}
+              alt={item.title}
+              height={item.imageHeight || 600}
+              class="rounded-xl"
+            />
+          </div>
+
+          <div class="space-y-16">
+            {item.title && (
+              <div class="space-y-4">
+                <h2
+                  class="has-italic-text capitalize"
+                  set:html={markdownify(item.title)}
+                />
+                {item.description && (
+                  <p set:html={markdownify(item.description)} />
+                )}
+              </div>
+            )}
+
+            <div class="space-y-8 divide-y divide-dashed">
+              {item.features.map((feature) => (
+                <div class="space-y-2.5 odd:pb-8">
+                  <h3 class="text-xl font-medium">{feature.title}</h3>
+                  <p>{feature.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ))
+    }
+  </div>
+</section>

@@ -1,0 +1,52 @@
+{
+  "main": [
+    {
+      "enable": true,
+      "name": "Home",
+      "weight": 0,
+      "url": ""
+    },
+    {
+      "enable": true,
+      "name": "FAQ",
+      "url": "/faq/",
+      "weight": 0
+    },
+    {
+      "enable": true,
+      "name": "Contact",
+      "url": "/contact/",
+      "weight": 0
+    }
+  ],
+  "footerMenu": [
+    {
+      "enable": true,
+      "name": "Terms & Conditions",
+      "url": "/terms-conditions/",
+      "weight": 0
+    },
+    {
+      "enable": true,
+      "name": "Privacy & Policy",
+      "url": "/privacy-policy/",
+      "weight": 0
+    }
+  ],
+  "footerMenuOne": [
+    {
+      "enable": true,
+      "name": "Contact",
+      "url": "/contact/",
+      "weight": 0
+    }
+  ],
+  "footerMenuTwo": [
+    {
+      "enable": true,
+      "name": "Privacy & Terms",
+      "url": "/privacy-policy/",
+      "weight": 0
+    }
+  ]
+}

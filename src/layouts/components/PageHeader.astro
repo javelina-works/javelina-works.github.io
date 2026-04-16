@@ -1,0 +1,43 @@
+---
+import { markdownify } from "@/lib/utils/textConverter";
+
+const { title, description, overlapShape } = Astro.props;
+---
+
+<section
+  class:list={[
+    "relative z-10 mt-0 py-14 md:pt-32 md:pb-24",
+    Astro.props.class,
+  ]}>
+  <div class="container">
+    <div
+      class:list={[
+        "flex max-w-6xl flex-wrap justify-between gap-5 md:gap-10 md:px-8 lg:px-12",
+        overlapShape ? "ms-5 me-5 md:mx-auto" : "mx-auto",
+      ]}>
+      {
+        title && (
+          <h1
+            class="has-italic-text text-h2 max-w-lg capitalize"
+            set:html={markdownify(title)}
+          />
+        )
+      }
+      {
+        description && (
+          <p class="md:max-w-sm" set:html={markdownify(description)} />
+        )
+      }
+    </div>
+  </div>
+  {
+    Astro.props.hasBgShape && (
+      <div
+        class:list={[
+          "bg-theme-light pointer-events-none absolute left-0 -z-10 h-250 w-full",
+          overlapShape ? "-bottom-full" : "bottom-0",
+        ]}
+      />
+    )
+  }
+</section>

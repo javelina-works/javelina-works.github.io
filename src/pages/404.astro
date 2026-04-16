@@ -1,0 +1,50 @@
+---
+import CustomButton from "@/components/CustomButton.astro";
+import CallToAction from "@/components/sections/CallToAction.astro";
+import OptimizedImage from "@/components/utilities/OptimizedImage.astro";
+import SquareElem from "@/components/widgets/SquareElem.astro";
+import Base from "@/layouts/Base.astro";
+import { useTranslations } from "@/lib/utils/i18nUtils";
+
+const t = await useTranslations(Astro.currentLocale as string);
+---
+
+<Base status={404} title="Page Not Found" disableTagline={true}>
+  <section class="overflow-x-hidden">
+    <div class="container py-10">
+      <div class="relative mx-auto max-w-2xl py-12 text-center">
+        <div class="flex flex-col items-center gap-y-10">
+          <OptimizedImage src="/images/404.svg" width={400} />
+          <h1 class="h2 md:text-h1 text-center">Page Not Found</h1>
+        </div>
+        <div class="pointer-events-none absolute inset-0 size-full select-none">
+          <span
+            class="translate-x-centered absolute -top-1 h-1 w-[115%] border-b border-dashed border-black/10">
+          </span>
+          <span
+            class="translate-x-centered absolute -bottom-px h-1 w-[115%] border-b border-dashed border-black/10">
+          </span>
+          <span
+            class="translate-y-centered absolute -left-px h-[115%] w-1 border-s border-dashed border-black/10">
+          </span>
+          <span
+            class="translate-y-centered absolute -right-1 h-[115%] w-1 border-s border-dashed border-black/10">
+          </span>
+          <SquareElem class="fill-theme-light absolute -top-3.5 -left-3.5" />
+          <SquareElem class="fill-theme-light absolute -top-3.5 -right-3.5" />
+          <SquareElem class="fill-theme-light absolute -bottom-3.5 -left-3.5" />
+          <SquareElem
+            class="fill-theme-light absolute -right-3.5 -bottom-3.5"
+          />
+        </div>
+        <CustomButton
+          class="mt-10"
+          url="/"
+          hoverEffect="magnetic-text-flip"
+          label={t("common.backToHome")}
+        />
+      </div>
+    </div>
+  </section>
+  <CallToAction />
+</Base>

@@ -1,0 +1,38 @@
+{
+  "common": {
+    "readMore": "Read More",
+    "category": "Category",
+    "publishedOn": "Published On",
+    "learnMoreAbout": "Learn more about",
+    "emailPlaceholder": "Email Address",
+    "paginationNext": "Next",
+    "paginationPrevious": "Previous",
+    "backToHome": "Back to Home",
+    "careerJobOverview": "Job Overview",
+    "contactDropdownSearch404": "No results wewe found",
+    "careerApplyNow": "Apply Now"
+  },
+  "navigation": {
+    "buttonLabel": "Contact"
+
+  },
+  "contactInfo": {
+    "locationLabel": "Location",
+    "location": "03 Ranch Road, Fort Davis, Texas",
+    "phoneLabel": "Phone Number",
+    "phone": "925-465-3762",
+    "emailLabel": "Email",
+    "email": "info@javelinaworks.com"
+  },
+  "subscription": {
+    "label": "Subscribe to our newsletter",
+    "term": "I agree with [privacy policy](/privacy-policy/)"
+  },
+  "footer": {
+    "colTitleOne": "Company",
+    "colTitleTwo": "Resources",
+    "colTitleThree": "Contact",
+    "description": "We provide seamless solutions to Small and Medium Businesses. Whatever work you do, we can help.",
+    "copyright": "Copyright © 2024 Javelina Works, Inc. All Rights Reserved."
+  }
+}

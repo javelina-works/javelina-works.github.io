@@ -1,0 +1,51 @@
+---
+import { render } from "astro:content";
+import PageHeader from "./PageHeader.astro";
+import TOC from "./widgets/TableOfContents.astro";
+
+interface Props {
+  content: any;
+  innerPadding?: "sm";
+}
+
+const { content, innerPadding } = Astro.props;
+
+const { title, description, excerpt, tocHeadings, tableOfContents } =
+  content?.data || {};
+
+const { Content } = content ? await render(content) : { Content: null };
+
+// Check if table of contents is enable
+const tocEnabled =
+  tableOfContents?.enable && tocHeadings && tocHeadings.length > 0;
+---
+
+<PageHeader
+  overlapShape={true}
+  hasBgShape={false}
+  title={title}
+  description={description || excerpt}
+/>
+
+<section
+  class="after:bg-theme-light pt-0 after:pointer-events-none after:absolute after:top-0 after:left-0 after:-z-10 after:h-250 after:w-full after:content-['']">
+  <div class="container">
+    <div
+      class:list={[
+        "box-shadow-black mx-auto max-w-6xl space-y-16 rounded-xl bg-white",
+        innerPadding === "sm" ? "p-4 md:p-8" : "p-8 md:p-12",
+      ]}>
+      <slot name="content" />
+
+      {tocEnabled && tocHeadings && <TOC toc={tocHeadings} marker={false} />}
+
+      {
+        Content && (
+          <div class="prose-styles content has-video-modal">
+            <Content />
+          </div>
+        )
+      }
+    </div>
+  </div>
+</section>

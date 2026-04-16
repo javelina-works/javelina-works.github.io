@@ -1,0 +1,159 @@
+---
+import { getEntryCTM } from "@/lib/contentParser.astro";
+import overrideObjects from "@/lib/utils/overrideObjects.ts";
+import type { FAQCategory, Section } from "@/types";
+import { markdownify } from "@/lib/utils/textConverter";
+import AccordionList from "@/layouts/components/widgets/AccordionList.astro";
+import type { z } from "astro/zod";
+import type { faqSectionSchema } from "@/sections.schema";
+import CustomButton from "../CustomButton.astro";
+
+// Type for this section data
+type FaqSectionType = Section & NonNullable<z.infer<typeof faqSectionSchema>>;
+
+type Props = {
+  listPage?: boolean;
+  content?: FaqSectionType;
+};
+
+// Fetching the default content for the this section
+let defaultContent = (await getEntryCTM("faq", "-index", Astro.currentLocale))
+  ?.data as FaqSectionType;
+
+// Enables content customization (e.g., title, description) with a fallback to 'defaultContent' if not provided.
+// The 'content' prop should match the structure of 'defaultContent'.
+// Allows using this section with different content across multiple pages.
+// If 'content' is missing, 'defaultContent' will be used.
+let actualContent = overrideObjects(
+  { ...defaultContent },
+  Astro.props.content,
+) as FaqSectionType;
+
+// Extracting required values from 'content' object
+let {
+  enable = true,
+  title,
+  description,
+  button,
+  list,
+  limit,
+} = actualContent as FaqSectionType;
+
+let listPage = Astro.props.listPage;
+
+// Limit the number of items to be displayed
+list = limit && list ? list.slice(0, limit as number) : list;
+
+if (!enable) return;
+---
+
+{
+  listPage ? (
+    list?.length > 0 && (
+      <div>
+        {listPage && (
+          <nav
+            class="bg-theme-light mb-5 flex flex-wrap gap-4 rounded-lg p-4"
+            role="tablist"
+            aria-label="Tabs"
+            aria-orientation="horizontal">
+            {list.map((button: FAQCategory, index: number) => (
+              <button
+                class:list={[
+                  "[&.active]:text-primary [&.active]:border-border-light hover:text-primary rounded-full border bg-white px-6 py-3 font-medium transition-colors duration-300",
+                  { active: index === 0 },
+                ]}
+                role="tab"
+                type="button"
+                set:html={button.label}
+                id={"tab-item-" + (index + 1)}
+                data-hs-tab={"#tab-" + (index + 1)}
+                aria-controls={"tab-" + (index + 1)}
+                aria-selected={index === 0 ? "true" : "false"}
+              />
+            ))}
+          </nav>
+        )}
+        {list.map((tab: FAQCategory, index: number) => (
+          <AccordionList
+            bgColor="light"
+            role="tabpanel"
+            content={tab.list}
+            class:list={[index === 0 ? "block" : "hidden"]}
+            id={"tab-" + (index + 1)}
+            tabIndex={"group-1-" + (index + 1)}
+            aria-labelledby={"tab-item-" + (index + 1)}
+          />
+        ))}
+      </div>
+    )
+  ) : (
+    <section>
+      <div class="container">
+        <div
+          data-aos=""
+          class="after:bg-theme-light relative z-10 space-y-12 rounded-4xl p-6 after:absolute after:bottom-0 after:left-0 after:-z-10 after:size-full after:rounded-4xl after:transition-all after:duration-1000 md:space-y-16 md:p-14 after:lg:h-1/2 [&.aos-animate]:after:h-full">
+          <div class="flex flex-wrap justify-between gap-6">
+            <div class="max-w-sm">
+              {title && (
+                <h2
+                  class="has-italic-text capitalize"
+                  set:html={markdownify(title)}
+                />
+              )}
+            </div>
+            <div class="max-w-md space-y-6">
+              {description && (
+                <p
+                  class="text-lg font-normal"
+                  set:html={markdownify(description)}
+                />
+              )}
+              {button && button.enable && (
+                <CustomButton class="btn-black" {...button} />
+              )}
+            </div>
+          </div>
+
+          {list && list.length > 0 && (
+            <div>
+              {listPage && (
+                <nav
+                  class="flex flex-wrap gap-4"
+                  role="tablist"
+                  aria-label="Tabs"
+                  aria-orientation="horizontal">
+                  {list.map((button: FAQCategory, index: number) => (
+                    <button
+                      role="tab"
+                      type="button"
+                      set:html={button.label}
+                      id={"tab-item-" + (index + 1)}
+                      data-hs-tab={"#tab-" + (index + 1)}
+                      aria-controls={"tab-" + (index + 1)}
+                      aria-selected={index === 0 ? "true" : "false"}
+                      class:list={["text-lg", { active: index === 0 }]}
+                    />
+                  ))}
+                </nav>
+              )}
+              {list.map((tab: FAQCategory, index: number) => (
+                <AccordionList
+                  role="tabpanel"
+                  content={tab.list}
+                  class:list={[
+                    "col-span-5 space-y-5 xl:col-span-6",
+                    index === 0 ? "block" : "hidden",
+                  ]}
+                  id={"tab-" + (index + 1)}
+                  tabIndex={"group-1-" + (index + 1)}
+                  aria-labelledby={"tab-item-" + (index + 1)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  )
+}

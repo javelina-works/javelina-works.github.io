@@ -1,0 +1,81 @@
+---
+import type { Section } from "@/types";
+import type { z } from "astro/zod";
+import { getEntryCTM } from "@/lib/contentParser.astro";
+import { markdownify } from "@/lib/utils/textConverter";
+import overrideObjects from "@/lib/utils/overrideObjects.ts";
+import type { teamSectionSchema } from "@/sections.schema";
+import OptimizedImage from "../utilities/OptimizedImage.astro";
+import AnimatedText from "../widgets/AnimatedText.astro";
+
+// Type
+type SectionType = Section & z.infer<typeof teamSectionSchema>;
+type Props = {
+  content?: SectionType;
+};
+
+// Default content fetch
+let defaultContent = (
+  await getEntryCTM("sections", "team", Astro.currentLocale)
+)?.data as SectionType;
+
+let actualContent = overrideObjects(
+  { ...defaultContent },
+  Astro.props.content,
+) as SectionType;
+
+let { enable = true, title, list } = actualContent as SectionType;
+
+if (!enable) return;
+---
+
+<section>
+  <div class="container space-y-10 md:space-y-16">
+    {
+      title && (
+        <div class="mx-auto max-w-2xl text-center">
+          <h2 class="has-italic-text capitalize">
+            <AnimatedText
+              delay={0.2}
+              stagger={0.09}
+              content={markdownify(title)}
+            />
+          </h2>
+        </div>
+      )
+    }
+    {
+      list && (
+        <div class="grid grid-cols-2 gap-x-8 gap-y-4 lg:grid-cols-4">
+          {list.map((item, index) => (
+            <div
+              data-aos={
+                Math.floor(index / 4) % 2 === 0
+                  ? "fade-left-sm"
+                  : "fade-right-sm"
+              }
+              data-aos-delay={((index % 4) + 1) * 100}
+              class="from-theme-light mx-auto flex w-fit flex-col justify-between space-y-4 rounded-2xl bg-linear-to-b to-white p-4">
+              {item.image && (
+                <OptimizedImage
+                  src={item.image}
+                  class="w-full max-w-72 rounded-xl"
+                  alt={item.name}
+                />
+              )}
+              <div>
+                {item.name && (
+                  <h3
+                    class="md:text-h6 text-h6-sm text-black"
+                    set:html={markdownify(item.name)}
+                  />
+                )}
+                {item.role && <p set:html={markdownify(item.role)} />}
+              </div>
+            </div>
+          ))}
+        </div>
+      )
+    }
+  </div>
+</section>

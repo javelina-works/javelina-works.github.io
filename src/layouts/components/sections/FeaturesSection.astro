@@ -1,0 +1,117 @@
+---
+import type { Section } from "@/types";
+import type { z } from "astro/zod";
+import { getEntryCTM } from "@/lib/contentParser.astro";
+import { markdownify } from "@/lib/utils/textConverter";
+import overrideObjects from "@/lib/utils/overrideObjects.ts";
+import type { featuresSectionSchema } from "@/sections.schema";
+import OptimizedImage from "../utilities/OptimizedImage.astro";
+import AnimatedText from "../widgets/AnimatedText.astro";
+
+// Type for this section data
+type featuresSectionType = Section & z.infer<typeof featuresSectionSchema>;
+type Props = {
+  content?: featuresSectionType;
+};
+
+// Fetching the default content for the this section
+let defaultContent = (
+  await getEntryCTM("sections", "features-section", Astro.currentLocale)
+)?.data as featuresSectionType;
+
+// Enables content customization (e.g., title, description) with a fallback to 'defaultContent' if not provided.
+// The 'content' prop should match the structure of 'defaultContent'.
+// Allows using this section with different content across multiple pages.
+// If 'content' is missing, 'defaultContent' will be used.
+let actualContent = overrideObjects(
+  { ...defaultContent },
+  Astro.props.content,
+) as featuresSectionType;
+
+// Extracting required values from 'content' object
+let {
+  enable = true,
+  title,
+  featureListLimit,
+  list,
+} = actualContent as featuresSectionType;
+
+// detect feature list page and if not limit the feature list
+let isFeatureListPage = Astro.url.pathname.includes("/features/");
+if (featureListLimit && !isFeatureListPage) {
+  list = list.slice(0, featureListLimit);
+}
+
+if (!enable) return;
+---
+
+<section>
+  <div class="container space-y-10 md:space-y-16">
+    {
+      title && (
+        <div class="mx-auto max-w-lg text-center">
+          <h2 class="has-italic-text capitalize">
+            <AnimatedText
+              delay={0.2}
+              stagger={0.09}
+              content={markdownify(title)}
+            />
+          </h2>
+        </div>
+      )
+    }
+    {
+      list && (
+        <div class="grid gap-12 md:grid-cols-6">
+          {list.map((item, index) => (
+            <div
+              data-aos={item.halfWidth ? "fade-up-sm" : "fade-left-sm"}
+              data-aos-delay={
+                item.halfWidth
+                  ? ((index % 2) + 2) * 150
+                  : ((index % 3) + 2) * 100
+              }
+              class:list={[
+                "bg-theme-light flex flex-col justify-between rounded-4xl",
+                item.halfWidth
+                  ? "sm:col-span-3"
+                  : "sm:col-span-3 lg:col-span-2",
+              ]}>
+              {item.image && (
+                <OptimizedImage
+                  src={item.image}
+                  height={item.imageHeight}
+                  class:list={[
+                    "mx-auto block",
+                    item.alternativeDirection
+                      ? "order-2 pt-6 lg:pt-12"
+                      : "pb-6 lg:pb-12",
+                  ]}
+                  alt={item.title}
+                />
+              )}
+              <div
+                class:list={[
+                  "space-y-4",
+                  item.alternativeDirection
+                    ? "order-1 py-6 lg:pt-12"
+                    : "pb-6 lg:pb-12",
+                  item.halfWidth ? "px-6 lg:px-12" : "px-6 lg:px-9",
+                ]}>
+                {item.title && (
+                  <h3
+                    class:list={[item.halfWidth ? "h4" : "h5"]}
+                    set:html={markdownify(item.title)}
+                  />
+                )}
+                {item.description && (
+                  <p set:html={markdownify(item.description)} />
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )
+    }
+  </div>
+</section>

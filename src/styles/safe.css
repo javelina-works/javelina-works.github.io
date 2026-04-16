@@ -1,0 +1,108 @@
+@import "./buttons.css";
+@import "./utilities.css";
+
+/* ----------------------------
+   Form Styling
+----------------------------- */
+form {
+  @apply prose-a:text-primary prose-a:underline prose-a:underline-offset-2;
+}
+
+/* Selected state style for Preline select component */
+.hs-select select:not(.hs-select-active) + button span[data-title] {
+  @apply opacity-70;
+}
+
+/* ----------------------------
+   Input Field Styles
+----------------------------- */
+.form-input,
+.hs-select input.form-input,
+.hs-select button.form-input {
+  @apply border-border-light text-dark placeholder:text-dark/80 h-full w-full rounded-lg border bg-white px-4 py-4 outline-0 [--tw-ring-offset-shadow:none] focus:shadow-none! focus:ring-0!;
+  @apply **:data-title:text-dark;
+}
+
+/* Focus styles for input types */
+[type="text"]:focus,
+input:where(:not([type])):focus,
+[type="email"]:focus,
+[type="url"]:focus,
+[type="password"]:focus,
+[type="number"]:focus,
+[type="date"]:focus,
+[type="datetime-local"]:focus,
+[type="month"]:focus,
+[type="search"]:focus,
+[type="tel"]:focus,
+[type="time"]:focus,
+[type="week"]:focus,
+[multiple]:focus,
+textarea:focus,
+select:focus {
+  @apply border-black/20;
+}
+
+/* Label Styling */
+.form-label {
+  @apply text-dark mb-4 block font-normal;
+}
+
+/* ----------------------------
+   Checkbox and Radio Styling
+----------------------------- */
+.form-check-wrapper {
+  @apply space-y-2;
+}
+
+.form-check {
+  @apply flex gap-3;
+}
+
+.form-check-label {
+  @apply cursor-pointer text-sm leading-relaxed select-none;
+}
+
+/* Specific sizes */
+.form-checkbox {
+  @apply mt-0.5 h-4 w-4 rounded-sm; /* typical checkbox size */
+}
+
+.form-radio {
+  @apply mt-0.5 h-4 w-4 rounded-full; /* typical radio size */
+}
+
+/* ----------------------------
+   Dropdown Base Styles
+----------------------------- */
+[data-hs-select-dropdown] {
+  @apply rounded-md border p-1;
+}
+
+/* Dropdown Option Item Styles */
+[data-hs-select-dropdown] > div[data-value] + span {
+  @apply text-text-default text-sm focus:outline-none;
+}
+
+/* Dropdown Search Input Wrapper */
+.dropdown-search-input-wrapper {
+  @apply p-0 focus:shadow-none focus:ring-0 focus:outline-none;
+}
+
+.dropdown-search-input-wrapper input {
+  @apply placeholder:text-base-sm border-border-light p-2! ps-3! placeholder:opacity-50 placeholder:md:text-base;
+}
+
+/* Dropdown 'Not Found' Message */
+[data-hs-select-dropdown] > span {
+  @apply text-base-sm block px-3 py-2.5 opacity-80 md:text-base;
+}
+
+/* Dropdown Icons */
+.dropdown-icon {
+  @apply text-dark;
+}
+
+.dropdown-selected-icon {
+  @apply text-dark;
+}

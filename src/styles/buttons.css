@@ -1,0 +1,154 @@
+/* ====================================================== */
+/* Button Style */
+/* ====================================================== */
+
+@utility btn {
+  @apply shadow-button relative inline-block overflow-hidden rounded-full px-8 py-3 leading-tight font-medium whitespace-nowrap uppercase duration-[.35s] disabled:cursor-not-allowed md:px-11;
+}
+@utility btn-md {
+  @apply px-10 py-4 md:text-lg xl:px-12;
+}
+
+@utility btn-primary {
+  @apply bg-primary text-light;
+}
+@utility btn-black {
+  @apply text-light bg-black;
+}
+
+/* Button Text Variant */
+@utility btn-text {
+  @apply hover:border-b-primary hover:text-primary inline-block rounded-none border-b p-0 pb-1.5;
+}
+@utility btn-text-primary {
+  @apply text-primary border-b-primary border-b;
+}
+@utility btn-text-white {
+  @apply text-light border-b-white;
+}
+
+/* Button Outline Variant */
+@utility btn-outline {
+  @apply text-text-default shadow-button border font-medium;
+}
+@utility btn-outline-white {
+  @apply text-text-default border bg-white;
+}
+.btn-outline .gradient-shape {
+  @apply text-text-default opacity-30;
+}
+
+/* Button Animation */
+.magnetic-hover-anim:not([disabled="true"]) {
+  transition: transform 0.2s ease;
+  will-change: transform;
+}
+.creative-hover-anim:not([disabled="true"]) {
+  @apply relative z-10 overflow-hidden delay-100;
+
+  .hover-bg {
+    @apply translate-centered absolute top-(--creative-hover-top) left-(--creative-hover-left) -z-10 block h-0 w-0 rounded-full;
+    transition:
+      width 0.7s ease,
+      height 0.7s ease;
+  }
+
+  &:hover .hover-bg {
+    width: 56.25rem;
+    height: 56.25rem;
+  }
+
+  &.btn-primary .hover-bg {
+    @apply bg-theme-dark;
+  }
+  &.btn-outline .hover-bg {
+    background: var(--color-primary);
+  }
+  &:hover {
+    &.btn-outline {
+      color: var(--color-white) !important;
+    }
+  }
+}
+.text-flip-hover-anim:not([disabled="true"]) {
+  .text-flip-inner {
+    @apply relative block overflow-hidden text-transparent;
+
+    &::before,
+    &::after {
+      content: attr(data-content);
+      @apply pointer-events-none absolute inset-0 text-center transition-all duration-300 ease-in-out;
+    }
+
+    &::before {
+      @apply top-0 opacity-100;
+    }
+
+    &::after {
+      @apply top-full opacity-0;
+    }
+  }
+
+  &:hover .text-flip-inner {
+    &::before {
+      @apply -top-full opacity-0;
+    }
+
+    &::after {
+      @apply top-0 opacity-100;
+    }
+  }
+
+  &.btn-outline,
+  &.btn-outline-white {
+    .text-flip-inner {
+      &::before,
+      &::after {
+        @apply text-dark;
+      }
+    }
+  }
+
+  &.btn-primary,
+  &.btn-black {
+    .text-flip-inner {
+      &::before,
+      &::after {
+        @apply text-light;
+      }
+    }
+  }
+}
+.has-icon-moving-animation {
+  /* @apply overflow-hidden; */
+  &:hover .icon {
+    &.icon-before {
+      @apply start-full -top-full;
+    }
+
+    &.icon-after {
+      @apply start-0 top-0;
+    }
+  }
+
+  .icons-wrapper {
+    @apply relative overflow-hidden;
+  }
+
+  .icon {
+    @apply transition-[top,_left] duration-500 ease-in-out;
+
+    &.icon-before,
+    &.icon-after {
+      @apply absolute inset-0 size-full;
+    }
+
+    &.icon-before {
+      @apply top-0;
+    }
+
+    &.icon-after {
+      @apply -start-full top-full;
+    }
+  }
+}

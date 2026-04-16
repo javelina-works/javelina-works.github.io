@@ -1,0 +1,194 @@
+---
+import type { Section } from "@/types";
+import ContactForm from "../widgets/ContactForm.astro";
+import { getEntryCTM } from "@/lib/contentParser.astro";
+import { markdownify } from "@/lib/utils/textConverter";
+import overrideObjects from "@/lib/utils/overrideObjects.ts";
+import type { contactSectionSchema } from "@/sections.schema";
+import type { z } from "astro/zod";
+import { generateStars } from "@/shortcodes/Testimonial.astro";
+import OptimizedImage from "../utilities/OptimizedImage.astro";
+
+type ContactSection = Section & z.infer<typeof contactSectionSchema>;
+
+type Props = {
+  content?: ContactSection;
+};
+
+let defaultContent = (
+  await getEntryCTM("sections", "contact-section", Astro.currentLocale)
+)?.data as ContactSection;
+
+let actualContent = overrideObjects(
+  { ...defaultContent },
+  Astro.props.content,
+) as ContactSection;
+
+let { enable = true, testimonial, title, description, form } = actualContent;
+
+if (!enable) return null;
+---
+
+<section class="relative">
+  <div class="container">
+    <div class="grid grid-cols-1 grid-rows-1 gap-10 lg:grid-cols-2">
+      <div class="flex flex-col lg:sticky lg:top-32 lg:max-w-md">
+        <div class="mb-10">
+          {
+            title && (
+              <h2
+                class="has-italic-text capitalize"
+                set:html={markdownify(title)}
+              />
+            )
+          }
+          {
+            description && (
+              <p class="mt-6" set:html={markdownify(description)} />
+            )
+          }
+        </div>
+        {
+          testimonial && (
+            <div class="mt-auto">
+              <div class="flex flex-col items-start space-y-4">
+                <div class="mb-6 inline-flex gap-2">
+                  {generateStars(5).map((_) => (
+                    <svg
+                      class="h-6 w-6 fill-current text-yellow-500"
+                      viewBox="0 0 20 20"
+                      fill="currentColor">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                {testimonial.content && (
+                  <blockquote
+                    class="text-lg leading-relaxed"
+                    set:html={markdownify(testimonial.content)}
+                  />
+                )}
+              </div>
+
+              <div class="mt-8 flex items-center gap-4">
+                {testimonial.customer.avatar && (
+                  <OptimizedImage
+                    src={testimonial.customer.avatar}
+                    alt={testimonial.customer.name}
+                    class="h-12 w-12 rounded-full object-cover"
+                  />
+                )}
+                <div class="min-w-0 flex-1 space-y-1">
+                  {testimonial.customer.name && (
+                    <div class="text-black">{testimonial.customer.name}</div>
+                  )}
+                  {testimonial.customer.role && (
+                    <p class="text-sm">{testimonial.customer.role}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )
+        }
+      </div>
+      {
+        form && (
+          <div class="lg:ms-auto">
+            <ContactForm class="w-full max-w-full lg:w-lg" form={form} />
+          </div>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<!-- https://preline.co/docs/select.html -->
+<script>
+  import {
+    formspreeSubmit,
+    netlifySubmit,
+    formSubmit,
+    isFormFilled,
+    setMessage,
+    validateSelectTag,
+  } from "@/lib/utils/FormHandle";
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById(
+      "contact-form",
+    ) as HTMLFormElement | null;
+
+    let selectTags = form?.querySelectorAll(
+      "[input-wrapper]:not(.hidden) select[data-hs-select]",
+    ) as NodeListOf<HTMLSelectElement>;
+
+    selectTags.forEach((tag) => {
+      tag.addEventListener("change", () => {
+        // Ensure only visible select tag value should submitted
+        selectTags.forEach((tag) => {
+          const name = tag.getAttribute("data-name");
+          tag.setAttribute("name", name || "");
+        });
+
+        validateSelectTag(tag);
+      });
+    });
+
+    form?.addEventListener("submit", async (e: Event) => {
+      e.preventDefault();
+
+      const provider = form?.getAttribute("data-provider") || "";
+      const action = form?.getAttribute("data-action") || "";
+
+      selectTags = form?.querySelectorAll(
+        "[input-wrapper]:not(.hidden) select[data-hs-select]",
+      ) as NodeListOf<HTMLSelectElement>;
+
+      // Validate all preline select tags
+      selectTags.forEach(validateSelectTag);
+
+      if (isFormFilled(form)) {
+        // Console.log form data for debugging
+        // const formData = Object.fromEntries(new FormData(form).entries());
+        // console.log(
+        //   Object.entries(formData)
+        //     .map(([key, value]) => `${key}: ${value}`)
+        //     .join("\n\n"),
+        // );
+
+        setMessage("Form Submitting!...", true, true, form);
+
+        try {
+          switch (provider) {
+            case "netlify":
+              await netlifySubmit(form, action);
+              break;
+            case "formsubmit.co":
+              await formSubmit({
+                form,
+                action,
+              });
+              break;
+            case "formspree":
+              await formspreeSubmit(
+                Object.fromEntries(new FormData(form).entries()),
+                5000,
+                form,
+              );
+              break;
+            default:
+              throw new Error("Unknown form provider.");
+          }
+        } catch (error) {
+          setMessage(
+            error +
+              "! Please use this mail - [info@javelinaworks.com](mailto:info@javelinaworks.com) to submit a ticket!",
+            false,
+            false,
+            form,
+          );
+        }
+      }
+    });
+  });
+</script>

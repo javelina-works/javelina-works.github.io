@@ -1,0 +1,95 @@
+---
+import TOC from "./widgets/TableOfContents.astro";
+import { markdownify } from "@/lib/utils/textConverter";
+import OptimizedImage from "./utilities/OptimizedImage.astro";
+
+const { content } = Astro.props;
+const {
+  title,
+  image,
+  author,
+  excerpt,
+  Content,
+  categories,
+  tocHeadings,
+  tableOfContents,
+} = content;
+
+// Check if table of contents is enable
+const tocEnabled =
+  tableOfContents?.enable && tocHeadings && tocHeadings.length > 0;
+---
+
+<section class="grid grid-cols-1 justify-items-center space-y-12">
+  <div class="container">
+    <div
+      class="relative flex w-full flex-col items-center justify-center space-y-8">
+      <div class="space-y-8 text-center lg:max-w-3xl">
+        <div>
+          {
+            categories && categories.length > 0 && (
+              <ul class="flex justify-center gap-2">
+                {categories.map((category: string) => (
+                  <li
+                    class="text-primary inline-block text-sm font-medium tracking-wider"
+                    set:html={markdownify(category)}
+                  />
+                ))}
+              </ul>
+            )
+          }
+          {title && <h1 class="h2" set:html={title} />}
+        </div>
+        {excerpt && <p set:html={markdownify(excerpt)} />}
+        {
+          author && author.title && (
+            <div class="flex flex-wrap items-center justify-center gap-4">
+              {author?.image && (
+                <OptimizedImage
+                  width={64}
+                  height={64}
+                  src={author.image}
+                  alt={author.title || "author image"}
+                  class="h-16 w-16 rounded-full border-4"
+                />
+              )}
+              <div class="text-start">
+                {author.title && (
+                  <p class="font-medium" set:html={markdownify(author.title)} />
+                )}
+                {author.role && <p set:html={markdownify(author.role)} />}
+              </div>
+            </div>
+          )
+        }
+      </div>
+
+      <!-- Post/Portfolio Image -->
+      {
+        image && Content && (
+          <OptimizedImage
+            src={image as string}
+            width={896}
+            height={384}
+            alt={title}
+            class:list={["h-96 w-full rounded-3xl object-cover lg:max-w-4xl"]}
+          />
+        )
+      }
+
+      <div class="w-full space-y-8 lg:max-w-3xl">
+        <!-- Table of Contents -->
+        {tocEnabled && tocHeadings && <TOC toc={tocHeadings} marker={false} />}
+
+        <!-- Main Content -->
+        {
+          Content && (
+            <div class="prose-styles content has-video-modal">
+              <Content />
+            </div>
+          )
+        }
+      </div>
+    </div>
+  </div>
+</section>

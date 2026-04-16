@@ -1,0 +1,91 @@
+---
+import type { Section } from "@/types";
+import type { z } from "astro/zod";
+import { getEntryCTM } from "@/lib/contentParser.astro";
+import { markdownify } from "@/lib/utils/textConverter";
+import TestimonialCard from "../cards/TestimonialCard.astro";
+import overrideObjects from "@/lib/utils/overrideObjects.ts";
+import type { testimonialSectionSchema } from "@/sections.schema";
+import AnimatedText from "../widgets/AnimatedText.astro";
+
+// Type
+type SectionType = Section & z.infer<typeof testimonialSectionSchema>;
+type Props = {
+  content?: SectionType;
+  minimalLayout?: boolean;
+};
+
+// Default content fetch
+let defaultContent = (
+  await getEntryCTM("testimonial", "-index", Astro.currentLocale)
+)?.data as SectionType;
+
+let actualContent = overrideObjects(
+  { ...defaultContent },
+  Astro.props.content,
+) as SectionType;
+
+let {
+  enable = true,
+  title,
+  limit,
+} = Astro.props.content || (actualContent.testimonialSection as SectionType);
+
+let list = actualContent.list;
+
+if (!enable) return;
+
+// limit the list defined in frontmatter
+if (limit) {
+  list = list?.slice(0, limit);
+}
+---
+
+<section>
+  <div
+    class:list={[
+      Astro.props.minimalLayout ? "container" : "bg-theme-light py-20 md:py-32",
+    ]}>
+    <div
+      class:list={[
+        "space-y-10 md:space-y-16",
+        !Astro.props.minimalLayout && "container",
+      ]}>
+      {
+        title && (
+          <div class="mx-auto max-w-4xl text-center">
+            {title && (
+              <h2 class="has-italic-text capitalize">
+                <AnimatedText
+                  delay={0.2}
+                  stagger={0.09}
+                  content={markdownify(title)}
+                />
+              </h2>
+            )}
+          </div>
+        )
+      }
+
+      {
+        list && (
+          <div class="grid gap-8 overflow-hidden md:grid-cols-2 lg:grid-cols-3">
+            {list
+              .filter((item) => item.enable !== false)
+              .map((testimonial, index) => (
+                <TestimonialCard
+                  content={testimonial}
+                  data-aos={
+                    Math.floor(index / 4) % 2 === 0
+                      ? "fade-left-sm"
+                      : "fade-right-sm"
+                  }
+                  data-aos-delay={((index % 4) + 1) * 100}
+                />
+              ))}
+          </div>
+        )
+      }
+    </div>
+  </div>
+</section>

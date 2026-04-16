@@ -1,0 +1,186 @@
+---
+import type { z } from "astro/zod";
+import Icons from "@/helpers/Icons.astro";
+import { markdownify } from "@/lib/utils/textConverter";
+import CustomButton from "@/components/CustomButton.astro";
+import type { pricingSectionSchema } from "@/sections.schema";
+import AnimatedNumber from "@/components/widgets/AnimatedNumber.astro";
+
+type PlansType = NonNullable<PricingSectionType>["plans"];
+type PricingSectionType = z.infer<typeof pricingSectionSchema>;
+type PlanType = NonNullable<PricingSectionType>["list"][number];
+type ComparisonType = NonNullable<PricingSectionType>["comparison"];
+
+type Props = {
+  content: PlanType & {
+    comparison?: ComparisonType;
+    plans: PlansType;
+    index: number;
+    layout?: "regular" | "comparison";
+  };
+  class?: string;
+};
+
+const {
+  class: className,
+  content: {
+    index,
+    enable,
+    featured,
+    name,
+    description,
+    price,
+    button,
+    plans,
+    comparison,
+  },
+  ...rest
+} = Astro.props;
+
+const selectedPlan = plans?.list?.find(
+  (plan: { selected: boolean }) => plan.selected,
+);
+
+// Get all features from comparison
+const allFeatures = comparison?.map((item) => item.list).flat();
+
+// Separate features for desktop (only showInCard: true) and mobile (all features)
+const desktopFeatures =
+  allFeatures
+    ?.sort((a, b) =>
+      a.included[index] === b.included[index] ? 0 : a.included[index] ? -1 : 1,
+    )
+    .filter((feature) => feature.showInCard) || [];
+const mobileFeatures = allFeatures || [];
+
+if (!enable) return;
+---
+
+<div
+  class:list={[
+    "text-text-default bg-theme-light flex min-h-full flex-col gap-8 rounded-3xl transition duration-500",
+    {
+      "after:from-primary relative after:absolute after:top-0 after:left-0 after:h-11/12 after:w-full after:rounded-t-3xl after:bg-linear-to-b after:to-white max-md:px-2 max-md:pt-10 after:md:-top-6 after:md:scale-105":
+        featured,
+    },
+    className,
+  ]}
+  {...rest}>
+  <div
+    class="bg-theme-light relative z-10 flex min-h-full flex-col space-y-5 rounded-3xl p-8">
+    {
+      name && (
+        <h3 class="md:text-h6 text-h6-sm mb-7" set:html={markdownify(name)} />
+      )
+    }
+
+    <div class="space-y-5">
+      {
+        price?.map((item, usageIndex) => (
+          <div
+            data-plan={item.type.toLowerCase()}
+            class:list={[
+              "price-wrapper relative flex flex-wrap items-end gap-1.5 transition-all duration-300",
+              {
+                active: selectedPlan?.label === item.type,
+              },
+              {
+                hidden: selectedPlan?.label !== item.type && plans?.enable,
+              },
+              {
+                hidden: !plans?.enable && usageIndex !== 0,
+              },
+            ]}>
+            <span class="flex gap-0 text-5xl md:text-7xl/[1.125]">
+              <AnimatedNumber
+                class="leading-none"
+                animateOn="click"
+                transitionTime="1.2s"
+                content={item}
+              />
+            </span>
+            {plans?.enable && (
+              <span class="pricing-type pb-3 text-sm" set:html={item.type} />
+            )}
+          </div>
+        ))
+      }
+      {description && <p class="text-lg" set:html={markdownify(description)} />}
+    </div>
+
+    <!-- Desktop Features (only showInCard: true) -->
+    <ul
+      class="mt-5 hidden space-y-4 border-t border-black/25 py-4 pt-10 lg:block">
+      {
+        desktopFeatures.map((feature: any) => {
+          const featureText = feature?.value;
+          const isEnabled = feature.included[index];
+
+          return (
+            <li class="relative ps-10">
+              <span
+                class:list={[
+                  "absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white",
+                  isEnabled
+                    ? "bg-primary"
+                    : "bg-theme-dark/30 after:bg-theme-light/70 pointer-events-none after:absolute after:inset-0 after:size-full after:content-['']",
+                ]}>
+                {isEnabled ? (
+                  <Icons icon="Check" class="text-xs" />
+                ) : (
+                  <Icons icon="X" class="text-xs" />
+                )}
+              </span>
+              <span set:html={markdownify(featureText)} />
+            </li>
+          );
+        })
+      }
+    </ul>
+
+    <!-- Mobile Features (all features with opacity for non-included) -->
+    <ul
+      class="mt-5 block space-y-4 border-t border-black/25 py-4 pt-10 lg:hidden">
+      {
+        mobileFeatures.map((feature: any) => {
+          const featureText = feature?.value;
+          const isEnabled = feature.included[index];
+
+          return (
+            <li
+              class:list={[
+                "relative flex items-center justify-between gap-2",
+                !isEnabled &&
+                  "after:bg-theme-light/0 after:pointer-events-none after:absolute after:inset-0 after:size-full after:content-['']",
+              ]}>
+              <span set:html={markdownify(featureText)} />
+              <span class="text-right text-sm">
+                {typeof isEnabled === "string" ? (
+                  isEnabled
+                ) : (
+                  <span
+                    class:list={[
+                      "inline-flex h-4 w-4 items-center justify-center rounded-full text-white",
+                      isEnabled ? "bg-primary" : "bg-theme-dark/30",
+                    ]}>
+                    {isEnabled ? (
+                      <Icons icon="Check" class="text-xs" />
+                    ) : (
+                      <Icons icon="X" class="text-xs" />
+                    )}
+                  </span>
+                )}
+              </span>
+            </li>
+          );
+        })
+      }
+    </ul>
+
+    {
+      button?.enable && (
+        <CustomButton class="btn-md mt-auto text-center" {...button} />
+      )
+    }
+  </div>
+</div>

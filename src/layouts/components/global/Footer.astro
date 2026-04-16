@@ -1,0 +1,203 @@
+---
+import social from "@/config/social.json";
+import Logo from "@/components/global/Logo.astro";
+import config from ".astro/config.generated.json";
+import { markdownify } from "@/lib/utils/textConverter";
+import SocialComponent from "@/components/social/Social.astro";
+import SubscriptionForm from "@/components/widgets/SubscriptionForm.astro";
+import { useTranslations, getLocaleUrlCTM } from "@/lib/utils/i18nUtils";
+
+const t = await useTranslations(Astro.currentLocale as string);
+
+let { copyright, footerDescription, subscription, brandName } = config.settings;
+
+footerDescription = footerDescription || t("footer.description");
+const copyrightText = copyright.text || t("footer.copyright");
+---
+
+<footer class="relative">
+  <div class="container space-y-8 md:space-y-16">
+    <div class="grid gap-y-12 lg:grid-cols-2 xl:grid-cols-3">
+      <div class="space-y-8 xl:pe-20">
+        <Logo />
+        {footerDescription && <p set:html={markdownify(footerDescription)} />}
+
+        {
+          subscription && subscription.enable && (
+            <SubscriptionForm {...subscription} />
+          )
+        }
+      </div>
+
+      <div class="col-span-2 grid gap-y-10 md:grid-cols-3 xl:pl-56">
+        <div>
+          {
+            t("footer.colTitleOne") && (
+              <h3
+                class="text-dark mb-4 text-xl md:mb-6"
+                set:html={t("footer.colTitleOne")}
+              />
+            )
+          }
+          <ul class="flex flex-col gap-y-1.5">
+            {
+              t("footerMenuOne")
+                ?.filter((menu: { enable?: boolean }) => menu.enable !== false)
+                .map((menu: { name: string; url: string }) => (
+                <li>
+                  <a
+                    class="has-underline-anim inline-block py-px text-inherit"
+                    href={getLocaleUrlCTM(menu.url, Astro.currentLocale)}>
+                    {menu.name}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+
+        <div>
+          {
+            t("footer.colTitleTwo") && (
+              <h3
+                class="text-dark mb-4 text-xl md:mb-6"
+                set:html={t("footer.colTitleTwo")}
+              />
+            )
+          }
+          <ul class="flex flex-col gap-2">
+            {
+              t("footerMenuTwo")
+                .filter((menu: { enable?: boolean }) => menu.enable !== false)
+                .map((menu: { name: string; url: string }) => (
+                <li class="inline-block">
+                  <a
+                    class="has-underline-anim inline-block py-px text-inherit"
+                    href={getLocaleUrlCTM(menu.url, Astro.currentLocale)}
+                    set:html={menu.name}
+                  />
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+        <div>
+          {
+            t("footer.colTitleThree") && (
+              <h3
+                class="text-dark mb-4 text-xl md:mb-6"
+                set:html={t("footer.colTitleThree")}
+              />
+            )
+          }
+
+          <ul class="flex flex-col gap-3">
+            <li>
+              <span
+                class="text-dark/65 mb-1.5 inline-block text-sm/none font-medium -tracking-tighter">
+                {t("contactInfo.locationLabel") || "Location"}:
+              </span>
+              <span class="text-base-sm block md:text-base">
+                {
+                  t("contactInfo.location") ||
+                    "2627 Park Street, San Francisco, CA"
+                }
+              </span>
+            </li>
+            <li>
+              <span
+                class="text-dark/65 mb-1.5 inline-block text-sm/none font-medium -tracking-tighter">
+                {t("contactInfo.phoneLabel") || "Phone Number"}:
+              </span>
+              <span class="text-base-sm block md:text-base">
+                {t("contactInfo.phone") || "925-465-3762"}
+              </span>
+            </li>
+            <li>
+              <span
+                class="text-dark/65 mb-1.5 inline-block text-sm/none font-medium -tracking-tighter">
+                {t("contactInfo.emailLabel") || "Email"}:
+              </span>
+              <span class="text-base-sm block md:text-base">
+                {t("contactInfo.email") || "info@javelinaworks.com"}
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap justify-between gap-x-8 gap-y-6 border-t py-8">
+      {
+        config.settings.copyright && config.settings.copyright.enable && (
+          <div
+            class="prose-styles opacity-80"
+            set:html={markdownify(copyrightText, true)}
+          />
+        )
+      }
+      <SocialComponent
+        layout="minimal"
+        class="*:h-6 *:w-6"
+        linkType="follow"
+        list={social.main.filter((social) => social.enable)}
+      />
+    </div>
+  </div>
+
+  <!-- Brand Name -->
+  {
+    brandName && (
+      <div class="relative overflow-hidden text-[clamp(1rem,90%,25rem)]">
+        <div
+          class="text-primary responsive-brand-text mx-auto text-center leading-[0.8] uppercase max-md:py-5"
+          set:html={brandName}
+        />
+        <div class="pointer-events-none absolute right-0 bottom-0 left-0 z-10 h-[calc(70%+1.5rem)] w-full">
+          <div class="absolute inset-0 z-70 mask-[linear-gradient(rgba(0,0,0,0),rgba(0,0,0,1)_10%,rgba(0,0,0,1)_30%,rgba(0,0,0,0)_40%)] backdrop-blur-[1px]" />
+          <div class="absolute inset-0 z-60 mask-[linear-gradient(rgba(0,0,0,0)_10%,rgba(0,0,0,1)_20%,rgba(0,0,0,1)_40%,rgba(0,0,0,0)_50%)] backdrop-blur-[2px]" />
+          <div class="absolute inset-0 z-50 mask-[linear-gradient(rgba(0,0,0,0)_15%,rgba(0,0,0,1)_30%,rgba(0,0,0,1)_50%,rgba(0,0,0,0)_60%)] backdrop-blur-xs" />
+          <div class="absolute inset-0 z-40 mask-[linear-gradient(rgba(0,0,0,0)_20%,rgba(0,0,0,1)_40%,rgba(0,0,0,1)_60%,rgba(0,0,0,0)_70%)] backdrop-blur-sm" />
+          <div class="absolute inset-0 z-30 mask-[linear-gradient(rgba(0,0,0,0)_40%,rgba(0,0,0,1)_60%,rgba(0,0,0,1)_80%,rgba(0,0,0,0)_90%)] backdrop-blur-lg" />
+          <div class="absolute inset-0 z-20 mask-[linear-gradient(rgba(0,0,0,0)_60%,rgba(0,0,0,1)_80%)] backdrop-blur-[32px]" />{" "}
+          <div class="absolute inset-0 z-10 mask-[linear-gradient(rgba(0,0,0,0)_70%,rgba(0,0,0,1)_100%)] backdrop-blur-[52px]" />
+        </div>
+      </div>
+    )
+  }
+  <script>
+    // Detect if the page has a call to action section and add a class to the footer accordingly.
+    // This approach adds a section gap between the last section of main tag & footer.
+
+    const ctaSection = document.querySelector(".cta-section");
+    const footer = document.querySelector("footer") as HTMLElement;
+
+    if (!ctaSection) {
+      footer.classList.add("has-call-to-action");
+    }
+
+    function fitText(el: any, { minSize = 12, maxSize = 500 } = {}) {
+      const parent = el.parentElement;
+
+      function resize() {
+        // Reset first so scrollWidth is measured at default size
+        el.style.fontSize = `${maxSize}px`;
+
+        // Calculate scale based on parent width vs. text width
+        const scale = parent.clientWidth / el.scrollWidth;
+
+        // Apply new size (with limits)
+        const newSize = Math.max(minSize, Math.min(maxSize, maxSize * scale));
+        el.style.fontSize = `${newSize}px`;
+      }
+
+      window.addEventListener("resize", resize);
+      resize();
+    }
+
+    // Usage
+    document
+      .querySelectorAll(".responsive-brand-text")
+      .forEach((el) => fitText(el, { minSize: 20, maxSize: 800 }));
+  </script>
+</footer>

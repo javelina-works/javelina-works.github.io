@@ -1,0 +1,162 @@
+---
+import Icons from "@/helpers/Icons.astro";
+import CustomButton from "../CustomButton.astro";
+import { markdownify } from "@/lib/utils/textConverter";
+import AnimatedNumber from "../widgets/AnimatedNumber.astro";
+import type { pricingSectionSchema } from "@/sections.schema";
+import type { z } from "astro/zod";
+
+type Comparison = NonNullable<z.infer<typeof pricingSectionSchema>>;
+
+type Props = {
+  class?: string;
+  content: {
+    title?: string;
+    list: Comparison["list"];
+    plans: Comparison["plans"];
+    selectedPlanIndex: number;
+    comparison: Comparison["comparison"];
+  };
+};
+
+const {
+  class: className,
+  content: { title, list, selectedPlanIndex, plans, comparison },
+} = Astro.props;
+
+const selectedPlan = plans?.list?.find(
+  (plan: { selected: boolean }) => plan.selected,
+);
+---
+
+<div class:list={["container space-y-12 md:space-y-16", className]}>
+  {
+    title && (
+      <div data-aos="fade-up-sm" class="mx-auto text-center md:max-w-md">
+        <h2 class="has-italic-text capitalize" set:html={markdownify(title)} />
+      </div>
+    )
+  }
+  <table
+    data-aos="fade-up-sm"
+    data-aos-delay={200}
+    class="relative w-full after:-top-40 after:-z-10">
+    <caption class="sr-only">Pricing Table Comparison</caption>
+    <colgroup>
+      <col class="w-[30%]" />
+      <col class="w-1/5" />
+      <col class="w-1/5" />
+      <col class="w-1/5" />
+    </colgroup>
+    <thead>
+      <tr>
+        <th></th>
+        {
+          list.map((item, index) => (
+            <th>
+              <div
+                class:list={[
+                  "space-y-4 px-8 pt-10 pb-4",
+                  index === selectedPlanIndex &&
+                    "bg-theme-light rounded-t-lg border border-b-0",
+                ]}>
+                <span
+                  class="block font-medium tracking-wider uppercase opacity-70"
+                  set:html={markdownify(item.name.replace(" Plan", ""))}
+                />
+                {item.price?.map((price, usageIndex) => (
+                  <div
+                    data-plan={price.type.toLowerCase()}
+                    class:list={[
+                      "price-wrapper text-h5-sm md:text-h5 relative flex flex-wrap items-center justify-center gap-1.5 font-normal transition-all duration-300",
+                      {
+                        active: selectedPlan?.label === price.type,
+                      },
+                      {
+                        hidden:
+                          selectedPlan?.label !== price.type && plans?.enable,
+                      },
+                      {
+                        hidden: !plans?.enable && usageIndex !== 0,
+                      },
+                    ]}>
+                    <span class="flex gap-0 leading-none">
+                      <AnimatedNumber
+                        class="leading-none"
+                        animateOn="click"
+                        transitionTime="1.2s"
+                        content={price}
+                      />
+                    </span>
+                    /
+                    {plans?.enable && (
+                      <span
+                        class="pricing-type"
+                        set:html={price.type.replace("Per ", "")}
+                      />
+                    )}
+                  </div>
+                ))}
+
+                {item?.button?.enable && (
+                  <CustomButton
+                    hoverEffect="text-flip"
+                    class="btn-sm"
+                    {...item?.button}
+                  />
+                )}
+              </div>
+            </th>
+          ))
+        }
+      </tr>
+    </thead>
+    <tbody>
+      {
+        comparison?.map((item, index) => (
+          <>
+            {/* Group Name Row - eg: Features */}
+            <tr class="border-b">
+              <td class:list={[index !== 0 && "pt-16", "py-4"]}>
+                <span
+                  class="block text-lg font-medium text-black"
+                  set:html={markdownify(item.label)}
+                />
+              </td>
+              {list.map((_, i) => (
+                <td
+                  class:list={[
+                    "py-4",
+                    i === selectedPlanIndex && "bg-theme-light",
+                  ]}
+                />
+              ))}
+            </tr>
+
+            {/* Each feature row of the upper group - eg: Integrations, Shared links */}
+            {item.list.map((i) => (
+              <tr class="border-b">
+                <td class="py-4" set:html={markdownify(i.value)} />
+                {i.included.map((includedIn, i) => (
+                  <td
+                    class:list={[
+                      "px-8 py-4 text-center text-sm",
+                      i === selectedPlanIndex && "bg-theme-light",
+                    ]}>
+                    {includedIn === true ? (
+                      <Icons icon="Check" class="text-dark mx-auto" />
+                    ) : includedIn === false ? (
+                      <Icons icon="Minus" class="text-dark/50 mx-auto" />
+                    ) : (
+                      includedIn
+                    )}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </>
+        ))
+      }
+    </tbody>
+  </table>
+</div>
