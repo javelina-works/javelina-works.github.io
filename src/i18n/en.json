@@ -28,10 +28,6 @@
     "label": "Subscribe to our newsletter",
     "term": "I agree with [privacy policy](/privacy-policy/)"
   },
-  "integration": {
-    "relatedIntegrationSectionTitle": "You might be **interested in**",
-    "backToIntegration": "Browse"
-  },
   "footer": {
     "colTitleOne": "Company",
     "colTitleTwo": "Resources",

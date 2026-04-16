@@ -1,10 +1,7 @@
 import { defineCollection } from "astro:content";
-import config from ".astro/config.generated.json";
-import { button, videoConfigSchema } from "./sections.schema";
+import { videoConfigSchema } from "./sections.schema";
 import { glob } from "astro/loaders";
 import { z } from "astro/zod";
-
-const { integrationFolder } = config.settings;
 
 // Universal Page Schema
 const page = z.object({
@@ -40,33 +37,6 @@ const blogCollection = defineCollection({
     author: z.string().optional(),
     excerpt: z.string().optional(),
     featured: z.boolean().optional(),
-  }),
-});
-
-// Integration Collection
-const integrationCollection = defineCollection({
-  loader: contentLoader("./src/content/integration"),
-  schema: page.extend({
-    categories: z.array(z.string()).optional(),
-    excerpt: z.string().optional(),
-    button: button.optional(),
-    sections: z
-      .array(
-        z.object({
-          title: z.string(),
-          description: z.string(),
-          category: z.string(),
-        }),
-      )
-      .optional(),
-    fields: z
-      .array(
-        z.object({
-          name: z.string(),
-          content: z.string(),
-        }),
-      )
-      .optional(),
   }),
 });
 
@@ -127,9 +97,6 @@ export const changelogCollection = defineCollection({
 // Export collections
 export const collections = {
   blog: blogCollection,
-  integration: integrationCollection,
-  [integrationFolder]: integrationCollection,
-
   pages: pagesCollection,
   changelog: changelogCollection,
   career: defineCollection({ loader: contentLoader("./src/content/career") }),

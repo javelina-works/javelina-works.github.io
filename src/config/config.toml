@@ -4,8 +4,7 @@
   description      = "A customizable and multipurpose saas & startup astro theme built with Tailwind CSS and Astro Js" # Shared description for SEO and OpenGraph
   tagline          = "Multipurpose Saas & Startup Astro Js Theme"
   taglineSeparator = "" # default is " - "
-  # baseUrl          = "https://javelinaworks.com" # Base URL for the site and used in OpenGraph meta tags.
-  baseUrl          = "https://stella-astro.netlify.com" # Base URL for the site and used in OpenGraph meta tags.
+  baseUrl          = "https://javelinaworks.com" # Base URL for the site and used in OpenGraph meta tags.
   logo             = "/images/logo.svg" # Path to the site's logo
   logoText         = "Javelina Works" # Text displayed next to the logo
   logoWidth        = "2rem" # Width of the logo
@@ -54,7 +53,6 @@
   # - "src/[...lang]/pages" folder
   # - "src/content.config.ts" collections object
   blogFolder        = "blog" # Folder where blog posts are stored
-  integrationFolder = "integration" # Folder where services are stored
   careerFolder      = "career" # Folder where job posts are stored
 
   pagination   = 6 # Number of posts displayed on each page blog list page
