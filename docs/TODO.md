@@ -12,7 +12,7 @@ engines on the live site.
 
 ### Config (`src/config/config.toml`)
 
-- [ ] **Contact form email** (line 65) — currently `temp.gats@gmail.com`.
+- [x] **Contact form email** (line 65) — currently `temp.gats@gmail.com`.
       Replace with the real Javelina Works contact email.
 - [ ] **Mailchimp subscription** (line 82) — form action points to a demo list.
       Replace with your Mailchimp list URL, or set `enable = false` (line 80).
@@ -37,7 +37,7 @@ The placeholder `"This is a example description"` appears in the frontmatter
 
 ### OpenGraph image
 
-- [ ] `public/images/og-image.jpg` — verify this is a Javelina Works branded
+- [x] `public/images/og-image.jpg` — verify this is a Javelina Works branded
       image, not the Stella template default. Replace if needed.
 - [ ] `opengraph.twitter` in `config.toml` (line 115) — empty. Add your
       Twitter/X handle if you have one.
@@ -109,10 +109,10 @@ the menu. Either populate them with real content or delete:
 
 - [ ] Remove or update disabled "Features" megamenu (lines 10–63) — contains
       template SaaS feature descriptions.
-- [ ] Remove disabled "Pages" dropdown (lines 66–200) — contains nested demo
+- [x] Remove disabled "Pages" dropdown (lines 66–200) — contains nested demo
       entries, integration links, etc.
-- [ ] Remove disabled "Components" entry (lines 202–215).
-- [ ] Trim footer menus (`footerMenuOne`, `footerMenuTwo`) — most entries are
+- [x] Remove disabled "Components" entry (lines 202–215).
+- [x] Trim footer menus (`footerMenuOne`, `footerMenuTwo`) — most entries are
       disabled placeholders.
 
 ### Misc
