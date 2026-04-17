@@ -11,7 +11,7 @@ description: Get environmental insights, boost efficiency, and improve outcomes 
 backgroundVideo:
   src: "/videos/hero-background.mp4"
   type: "video/mp4"
-  poster: "/src/assets/images/hero-background-poster.png"
+  poster: "/src/assets/images/homepage/hero-background-poster.png"
   # mobileFallbackImage: "/src/assets/images/hero-background-mobile.jpg"
 buttons:
   - enable: true
@@ -28,10 +28,10 @@ buttons:
     hoverEffect: "creative-fill" # "text-flip", "creative-fill", "magnetic", "magnetic-text-flip"
     variant: "fill" # "fill", "outline", "text"
     video:
-      src: "/videos/saas-test-video.mp4"
-      type: mp3
+      src: "/videos/quiver-product-promo_source.mp4"
+      type: mp4
       provider: html5
-      poster:
-      autoplay: true
-      id: home-hero-video
+      poster: "/src/assets/images/homepage/promo-video-poster.png"
+      autoplay: false
+      id: home-drone-promo-video
 ---

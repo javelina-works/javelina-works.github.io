@@ -8,7 +8,7 @@ title: The Intelligent Platform for Land Management
 #     enable: true
 #     label: "New"
 description: Get environmental insights, boost efficiency, and improve outcomes for your brush management needs.
-image: "/images/product-for-hero.jpg" # image dimensions: 1320x745
+image: "/src/assets/images/homepage/hero-background-poster.png" # image dimensions: ?x?
 buttons:
   - enable: true
     label: "GET IN TOUCH"
@@ -22,12 +22,12 @@ buttons:
     tag: "button"
     type: "video"
     hoverEffect: "creative-fill" # "text-flip", "creative-fill", "magnetic", "magnetic-text-flip"
-    variant: "text" # "fill", "outline", "text"
+    variant: "fill" # "fill", "outline", "text"
     video:
-      src: "/videos/saas-test-video.mp4" # video url or path eg: "/videos/test-video.mp4" or "https://example.com/test-video.mp4"
-      type: mp3 # video type eg: mp4, webm etc
+      src: "/videos/quiver-product-promo_source.mp4" # video url or path eg: "/videos/test-video.mp4" or "https://example.com/test-video.mp4"
+      type: mp4 # video type eg: mp4, webm etc
       provider: html5 # "youtube" | "vimeo" | "html5" (default is "youtube")
-      poster: # Optional: URL or image path for video thumbnail
+      poster: "/src/assets/images/homepage/promo-video-poster.png" # Optional: URL or image path for video thumbnail
       autoplay: false # Optional: true to autoplay, false to start manually (default is false)
       id: home-hero-video # required if same video is used on multiple time on same page
 ---

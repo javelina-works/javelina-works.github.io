@@ -110,7 +110,7 @@
 # Specific OpenGraph settings, using values from the [site] section where possible.
 # -----------------------------------------------------------------------------------------------------------------------------------
 [opengraph]
-  image       = "/images/og-image.jpg" # Image used in OpenGraph previews
+  image       = "/src/assets/images/homepage/promo-video-poster.png" # Image used in OpenGraph previews
   ogLocale    = "en_US" # Locale setting for OpenGraph
   ogType      = "website" # Type of content for OpenGraph protocol
   twitter     = "" # Twitter handle for Twitter Card meta tags
