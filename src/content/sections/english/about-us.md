@@ -1,45 +1,45 @@
 ---
 enable: true
-title: "About Our **Company**"
+title: "About Javelina Works"
 officeImages:
-  - /images/about/1.jpg
-  - /images/about/2.jpg
-  - /images/about/3.jpg
-  - /images/about/4.jpg
+  - /images/about/k-t-hardware.jpeg
+  - /images/about/gray-emlid.jpeg
+  - /images/about/loading-drone.jpeg
+  - /images/about/thomas-testflight.jpeg
 
 about:
-  title: "Turning your startup vision into reality. Powering innovation **since 1928**"
+  title: "Leading the next generation of Texas land management."
   description: |
-    Innovative. Scalable. Reliable. It’s challenging to create products that meet each of these goals — especially when you’re focused on growing, pitching, and serving customers every day. That’s where we come in.
-  image: "/images/about/group-photo.jpg"
+    Innovative. Precise. Reliable. We build our solutions for Texans in Texas; from our very own drone production to custom software solutions, we do it all right here for the people in our communities.
+  image: "/images/about/depot-setup.png"
   list:
     - title: "Mission"
-      description: "Our platform gives you everything you need to build, launch, and grow your product — without the technical headaches."
+      description: "We strive to equip our neighbors with the very best tools and insights to manage their land. We want to deliver simple promises and exceptional results."
     - title: "Vision"
-      description: "To empower teams of all sizes to move faster and scale with confidence — providing the tools that turn great ideas into thriving businesses."
+      description: "To offer ranchers cutting edge technology, next-generation insights, and Texas manners. We want to be the trusted technology partner for the ranching world."
 
 stats:
   - value: 20
     prependValue:
     appendValue: "K+"
-    title: "Happy Customers"
-    description: "Powering innovative startups and global enterprises worldwide"
+    title: "Targets Identified"
+    description: "Unlocking insights never possible in previous generations"
 
-  - value: 7.5
+  - value: 20
     prependValue: ""
     appendValue: "+"
-    title: "Tasks Automated"
+    title: "Hours Saved"
     description: "Saving busy teams countless productive hours every single day"
 
-  - value: 90
+  - value: 1000
     prependValue:
     appendValue: +
-    title: "Countries Served"
-    description: "A truly powerful global platform built for every market"
+    title: "Acres Served"
+    description: "A scalable platform built for every environment"
 
-  - value: 10
+  - value: 5
     prependValue:
     appendValue: x
-    title: "Global Growth"
-    description: "A powerful toolkit designed to grow startups everywhere"
+    title: "Annual Growth"
+    description: "A powerful toolkit designed to grow with your challenges"
 ---
