@@ -1,6 +1,6 @@
 ---
 enable: true # Control the visibility of this section across all pages where it is used
-title: "**Have questions?** <br /> Send Us a Message"
+title: "**Have questions?** <br /> We'd love to hear from you"
 description: "Fill out the form below, and we’ll get back to you as soon as possible. We’re committed to providing excellent customer service and addressing any inquiries you may have."
 
 # testimonial:
@@ -79,7 +79,7 @@ form:
       tag: "textarea"
       defaultValue: ""
       rows: "2" # Only work if tag is textarea
-      placeholder: "How can we help you? *"
+      placeholder: "Let us know what we can do for you *"
       name: "Message" # This is crucial. Its indicate under which name you want to receive this field data
       required: true
       halfWidth: false

@@ -19,12 +19,6 @@ engines on the live site.
 - [ ] **Umami analytics** (line 122) — `data-website-id=""` is empty.
       Either set the real Umami ID or remove the `<script>` tag entirely.
 
-### Contact info (`src/i18n/en.json`)
-
-- [x] **Address** — `"03 Ranch Road, Fort Davis, Texas"` → confirm or correct.
-- [ ] **Phone** — `"925-465-3762"` → confirm or correct.
-- [x] **Email** — `"info@javelinaworks.com"` → confirm or correct.
-
 ---
 
 ## High — SEO & first impressions
@@ -48,13 +42,6 @@ The placeholder `"This is a example description"` appears in the frontmatter
 - [ ] `opengraph.twitter` in `config.toml` (line 115) — empty. Add your
       Twitter/X handle if you have one.
 
-### Social links (`src/config/social.json`)
-
-- [ ] Twitter, Facebook, Instagram, LinkedIn — all `enable: false` with
-      placeholder URLs. Populate with real Javelina Works accounts or delete.
-- [x] GitHub entry (line 30) — icon path is `/images/icons/svg/instagram.svg`
-      (wrong icon). Fix if keeping GitHub link.
-
 ---
 
 ## Medium — Content sections & pages
@@ -64,7 +51,7 @@ The placeholder `"This is a example description"` appears in the frontmatter
 These markdown files drive the homepage sections. Each needs real copy:
 
 - [x] `home-hero.md` — hero headline, subtitle, CTA button text, hero image/video
-- [x] `features-section.md` — feature cards (currently template SaaS features)
+- [ ] `features-section.md` — feature cards (currently template SaaS features)
 - [ ] `features-section-two.md` — second features block (same issue)
 - [x] `how-it-works.md` — step-by-step flow (template content)
 - [x] `call-to-action.md` — CTA section copy and button

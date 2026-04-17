@@ -8,11 +8,14 @@ This is the repository hosting the static site and configurations for the Javeli
 
 ### Contact Form
 
+### Business Phone Number
 
+Using [Google Voice](https://voice.google.com/) we now have a business line.
+**Phone Number:** (432) 203-5975
 
 ## Infrastructure Needed
 
-- [ ] Business phone number (google phone?)
+- [x] Business phone number (google phone?)
 - [ ] Instagram account
 - [ ] Twitter account
 - [ ] Facebook account

@@ -88,6 +88,7 @@ const noteStyles = {
     "data-provider": contactFormProvider,
     "data-netlify": contactFormProvider === "netlify" ? "true" : undefined,
     action: contactFormProvider === "netlify" ? contactFormAction : undefined,
+    name: contactFormProvider === "netlify" ? "contact-form" : undefined,
   }}
   method="post"
   class:list={[
@@ -95,6 +96,11 @@ const noteStyles = {
     Astro.props.class,
   ]}>
   {/* Some Hidden Inputs For Provider Like Netlify, Formspree Etc. */}
+  {
+    contactFormProvider === "netlify" && (
+      <input type="hidden" name="form-name" value="contact-form" />
+    )
+  }
   {
     form.emailSubject && (
       <input
