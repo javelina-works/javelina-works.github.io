@@ -23,9 +23,9 @@ export function formReset(form: HTMLFormElement) {
 
   selectTags?.forEach((tag) => {
     const selectElement = tag as HTMLSelectElement;
-    const select = window.HSSelect.getInstance(tag);
     selectElement.selectedIndex = 0;
 
+    const select = window.HSSelect?.getInstance(tag);
     if (select) {
       select.setValue("");
     }

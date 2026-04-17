@@ -87,6 +87,7 @@ const noteStyles = {
     "data-action": contactFormAction,
     "data-provider": contactFormProvider,
     "data-netlify": contactFormProvider === "netlify" ? "true" : undefined,
+    "data-netlify-honeypot": contactFormProvider === "netlify" ? "bot-field" : undefined,
     action: contactFormProvider === "netlify" ? contactFormAction : undefined,
     name: contactFormProvider === "netlify" ? "contact-form" : undefined,
   }}
@@ -98,7 +99,14 @@ const noteStyles = {
   {/* Some Hidden Inputs For Provider Like Netlify, Formspree Etc. */}
   {
     contactFormProvider === "netlify" && (
-      <input type="hidden" name="form-name" value="contact-form" />
+      <>
+        <input type="hidden" name="form-name" value="contact-form" />
+        <p class="hidden">
+          <label>
+            Don't fill this out: <input name="bot-field" />
+          </label>
+        </p>
+      </>
     )
   }
   {
