@@ -8,6 +8,20 @@
   [build.environment]
     NODE_VERSION = "22"
 
+[[plugins]]
+  package = "@netlify/plugin-lighthouse"
+
+  # optional, deploy the lighthouse report to a path under your site
+  [plugins.inputs.audits]
+    output_path = "reports/lighthouse.html"
+
+  # Optional: fail the deploy if scores fall below thresholds
+  [plugins.inputs.thresholds]
+    performance = 0.9
+    accessibility = 0.9
+    best-practices = 0.9
+    seo = 0.9
+
 [[headers]]
   for = "/_astro/*"
   [headers.values]
