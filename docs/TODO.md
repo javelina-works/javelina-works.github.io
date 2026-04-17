@@ -42,18 +42,18 @@ engines on the live site.
 
 - [x] **Address** — `"03 Ranch Road, Fort Davis, Texas"` → confirm or correct.
 - [ ] **Phone** — `"925-465-3762"` → confirm or correct.
-- [ ] **Email** — `"info@javelinaworks.com"` → confirm or correct.
+- [x] **Email** — `"info@javelinaworks.com"` → confirm or correct.
 
 ### Privacy Policy & Terms
 
-- [ ] `src/content/pages/english/privacy-policy.md` (line 91) — placeholder
+- [x] `src/content/pages/english/privacy-policy.md` (line 91) — placeholder
       address: `"123 Javelina Works Lane, Imaginary City, IC 12345, USA"`.
       Replace with real business address.
 - [x] `src/content/pages/english/privacy-policy.md` (line 71) —
       `privacy@javelinaworks.com`. Verify this email exists or replace.
 - [x] `src/content/pages/english/privacy-policy.md` (line 7) — effective date
       is `"Jan, 2026"`. Update to the real effective date.
-- [ ] `src/content/pages/english/terms-conditions.md` (line 7) — same outdated
+- [x] `src/content/pages/english/terms-conditions.md` (line 7) — same outdated
       effective date. Update.
 
 ---

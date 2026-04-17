@@ -20,13 +20,13 @@ buttons:
     url: "/contact"
     rel: ""
     target: ""
-    hoverEffect: "magnetic-text-flip"
+    hoverEffect: "magnetic" # "text-flip", "creative-fill", "magnetic", "magnetic-text-flip"
   - enable: true
     label: "Watch Video"
     tag: "button"
     type: "video"
-    hoverEffect: "magnetic-text-flip"
-    variant: "outline"
+    hoverEffect: "creative-fill" # "text-flip", "creative-fill", "magnetic", "magnetic-text-flip"
+    variant: "fill" # "fill", "outline", "text"
     video:
       src: "/videos/saas-test-video.mp4"
       type: mp3

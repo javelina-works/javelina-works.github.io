@@ -1,26 +1,26 @@
 ---
 enable: true
-title: Simplify Your **Workflow**
+title: Our Simple Brush Treatment Process
 list:
-  - step: "Step *01*"
-    title: Connect & Collaborate
-    description: Invite your team and start projects instantly.
+  - step: "Phase *01*"
+    title: Survey & Analysis
+    description: We perform a survey and comprehensive analysis of the treatment area.
     button:
       label: "Explore"
       url: "/features/"
       target: ""
       rel: ""
-  - step: "Step *02*"
-    title: Monitor & Analyze
-    description: Real-time track progress and satisfaction.
+  - step: "Phase *02*"
+    title: Plan & Discuss
+    description: We present our findings, including dense target locations and high risk areas. You get to make an informed choice on your treatment plan.
     button:
       label: "Explore"
       url: "/features/"
       target: ""
       rel: ""
-  - step: "Step *03*"
-    title: Automate & Protect
-    description: Use smart automation and instant alerts.
+  - step: "Phase *03*"
+    title: Automated Treatment
+    description: Using our smart drones, we execute the plan exactly to your specification.
     button:
       label: "Explore"
       url: "/features/"

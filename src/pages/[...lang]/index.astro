@@ -21,15 +21,23 @@ const homepage = await getEntryCTM("homepage", "-index", Astro.currentLocale);
 ---
 
 <Base {...homepage.data} homepage={true}>
+  <!-- Custom component; wanted to display our cinematic drone footage -->
   <HomeVideoHero />
+
   <Features />
-  <HowItWorks />
-  <!-- <Team /> -->
+
+  <!-- Hiding button until 'features' pages completed -->
+  <HowItWorks hideButton={true}/>
   <BenefitsSection />
-  <!-- <Location /> -->
+
+  <!-- Same as in "company/" -->
+  <Location />
+
+  <!-- <Team /> -->
   <!-- <PricingSection /> -->
   <!-- <TestimonialSection /> -->
   <!-- <BlogSection /> -->
   <!-- <IntegrationSection /> -->
+
   <CallToAction />
 </Base>

@@ -45,13 +45,25 @@
       "name": "Contact",
       "url": "/contact/",
       "weight": 0
+    },
+    {
+      "enable": true,
+      "name": "FAQ",
+      "url": "/faq/",
+      "weight": 0
     }
   ],
   "footerMenuTwo": [
     {
       "enable": true,
-      "name": "Privacy & Terms",
+      "name": "Privacy Policy",
       "url": "/privacy-policy/",
+      "weight": 0
+    },
+    {
+      "enable": true,
+      "name":"Terms & Conditions",
+      "url": "/terms-conditions/",
       "weight": 0
     }
   ]

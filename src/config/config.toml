@@ -34,7 +34,9 @@
 
   [seo.robotsTxt]
     enable   = true # Enables or disables robots.txt file generation on site build
-    disallow = [] # Disallow specific paths (e.g., ["/_astro/", "/cdn-cgi/"])
+    disallow = [
+
+    ] # Disallow specific paths (e.g., ["/_astro/", "/cdn-cgi/"])
 
   [seo.sitemap]
     enable = true # Enables or disables sitemap generation on site build
@@ -66,7 +68,7 @@
   # formspree | formsubmit.co | netlify (default is formsubmit.co)
   contactFormProvider = "formsubmit.co"
 
-  brandName         = "Javelina Works"
+  brandName         = "Javelina Works, Inc."
   footerDescription = "" # Check src/i18n/en.json and src/i18n/fr.json for changing the footer description in different languages or directly add value here if you are not using internationalization feature
 
   # For changing footer description and footer copyright in different languages see src/i18n/en.json and src/i18n/fr.json

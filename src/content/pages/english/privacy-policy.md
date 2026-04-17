@@ -4,7 +4,7 @@ metaDescription: This is a example description
 draft: false
 ---
 
-Effective Date: July, 2022
+Effective Date: January, 2026
 
 Welcome to Javelina Works ("we," "our," or "us"). Your privacy is important to us, and we are committed to protecting the personal information you share with us. This Privacy Policy explains how we collect, use, and safeguard your information when you visit our website, https://www.javelinaworks.com ("Website").
 
@@ -88,6 +88,6 @@ If you have any questions or concerns about this Privacy Policy, please contact 
 
 Javelina Works
 Email: privacy@javelinaworks.com
-Address: 123 Javelina Works Lane, Imaginary City, IC 12345, USA
+Address: 03 Ranch Road Fort Davis, Texas, 79734, USA
 
 Thank you for trusting Javelina Works with your personal information!

@@ -4,7 +4,7 @@ description: We are living in the future of writing! Take a look at what our use
 draft: false
 ---
 
-Effective Date: July, 2022
+Effective Date: January, 2026
 
 Welcome to Javelina Works ("we," "our," or "us"). By accessing or using our website, <https://www.javelinaworks.com> ("Website"), you agree to comply with and be bound by the following Terms and Conditions ("Terms"). If you do not agree with these Terms, please do not use our Website.
 
@@ -64,6 +64,6 @@ If you have any questions or concerns about these Terms, please contact us at:
 Javelina Works
 
 Email: <support@javelinaworks.com>  
-Address: 123 Javelina Works Lane, Imaginary City, IC 12345, USA
+Address: 03 Ranch Road Fort Davis, Texas, 79734, USA
 
 Thank you for using Javelina Works!

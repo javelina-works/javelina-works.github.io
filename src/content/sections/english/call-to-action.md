@@ -8,7 +8,7 @@ description: |
 
 button:
   enable: true
-  label: Get a Free Quote
+  label: Let's Talk
   url: /contact/
   rel: ""
   target: ""
