@@ -10,6 +10,7 @@ import overrideObjects from "@/lib/utils/overrideObjects";
 import type { videoHeroSectionSchema } from "@/sections.schema";
 import CustomButton from "@/components/CustomButton.astro";
 import OptimizedImage from "@/components/utilities/OptimizedImage.astro";
+import { getImage } from "astro:assets";
 
 type SectionType = Section & NonNullable<z.infer<typeof videoHeroSectionSchema>>;
 
@@ -40,7 +41,12 @@ if (backgroundVideo?.poster) {
   const key = Object.keys(images).find((k) => k.includes(backgroundVideo.poster));
   if (key) {
     const resolved = await images[key]();
-    resolvedPosterSrc = resolved.default.src;
+    const optimized = await getImage({
+      src: resolved.default,
+      format: "webp",
+      width: 1920,
+    });
+    resolvedPosterSrc = optimized.src;
   }
 }
 ---

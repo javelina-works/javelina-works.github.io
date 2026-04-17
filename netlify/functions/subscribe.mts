@@ -35,36 +35,6 @@ async function submitToNetlifyForms(email: string): Promise<void> {
   }
 }
 
-async function notifyDiscord(email: string): Promise<void> {
-  const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
-  if (!webhookUrl) {
-    console.warn("DISCORD_WEBHOOK_URL is not set — skipping Discord notification");
-    return;
-  }
-
-  const response = await fetch(webhookUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      embeds: [
-        {
-          title: "New Newsletter Subscriber",
-          color: 5814783,
-          fields: [
-            { name: "Email", value: email, inline: true },
-            { name: "Source", value: "Footer form", inline: true },
-          ],
-          timestamp: new Date().toISOString(),
-        },
-      ],
-    }),
-  });
-
-  if (!response.ok) {
-    console.error(`Discord webhook returned ${response.status}`);
-  }
-}
-
 async function submitToEsp(email: string): Promise<void> {
   console.log(`[ESP stub] ${new Date().toISOString()} — would submit: ${email}`);
 }
@@ -121,7 +91,7 @@ export default async (req: Request, _context: Context) => {
     );
   }
 
-  await Promise.allSettled([notifyDiscord(body.email), submitToEsp(body.email)]);
+  await Promise.allSettled([submitToEsp(body.email)]);
 
   return new Response(JSON.stringify({ success: true }), {
     status: 200,
