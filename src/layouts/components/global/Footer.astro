@@ -12,7 +12,7 @@ const t = await useTranslations(Astro.currentLocale as string);
 let { copyright, footerDescription, subscription, brandName } = config.settings;
 
 footerDescription = footerDescription || t("footer.description");
-const copyrightText = copyright.text || t("footer.copyright");
+const copyrightText = (copyright.text || t("footer.copyright")).replace(/©\s*\d{4}/, `© ${new Date().getFullYear()}`);
 ---
 
 <footer class="relative">

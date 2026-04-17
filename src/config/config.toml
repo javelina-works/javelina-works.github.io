@@ -1,8 +1,8 @@
 # Site Configuration
 [site]
   title            = "Javelina Works" # Shared title for SEO and OpenGraph
-  description      = "A customizable and multipurpose saas & startup astro theme built with Tailwind CSS and Astro Js" # Shared description for SEO and OpenGraph
-  tagline          = "Ranch Management Intelligence Platform"
+  description      = "The intelligent platform for Texas land management. Get environmental insights, boost efficiency, and improve outcomes for your brush management needs." # Shared description for SEO and OpenGraph
+  tagline          = "Brush Management and Ranch Intelligence Platform"
   taglineSeparator = "" # default is " - "
   baseUrl          = "https://javelinaworks.com" # Base URL for the site and used in OpenGraph meta tags.
   logo             = "/images/logo.svg" # Path to the site's logo
@@ -26,9 +26,20 @@
 [seo]
   author = "Javelina Works, Inc."
   keywords = [
-    "saas astro theme",
-    "saas business astro theme",
-    "startup astro theme",
+    "land management",
+    "brush management",
+    "Alpine brush management",
+    "Marfa brush management",
+    "Fort Davis brush management",
+    "West Texas brush management",
+    "Texas land management",
+    "ranch management",
+    "environmental insights",
+    "land clearing",
+    "vegetation management",
+    "Texas ranching",
+    "land management platform",
+    "Fort Davis Texas",
   ] # SEO keywords
   robots = "index, follow" # Instructs search engines on how to crawl and index the pages.
 

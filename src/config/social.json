@@ -22,12 +22,18 @@
       "enable": false,
       "label": "linkedin",
       "icon": "/images/icons/svg/linkedin.svg",
-      "url": "https://www.linkedin.com"
+      "url": "https://www.linkedin.com/javelinaworks"
+    },
+    {
+      "enable": true,
+      "label": "youtube",
+      "icon": "/images/icons/svg/youtube.svg",
+      "url": "https://www.youtube.com/@westtxworkshop"
     },
     {
       "enable": true,
       "label": "github",
-      "icon": "/images/icons/svg/instagram.svg",
+      "icon": "/images/icons/svg/github.svg",
       "url": "https://github.com/javelina-works"
     }
   ]
