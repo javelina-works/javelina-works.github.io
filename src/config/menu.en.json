@@ -8,6 +8,12 @@
     },
     {
       "enable": true,
+      "name": "Company",
+      "weight": 0,
+      "url": "/company/"
+    },
+    {
+      "enable": true,
       "name": "FAQ",
       "url": "/faq/",
       "weight": 0

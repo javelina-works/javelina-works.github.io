@@ -1,5 +1,6 @@
 ---
 enable: true
-title: "We’re **available in** over 100+ countries"
-image: "/images/location.png"
+title: "We’re right here in Texas."
+subtitle: "Based in Fort Davis — working across the Lone Star State to keep Texas land healthy and thriving."
+image: "/images/location.jpg"
 ---

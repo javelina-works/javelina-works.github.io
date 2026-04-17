@@ -165,11 +165,11 @@ collection: populate with real content, or delete entirely.
 Multilingual is disabled in config (`settings.multilingual.enable = false`)
 but French content files still exist throughout the repo:
 
-- [ ] Delete all `french/` subdirectories under `src/content/`
+- [x] Delete all `french/` subdirectories under `src/content/`
 - [x] Delete `src/config/menu.fr.json`
 - [x] Delete `src/i18n/fr.json`
 - [x] Remove French entry from `src/config/language.json`
-- [ ] Remove `generate-multilingual-content` and `remove-multilingual` scripts
+- [x] Remove `generate-multilingual-content` and `remove-multilingual` scripts
       from `package.json` and `scripts/`
 - [ ] (Optional, bigger refactor) Remove `[...lang]` routing machinery entirely
       if you'll never need i18n
