@@ -91,7 +91,6 @@
   [settings.subscription]
     enable     = true # Enables or disable the subscription form
     title      = "" # Check src/i18n/en.json and src/i18n/fr.json for changing the title in different languages or directly add value here if you are not using internationalization feature
-    formAction = "https://gmail.us11.list-manage.com/subscribe/post?u=d870b06d86c16269e4b1f9b39&amp;id=12cf0c6ac2&amp;f_id=007e61e1f0"
 
   # Multilingual settings (check src/config/language.json for changing the languages)
   # NOTE: Manually restart your server when you change the following multilingual table values

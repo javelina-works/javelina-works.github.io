@@ -4,20 +4,19 @@
 
 This is the repository hosting the static site and configurations for the Javelina Works website. 
 
-## Services and Support
+## Infrastructure
 
-### Web Hosting
+- [Netlify](https://app.netlify.com/projects/javelina-works/deploys): 
+  - Static page hosting
+  - Form submission handling
+  - Content CDN
+  - Edge functions
+- [Google Voice](https://voice.google.com/): handles the business phone
+  - **Phone Number:** (432) 203-5975
 
-### Contact Form
-
-### Business Phone Number
-
-Using [Google Voice](https://voice.google.com/) we now have a business line.
-**Phone Number:** (432) 203-5975
 
 ## Infrastructure Needed
 
-- [x] Business phone number (google phone?)
 - [ ] Instagram account
 - [ ] Twitter account
 - [ ] Facebook account

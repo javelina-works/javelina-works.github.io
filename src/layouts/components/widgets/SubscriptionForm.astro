@@ -2,30 +2,32 @@
 import { useTranslations } from "@/lib/utils/i18nUtils";
 import { markdownify } from "@/lib/utils/textConverter";
 const t = await useTranslations(Astro.currentLocale as string);
-
-const { formAction } = Astro.props;
 ---
 
+<form name="subscription-form" data-netlify="true" data-netlify-honeypot="bot-field" hidden>
+  <input name="email" />
+  <input name="privacy-consent" />
+  <input name="bot-field" />
+</form>
+
 <form
-  action={formAction}
-  id="mc-embedded-subscribe-form"
+  id="subscription-form"
   method="post"
   class="relative mb-0">
   <div class="relative">
-    <label for="mce-EMAIL" class="sr-only">Email</label>
+    <label for="sub-email" class="sr-only">Email</label>
     <input
       required
       type="email"
-      name="EMAIL"
-      id="mce-EMAIL"
+      name="email"
+      id="sub-email"
       aria-required="true"
       placeholder={t("common.emailPlaceholder")}
       class="border-border-light focus:ring-primary/4 size-full rounded-lg bg-white py-4 pl-5 shadow-none outline-0 placeholder:opacity-90 focus:ring-4"
     />
     <button
       type="submit"
-      name="subscribe"
-      id="mc-embedded-subscribe"
+      id="sub-submit"
       class="absolute top-1 right-1 flex h-[calc(100%-0.5rem)] w-10 items-center justify-center rounded-lg">
       <span class="sr-only">Subscribe</span>
       <svg
@@ -43,124 +45,85 @@ const { formAction } = Astro.props;
       </svg>
     </button>
   </div>
+  <p style="position: absolute; left: -312.5rem;" aria-hidden="true">
+    <label>Don't fill this out: <input name="bot-field" tabindex="-1" /></label>
+  </p>
   <div class="form-check mt-4">
     <input
       class="form-checkbox"
       type="checkbox"
       required
-      name="agree-privacy"
-      id="agree-privacy"
+      name="privacy-consent"
+      id="privacy-consent"
     />
-    <label for="agree-privacy" set:html={markdownify(t("subscription.term"))} />
+    <label for="privacy-consent" set:html={markdownify(t("subscription.term"))} />
   </div>
   <div
-    id="mce-responses"
+    id="sub-responses"
     class="clear absolute top-[105%] left-0 w-full text-sm opacity-60">
     <div
       class="message message-error"
-      id="mce-error-response"
+      id="sub-error-response"
       style="display: none">
     </div>
     <div
       class="message message-success"
-      id="mce-success-response"
+      id="sub-success-response"
       style="display: none">
     </div>
   </div>
-  <div style="position: absolute; left: -312.5rem" aria-hidden="true">
-    <input
-      type="text"
-      name="b_436cb8647d746fe81825f1efc_18a007239a"
-      tabindex="-1"
-      value=""
-    />
-  </div>
-  <input type="hidden" name="EMAILTYPE" id="mce-EMAILTYPE-0" value="html" />
-  <span class="sr-only">gats-javelina-works</span>
 </form>
 <script>
-  // Define the expected response structure
-  interface JsonpResponse {
-    result: "success" | "error";
-    msg: string;
-    type?: string;
-    webEngagementCookieValue?: string | null;
-  }
-
-  // Main function to handle form submission
   document
-    .querySelector<HTMLFormElement>("#mc-embedded-subscribe-form")
+    .querySelector<HTMLFormElement>("#subscription-form")
     ?.addEventListener("submit", async (event) => {
-      event.preventDefault(); // Prevent default form submission behavior
+      event.preventDefault();
 
       const form = event.target as HTMLFormElement;
       const formData = new FormData(form);
-      const actionUrl = form.getAttribute("action"); // Get the form's action URL
+      const email = formData.get("email") as string;
+      const privacyConsent = formData.get("privacy-consent") === "on";
+      const botField = (formData.get("bot-field") as string) || "";
 
-      if (!actionUrl) {
-        console.error("Form action URL is missing.");
-        return;
-      }
-
-      // Serialize form data to a query string
-      const queryString = new URLSearchParams(formData as any).toString();
-
-      // Select response containers
       const errorContainer = document.querySelector<HTMLElement>(
-        "#mce-error-response",
+        "#sub-error-response",
       );
       const successContainer = document.querySelector<HTMLElement>(
-        "#mce-success-response",
+        "#sub-success-response",
       );
+      const submitButton = form.querySelector<HTMLButtonElement>("#sub-submit");
 
-      if (!errorContainer || !successContainer) {
-        console.error("Error or success response containers are missing.");
-        return;
-      }
+      if (!errorContainer || !successContainer) return;
 
-      // Clear previous messages
       errorContainer.style.display = "none";
       successContainer.style.display = "none";
 
+      if (submitButton) submitButton.disabled = true;
+
       try {
-        // Create a dynamic script tag for JSONP
-        const script = document.createElement("script");
-        const callbackName = `jsonpCallback_${Date.now()}`;
+        const response = await fetch("/.netlify/functions/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, privacyConsent, botField }),
+        });
 
-        // Add the JSONP callback function to the global scope
-        (window as any)[callbackName] = (data: JsonpResponse) => {
-          if (data.result === "success") {
-            successContainer.textContent =
-              data.msg || "Thank you for subscribing!";
-            successContainer.style.display = "block";
-          } else {
-            errorContainer.textContent =
-              data.msg || "An error occurred. Please try again.";
-            errorContainer.style.display = "block";
-          }
+        const data = await response.json();
 
-          // Clean up after the callback is executed
-          delete (window as any)[callbackName];
-          script.remove();
-        };
-
-        // Append the JSONP callback and form data to the URL
-        script.src = `${actionUrl}&c=${callbackName}&${queryString}`;
-        script.onerror = () => {
+        if (data.success) {
+          successContainer.textContent = "Thank you for subscribing!";
+          successContainer.style.display = "block";
+          form.reset();
+        } else {
           errorContainer.textContent =
-            "There was an error processing your request. Please try again later.";
+            data.error || "An error occurred. Please try again.";
           errorContainer.style.display = "block";
-          console.error("Error loading JSONP script.");
-        };
-
-        // Append the script tag to the document
-        document.body.appendChild(script);
-      } catch (error) {
-        // Handle any unexpected errors
+        }
+      } catch {
         errorContainer.textContent =
           "There was an error processing your request. Please try again later.";
         errorContainer.style.display = "block";
-        console.error("Error:", error);
+      } finally {
+        if (submitButton) submitButton.disabled = false;
       }
     });
 </script>
