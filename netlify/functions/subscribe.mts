@@ -48,10 +48,13 @@ async function notifyDiscord(email: string): Promise<void> {
     body: JSON.stringify({
       embeds: [
         {
-          title: "New Subscription",
-          fields: [{ name: "Email", value: email }],
+          title: "New Newsletter Subscriber",
+          color: 5814783,
+          fields: [
+            { name: "Email", value: email, inline: true },
+            { name: "Source", value: "Footer form", inline: true },
+          ],
           timestamp: new Date().toISOString(),
-          color: 0x2ecc71,
         },
       ],
     }),
