@@ -7,6 +7,10 @@
     "netlify": {
       "command": "npx",
       "args": ["-y", "@netlify/mcp"]
+    },
+    "posthog": {
+      "type": "http",
+      "url": "https://mcp.posthog.com/mcp"
     }
   }
 }

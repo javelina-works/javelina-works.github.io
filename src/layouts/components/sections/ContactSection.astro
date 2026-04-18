@@ -179,7 +179,15 @@ if (!enable) return null;
             default:
               throw new Error("Unknown form provider.");
           }
+          window.posthog?.capture("contact_form_submitted", {
+            provider,
+          });
         } catch (error) {
+          window.posthog?.captureException(error);
+          window.posthog?.capture("contact_form_error", {
+            provider,
+            error: String(error),
+          });
           setMessage(
             error +
               "! Please use this mail - [info@javelinaworks.com](mailto:info@javelinaworks.com) to submit a ticket!",

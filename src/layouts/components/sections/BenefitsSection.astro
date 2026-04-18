@@ -13,7 +13,7 @@ type benefitsSectionType = Section & z.infer<typeof benefitsSectionSchema>;
 type Props = {
   content?: benefitsSectionType;
 };
-type LucideIconName = keyof typeof import("@lucide/astro").icons;
+type LucideIconName = keyof typeof import("lucide");
 
 // Default content fetch
 let defaultContent = (

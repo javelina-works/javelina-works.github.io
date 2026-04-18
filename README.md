@@ -26,7 +26,15 @@ This is the repository hosting the static site and configurations for the Javeli
 - [Google Voice](https://voice.google.com/): handles the business phone
   - **Phone Number:** (432) 203-5975
 - [UptimeRobot](https://stats.uptimerobot.com/SicNbR5xJX): let's us know when the site is down
+  - Discord hook in `uptime-detection` for unexpected service loss
 - [Posthog](https://posthog.com/): Analysis and analytics platform
+  - [Analytics basics](https://us.posthog.com/project/386965/dashboard/1481972)
+  - - **Dashboard**: [Analytics basics](https://us.posthog.com/project/386965/dashboard/1481972)
+  - **Insight**: [Contact Form Submissions Over Time](https://us.posthog.com/project/386965/insights/yjZsyp5D)
+  - **Insight**: [Contact Form Conversion Funnel](https://us.posthog.com/project/386965/insights/aIJMj50c)
+  - **Insight**: [Pricing Plan Toggle Breakdown](https://us.posthog.com/project/386965/insights/B6JSh8RG)
+  - **Insight**: [Hero CTA Clicks Over Time](https://us.posthog.com/project/386965/insights/wX6fA6WD)
+  - **Insight**: [Career Apply Click Funnel](https://us.posthog.com/project/386965/insights/m3tF2InE)
 
 
 ## Roadmap

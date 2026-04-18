@@ -101,6 +101,14 @@ if (!enable) return;
           x: [-1000, 100],
         }),
       );
+
+      const ctaBtn = section.querySelector(".btn-primary");
+      ctaBtn?.addEventListener("click", () => {
+        window.posthog?.capture("cta_button_clicked", {
+          label: ctaBtn.textContent?.trim() || undefined,
+          url: ctaBtn.getAttribute("href") || undefined,
+        });
+      });
     });
   </script>
 </section>
