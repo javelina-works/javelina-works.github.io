@@ -3,6 +3,10 @@
     "Astro docs": {
       "type": "http",
       "url": "https://mcp.docs.astro.build/mcp"
+    },
+    "netlify": {
+      "command": "npx",
+      "args": ["-y", "@netlify/mcp"]
     }
   }
 }

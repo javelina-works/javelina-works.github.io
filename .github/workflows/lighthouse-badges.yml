@@ -1,0 +1,117 @@
+name: Lighthouse Badges
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  TARGET_URL: "https://javelinaworks.com"
+  LHCI_RUNS: 3
+
+permissions:
+  contents: read
+
+jobs:
+  lighthouse:
+    name: Lighthouse Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Lighthouse
+        id: lhci
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          urls: ${{ env.TARGET_URL }}
+          runs: ${{ env.LHCI_RUNS }}
+          uploadArtifacts: false
+
+      - name: Extract scores
+        id: scores
+        run: |
+          MANIFEST='${{ steps.lhci.outputs.manifest }}'
+          PERF=$(echo "$MANIFEST" | jq -r '.[0].summary.performance // empty')
+          A11Y=$(echo "$MANIFEST" | jq -r '.[0].summary.accessibility // empty')
+          BP=$(echo "$MANIFEST" | jq -r '.[0].summary."best-practices" // empty')
+          SEO=$(echo "$MANIFEST" | jq -r '.[0].summary.seo // empty')
+
+          score_and_color() {
+            local raw="$1"
+            if [ -z "$raw" ] || [ "$raw" = "null" ]; then
+              echo "n/a lightgrey"
+              return
+            fi
+            local score=$(awk "BEGIN {printf \"%d\", $raw * 100}")
+            local color="red"
+            if [ "$score" -ge 90 ]; then color="brightgreen"
+            elif [ "$score" -ge 50 ]; then color="orange"
+            fi
+            echo "$score $color"
+          }
+
+          read PERF_SCORE PERF_COLOR <<< $(score_and_color "$PERF")
+          read A11Y_SCORE A11Y_COLOR <<< $(score_and_color "$A11Y")
+          read BP_SCORE BP_COLOR <<< $(score_and_color "$BP")
+          read SEO_SCORE SEO_COLOR <<< $(score_and_color "$SEO")
+
+          {
+            echo "perf-score=$PERF_SCORE"
+            echo "perf-color=$PERF_COLOR"
+            echo "a11y-score=$A11Y_SCORE"
+            echo "a11y-color=$A11Y_COLOR"
+            echo "bp-score=$BP_SCORE"
+            echo "bp-color=$BP_COLOR"
+            echo "seo-score=$SEO_SCORE"
+            echo "seo-color=$SEO_COLOR"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Update Performance badge
+        uses: schneegans/dynamic-badges-action@v1.7.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: ${{ vars.GIST_ID }}
+          filename: lighthouse-performance.json
+          label: Performance
+          message: ${{ steps.scores.outputs.perf-score }}
+          color: ${{ steps.scores.outputs.perf-color }}
+          namedLogo: lighthouse
+          logoColor: white
+
+      - name: Update Accessibility badge
+        uses: schneegans/dynamic-badges-action@v1.7.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: ${{ vars.GIST_ID }}
+          filename: lighthouse-accessibility.json
+          label: Accessibility
+          message: ${{ steps.scores.outputs.a11y-score }}
+          color: ${{ steps.scores.outputs.a11y-color }}
+          namedLogo: lighthouse
+          logoColor: white
+
+      - name: Update Best Practices badge
+        uses: schneegans/dynamic-badges-action@v1.7.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: ${{ vars.GIST_ID }}
+          filename: lighthouse-best-practices.json
+          label: Best Practices
+          message: ${{ steps.scores.outputs.bp-score }}
+          color: ${{ steps.scores.outputs.bp-color }}
+          namedLogo: lighthouse
+          logoColor: white
+
+      - name: Update SEO badge
+        uses: schneegans/dynamic-badges-action@v1.7.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: ${{ vars.GIST_ID }}
+          filename: lighthouse-seo.json
+          label: SEO
+          message: ${{ steps.scores.outputs.seo-score }}
+          color: ${{ steps.scores.outputs.seo-color }}
+          namedLogo: lighthouse
+          logoColor: white

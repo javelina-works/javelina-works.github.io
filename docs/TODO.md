@@ -14,7 +14,7 @@ engines on the live site.
 
 - [x] **Contact form email** (line 65) — currently `temp.gats@gmail.com`.
       Replace with the real Javelina Works contact email.
-- [ ] **Mailchimp subscription** (line 82) — form action points to a demo list.
+- [x] **Mailchimp subscription** (line 82) — form action points to a demo list.
       Replace with your Mailchimp list URL, or set `enable = false` (line 80).
 - [ ] **Umami analytics** (line 122) — `data-website-id=""` is empty.
       Either set the real Umami ID or remove the `<script>` tag entirely.
