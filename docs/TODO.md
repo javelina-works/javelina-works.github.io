@@ -55,7 +55,7 @@ These markdown files drive the homepage sections. Each needs real copy:
 - [ ] `features-section-two.md` — second features block (same issue)
 - [x] `how-it-works.md` — step-by-step flow (template content)
 - [x] `call-to-action.md` — CTA section copy and button
-- [ ] `about-us.md` / `why-us.md` / `our-values.md` — company narrative
+- [x] `about-us.md` / `why-us.md` / `our-values.md` — company narrative
 
 ### FAQ (`src/content/faq/english/-index.md`)
 

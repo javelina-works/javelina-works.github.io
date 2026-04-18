@@ -27,6 +27,18 @@ This is the repository hosting the static site and configurations for the Javeli
   - **Phone Number:** (432) 203-5975
 - [UptimeRobot](https://stats.uptimerobot.com/SicNbR5xJX): let's us know when the site is down
 
+
+## Roadmap
+- Connect form submissions to CRM hook -> add account
+  - Determine CRM service
+- Enable email notifications for failures, builds, errata
+- Find email publishing service (Mailchimp, LiteMail, etc.)
+  - Connect to CRM + form submissions
+- Set up our actual email accounts (Zoho?)
+- Finish `features` section on homepage
+- Integrate analytics platform
+
+
 ## Infrastructure Needed
 
 - [ ] Instagram account
