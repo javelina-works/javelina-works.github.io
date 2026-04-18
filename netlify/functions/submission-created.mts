@@ -1,4 +1,5 @@
 import type { Context } from "@netlify/functions";
+import { ensureSentry } from "./_shared/sentry";
 
 interface NetlifyFormPayload {
   payload: {
@@ -78,11 +79,15 @@ async function notifyDiscord(
 }
 
 export default async (req: Request, _context: Context) => {
+  const Sentry = ensureSentry();
+
   let event: NetlifyFormPayload;
   try {
     event = await req.json();
-  } catch {
+  } catch (err) {
     console.error("Failed to parse submission-created payload");
+    Sentry.captureException(err, { tags: { fn: "submission-created", stage: "parse" } });
+    await Sentry.flush(2000);
     return new Response("Bad request", { status: 400 });
   }
 
@@ -93,7 +98,11 @@ export default async (req: Request, _context: Context) => {
     await notifyDiscord(form_name, data, created_at);
   } catch (err) {
     console.error("Discord notification failed:", err);
+    Sentry.captureException(err, {
+      tags: { fn: "submission-created", form: form_name },
+    });
   }
 
+  await Sentry.flush(2000);
   return new Response("OK", { status: 200 });
 };

@@ -1,4 +1,5 @@
 import type { Context } from "@netlify/functions";
+import { ensureSentry } from "./_shared/sentry";
 
 interface NetlifyDeployPayload {
   id?: string;
@@ -71,6 +72,8 @@ function buildEmbed(payload: NetlifyDeployPayload): Record<string, unknown> {
 }
 
 export default async (req: Request, _context: Context) => {
+  const Sentry = ensureSentry();
+
   if (req.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
   }
@@ -86,8 +89,10 @@ export default async (req: Request, _context: Context) => {
   let payload: NetlifyDeployPayload;
   try {
     payload = await req.json();
-  } catch {
+  } catch (err) {
     console.error("Failed to parse deploy-notify payload");
+    Sentry.captureException(err, { tags: { fn: "deploy-notify", stage: "parse" } });
+    await Sentry.flush(2000);
     return new Response("Bad request", { status: 400 });
   }
 
@@ -106,7 +111,9 @@ export default async (req: Request, _context: Context) => {
     }
   } catch (err) {
     console.error("Discord notification failed:", err);
+    Sentry.captureException(err, { tags: { fn: "deploy-notify", stage: "discord" } });
   }
 
+  await Sentry.flush(2000);
   return new Response("OK", { status: 200 });
 };

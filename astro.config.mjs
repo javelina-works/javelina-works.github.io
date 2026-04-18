@@ -12,6 +12,7 @@ import config from "./.astro/config.generated.json";
 import { generateAstroFontsConfig } from "./src/lib/utils/AstroFont.ts";
 
 import netlify from "@astrojs/netlify";
+import sentry from "@sentry/astro";
 
 const fonts = generateAstroFontsConfig(fontsJson);
 
@@ -58,6 +59,13 @@ export default defineConfig({
   }),
     mdx(),
     sitemap(),
+    sentry({
+      sourceMapsUploadOptions: {
+        org: process.env.SENTRY_ORG,
+        project: process.env.SENTRY_PROJECT,
+        authToken: process.env.SENTRY_AUTH_TOKEN,
+      },
+    }),
   ],
 
   markdown: {

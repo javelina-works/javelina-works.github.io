@@ -1,4 +1,5 @@
 import type { Context } from "@netlify/functions";
+import { ensureSentry } from "./_shared/sentry";
 
 interface SubscribeBody {
   email: string;
@@ -78,10 +79,14 @@ export default async (req: Request, _context: Context) => {
     );
   }
 
+  const Sentry = ensureSentry();
+
   try {
     await submitToNetlifyForms(body.email);
   } catch (err) {
     console.error("Netlify Forms submission failed:", err);
+    Sentry.captureException(err, { tags: { fn: "subscribe", stage: "netlify-forms" } });
+    await Sentry.flush(2000);
     return new Response(
       JSON.stringify({ success: false, error: "Failed to save subscription" }),
       {
@@ -93,6 +98,7 @@ export default async (req: Request, _context: Context) => {
 
   await Promise.allSettled([submitToEsp(body.email)]);
 
+  await Sentry.flush(2000);
   return new Response(JSON.stringify({ success: true }), {
     status: 200,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
