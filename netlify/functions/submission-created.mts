@@ -13,9 +13,14 @@ async function notifyDiscord(
   data: Record<string, string>,
   createdAt: string,
 ): Promise<void> {
-  const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+  // Fallback to DISCORD_WEBHOOK_URL keeps submissions flowing during the rename rollout.
+  // Remove the fallback once DISCORD_SUBMISSIONS_WEBHOOK_URL is set in Netlify.
+  const webhookUrl =
+    process.env.DISCORD_SUBMISSIONS_WEBHOOK_URL ?? process.env.DISCORD_WEBHOOK_URL;
   if (!webhookUrl) {
-    console.warn("DISCORD_WEBHOOK_URL is not set — skipping Discord notification");
+    console.warn(
+      "DISCORD_SUBMISSIONS_WEBHOOK_URL is not set — skipping Discord notification",
+    );
     return;
   }
 
