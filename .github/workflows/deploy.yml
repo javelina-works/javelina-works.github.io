@@ -45,29 +45,3 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-  notify-failure:
-    name: Notify on failure
-    needs: [build, deploy]
-    if: failure()
-    runs-on: ubuntu-latest
-    steps:
-      - name: Post failure to Discord monitoring channel
-        env:
-          WEBHOOK_URL: ${{ secrets.DISCORD_MONITORING_WEBHOOK_URL }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          RUN_NUMBER: ${{ github.run_number }}
-          WORKFLOW: ${{ github.workflow }}
-          BRANCH: ${{ github.ref_name }}
-          SHA: ${{ github.sha }}
-        run: |
-          if [ -z "$WEBHOOK_URL" ]; then
-            echo "DISCORD_MONITORING_WEBHOOK_URL is not set — skipping"
-            exit 0
-          fi
-          SHORT_SHA="${SHA:0:7}"
-          jq -n \
-            --arg title "CI failed: $WORKFLOW" \
-            --arg desc "[Run #$RUN_NUMBER]($RUN_URL) on \`$BRANCH\` @ \`$SHORT_SHA\`" \
-            '{embeds:[{title:$title, description:$desc, color:15158332}]}' \
-          | curl -sSf -H "Content-Type: application/json" -X POST --data-binary @- "$WEBHOOK_URL"
-
