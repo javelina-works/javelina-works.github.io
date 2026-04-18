@@ -10,6 +10,17 @@ Items are grouped by priority and area. Check off as you go.
 These are template-author defaults that will be visible to users or search
 engines on the live site.
 
+### Bonus Mercury Benefits
+- ElevenLabs: 1 year free + 
+- Apolo: 2k free GPU hours
+- OpenRouter: $1k in free credits
+- Maxime: 1 year AI legal council
+- Rumi.ai: Meeting note transcription
+- AWS: 5k in credits
+- Numi: Startup design help, $12k in credits
+- DigitalOcean: $5k in credits
+
+
 ### Config (`src/config/config.toml`)
 
 - [x] **Contact form email** (line 65) — currently `temp.gats@gmail.com`.

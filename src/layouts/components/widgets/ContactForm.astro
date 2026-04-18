@@ -87,7 +87,8 @@ const noteStyles = {
     "data-action": contactFormAction,
     "data-provider": contactFormProvider,
     "data-netlify": contactFormProvider === "netlify" ? "true" : undefined,
-    "data-netlify-honeypot": contactFormProvider === "netlify" ? "bot-field" : undefined,
+    "data-netlify-honeypot":
+      contactFormProvider === "netlify" ? "bot-field" : undefined,
     name: contactFormProvider === "netlify" ? "contact-form" : undefined,
   }}
   method="post"
@@ -381,7 +382,15 @@ const noteStyles = {
             default:
               throw new Error("Unknown form provider.");
           }
+          window.posthog?.capture("contact_form_submitted", {
+            provider,
+          });
         } catch (error) {
+          window.posthog?.captureException(error);
+          window.posthog?.capture("contact_form_error", {
+            provider,
+            error: String(error),
+          });
           setMessage(
             error +
               "! Please use this mail - [contact@javelinaworks.com](mailto:contact@javelinaworks.com) to get in touch!",

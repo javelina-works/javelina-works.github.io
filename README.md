@@ -26,6 +26,7 @@ This is the repository hosting the static site and configurations for the Javeli
 - [Google Voice](https://voice.google.com/): handles the business phone
   - **Phone Number:** (432) 203-5975
 - [UptimeRobot](https://stats.uptimerobot.com/SicNbR5xJX): let's us know when the site is down
+- [Posthog](https://posthog.com/): Analysis and analytics platform
 
 
 ## Roadmap
@@ -37,6 +38,7 @@ This is the repository hosting the static site and configurations for the Javeli
 - Set up our actual email accounts (Zoho?)
 - Finish `features` section on homepage
 - Integrate analytics platform
+
 
 
 ## Infrastructure Needed

@@ -221,6 +221,21 @@ const videoButton = buttons?.find((button: any) => button.type === "video");
 
       // Listen for viewport changes
       mediaQuery.addEventListener("change", initAnimation);
+
+      // Track hero CTA button clicks
+      section.querySelectorAll(".has-video-modal .btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const isVideo = btn.hasAttribute("data-hs-overlay");
+          if (isVideo) {
+            window.posthog?.capture("hero_video_played");
+          } else {
+            window.posthog?.capture("hero_cta_clicked", {
+              label: (btn as HTMLElement).innerText?.trim(),
+              href: (btn as HTMLAnchorElement).href || undefined,
+            });
+          }
+        });
+      });
     });
   </script>
 </section>

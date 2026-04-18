@@ -198,6 +198,10 @@ if (!enable) return;
 
           resetPlans(triggeredPlan);
           activatePlan(triggeredPlan);
+          window.posthog?.capture("pricing_plan_toggled", {
+            from_plan: currentPlan,
+            to_plan: triggeredPlan,
+          });
         });
       });
     });
