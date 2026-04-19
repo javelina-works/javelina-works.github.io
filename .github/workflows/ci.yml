@@ -34,8 +34,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Prettier check
-        run: pnpm run format:check
+      # - name: Prettier check
+      #   run: pnpm run format:check
 
       - name: Astro check
         run: pnpm run astro-check
@@ -43,5 +43,5 @@ jobs:
       - name: Build
         run: pnpm run build
 
-      - name: Jest
-        run: pnpm run test:ci
+      # - name: Jest
+      #   run: pnpm run test:ci

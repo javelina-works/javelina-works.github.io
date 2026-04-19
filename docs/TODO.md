@@ -37,6 +37,11 @@ The placeholder `"This is a example description"` appears in the frontmatter
 - [ ] `src/content/pages/english/components.mdx`
 - [ ] Integration index (if the integration collection is kept)
 
+### Complete CI Workflow
+- [ ] Restore prettier step
+- [ ] Restore Jest step
+- [ ] Add further testing, mock webhooks for forms
+
 ### OpenGraph image
 
 - [x] `public/images/og-image.jpg` — verify this is a Javelina Works branded
