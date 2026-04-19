@@ -11,6 +11,10 @@
     "posthog": {
       "type": "http",
       "url": "https://mcp.posthog.com/mcp"
+    },
+    "sentry": {
+      "type": "http",
+      "url": "https://mcp.sentry.dev/mcp"
     }
   }
 }
