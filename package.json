@@ -14,7 +14,9 @@
     "generate-favicons": "node ./scripts/generate-favicons.mjs",
     "remove-draft-from-sitemap": "node ./scripts/remove-draft-from-sitemap.mjs",
     "format": "prettier -w ./src",
-    "test": "cross-env TS_NODE_PROJECT=\"./tsconfig.jest.json\" jest --watch"
+    "format:check": "prettier --check ./src",
+    "test": "cross-env TS_NODE_PROJECT=\"./tsconfig.jest.json\" jest --watch",
+    "test:ci": "cross-env TS_NODE_PROJECT=\"./tsconfig.jest.json\" jest --ci"
   },
   "engines": {
     "node": ">=22.12.0"
