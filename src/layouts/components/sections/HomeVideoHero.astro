@@ -60,6 +60,12 @@ if (backgroundVideo?.poster) {
         class="hero-poster absolute inset-0 h-full w-full object-cover"
         alt=""
         loading="eager"
+        decoding="sync"
+        fetchpriority="high"
+        format="webp"
+        width={1920}
+        widths={[640, 1024, 1600, 1920]}
+        sizes="(min-width: 1920px) 1920px, 100vw"
       />
     )}
     {backgroundVideo?.src && (
