@@ -51,7 +51,7 @@ if (backgroundVideo?.poster) {
 }
 ---
 
-<section class="home-video-hero relative overflow-hidden">
+<section class="home-video-hero relative flex min-h-dvh flex-col justify-center overflow-hidden">
   {/* Background: poster image (always rendered for LCP) + video (progressive enhancement) */}
   <div class="absolute inset-0 -z-10">
     {posterImage && (

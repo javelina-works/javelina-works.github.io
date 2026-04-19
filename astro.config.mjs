@@ -64,6 +64,9 @@ export default defineConfig({
         org: process.env.SENTRY_ORG,
         project: process.env.SENTRY_PROJECT,
         authToken: process.env.SENTRY_AUTH_TOKEN,
+        sourcemaps: {
+          assets: ['./dist/**/*.js', './dist/**/*.js.map'],
+        },
       },
     }),
   ],
@@ -92,7 +95,10 @@ export default defineConfig({
   },
 
   vite: {
-    plugins: [tailwindcss()]
+    plugins: [tailwindcss()],
+    build: {
+      sourcemap: 'hidden',
+    },
   },
 
   adapter: netlify(),

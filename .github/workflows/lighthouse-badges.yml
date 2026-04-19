@@ -116,6 +116,82 @@ jobs:
           namedLogo: lighthouse
           logoColor: white
 
+      - name: Summarize Lighthouse run
+        if: always()
+        run: |
+          set -euo pipefail
+          MANIFEST=".lighthouseci/manifest.json"
+          if [ ! -f "$MANIFEST" ]; then
+            echo "No LHCI manifest found — skipping summary"
+            exit 0
+          fi
+
+          REPORT=$(jq -r '(map(select(.isRepresentativeRun)) | .[0] // .[0]).jsonPath' "$MANIFEST")
+          if [ ! -f "$REPORT" ]; then
+            echo "No LHR report at $REPORT — skipping summary"
+            exit 0
+          fi
+
+          TARGET=$(jq -r '.requestedUrl // .finalUrl' "$REPORT")
+          FETCHED=$(jq -r '.fetchTime' "$REPORT")
+
+          metric() {
+            jq -r --arg id "$1" '.audits[$id].displayValue // "n/a"' "$REPORT"
+          }
+
+          {
+            echo "## Lighthouse Audit — $TARGET"
+            echo ""
+            echo "_Representative run of ${LHCI_RUNS} — captured ${FETCHED}_"
+            echo ""
+            echo "### Core Web Vitals"
+            echo ""
+            echo "| Metric | Value |"
+            echo "| --- | --- |"
+            echo "| Largest Contentful Paint | $(metric largest-contentful-paint) |"
+            echo "| First Contentful Paint | $(metric first-contentful-paint) |"
+            echo "| Total Blocking Time | $(metric total-blocking-time) |"
+            echo "| Cumulative Layout Shift | $(metric cumulative-layout-shift) |"
+            echo "| Speed Index | $(metric speed-index) |"
+            echo "| Time to Interactive | $(metric interactive) |"
+            echo "| Server Response Time | $(metric server-response-time) |"
+            echo ""
+            echo "### LCP Element"
+            echo ""
+            jq -r '
+              .audits."largest-contentful-paint-element".details.items[0].items // []
+              | map("- `" + (.node.selector // "(unknown)") + "` — " + ((.node.nodeLabel // "") | gsub("\n"; " ")))
+              | if length == 0 then ["_No LCP element captured._"] else . end
+              | .[]
+            ' "$REPORT"
+            echo ""
+            echo "### Top Performance Opportunities"
+            echo ""
+            jq -r '
+              .audits
+              | to_entries
+              | map(select(.value.details.type == "opportunity" and (.value.numericValue // 0) > 0))
+              | sort_by(-(.value.numericValue // 0))
+              | .[:5]
+              | map("- **" + .value.title + "** — est. savings " + ((.value.numericValue // 0) | tostring) + " ms" + (if .value.displayValue then " (" + .value.displayValue + ")" else "" end))
+              | if length == 0 then ["_No significant opportunities flagged._"] else . end
+              | .[]
+            ' "$REPORT"
+            echo ""
+            echo "### Failing Diagnostics"
+            echo ""
+            jq -r '
+              .audits
+              | to_entries
+              | map(select((.value.score // 1) < 0.9 and .value.scoreDisplayMode != "notApplicable" and .value.scoreDisplayMode != "informative" and .value.details.type != "opportunity"))
+              | sort_by(.value.score // 1)
+              | .[:6]
+              | map("- **" + .value.title + "**" + (if .value.displayValue then " — " + .value.displayValue else "" end))
+              | if length == 0 then ["_All diagnostics passing._"] else . end
+              | .[]
+            ' "$REPORT"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   notify-failure:
     name: Notify on failure
     needs: [lighthouse]
