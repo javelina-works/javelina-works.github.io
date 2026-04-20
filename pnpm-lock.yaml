@@ -7,6 +7,8 @@ settings:
 overrides:
   glob: ^13.0.6
   tar-fs@<2.1.4: ^2.1.4
+  ws@>=8.0.0 <8.17.1: ^8.17.1
+  cookie@<0.7.0: ^0.7.0
 
 importers:
 
@@ -2974,10 +2976,6 @@ packages:
 
   cookie-signature@1.0.7:
     resolution: {integrity: sha512-NXdYc3dLr47pBkpUCHtKSwIOQXLVn8dZEuywboCOJY/osA0wFSLlSawr3KN8qXJEyX66FcONTH8EIlVuK0yyFA==}
-
-  cookie@0.4.2:
-    resolution: {integrity: sha512-aSWTXFzaKWkvHO1Ny/s+ePFpvKsPnjc551iI41v3ny/ow6tBG5Vd+FuqGNhh1LxOmVzOlGUriIlOaokOvhaStA==}
-    engines: {node: '>= 0.6'}
 
   cookie@0.7.2:
     resolution: {integrity: sha512-yki5XnKuf750l50uGTllt6kKILY4nQ1eNIQatoXEByZ5dWgnKqbnqmTrBE5B4N7lrMJKQ2ytWMiTO2o0v6Ew/w==}
@@ -6773,18 +6771,6 @@ packages:
       utf-8-validate:
         optional: true
 
-  ws@8.5.0:
-    resolution: {integrity: sha512-BWX0SWVgLPzYwF8lTzEy1egjhS4S4OEAHfsO8o65WOVsrnSRGaSiUaa9e0ggGlkMTtBlmOpEXiie9RUcBO86qg==}
-    engines: {node: '>=10.0.0'}
-    peerDependencies:
-      bufferutil: ^4.0.1
-      utf-8-validate: ^5.0.2
-    peerDependenciesMeta:
-      bufferutil:
-        optional: true
-      utf-8-validate:
-        optional: true
-
   xdg-basedir@4.0.0:
     resolution: {integrity: sha512-PSNhEJDejZYV7h50BohL09Er9VaIefr2LMAf3OEmpCkjOi34eYyQYAXUTjEQtZJTKcF0E2UKTh+osDLsgNim9Q==}
     engines: {node: '>=8'}
@@ -8915,7 +8901,7 @@ snapshots:
       '@sentry/hub': 6.19.7
       '@sentry/types': 6.19.7
       '@sentry/utils': 6.19.7
-      cookie: 0.4.2
+      cookie: 0.7.2
       https-proxy-agent: 5.0.1
       lru_map: 0.3.3
       tslib: 1.14.1
@@ -10167,8 +10153,6 @@ snapshots:
   cookie-es@1.2.3: {}
 
   cookie-signature@1.0.7: {}
-
-  cookie@0.4.2: {}
 
   cookie@0.7.2: {}
 
@@ -13360,7 +13344,7 @@ snapshots:
       rimraf: 3.0.2
       tar-fs: 2.1.4
       unbzip2-stream: 1.4.3
-      ws: 8.5.0
+      ws: 8.20.0
     transitivePeerDependencies:
       - bufferutil
       - encoding
@@ -14803,8 +14787,6 @@ snapshots:
   ws@7.5.10: {}
 
   ws@8.20.0: {}
-
-  ws@8.5.0: {}
 
   xdg-basedir@4.0.0: {}
 
