@@ -25,8 +25,12 @@ export function splitProtectedText(
   );
 
   // Step 4: Replace the year placeholder (supports variations like {{year}}, {{ year }}, etc.)
+  const escapedYearPlaceholder = yearPlaceholder.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    "\\$&",
+  );
   const yearRegex = new RegExp(
-    yearPlaceholder.replace(/\s+/g, "\\s*").replace(/[{}]/g, "\\$&"),
+    escapedYearPlaceholder.replace(/\\\s+/g, "\\s*"),
     "g",
   );
   parts = parts.map((part) => part.replace(yearRegex, currentYear));

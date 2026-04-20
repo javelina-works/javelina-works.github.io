@@ -1,13 +1,19 @@
 ---
-// PostHog analytics snippet for client-side tracking
-// Uses is:inline to prevent Astro from processing the script
+// PostHog analytics snippet for client-side tracking.
+// In production we proxy through /ingest (see netlify.toml rewrites) so ad
+// blockers can't drop events or block the JS bundle. Dev hits PostHog directly
+// because Netlify rewrites don't apply to `pnpm dev`.
+const apiHost = import.meta.env.PROD
+  ? "/ingest"
+  : import.meta.env.PUBLIC_POSTHOG_HOST;
 ---
 
 <script
   is:inline
   define:vars={{
     apiKey: import.meta.env.PUBLIC_POSTHOG_PROJECT_TOKEN,
-    apiHost: import.meta.env.PUBLIC_POSTHOG_HOST,
+    apiHost,
+    uiHost: "https://us.posthog.com",
   }}
 >
   !(function (t, e) {
@@ -61,6 +67,7 @@
   })(document, window.posthog || []);
   posthog.init(apiKey || "", {
     api_host: apiHost || "",
+    ui_host: uiHost,
     defaults: "2026-01-30",
   });
 </script>
