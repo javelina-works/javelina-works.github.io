@@ -1,0 +1,80 @@
+---
+// Cookie consent banner. Shows on first visit until the user accepts or
+// rejects. Choice persists in localStorage under `cookie-consent` and gates
+// PostHog capture via `opt_in_capturing` / `opt_out_capturing`.
+---
+
+<div
+  id="cookie-banner"
+  class="fixed inset-x-0 bottom-0 z-50 hidden border-t border-border bg-background/95 p-4 shadow-lg backdrop-blur md:p-6"
+  role="dialog"
+  aria-live="polite"
+  aria-label="Cookie consent"
+>
+  <div
+    class="mx-auto flex max-w-5xl flex-col items-start gap-3 md:flex-row md:items-center md:justify-between md:gap-6"
+  >
+    <p class="text-sm text-text">
+      We use cookies and similar technologies to understand how our site is
+      used and to improve your experience. See our
+      <a class="underline" href="/privacy-policy">privacy policy</a> for details.
+    </p>
+    <div class="flex shrink-0 gap-2">
+      <button
+        type="button"
+        id="cookie-reject"
+        class="rounded border border-border px-4 py-2 text-sm font-medium text-text hover:bg-theme-light"
+      >
+        Reject
+      </button>
+      <button
+        type="button"
+        id="cookie-accept"
+        class="rounded bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+      >
+        Accept
+      </button>
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+  (function () {
+    var STORAGE_KEY = "cookie-consent";
+    var banner = document.getElementById("cookie-banner");
+    if (!banner) return;
+
+    var existing;
+    try {
+      existing = localStorage.getItem(STORAGE_KEY);
+    } catch (e) {
+      return;
+    }
+    if (existing === "accepted" || existing === "rejected") return;
+
+    banner.classList.remove("hidden");
+
+    function record(choice) {
+      try {
+        localStorage.setItem(STORAGE_KEY, choice);
+      } catch (e) {}
+      if (choice === "accepted" && window.posthog) {
+        window.posthog.opt_in_capturing();
+      } else if (choice === "rejected" && window.posthog) {
+        window.posthog.opt_out_capturing();
+      }
+      banner.classList.add("hidden");
+    }
+
+    document
+      .getElementById("cookie-accept")
+      ?.addEventListener("click", function () {
+        record("accepted");
+      });
+    document
+      .getElementById("cookie-reject")
+      ?.addEventListener("click", function () {
+        record("rejected");
+      });
+  })();
+</script>
