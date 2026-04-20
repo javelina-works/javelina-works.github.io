@@ -43,6 +43,18 @@ The placeholder `"This is a example description"` appears in the frontmatter
 - [ ] Restore prettier step
 - [ ] Restore Jest step
 - [ ] Add further testing, mock webhooks for forms
+- [ ] Add a `DEPLOY_ID=ci pnpm build` step to catch Netlify-only build
+      regressions (see [docs/astro/known-issues.md](astro/known-issues.md) —
+      the astro 6.1.3+ `plugin-chunk-imports` bug only fires when `DEPLOY_ID`
+      is set, which is why our local builds passed while Netlify failed).
+
+### Pinned dependencies to unpin later
+
+- [ ] `astro` is pinned to `6.1.2` and `@astrojs/netlify` to `7.0.6` to
+      dodge [withastro/astro#16209](https://github.com/withastro/astro/issues/16209).
+      Watch [PR #16207](https://github.com/withastro/astro/pull/16207) (or a
+      later astro release that re-fixes `plugin-chunk-imports`) and unpin per
+      the checklist in [docs/astro/known-issues.md](astro/known-issues.md).
 
 ### OpenGraph image
 
