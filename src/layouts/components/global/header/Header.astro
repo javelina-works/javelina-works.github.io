@@ -18,12 +18,14 @@ main = filteredEnabled(main);
 main = sortByWeight(main) as NavigationLink[];
 
 const { stickyHeader, navigationButton } = config.settings;
+const { homepage } = Astro.props as { homepage?: boolean };
 ---
 
 <header
   class:list={[
     "header group/header mt-5 transform",
     { "sticky-header": stickyHeader },
+    { "over-hero": homepage },
   ]}>
   <div class="relative container">
     <nav

@@ -90,3 +90,25 @@ if (headings) {
   />
   <CallToAction />
 </Base>
+
+<script
+  is:inline
+  define:vars={{
+    postTitle: post.data.title,
+    postAuthor: post.data.author || null,
+    postSlug:
+      post.data.customSlug ||
+      post.id
+        .replace(/\.mdx?|\.md/g, "")
+        .split("/")
+        .pop(),
+  }}
+>
+  document.addEventListener("DOMContentLoaded", () => {
+    window.posthog?.capture("blog_post_viewed", {
+      post_title: postTitle,
+      post_author: postAuthor || undefined,
+      post_slug: postSlug,
+    });
+  });
+</script>

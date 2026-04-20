@@ -6,6 +6,7 @@ import OpenGraph from "@/components/seo/OpenGraph.astro";
 import config from ".astro/config.generated.json";
 import { Font } from "astro:assets";
 import fontsJson from "@/config/fonts.json";
+import PostHog from "@/components/posthog.astro";
 
 const fontVariables = fontsJson.map((font) => font.cssVariable) as any[];
 ---
@@ -58,4 +59,5 @@ const fontVariables = fontsJson.map((font) => font.cssVariable) as any[];
     Fonts
 -------------------->
   {fontVariables.map((font) => <Font cssVariable={font} />)}
+  <PostHog />
 </head>

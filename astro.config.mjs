@@ -11,6 +11,9 @@ import remarkParseContent from "./src/lib/utils/remarkParseContent.ts";
 import config from "./.astro/config.generated.json";
 import { generateAstroFontsConfig } from "./src/lib/utils/AstroFont.ts";
 
+import netlify from "@astrojs/netlify";
+import sentry from "@sentry/astro";
+
 const fonts = generateAstroFontsConfig(fontsJson);
 
 let {
@@ -24,10 +27,13 @@ let {
 export default defineConfig({
   site: config.site.baseUrl ? config.site.baseUrl : "http://javelinaworks.com",
   trailingSlash: config.site.trailingSlash ? "always" : "never",
+
   image: {
     layout: "constrained",
   },
+
   fonts,
+
   i18n: {
     locales: enabledLanguages,
     defaultLocale: defaultLanguage,
@@ -35,6 +41,7 @@ export default defineConfig({
       prefixDefaultLocale: showDefaultLangInUrl,
     },
   },
+
   integrations: [sitemapConfig.enable ? sitemap() : null, AutoImport({
     imports: [
       "@/components/CustomButton.astro",
@@ -52,7 +59,18 @@ export default defineConfig({
   }),
     mdx(),
     sitemap(),
+    sentry({
+      sourceMapsUploadOptions: {
+        org: process.env.SENTRY_ORG,
+        project: process.env.SENTRY_PROJECT,
+        authToken: process.env.SENTRY_AUTH_TOKEN,
+        sourcemaps: {
+          assets: ['./dist/**/*.js', './dist/**/*.js.map'],
+        },
+      },
+    }),
   ],
+
   markdown: {
     rehypePlugins: [
       [
@@ -75,7 +93,13 @@ export default defineConfig({
     },
     extendDefaultPlugins: true,
   },
+
   vite: {
-    plugins: [tailwindcss()]
+    plugins: [tailwindcss()],
+    build: {
+      sourcemap: 'hidden',
+    },
   },
+
+  adapter: netlify(),
 });

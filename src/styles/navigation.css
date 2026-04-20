@@ -6,6 +6,16 @@
     @apply sticky top-6 z-50 transition-[transform,opacity,0.3s_background] duration-500;
   }
 
+  /* Homepage: float over the hero at first paint, then pin on scroll. */
+  &.over-hero {
+    @apply absolute top-0 right-0 left-0 z-50;
+
+    &.scroll-up,
+    &.scroll-down {
+      @apply fixed top-6;
+    }
+  }
+
   &.scroll-up {
     .hs-dropdown-menu.mega-menu {
       @apply pointer-events-auto;

@@ -23,6 +23,12 @@ main.has-section-spacing-lg > section,
   @apply pt-20 md:pt-32;
 }
 
+/* Full-bleed hero should reach the viewport top; the header floats over it. */
+main.has-section-spacing-lg > section.home-video-hero,
+main.has-section-spacing-md > section.home-video-hero {
+  @apply pt-0;
+}
+
 h1,
 h2,
 h3,

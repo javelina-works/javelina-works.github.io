@@ -11,9 +11,20 @@
 
 [![Uptime Robot status](https://img.shields.io/uptimerobot/status/m802870839-6929194214f813e9a6b86120)](https://stats.uptimerobot.com/SicNbR5xJX)
 [![Uptime Ratio](https://img.shields.io/uptimerobot/ratio/m802870839-6929194214f813e9a6b86120)](https://stats.uptimerobot.com/SicNbR5xJX)
+[![Open bugs](https://img.shields.io/github/issues/javelina-works/javelina-works.github.io/bug?label=open%20bugs&color=d73a4a)](https://github.com/javelina-works/javelina-works.github.io/issues?q=is%3Aissue+is%3Aopen+label%3Abug)
 
 
-This is the repository hosting the static site and configurations for the Javelina Works website. 
+This is the repository hosting the static site and configurations for the Javelina Works website.
+
+## Stack
+
+[![Astro](https://img.shields.io/badge/Astro-BC52EE?logo=astro&logoColor=white)](https://astro.build/)
+[![Netlify](https://img.shields.io/badge/Netlify-00C7B7?logo=netlify&logoColor=white)](https://www.netlify.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![PostHog](https://img.shields.io/badge/PostHog-1D4AFF?logo=posthog&logoColor=white)](https://posthog.com/)
+[![Sentry](https://img.shields.io/badge/Sentry-362D59?logo=sentry&logoColor=white)](https://sentry.io/)
+
 
 ## Infrastructure
 
@@ -26,6 +37,30 @@ This is the repository hosting the static site and configurations for the Javeli
 - [Google Voice](https://voice.google.com/): handles the business phone
   - **Phone Number:** (432) 203-5975
 - [UptimeRobot](https://stats.uptimerobot.com/SicNbR5xJX): let's us know when the site is down
+  - Discord hook in `uptime-detection` for unexpected service loss
+- [Posthog](https://posthog.com/): Analysis and analytics platform
+  - [Analytics basics](https://us.posthog.com/project/386965/dashboard/1481972)
+  - - **Dashboard**: [Analytics basics](https://us.posthog.com/project/386965/dashboard/1481972)
+  - **Insight**: [Contact Form Submissions Over Time](https://us.posthog.com/project/386965/insights/yjZsyp5D)
+  - **Insight**: [Contact Form Conversion Funnel](https://us.posthog.com/project/386965/insights/aIJMj50c)
+  - **Insight**: [Pricing Plan Toggle Breakdown](https://us.posthog.com/project/386965/insights/B6JSh8RG)
+  - **Insight**: [Hero CTA Clicks Over Time](https://us.posthog.com/project/386965/insights/wX6fA6WD)
+  - **Insight**: [Career Apply Click Funnel](https://us.posthog.com/project/386965/insights/m3tF2InE)
+- [Sentry](https://javelina-works-inc.sentry.io/dashboard/3850428/?project=4511242748559360)
+  - Publish GitHub issues for critical errors
+  - Sends Discord notification for critical/regression errors
+
+## Roadmap
+- Connect form submissions to CRM hook -> add account
+  - Determine CRM service
+- Enable email notifications for failures, builds, errata
+- Find email publishing service (Mailchimp, LiteMail, etc.)
+  - Connect to CRM + form submissions
+- Set up our actual email accounts (Zoho?)
+- Finish `features` section on homepage
+- Integrate analytics platform
+
+
 
 ## Infrastructure Needed
 

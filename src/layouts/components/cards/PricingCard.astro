@@ -179,8 +179,25 @@ if (!enable) return;
 
     {
       button?.enable && (
-        <CustomButton class="btn-md mt-auto text-center" {...button} />
+        <CustomButton
+          class="btn-md pricing-cta-btn mt-auto text-center"
+          data-plan-name={name}
+          {...button}
+        />
       )
     }
   </div>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".pricing-cta-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        window.posthog?.capture("pricing_plan_clicked", {
+          plan_name: btn.getAttribute("data-plan-name") || undefined,
+          url: btn.getAttribute("href") || undefined,
+        });
+      });
+    });
+  });
+</script>

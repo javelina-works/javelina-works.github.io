@@ -17,7 +17,7 @@
 
   # Optional: fail the deploy if scores fall below thresholds
   [plugins.inputs.thresholds]
-    performance = 0.9
+    performance = 0.9 # Until we figure our the performance issue
     accessibility = 0.9
     best-practices = 0.9
     seo = 0.9

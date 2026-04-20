@@ -100,3 +100,17 @@ const t = await useTranslations(Astro.currentLocale as string);
   </SinglePageLayout>
   <CallToAction />
 </Base>
+
+<script is:inline>
+  document.addEventListener("DOMContentLoaded", () => {
+    const applyBtn = document.querySelector(".btn-black[target='_blank']");
+    if (applyBtn) {
+      applyBtn.addEventListener("click", () => {
+        window.posthog?.capture("career_apply_clicked", {
+          job_title: document.title,
+          url: applyBtn.getAttribute("href") || undefined,
+        });
+      });
+    }
+  });
+</script>

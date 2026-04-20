@@ -10,14 +10,16 @@ Items are grouped by priority and area. Check off as you go.
 These are template-author defaults that will be visible to users or search
 engines on the live site.
 
-### Config (`src/config/config.toml`)
+### Bonus Mercury Benefits
+- ElevenLabs: 1 year free + 
+- Apolo: 2k free GPU hours
+- OpenRouter: $1k in free credits
+- Maxime: 1 year AI legal council
+- Rumi.ai: Meeting note transcription
+- AWS: 5k in credits
+- Numi: Startup design help, $12k in credits
+- DigitalOcean: $5k in credits
 
-- [x] **Contact form email** (line 65) — currently `temp.gats@gmail.com`.
-      Replace with the real Javelina Works contact email.
-- [x] **Mailchimp subscription** (line 82) — form action points to a demo list.
-      Replace with your Mailchimp list URL, or set `enable = false` (line 80).
-- [ ] **Umami analytics** (line 122) — `data-website-id=""` is empty.
-      Either set the real Umami ID or remove the `<script>` tag entirely.
 
 ---
 
@@ -34,6 +36,13 @@ The placeholder `"This is a example description"` appears in the frontmatter
 - [ ] `src/content/testimonial/english/-index.md`
 - [ ] `src/content/pages/english/components.mdx`
 - [ ] Integration index (if the integration collection is kept)
+
+### Complete CI Workflow
+
+- [ ] Re-activate the CI checks workflow
+- [ ] Restore prettier step
+- [ ] Restore Jest step
+- [ ] Add further testing, mock webhooks for forms
 
 ### OpenGraph image
 
@@ -55,7 +64,7 @@ These markdown files drive the homepage sections. Each needs real copy:
 - [ ] `features-section-two.md` — second features block (same issue)
 - [x] `how-it-works.md` — step-by-step flow (template content)
 - [x] `call-to-action.md` — CTA section copy and button
-- [ ] `about-us.md` / `why-us.md` / `our-values.md` — company narrative
+- [x] `about-us.md` / `why-us.md` / `our-values.md` — company narrative
 
 ### FAQ (`src/content/faq/english/-index.md`)
 
