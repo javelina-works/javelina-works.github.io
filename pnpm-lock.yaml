@@ -6,6 +6,7 @@ settings:
 
 overrides:
   glob: ^13.0.6
+  tar-fs@<2.1.4: ^2.1.4
 
 importers:
 
@@ -6104,8 +6105,8 @@ packages:
     resolution: {integrity: sha512-1MOpMXuhGzGL5TTCZFItxCc0AARf1EZFQkGqMm7ERKj8+Hgr5oLvJOVFcC+lRmR8hCe2S3jC4T5D7Vg/d7/fhA==}
     engines: {node: '>=6'}
 
-  tar-fs@2.1.1:
-    resolution: {integrity: sha512-V0r2Y9scmbDRLCNex/+hYzvp/zyYjvFbHPNgVTKfQvVrb6guiE/fxP+XblDNR011utopbkex2nM4dHNV6GDsng==}
+  tar-fs@2.1.4:
+    resolution: {integrity: sha512-mDAjwmZdh7LTT6pNleZ05Yt65HC3E+NiQzl672vQG38jIrehtJk/J3mNwIg+vShQPcLF/LV7CMnDW6vjj6sfYQ==}
 
   tar-fs@3.1.2:
     resolution: {integrity: sha512-QGxxTxxyleAdyM3kpFs14ymbYmNFrfY+pHj7Z8FgtbZ7w2//VAgLMac7sT6nRpIHjppXO2AwwEOg0bPFVRcmXw==}
@@ -13357,7 +13358,7 @@ snapshots:
       progress: 2.0.3
       proxy-from-env: 1.1.0
       rimraf: 3.0.2
-      tar-fs: 2.1.1
+      tar-fs: 2.1.4
       unbzip2-stream: 1.4.3
       ws: 8.5.0
     transitivePeerDependencies:
@@ -14139,7 +14140,7 @@ snapshots:
 
   tapable@2.3.2: {}
 
-  tar-fs@2.1.1:
+  tar-fs@2.1.4:
     dependencies:
       chownr: 1.1.4
       mkdirp-classic: 0.5.3
