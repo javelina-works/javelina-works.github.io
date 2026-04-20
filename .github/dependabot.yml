@@ -17,25 +17,30 @@ updates:
       include: "scope"
     groups:
       astro:
+        applies-to: version-updates
         patterns:
           - "astro"
           - "@astrojs/*"
           - "astro-auto-import"
       tailwind:
+        applies-to: version-updates
         patterns:
           - "tailwindcss"
           - "@tailwindcss/*"
           - "prettier-plugin-tailwindcss"
       prettier:
+        applies-to: version-updates
         patterns:
           - "prettier"
           - "prettier-plugin-*"
       jest:
+        applies-to: version-updates
         patterns:
           - "jest"
           - "ts-jest"
           - "@types/jest"
       markdown-pipeline:
+        applies-to: version-updates
         patterns:
           - "marked"
           - "remark-*"
@@ -43,14 +48,17 @@ updates:
           - "unist-util-*"
           - "gray-matter"
       types:
+        applies-to: version-updates
         patterns:
           - "@types/*"
       prod-minor-patch:
+        applies-to: version-updates
         dependency-type: "production"
         update-types:
           - "minor"
           - "patch"
       dev-minor-patch:
+        applies-to: version-updates
         dependency-type: "development"
         update-types:
           - "minor"
@@ -71,5 +79,6 @@ updates:
       prefix: "ci"
     groups:
       actions:
+        applies-to: version-updates
         patterns:
           - "*"

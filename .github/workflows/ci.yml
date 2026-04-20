@@ -1,10 +1,9 @@
 name: CI
 
 on:
-  # For now, we are going to hold back on these checks entirely until further solved
-  # pull_request:
-  # push:
-  #   branches: [main]
+  pull_request:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:

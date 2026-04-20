@@ -9,7 +9,7 @@
     "dev": "npm run toml:watch -- --watch & astro dev",
     "build": "npm run toml:watch && astro build && npm run remove-draft-from-sitemap",
     "preview": "npm run build && astro preview",
-    "astro-check": "astro check",
+    "astro-check": "npm run toml:watch && astro check",
     "toml:watch": "node scripts/toml-watcher.mjs",
     "generate-favicons": "node ./scripts/generate-favicons.mjs",
     "remove-draft-from-sitemap": "node ./scripts/remove-draft-from-sitemap.mjs",
@@ -75,7 +75,10 @@
   },
   "pnpm": {
     "overrides": {
-      "glob": "^13.0.6"
+      "glob": "^13.0.6",
+      "tar-fs@<2.1.4": "^2.1.4",
+      "ws@>=8.0.0 <8.17.1": "^8.17.1",
+      "cookie@<0.7.0": "^0.7.0"
     },
     "onlyBuiltDependencies": [
       "@parcel/watcher",
