@@ -32,6 +32,7 @@
   "exclude": [
     "dist",
     "public",
-    "scripts"
+    "scripts",
+    "src/__tests__"
   ]
 }
