@@ -44,12 +44,10 @@
     var banner = document.getElementById("cookie-banner");
     if (!banner) return;
 
-    var existing;
+    var existing = null;
     try {
       existing = localStorage.getItem(STORAGE_KEY);
-    } catch (e) {
-      return;
-    }
+    } catch (e) {}
     if (existing === "accepted" || existing === "rejected") return;
 
     banner.classList.remove("hidden");
