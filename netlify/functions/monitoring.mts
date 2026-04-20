@@ -57,6 +57,12 @@ export default async (req: Request, _context: Context) => {
   const upstream = `https://${allowedHost}/api/${allowedProjectId}/envelope/`;
   try {
     const response = await fetch(upstream, { method: "POST", body: envelope });
+    if (!response.ok) {
+      const body = await response.text().catch(() => "<body read failed>");
+      console.error(`Sentry upstream ${response.status}: ${body.slice(0, 500)}`);
+    } else {
+      console.log(`Sentry upstream ok (${response.status})`);
+    }
     return new Response(null, { status: response.status, headers: corsHeaders });
   } catch (err) {
     console.error("Sentry tunnel upstream failed:", err);
