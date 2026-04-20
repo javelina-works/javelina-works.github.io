@@ -9,7 +9,7 @@
     "dev": "npm run toml:watch -- --watch & astro dev",
     "build": "npm run toml:watch && astro build && npm run remove-draft-from-sitemap",
     "preview": "npm run build && astro preview",
-    "astro-check": "astro check",
+    "astro-check": "npm run toml:watch && astro check",
     "toml:watch": "node scripts/toml-watcher.mjs",
     "generate-favicons": "node ./scripts/generate-favicons.mjs",
     "remove-draft-from-sitemap": "node ./scripts/remove-draft-from-sitemap.mjs",
