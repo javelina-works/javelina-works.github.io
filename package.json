@@ -22,7 +22,7 @@
     "node": ">=22.12.0"
   },
   "dependencies": {
-    "@astrojs/netlify": "7.0.6",
+    "@astrojs/netlify": "^7.0.7",
     "@floating-ui/dom": "^1.7.6",
     "@sentry/astro": "^10.49.0",
     "@sentry/node": "^10.49.0",
@@ -50,7 +50,7 @@
     "@tailwindcss/vite": "^4.2.1",
     "@types/jest": "^30.0.0",
     "@types/matter-js": "^0.20.2",
-    "astro": "6.1.8",
+    "astro": "^6.1.8",
     "astro-auto-import": "^0.5.1",
     "cross-env": "^10.1.0",
     "gray-matter": "^4.0.3",

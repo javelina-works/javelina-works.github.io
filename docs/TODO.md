@@ -50,11 +50,13 @@ The placeholder `"This is a example description"` appears in the frontmatter
 
 ### Pinned dependencies to unpin later
 
-- [ ] `astro` is pinned to `6.1.2` and `@astrojs/netlify` to `7.0.6` to
-      dodge [withastro/astro#16209](https://github.com/withastro/astro/issues/16209).
-      Watch [PR #16207](https://github.com/withastro/astro/pull/16207) (or a
-      later astro release that re-fixes `plugin-chunk-imports`) and unpin per
-      the checklist in [docs/astro/known-issues.md](astro/known-issues.md).
+- [x] `astro` pinned to `6.1.2` / `@astrojs/netlify` to `7.0.6` for
+      [withastro/astro#16209](https://github.com/withastro/astro/issues/16209).
+      Fix shipped in `astro@6.1.8` via
+      [#16282](https://github.com/withastro/astro/pull/16282) and
+      [#16367](https://github.com/withastro/astro/pull/16367). Unpin PR
+      opened; see [docs/astro/known-issues.md](astro/known-issues.md) for
+      the verification checklist and for future use of the same recipe.
 
 ### OpenGraph image
 
