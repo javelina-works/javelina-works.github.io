@@ -13,13 +13,13 @@ importers:
     dependencies:
       '@astrojs/netlify':
         specifier: 7.0.6
-        version: 7.0.6(@types/node@25.6.0)(astro@6.1.2(@netlify/blobs@10.7.4)(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(typescript@6.0.3)(yaml@2.8.3))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(yaml@2.8.3)
+        version: 7.0.6(@types/node@25.6.0)(astro@6.1.8(@netlify/blobs@10.7.4)(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(typescript@6.0.3)(yaml@2.8.3))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(yaml@2.8.3)
       '@floating-ui/dom':
         specifier: ^1.7.6
         version: 1.7.6
       '@sentry/astro':
         specifier: ^10.49.0
-        version: 10.49.0(astro@6.1.2(@netlify/blobs@10.7.4)(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(typescript@6.0.3)(yaml@2.8.3))(rollup@4.60.1)
+        version: 10.49.0(astro@6.1.8(@netlify/blobs@10.7.4)(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(typescript@6.0.3)(yaml@2.8.3))(rollup@4.60.1)
       '@sentry/node':
         specifier: ^10.49.0
         version: 10.49.0
@@ -59,7 +59,7 @@ importers:
         version: 0.9.8(prettier-plugin-astro@0.14.1)(prettier@3.8.3)(typescript@6.0.3)
       '@astrojs/mdx':
         specifier: ^5.0.1
-        version: 5.0.3(astro@6.1.2(@netlify/blobs@10.7.4)(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(typescript@6.0.3)(yaml@2.8.3))
+        version: 5.0.3(astro@6.1.8(@netlify/blobs@10.7.4)(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(typescript@6.0.3)(yaml@2.8.3))
       '@astrojs/sitemap':
         specifier: ^3.7.2
         version: 3.7.2
@@ -70,11 +70,11 @@ importers:
         specifier: ^6.0.4
         version: 6.0.4(typescript@6.0.3)
       '@realfavicongenerator/generate-favicon':
-        specifier: ^0.6.3
-        version: 0.6.3
+        specifier: ^0.8.0
+        version: 0.8.0
       '@realfavicongenerator/image-adapter-node':
-        specifier: ^0.6.3
-        version: 0.6.3
+        specifier: ^0.8.0
+        version: 0.8.0
       '@tailwindcss/forms':
         specifier: ^0.5.11
         version: 0.5.11(tailwindcss@4.2.2)
@@ -91,11 +91,11 @@ importers:
         specifier: ^0.20.2
         version: 0.20.2
       astro:
-        specifier: 6.1.2
-        version: 6.1.2(@netlify/blobs@10.7.4)(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(typescript@6.0.3)(yaml@2.8.3)
+        specifier: 6.1.8
+        version: 6.1.8(@netlify/blobs@10.7.4)(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(typescript@6.0.3)(yaml@2.8.3)
       astro-auto-import:
         specifier: ^0.5.1
-        version: 0.5.1(astro@6.1.2(@netlify/blobs@10.7.4)(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(typescript@6.0.3)(yaml@2.8.3))
+        version: 0.5.1(astro@6.1.8(@netlify/blobs@10.7.4)(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(typescript@6.0.3)(yaml@2.8.3))
       cross-env:
         specifier: ^10.1.0
         version: 10.1.0
@@ -207,8 +207,8 @@ packages:
   '@astrojs/sitemap@3.7.2':
     resolution: {integrity: sha512-PqkzkcZTb5ICiyIR8VoKbIAP/laNRXi5tw616N1Ckk+40oNB8Can1AzVV56lrbC5GKSZFCyJYUVYqVivMisvpA==}
 
-  '@astrojs/telemetry@3.3.0':
-    resolution: {integrity: sha512-UFBgfeldP06qu6khs/yY+q1cDAaArM2/7AEIqQ9Cuvf7B1hNLq0xDrZkct+QoIGyjq56y8IaE2I3CTvG99mlhQ==}
+  '@astrojs/telemetry@3.3.1':
+    resolution: {integrity: sha512-7fcIxXS9J4ls5tr8b3ww9rbAIz2+HrhNJYZdkAhhB4za/I5IZ/60g+Bs8q7zwG0tOIZfNB4JWhVJ1Qkl/OrNCw==}
     engines: {node: 18.20.8 || ^20.3.0 || >=22.0.0}
 
   '@astrojs/underscore-redirects@1.0.3':
@@ -1572,11 +1572,11 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  '@realfavicongenerator/generate-favicon@0.6.3':
-    resolution: {integrity: sha512-HZHUaswuXSzpkKuCd8oNq/PtdjY/x+8IEOOResPddm/NpCSRnb5xQuFhxa2xo4OkBTXRUWUNEgZQX4jyi04ytg==}
+  '@realfavicongenerator/generate-favicon@0.8.0':
+    resolution: {integrity: sha512-3Cy774m1TYpthka4r4CGNPNcLKP0giPl07fRnlXCkB5TN3/72Urc+APJlt3UBaEjLJskgFj/z/h/kPtHHtE2KQ==}
 
-  '@realfavicongenerator/image-adapter-node@0.6.3':
-    resolution: {integrity: sha512-24fVKEgxLoAhaIFCVzZmphnXO17ud6a/KSK/5PoSg/19qIDILV4BOxf5Dp5OdMytVAzaQnP5ulYIpd0JTAeb4Q==}
+  '@realfavicongenerator/image-adapter-node@0.8.0':
+    resolution: {integrity: sha512-KCm/oeA470rva9kFcllM1MLiD4QjY8vmnFj2y232W5VWk1dehj3k3h+DXWx+ssQX6MrVwIU6EzDh6SVdqHy7Hg==}
 
   '@rollup/pluginutils@5.3.0':
     resolution: {integrity: sha512-5EdhGZtnu3V88ces7s53hhfK5KSASnJZv8Lulpc04cWO3REESroJXg73DFsOmgbU2BhwV0E20bu2IDZb3VKW4Q==}
@@ -2559,8 +2559,8 @@ packages:
     peerDependencies:
       astro: ^5.0.0-beta || ^6.0.0-alpha
 
-  astro@6.1.2:
-    resolution: {integrity: sha512-r3iIvmB6JvQxsdJLvapybKKq7Bojd1iQK6CCx5P55eRnXJIyUpHx/1UB/GdMm+em/lwaCUasxHCmIO0lCLV2uA==}
+  astro@6.1.8:
+    resolution: {integrity: sha512-6fT9M12U3fpi13DiPavNKDIoBflASTSxmKTEe+zXhWtlebQuOqfOnIrMWyRmlXp+mgDsojmw+fVFG9LUTzKSog==}
     engines: {node: '>=22.12.0', npm: '>=9.6.5', pnpm: '>=7.1.0'}
     hasBin: true
 
@@ -4055,6 +4055,11 @@ packages:
   is-docker@3.0.0:
     resolution: {integrity: sha512-eljcgEDlEns/7AXFosB5K/2nCM4P7FQPkGc/DWLy5rmFEWvZayGrik1d9/QIY5nJ4f9YsVvBkA6kJpHn9rISdQ==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+    hasBin: true
+
+  is-docker@4.0.0:
+    resolution: {integrity: sha512-LHE+wROyG/Y/0ZnbktRCoTix2c1RhgWaZraMZ8o1Q7zCh0VSrICJQO5oqIIISrcSBtrXv0o233w1IYwsWCjTzA==}
+    engines: {node: '>=20'}
     hasBin: true
 
   is-extendable@0.1.1:
@@ -6941,12 +6946,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@astrojs/mdx@5.0.3(astro@6.1.2(@netlify/blobs@10.7.4)(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(typescript@6.0.3)(yaml@2.8.3))':
+  '@astrojs/mdx@5.0.3(astro@6.1.8(@netlify/blobs@10.7.4)(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(typescript@6.0.3)(yaml@2.8.3))':
     dependencies:
       '@astrojs/markdown-remark': 7.1.0
       '@mdx-js/mdx': 3.1.1
       acorn: 8.16.0
-      astro: 6.1.2(@netlify/blobs@10.7.4)(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(typescript@6.0.3)(yaml@2.8.3)
+      astro: 6.1.8(@netlify/blobs@10.7.4)(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(typescript@6.0.3)(yaml@2.8.3)
       es-module-lexer: 2.0.0
       estree-util-visit: 2.0.0
       hast-util-to-html: 9.0.5
@@ -6960,7 +6965,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@astrojs/netlify@7.0.6(@types/node@25.6.0)(astro@6.1.2(@netlify/blobs@10.7.4)(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(typescript@6.0.3)(yaml@2.8.3))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(yaml@2.8.3)':
+  '@astrojs/netlify@7.0.6(@types/node@25.6.0)(astro@6.1.8(@netlify/blobs@10.7.4)(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(typescript@6.0.3)(yaml@2.8.3))(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(yaml@2.8.3)':
     dependencies:
       '@astrojs/internal-helpers': 0.8.0
       '@astrojs/underscore-redirects': 1.0.3
@@ -6968,7 +6973,7 @@ snapshots:
       '@netlify/functions': 5.2.0
       '@netlify/vite-plugin': 2.11.5(rollup@4.60.1)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.8.3))
       '@vercel/nft': 1.5.0(rollup@4.60.1)
-      astro: 6.1.2(@netlify/blobs@10.7.4)(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(typescript@6.0.3)(yaml@2.8.3)
+      astro: 6.1.8(@netlify/blobs@10.7.4)(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(typescript@6.0.3)(yaml@2.8.3)
       esbuild: 0.27.7
       tinyglobby: 0.2.16
       vite: 7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.8.3)
@@ -7020,17 +7025,14 @@ snapshots:
       stream-replace-string: 2.0.0
       zod: 4.3.6
 
-  '@astrojs/telemetry@3.3.0':
+  '@astrojs/telemetry@3.3.1':
     dependencies:
       ci-info: 4.4.0
-      debug: 4.4.3
       dlv: 1.1.3
       dset: 3.1.4
-      is-docker: 3.0.0
+      is-docker: 4.0.0
       is-wsl: 3.1.1
       which-pm-runs: 1.1.0
-    transitivePeerDependencies:
-      - supports-color
 
   '@astrojs/underscore-redirects@1.0.3': {}
 
@@ -8642,13 +8644,13 @@ snapshots:
       - react-native-b4a
       - supports-color
 
-  '@realfavicongenerator/generate-favicon@0.6.3':
+  '@realfavicongenerator/generate-favicon@0.8.0':
     dependencies:
       '@svgdotjs/svg.js': 3.2.5
 
-  '@realfavicongenerator/image-adapter-node@0.6.3':
+  '@realfavicongenerator/image-adapter-node@0.8.0':
     dependencies:
-      '@realfavicongenerator/generate-favicon': 0.6.3
+      '@realfavicongenerator/generate-favicon': 0.8.0
       '@svgdotjs/svg.js': 3.2.5
       sharp: 0.34.5
       svgdom: 0.1.23
@@ -8754,13 +8756,13 @@ snapshots:
       '@sentry-internal/browser-utils': 10.49.0
       '@sentry/core': 10.49.0
 
-  '@sentry/astro@10.49.0(astro@6.1.2(@netlify/blobs@10.7.4)(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(typescript@6.0.3)(yaml@2.8.3))(rollup@4.60.1)':
+  '@sentry/astro@10.49.0(astro@6.1.8(@netlify/blobs@10.7.4)(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(typescript@6.0.3)(yaml@2.8.3))(rollup@4.60.1)':
     dependencies:
       '@sentry/browser': 10.49.0
       '@sentry/core': 10.49.0
       '@sentry/node': 10.49.0
       '@sentry/vite-plugin': 5.2.0(rollup@4.60.1)
-      astro: 6.1.2(@netlify/blobs@10.7.4)(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(typescript@6.0.3)(yaml@2.8.3)
+      astro: 6.1.8(@netlify/blobs@10.7.4)(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(typescript@6.0.3)(yaml@2.8.3)
     transitivePeerDependencies:
       - '@opentelemetry/exporter-trace-otlp-http'
       - encoding
@@ -9662,17 +9664,17 @@ snapshots:
 
   astring@1.9.0: {}
 
-  astro-auto-import@0.5.1(astro@6.1.2(@netlify/blobs@10.7.4)(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(typescript@6.0.3)(yaml@2.8.3)):
+  astro-auto-import@0.5.1(astro@6.1.8(@netlify/blobs@10.7.4)(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(typescript@6.0.3)(yaml@2.8.3)):
     dependencies:
       acorn: 8.16.0
-      astro: 6.1.2(@netlify/blobs@10.7.4)(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(typescript@6.0.3)(yaml@2.8.3)
+      astro: 6.1.8(@netlify/blobs@10.7.4)(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(typescript@6.0.3)(yaml@2.8.3)
 
-  astro@6.1.2(@netlify/blobs@10.7.4)(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(typescript@6.0.3)(yaml@2.8.3):
+  astro@6.1.8(@netlify/blobs@10.7.4)(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.46.1)(typescript@6.0.3)(yaml@2.8.3):
     dependencies:
       '@astrojs/compiler': 3.0.1
       '@astrojs/internal-helpers': 0.8.0
       '@astrojs/markdown-remark': 7.1.0
-      '@astrojs/telemetry': 3.3.0
+      '@astrojs/telemetry': 3.3.1
       '@capsizecss/unpack': 4.0.0
       '@clack/prompts': 1.2.0
       '@oslojs/encoding': 1.1.0
@@ -9685,7 +9687,6 @@ snapshots:
       cookie: 1.1.1
       devalue: 5.7.1
       diff: 8.0.4
-      dlv: 1.1.3
       dset: 3.1.4
       es-module-lexer: 2.0.0
       esbuild: 0.27.7
@@ -11505,6 +11506,8 @@ snapshots:
   is-docker@2.2.1: {}
 
   is-docker@3.0.0: {}
+
+  is-docker@4.0.0: {}
 
   is-extendable@0.1.1: {}
 
