@@ -26,6 +26,8 @@ This is the repository hosting the static site and configurations for the Javeli
 [![Sentry](https://img.shields.io/badge/Sentry-362D59?logo=sentry&logoColor=white)](https://sentry.io/)
 [![UptimeRobot](https://img.shields.io/badge/UptimeRobot-44CC11?logo=uptimerobot&logoColor=white)](https://uptimerobot.com/)
 [![CodeRabbit](https://img.shields.io/badge/CodeRabbit-FF5722?logo=coderabbit&logoColor=white)](https://coderabbit.ai/)
+[![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?logo=githubactions&logoColor=white)](https://github.com/features/actions)
+[![Dependabot](https://img.shields.io/badge/Dependabot-025E8C?logo=dependabot&logoColor=white)](https://github.com/dependabot)
 
 
 ## Infrastructure
@@ -51,6 +53,17 @@ This is the repository hosting the static site and configurations for the Javeli
 - [Sentry](https://javelina-works-inc.sentry.io/dashboard/3850428/?project=4511242748559360)
   - Publish GitHub issues for critical errors
   - Sends Discord notification for critical/regression errors
+- [CodeRabbit](https://coderabbit.ai/): AI code reviewer on every pull request
+  - Posts a PR summary and line-level review comments automatically when a PR is opened or updated
+  - Catches correctness, style, and small security issues before human review
+  - Re-review on demand by commenting `@coderabbitai review`
+  - Free for this repo (public OSS tier)
+- [Dependabot](https://github.com/dependabot): keeps dependencies current
+  - Scans `npm` and `github-actions` ecosystems weekly (Mondays 06:00 America/Chicago) — see [`.github/dependabot.yml`](./.github/dependabot.yml)
+  - Groups PRs to cut noise: `astro` + `@astrojs/*` bundled, minor/patch updates grouped separately for prod vs. dev, all GitHub Actions updates in one PR
+  - Up to 8 open npm PRs and 3 open actions PRs at a time
+  - Auto-merge enabled for low-risk updates (patch-level bumps, dev deps, `@types/*`, all GitHub Actions) — see [`.github/workflows/dependabot-auto-merge.yml`](./.github/workflows/dependabot-auto-merge.yml)
+  - Astro core and all major version bumps require manual review
 
 ## Roadmap
 - Connect form submissions to CRM hook -> add account
