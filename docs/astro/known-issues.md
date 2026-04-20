@@ -9,7 +9,10 @@ watch for before unpinning.
 ## Astro 6.1.3+ `plugin-chunk-imports` corrupts dynamic `import()` on Netlify
 
 **First hit:** 2026-04-19 — Netlify deploy of commit `54583a6` failed.
-**Status:** Pinned around in commit `d117ef9` (PR #12). Waiting on upstream fix.
+**Pinned around:** commit `d117ef9` (PR #12).
+**Fixed upstream:** `astro@6.1.8` (2026-04-18) — see "Upstream resolution" below.
+**Status:** Historical. Unpin tracked in a follow-up PR; this section is kept
+for future-proofing future regressions in the same code path.
 
 ### Symptom
 
@@ -65,21 +68,46 @@ Upstream tracking:
 - Issue: [withastro/astro#16209](https://github.com/withastro/astro/issues/16209)
   (closed as "use the issue template")
 - Related issue: [withastro/astro#16196](https://github.com/withastro/astro/issues/16196)
-- Proposed fix: [withastro/astro#16207](https://github.com/withastro/astro/pull/16207)
-  (currently closed, not merged)
+- First proposed fix: [withastro/astro#16207](https://github.com/withastro/astro/pull/16207)
+  — closed by a maintainer in favor of the two PRs below.
 
-### What we did
+### Upstream resolution
 
-Pinned to the last known-good release:
+Two PRs shipped together in [`astro@6.1.8`](https://github.com/withastro/astro/releases/tag/astro%406.1.8)
+(2026-04-18):
 
-| Package             | Before    | After   | Reason                                |
-|---------------------|-----------|---------|---------------------------------------|
-| `astro`             | `^6.1.7`  | `6.1.2` | Regression introduced in `6.1.3`.     |
-| `@astrojs/netlify`  | `^7.0.7`  | `7.0.6` | `7.0.7` imports `verifyOptions` from astro internals — a symbol added after `6.1.2`. |
+1. **[#16282](https://github.com/withastro/astro/pull/16282)** by @jmurty —
+   root-cause fix. Corrects the offset math in `plugin-chunk-imports.ts` so
+   the query string is appended to dynamic `import()` specifiers correctly
+   instead of being spliced into the middle.
+2. **[#16367](https://github.com/withastro/astro/pull/16367)** by @ematipico
+   — defense in depth. A new `cleanChunkName()` replaces chars outside
+   `[\w.\-/]` in chunk names so that any leftover garbage from Vite module
+   IDs can't re-introduce a Netlify deploy break.
 
-The pins are exact (no caret) so `pnpm install` on Netlify can't silently
+The canonical place to find upstream fixes is the Astro
+[releases page](https://github.com/withastro/astro/releases), not any single
+issue or PR — for this bug the issue thread (#16209) was closed without a
+useful resolution pointer, and the first PR that fixed it (#16207) was
+closed in favor of others. **Always cross-check the changelog of a recent
+release before assuming "no fix yet."**
+
+### What we did — then and now
+
+**Emergency pin (PR #12, 2026-04-19):** rolled back to the last known-good
+release.
+
+| Package             | `^6.1.7` era | Pinned  | Reason                                |
+|---------------------|--------------|---------|---------------------------------------|
+| `astro`             | `^6.1.7`     | `6.1.2` | Regression introduced in `6.1.3`.     |
+| `@astrojs/netlify`  | `^7.0.7`     | `7.0.6` | `7.0.7` imports `verifyOptions` from astro internals — a symbol added after `6.1.2`. |
+
+The pins were exact (no caret) so `pnpm install` on Netlify couldn't silently
 drift back into the broken range. `pnpm-lock.yaml` is gitignored in this
-repo, so the pin lives in `package.json`.
+repo, so the pin lived in `package.json`.
+
+**Unpin (follow-up PR):** once `astro@6.1.8` was confirmed to include both
+#16282 and #16367, ranges were restored to `^6.1.8` and `^7.0.7`.
 
 ### Reproducing locally
 
@@ -96,34 +124,39 @@ the adapter. Use this when:
 - Adding or changing client `<script>` code that uses dynamic `import()`.
 - Auditing a new Astro/Netlify-adapter upgrade.
 
-### Unpinning — what to verify first
+### Verifying an unpin (checklist)
 
-When a fix ships upstream (watch [#16207](https://github.com/withastro/astro/pull/16207)
-or the astro changelog for a note referencing `plugin-chunk-imports` /
-`assetQueryParams`):
+Reusable any time a patched `astro` / `@astrojs/netlify` bump needs to clear
+this class of bug before merging:
 
-1. Bump both pins together — the adapter version must match astro's API surface.
-2. Run `DEPLOY_ID=local-test pnpm build` locally and confirm no
-   `_astro/*.!~{…}~.js` errors.
-3. Grep the dist output for malformed import specifiers:
+1. Bump `astro` and `@astrojs/netlify` together — the adapter's internal
+   imports must match astro's API surface (see the `7.0.7` / `verifyOptions`
+   note above).
+2. Run `DEPLOY_ID=local-test pnpm build`. The build must succeed and the
+   output must not contain any `_astro/*.!~{…}~.js` filenames.
+3. Grep the client chunks for well-formed dynamic imports:
    ```sh
-   grep -rE 'from "[^"]*\?dpl=[^"]*"[^)]' dist/_astro/ | head
+   grep -oE 'import\("\./[^"]+"' dist/_astro/*.js | head
    ```
-   Valid rewrites look like `from "./shared.hash.js?dpl=…"`. Anything with a
-   `?` inside the quotes in an unexpected position is still corrupted.
-4. Open a deploy preview PR. The Netlify build is the authoritative check.
+   Valid output: `import("./plyr.<hash>.js?dpl=local-test"`. Invalid output
+   has a `?` outside the quotes or mid-specifier — that's the regression
+   re-appearing.
+4. Open a deploy preview PR. Netlify's build is the authoritative check:
+   `DEPLOY_ID` is always set there, and any residual chunk-path issue on
+   Linux will surface that local macOS/Windows builds miss.
 
-### Future mitigations to consider
+### Future mitigations
 
 - **CI simulation.** Add a GitHub Actions step that runs
-  `DEPLOY_ID=ci pnpm build` on PRs so this regression can't reach Netlify
-  again without warning. Cheap, catches future upstream reintroductions of
-  the same class of bug. (See TODO.md.)
+  `DEPLOY_ID=ci pnpm build` on PRs so this class of regression can't reach
+  Netlify again without warning. Cheap, catches future upstream
+  reintroductions of the same class of bug. (See TODO.md.)
 - **Avoid dynamic `import()` in client `<script>` tags.** Converting
   `VideoModal.astro` to a top-level `import Plyr from "plyr"` would sidestep
   the rewrite entirely, at the cost of Plyr's lazy-load benefit. Not worth
-  doing proactively, but it's the escape hatch if the upstream fix takes a
-  long time or the bug re-emerges.
-- **`pnpm patch`.** If the upstream PR stalls and we need a post-6.1.2
-  feature, apply PR #16207's diff via `pnpm patch astro@<version>` and
-  commit the generated patch under `patches/`. Lower overhead than forking.
+  doing proactively, but it's the escape hatch if the bug class re-emerges
+  and upstream is slow.
+- **`pnpm patch`.** If a future regression blocks us again but upstream
+  hasn't cut a release, apply the candidate fix via
+  `pnpm patch astro@<version>` and commit the generated patch under
+  `patches/`. Lower overhead than forking.
