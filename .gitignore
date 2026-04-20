@@ -30,4 +30,4 @@ yarn.lock
 # Local Netlify folder
 .netlify
 .vercel
-# package-lock.json
+package-lock.json
