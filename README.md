@@ -24,6 +24,8 @@ This is the repository hosting the static site and configurations for the Javeli
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![PostHog](https://img.shields.io/badge/PostHog-1D4AFF?logo=posthog&logoColor=white)](https://posthog.com/)
 [![Sentry](https://img.shields.io/badge/Sentry-362D59?logo=sentry&logoColor=white)](https://sentry.io/)
+[![UptimeRobot](https://img.shields.io/badge/UptimeRobot-44CC11?logo=uptimerobot&logoColor=white)](https://uptimerobot.com/)
+[![CodeRabbit](https://img.shields.io/badge/CodeRabbit-FF5722?logo=coderabbit&logoColor=white)](https://coderabbit.ai/)
 
 
 ## Infrastructure
