@@ -69,5 +69,12 @@ const apiHost = import.meta.env.PROD
     api_host: apiHost || "",
     ui_host: uiHost,
     defaults: "2026-01-30",
+    opt_out_capturing_by_default: true,
   });
+
+  try {
+    if (localStorage.getItem("cookie-consent") === "accepted") {
+      posthog.opt_in_capturing();
+    }
+  } catch (e) {}
 </script>
