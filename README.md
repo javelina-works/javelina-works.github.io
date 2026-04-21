@@ -96,6 +96,7 @@ This is the repository hosting the static site and configurations for the Javeli
 ## Misc
 
 ### Bonus Mercury Benefits
+
 - ElevenLabs: 1 year free + 
 - Apolo: 2k free GPU hours
 - OpenRouter: $1k in free credits
@@ -104,4 +105,13 @@ This is the repository hosting the static site and configurations for the Javeli
 - AWS: 5k in credits
 - Numi: Startup design help, $12k in credits
 - DigitalOcean: $5k in credits
+
+
+### Bonus Posthog Benefits
+
+Check startup grant email for codes, links, etc. 
+
+- [Chroma](https://www.trychroma.com/): $5000 of credits, 
+- [Incident.io](https://incident.io/): $1500 off team plan
+- [Speakeasy](https://www.speakeasy.com/): 50% off for 6 months - AI control plane 
 
