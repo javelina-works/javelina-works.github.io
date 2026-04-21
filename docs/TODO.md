@@ -5,20 +5,7 @@ Items are grouped by priority and area. Check off as you go.
 
 ---
 
-## Critical — Template values that break credibility
-
-These are template-author defaults that will be visible to users or search
-engines on the live site.
-
-### Bonus Mercury Benefits
-- ElevenLabs: 1 year free + 
-- Apolo: 2k free GPU hours
-- OpenRouter: $1k in free credits
-- Maxime: 1 year AI legal council
-- Rumi.ai: Meeting note transcription
-- AWS: 5k in credits
-- Numi: Startup design help, $12k in credits
-- DigitalOcean: $5k in credits
+## Critical — Highest Priority
 
 
 ---
@@ -34,12 +21,11 @@ The placeholder `"This is a example description"` appears in the frontmatter
 - [ ] `src/content/pricing/english/-index.md`
 - [ ] `src/content/career/english/-index.md`
 - [ ] `src/content/testimonial/english/-index.md`
-- [ ] `src/content/pages/english/components.mdx`
 - [ ] Integration index (if the integration collection is kept)
 
-### Complete CI Workflow
+### Improve CI Workflow
 
-- [ ] Re-activate the CI checks workflow
+- [x] Re-activate the CI checks workflow
 - [ ] Restore prettier step
 - [ ] Restore Jest step
 - [ ] Add further testing, mock webhooks for forms
@@ -47,16 +33,6 @@ The placeholder `"This is a example description"` appears in the frontmatter
       regressions (see [docs/astro/known-issues.md](astro/known-issues.md) —
       the astro 6.1.3+ `plugin-chunk-imports` bug only fires when `DEPLOY_ID`
       is set, which is why our local builds passed while Netlify failed).
-
-### Pinned dependencies to unpin later
-
-- [x] `astro` pinned to `6.1.2` / `@astrojs/netlify` to `7.0.6` for
-      [withastro/astro#16209](https://github.com/withastro/astro/issues/16209).
-      Fix shipped in `astro@6.1.8` via
-      [#16282](https://github.com/withastro/astro/pull/16282) and
-      [#16367](https://github.com/withastro/astro/pull/16367). Unpin PR
-      opened; see [docs/astro/known-issues.md](astro/known-issues.md) for
-      the verification checklist and for future use of the same recipe.
 
 ### OpenGraph image
 

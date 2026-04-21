@@ -91,3 +91,17 @@ This is the repository hosting the static site and configurations for the Javeli
 - info@javelinaworks.com
 - support@javelinaworks.com
 - contact@javelinaworks.com
+
+
+## Misc
+
+### Bonus Mercury Benefits
+- ElevenLabs: 1 year free + 
+- Apolo: 2k free GPU hours
+- OpenRouter: $1k in free credits
+- Maxime: 1 year AI legal council
+- Rumi.ai: Meeting note transcription
+- AWS: 5k in credits
+- Numi: Startup design help, $12k in credits
+- DigitalOcean: $5k in credits
+
