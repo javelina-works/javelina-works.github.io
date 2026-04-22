@@ -32,8 +32,8 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Decap CMS admin. The config.yml is hand-edited in this repo, so never cache
-# it — editors need their changes visible on the next reload.
+# Sveltia CMS admin. The config.yml is hand-edited in this repo, so never
+# cache it — editors need their changes visible on the next reload.
 [[headers]]
   for = "/admin/*"
   [headers.values]

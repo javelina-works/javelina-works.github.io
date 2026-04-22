@@ -6,29 +6,8 @@
     <meta name="robots" content="noindex, nofollow" />
     <title>Content Manager · Javelina Works</title>
     <link rel="icon" href="/favicon.ico" />
-    <!--
-      Netlify Identity widget powers Git Gateway auth. The widget writes the
-      access token into the URL hash on first login; the tiny script at the
-      bottom shuttles the user into the CMS once they're authenticated.
-    -->
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   </head>
   <body>
-    <!--
-      Decap CMS (formerly Netlify CMS). Pinned to a major version so upstream
-      breaking changes don't silently land in production.
-    -->
-    <script src="https://unpkg.com/decap-cms@^3.8.0/dist/decap-cms.js"></script>
-    <script>
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.on("init", (user) => {
-          if (!user) {
-            window.netlifyIdentity.on("login", () => {
-              document.location.href = "/admin/";
-            });
-          }
-        });
-      }
-    </script>
+    <script src="https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js"></script>
   </body>
 </html>

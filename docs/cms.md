@@ -1,78 +1,119 @@
-# Decap CMS
+# CMS
 
-The site ships with a [Decap CMS](https://decapcms.org/) (formerly Netlify CMS)
-admin mounted at **`/admin/`**. It edits the same Markdown/MDX files under
-`src/content/` that the Astro content collections already read from.
+The site ships with [Sveltia CMS](https://sveltiacms.app/) mounted at
+**`/admin/`**. It edits the Markdown/MDX files under `src/content/` that the
+Astro content collections already read from.
 
-This doc covers the initial setup in this repo. The admin UI itself is
-functional out of the box; the one-time work below enables login on the
-deployed site.
+Sveltia is a drop-in-compatible fork of Decap CMS that authenticates directly
+against GitHub. We moved off Decap + Netlify Identity because Netlify sunset
+Identity (and Git Gateway with it) in 2024.
 
 ## How it's wired
 
-- `public/admin/index.html` — loads Decap CMS and the Netlify Identity widget.
-- `public/admin/config.yml` — collection definitions (blog, pages, authors,
-  careers, sections, testimonials, FAQ, pricing, contact) plus singletons for
-  the homepage and blog landing.
-- `netlify.toml` — adds `Cache-Control: no-cache` and `X-Robots-Tag: noindex`
+- `public/admin/index.html` — loads the Sveltia bundle from unpkg.
+- `public/admin/config.yml` — backend + collection definitions (blog, pages,
+  authors, careers, sections, testimonials, FAQ, pricing, contact) plus
+  singletons for the homepage and blog landing.
+- `netlify.toml` — `Cache-Control: no-cache` and `X-Robots-Tag: noindex`
   headers for `/admin/*`.
-- `src/layouts/Base.astro` — forwards Netlify Identity invite/recovery tokens
-  that land on `/` into `/admin/` so invited users reach the login flow.
 
 Collections mirror the schemas in `src/content.config.ts`. When new fields get
 added to those Zod schemas, update `public/admin/config.yml` to match.
 
-## One-time Netlify setup
+## Signing in
 
-The CMS uses the **Git Gateway** backend, which requires Netlify Identity.
-Enable these in the Netlify dashboard for the `javelina-works` site:
+Sveltia uses a GitHub **Personal Access Token** for auth. Each editor
+generates their own token once; tokens never get committed.
 
-1. **Site configuration → Identity → Enable Identity.**
-2. **Identity → Registration preferences → Invite only.** (Prevents random
-   signups; editors get invited by email.)
-3. **Identity → Services → Git Gateway → Enable Git Gateway.** Authorize it
-   against the `javelina-works/javelina-works.github.io` repo.
-4. **Identity → Invite users** — add each editor's email. They'll receive an
-   email with a link back to `https://javelinaworks.com/` carrying an
-   `invite_token` hash; the inline script in `Base.astro` forwards them to
-   `/admin/` to complete signup.
+### Generate a fine-grained PAT (preferred)
 
-Optional, but recommended:
+1. Visit https://github.com/settings/tokens?type=beta.
+2. **Resource owner:** `javelina-works`.
+3. **Repository access:** Only select repositories →
+   `javelina-works/javelina-works.github.io`.
+4. **Repository permissions:**
+   - Contents: **Read and write**
+   - Metadata: **Read** (required for any fine-grained PAT)
+   - Pull requests: **Read and write** (forward-compat for when Sveltia
+     re-enables editorial workflow)
+5. **Expiration:** 90 days (or the org max) — set a calendar reminder to
+   rotate.
+6. Generate, copy the token once, store in your password manager.
 
-- **Identity → External providers** — add GitHub as a login option so editors
-  with a GitHub account can skip the email flow.
-- **Identity → Emails** — customize the invite/recovery email templates.
+### Classic PAT (fallback)
+
+If fine-grained PATs hit an org restriction, use
+https://github.com/settings/tokens/new with the single **`repo`** scope.
+
+### Logging in
+
+1. Visit https://javelinaworks.com/admin/.
+2. Click **Sign in with Token**, paste your PAT.
+3. Sveltia caches the token in the browser (localStorage, same-origin only).
+   You'll stay signed in until you explicitly sign out or clear site data.
+
+Any editor signing in must have **write access** to
+`javelina-works/javelina-works.github.io` on GitHub — that's the gate.
 
 ## Branch and publish flow
 
-- Editors hit `/admin/` and sign in with their Identity account.
-- `publish_mode: editorial_workflow` means saving a draft opens a PR against
-  `main` instead of committing directly. The draft status in Decap maps to PR
-  labels (`decap-cms/draft`, `decap-cms/pending_review`,
-  `decap-cms/pending_publish`).
-- Merging the PR triggers the normal Netlify build.
+- Editors commit directly to the **`staging`** branch
+  (`backend.branch: staging` in `config.yml`).
+- Our existing **staging → main** PR process ships the changes to production.
+  This preserves the "nothing goes to main without review" guarantee we used
+  to get from Decap's `publish_mode: editorial_workflow`.
+- The Sveltia commit message templates (`content: create {{collection}}
+  '{{slug}}'`, etc.) make the staging log easy to scan for content-only
+  changes.
 
-If we want the CMS to target `staging` instead of `main`, change
-`backend.branch` in `public/admin/config.yml`.
+## Local editing
+
+Sveltia supports local editing against the repo filesystem — handy for
+drafting offline or before pushing.
+
+1. `pnpm dev` (Astro dev server on :4321).
+2. Open **Chromium** (Safari/Firefox don't expose the File System Access API
+   Sveltia relies on) to `http://localhost:4321/admin/index.html`.
+3. Click **Work with Local Repository**, grant access to the repo root.
+4. Edits land as unstaged changes in your working tree — commit/push them
+   yourself.
 
 ## Media
 
 Uploads go to `public/images/uploads/` and resolve at `/images/uploads/*` on
-the site. Pre-existing images under `public/images/` aren't touched.
+the built site. Pre-existing images under `public/images/` aren't touched.
+
+## Required-field semantics
+
+Sveltia and Decap treat `required:` inversely:
+- **Decap:** fields were optional unless `required: true`.
+- **Sveltia:** fields are required unless `required: false`.
+
+Our `config.yml` marks every optional field with `required: false` explicitly,
+so the behavior matches intent. When adding new fields, pick the explicit
+marking that matches your intent rather than relying on the default.
 
 ## Known gaps / follow-ups
 
-- **MDX round-tripping.** Blog posts are authored as `.mdx`. Decap's markdown
+- **Editorial workflow deferred.** Sveltia hasn't shipped
+  `publish_mode: editorial_workflow` yet (planned for v1.0, mid-2026). When
+  it lands: uncomment `publish_mode` in `config.yml` and flip
+  `backend.branch` back to `main`; editors will then get per-save PRs and we
+  can retire the staging-branch workaround.
+- **Direct GitHub auth pending.** Sveltia has device-flow / GitHub App auth
+  on the roadmap. When it ships we can retire PATs and switch via a
+  `config.yml` change — no new infrastructure needed.
+- **MDX round-tripping.** Blog posts are authored as `.mdx`. The markdown
   widget writes CommonMark, so JSX-like constructs in existing posts won't
   survive a full edit-through. Today's posts are plain markdown in `.mdx`
   files, so this is fine; revisit if we start embedding components.
 - **Sections schema.** `src/content/sections/english/*` uses rich,
-  section-specific frontmatter (buttons, videos, nested lists). The Decap
-  `sections` collection currently exposes only `title`, `description`,
-  `image`, `body`. Editing richer fields still requires a PR. We can split
-  the collection per section type once the shapes stabilize.
+  section-specific frontmatter (buttons, videos, nested lists). The `sections`
+  collection currently exposes only `title`, `description`, `image`, `body`.
+  Editing richer fields still requires a code PR. Split per section type once
+  the shapes stabilize.
 - **Multilingual.** Content lives under `english/` subfolders. When we enable
   more locales, each collection needs sibling folders/files or
-  [Decap's i18n config](https://decapcms.org/docs/i18n/).
+  [Sveltia's i18n config](https://sveltiacms.app/en/docs/contents/i18n).
 - **Preview templates.** No custom previews are registered; the default
   markdown preview is used.

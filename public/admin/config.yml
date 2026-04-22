@@ -1,17 +1,21 @@
-# Decap CMS configuration for javelinaworks.com
-# Docs: https://decapcms.org/docs/configuration-options/
+# Sveltia CMS configuration for javelinaworks.com
+# Docs: https://sveltiacms.app/
 #
-# This is the initial Decap setup. It mirrors the Astro content collections
-# defined in src/content.config.ts. Collections use the English locale folders
-# that content currently lives in (src/content/<collection>/english). When we
-# enable additional locales we can extend each collection with per-locale
-# folder/files entries.
+# Mirrors the Astro content collections defined in src/content.config.ts.
+# Collections use the English locale folders that content currently lives in
+# (src/content/<collection>/english). When we enable additional locales we can
+# extend each collection with per-locale folder/files entries.
+#
+# Note: Sveltia inverts Decap's "required" default — fields without an
+# explicit `required:` key are *required* here (Decap treated them as
+# optional). Any field intended to be optional must set `required: false`.
 
 backend:
-  name: git-gateway
-  branch: main
-  # Open a PR for every change rather than committing straight to main.
-  # Pairs with publish_mode: editorial_workflow below.
+  name: github
+  repo: javelina-works/javelina-works.github.io
+  # Editors commit to `staging`; the existing staging → main PR flow
+  # preserves the review gate we used to get from editorial_workflow.
+  branch: staging
   commit_messages:
     create: "content: create {{collection}} '{{slug}}'"
     update: "content: update {{collection}} '{{slug}}'"
@@ -20,8 +24,9 @@ backend:
     deleteMedia: "content: delete '{{path}}'"
     openAuthoring: "{{message}}"
 
-# Drafts land as PRs against `main`; editors review in GitHub before merge.
-publish_mode: editorial_workflow
+# publish_mode: editorial_workflow
+# Disabled: Sveltia hasn't shipped editorial_workflow yet (planned v1.0,
+# mid-2026). Until then, saves commit directly to `backend.branch` above.
 
 # Site URL — used for preview links inside the editor.
 site_url: https://javelinaworks.com
@@ -34,8 +39,9 @@ logo_url: /images/Javelina-Works-logo.svg
 media_folder: public/images/uploads
 public_folder: /images/uploads
 
-# Shared field definitions are inlined per-collection below. Decap doesn't
-# have top-level "partials", so SEO fields are repeated where they apply.
+# Shared field definitions are inlined per-collection below. The config
+# schema has no top-level "partials", so SEO fields are repeated where they
+# apply.
 
 collections:
   # ---------------------------------------------------------------------------
