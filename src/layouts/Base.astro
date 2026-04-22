@@ -50,5 +50,23 @@ const sectionSpacingClass =
     <GlobalScripts />
     <BreakpointIndicator />
 
+    <!--
+      Netlify Identity invite/recovery tokens arrive as URL hashes on the site
+      root (e.g. /#invite_token=...). Forward them into the Decap CMS admin
+      where the Identity widget actually runs.
+    -->
+    <script is:inline>
+      (function () {
+        if (window.location.pathname === "/admin/") return;
+        var hash = window.location.hash || "";
+        if (
+          hash.indexOf("invite_token=") > -1 ||
+          hash.indexOf("recovery_token=") > -1 ||
+          hash.indexOf("confirmation_token=") > -1
+        ) {
+          window.location.replace("/admin/" + hash);
+        }
+      })();
+    </script>
   </body>
 </html>
