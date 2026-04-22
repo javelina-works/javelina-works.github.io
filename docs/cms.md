@@ -17,8 +17,11 @@ Identity (and Git Gateway with it) in 2024.
 - `netlify.toml` — `Cache-Control: no-cache` and `X-Robots-Tag: noindex`
   headers for `/admin/*`.
 
-Collections mirror the schemas in `src/content.config.ts`. When new fields get
-added to those Zod schemas, update `public/admin/config.yml` to match.
+Most collections mirror the Zod schemas in `src/content.config.ts`; when new
+fields get added there, update `public/admin/config.yml` to match. The
+**`sections`** collection is the exception — `src/content.config.ts` defines
+no schema for it, and the CMS exposes only a free-form `title` / `description`
+/ `image` / `body` surface by design (see "Known gaps / follow-ups" below).
 
 ## Signing in
 
