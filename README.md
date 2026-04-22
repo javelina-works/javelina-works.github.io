@@ -50,6 +50,12 @@ This is the repository hosting the static site and configurations for the Javeli
   - Publish GitHub issues for critical errors
   - Sends Discord notification for critical/regression errors
 
+## Content editing
+
+Non-developer content updates go through [Sveltia CMS](https://sveltiacms.app/)
+at **`/admin/`**. See [`docs/cms.md`](docs/cms.md) for the GitHub PAT setup
+and an overview of how the collections map to `src/content/`.
+
 ## Roadmap
 - Connect form submissions to CRM hook -> add account
   - Determine CRM service

@@ -1,0 +1,305 @@
+# Sveltia CMS configuration for javelinaworks.com
+# Docs: https://sveltiacms.app/
+#
+# Mirrors the Astro content collections defined in src/content.config.ts.
+# Collections use the English locale folders that content currently lives in
+# (src/content/<collection>/english). When we enable additional locales we can
+# extend each collection with per-locale folder/files entries.
+#
+# Note: Sveltia inverts Decap's "required" default — fields without an
+# explicit `required:` key are *required* here (Decap treated them as
+# optional). Any field intended to be optional must set `required: false`.
+
+backend:
+  name: github
+  repo: javelina-works/javelina-works.github.io
+  # Editors commit to `staging`; the existing staging → main PR flow
+  # preserves the review gate we used to get from editorial_workflow.
+  branch: staging
+  commit_messages:
+    create: "content: create {{collection}} '{{slug}}'"
+    update: "content: update {{collection}} '{{slug}}'"
+    delete: "content: delete {{collection}} '{{slug}}'"
+    uploadMedia: "content: upload '{{path}}'"
+    deleteMedia: "content: delete '{{path}}'"
+    openAuthoring: "{{message}}"
+
+# publish_mode: editorial_workflow
+# Disabled: Sveltia hasn't shipped editorial_workflow yet (planned v1.0,
+# mid-2026). Until then, saves commit directly to `backend.branch` above.
+
+# Site URL — used for preview links inside the editor.
+site_url: https://javelinaworks.com
+display_url: https://javelinaworks.com
+logo_url: /images/Javelina-Works-logo.svg
+
+# Media uploads land under public/images/uploads so they're served from
+# /images/uploads/* in the built site. Existing hand-curated images under
+# public/images/ remain untouched.
+media_folder: public/images/uploads
+public_folder: /images/uploads
+
+# Shared field definitions are inlined per-collection below. The config
+# schema has no top-level "partials", so SEO fields are repeated where they
+# apply.
+
+collections:
+  # ---------------------------------------------------------------------------
+  # Blog posts
+  # ---------------------------------------------------------------------------
+  - name: blog
+    label: "Blog"
+    label_singular: "Blog post"
+    folder: src/content/blog/english
+    create: true
+    slug: "{{slug}}"
+    extension: mdx
+    format: frontmatter
+    identifier_field: title
+    summary: "{{title}} — {{date | date('YYYY-MM-DD')}}"
+    preview_path: "blog/{{slug}}"
+    # No filter: editors see drafts and published posts alike. The build step
+    # (remove-draft-from-sitemap) strips drafts from the sitemap automatically.
+    fields:
+      - { name: title, label: Title, widget: string }
+      - { name: date, label: Date, widget: datetime, required: false }
+      - name: author
+        label: Author
+        widget: relation
+        collection: author
+        search_fields: [title]
+        value_field: title
+        display_fields: [title]
+        required: false
+      - name: categories
+        label: Categories
+        widget: list
+        default: ["others"]
+        required: false
+      - { name: excerpt, label: Excerpt, widget: text, required: false }
+      - { name: image, label: Hero image, widget: image, required: false }
+      - { name: featured, label: Featured, widget: boolean, default: false, required: false }
+      - { name: draft, label: Draft, widget: boolean, default: true }
+      - { name: description, label: Description, widget: text, required: false }
+      - { name: keywords, label: SEO keywords, widget: list, required: false }
+      - { name: metaTitle, label: Meta title, widget: string, required: false }
+      - { name: metaDescription, label: Meta description, widget: text, required: false }
+      - { name: canonical, label: Canonical URL, widget: string, required: false }
+      - { name: robots, label: Robots directive, widget: string, required: false }
+      - { name: excludeFromSitemap, label: Exclude from sitemap, widget: boolean, default: false, required: false }
+      - { name: customSlug, label: Custom slug, widget: string, required: false }
+      - { name: disableTagline, label: Disable tagline, widget: boolean, default: false, required: false }
+      - { name: body, label: Body, widget: markdown }
+
+  # ---------------------------------------------------------------------------
+  # Top-level pages (privacy, terms, etc.)
+  # ---------------------------------------------------------------------------
+  - name: pages
+    label: "Pages"
+    label_singular: "Page"
+    folder: src/content/pages/english
+    create: true
+    slug: "{{slug}}"
+    extension: md
+    format: frontmatter
+    identifier_field: title
+    preview_path: "{{slug}}"
+    fields:
+      - { name: title, label: Title, widget: string }
+      - { name: date, label: Date, widget: datetime, required: false }
+      - { name: description, label: Description, widget: text, required: false }
+      - { name: image, label: Social/OG image, widget: image, required: false }
+      - { name: draft, label: Draft, widget: boolean, default: false, required: false }
+      - { name: metaTitle, label: Meta title, widget: string, required: false }
+      - { name: metaDescription, label: Meta description, widget: text, required: false }
+      - { name: canonical, label: Canonical URL, widget: string, required: false }
+      - { name: robots, label: Robots directive, widget: string, required: false }
+      - { name: excludeFromSitemap, label: Exclude from sitemap, widget: boolean, default: false, required: false }
+      - { name: customSlug, label: Custom slug, widget: string, required: false }
+      - { name: keywords, label: SEO keywords, widget: list, required: false }
+      - { name: disableTagline, label: Disable tagline, widget: boolean, default: false, required: false }
+      - { name: body, label: Body, widget: markdown }
+
+  # ---------------------------------------------------------------------------
+  # Authors (used by blog posts via the `author` relation)
+  # ---------------------------------------------------------------------------
+  - name: author
+    label: "Authors"
+    label_singular: "Author"
+    folder: src/content/author/english
+    create: true
+    slug: "{{slug}}"
+    extension: md
+    format: frontmatter
+    identifier_field: title
+    fields:
+      - { name: title, label: Name, widget: string }
+      - { name: role, label: Role, widget: string, required: false }
+      - { name: image, label: Portrait, widget: image, required: false }
+      - { name: body, label: Bio, widget: markdown, required: false }
+
+  # ---------------------------------------------------------------------------
+  # Careers / open jobs
+  # ---------------------------------------------------------------------------
+  - name: career
+    label: "Careers"
+    label_singular: "Job"
+    folder: src/content/career/english
+    create: true
+    slug: "{{slug}}"
+    extension: md
+    format: frontmatter
+    identifier_field: title
+    fields:
+      - { name: title, label: Title, widget: string }
+      - { name: draft, label: Draft, widget: boolean, default: true, required: false }
+      - { name: excerpt, label: Excerpt, widget: text, required: false }
+      - { name: customSlug, label: Custom slug, widget: string, required: false }
+      - name: fields
+        label: Job details
+        widget: list
+        required: false
+        summary: "{{fields.name}}: {{fields.content}}"
+        fields:
+          - { name: name, label: Label, widget: string }
+          - { name: content, label: Value, widget: string }
+      - name: button
+        label: Apply button
+        widget: object
+        required: false
+        fields:
+          - { name: enable, label: Enable, widget: boolean, default: true }
+          - { name: label, label: Button label, widget: string, default: "Apply Now" }
+          - { name: url, label: Apply URL, widget: string }
+          - { name: rel, label: rel, widget: string, required: false }
+          - { name: target, label: target, widget: string, required: false }
+          - name: hoverEffect
+            label: Hover effect
+            widget: select
+            required: false
+            options:
+              - text-flip
+              - creative-fill
+              - magnetic
+              - magnetic-text-flip
+      - { name: body, label: Description, widget: markdown }
+
+  # ---------------------------------------------------------------------------
+  # Sections — reusable homepage/landing-page content blocks
+  # ---------------------------------------------------------------------------
+  - name: sections
+    label: "Sections"
+    label_singular: "Section"
+    folder: src/content/sections/english
+    create: true
+    slug: "{{slug}}"
+    extension: md
+    format: frontmatter
+    identifier_field: title
+    # Section frontmatter varies widely by section type, so the editor gets a
+    # free-form "extra frontmatter" object. Swap to typed fields per section
+    # once we lock down the shapes.
+    fields:
+      - { name: title, label: Title, widget: string, required: false }
+      - { name: description, label: Description, widget: text, required: false }
+      - { name: image, label: Image, widget: image, required: false }
+      - { name: body, label: Body, widget: markdown, required: false }
+
+  # ---------------------------------------------------------------------------
+  # Testimonials
+  # ---------------------------------------------------------------------------
+  - name: testimonial
+    label: "Testimonials"
+    label_singular: "Testimonial"
+    folder: src/content/testimonial/english
+    create: true
+    slug: "{{slug}}"
+    extension: md
+    format: frontmatter
+    identifier_field: title
+    fields:
+      - { name: title, label: Title, widget: string, required: false }
+      - { name: body, label: Body, widget: markdown, required: false }
+
+  # ---------------------------------------------------------------------------
+  # FAQ entries
+  # ---------------------------------------------------------------------------
+  - name: faq
+    label: "FAQ"
+    label_singular: "FAQ entry"
+    folder: src/content/faq/english
+    create: true
+    slug: "{{slug}}"
+    extension: md
+    format: frontmatter
+    identifier_field: title
+    fields:
+      - { name: title, label: Question, widget: string }
+      - { name: body, label: Answer, widget: markdown }
+
+  # ---------------------------------------------------------------------------
+  # Pricing content
+  # ---------------------------------------------------------------------------
+  - name: pricing
+    label: "Pricing"
+    label_singular: "Pricing entry"
+    folder: src/content/pricing/english
+    create: true
+    slug: "{{slug}}"
+    extension: md
+    format: frontmatter
+    identifier_field: title
+    fields:
+      - { name: title, label: Title, widget: string, required: false }
+      - { name: body, label: Body, widget: markdown, required: false }
+
+  # ---------------------------------------------------------------------------
+  # Contact page content
+  # ---------------------------------------------------------------------------
+  - name: contact
+    label: "Contact"
+    label_singular: "Contact entry"
+    folder: src/content/contact/english
+    create: true
+    slug: "{{slug}}"
+    extension: md
+    format: frontmatter
+    identifier_field: title
+    fields:
+      - { name: title, label: Title, widget: string, required: false }
+      - { name: body, label: Body, widget: markdown, required: false }
+
+  # ---------------------------------------------------------------------------
+  # Site singletons — homepage intro, blog landing, changelog landing
+  # ---------------------------------------------------------------------------
+  - name: site
+    label: "Site content"
+    editor:
+      preview: false
+    files:
+      - name: homepage
+        label: "Homepage"
+        file: src/content/homepage/english/-index.md
+        format: frontmatter
+        extension: md
+        fields:
+          - { name: title, label: Title, widget: string, required: false }
+          - { name: description, label: Description, widget: text, required: false }
+          - { name: metaTitle, label: Meta title, widget: string, required: false }
+          - { name: metaDescription, label: Meta description, widget: text, required: false }
+          - { name: draft, label: Draft, widget: boolean, default: false, required: false }
+          - { name: disableTagline, label: Disable tagline, widget: boolean, default: false, required: false }
+          - { name: body, label: Body, widget: markdown, required: false }
+
+      - name: blog_index
+        label: "Blog landing"
+        file: src/content/blog/english/-index.md
+        format: frontmatter
+        extension: md
+        fields:
+          - { name: title, label: Title, widget: string, required: false }
+          - { name: description, label: Description, widget: text, required: false }
+          - { name: metaTitle, label: Meta title, widget: string, required: false }
+          - { name: metaDescription, label: Meta description, widget: text, required: false }
+          - { name: draft, label: Draft, widget: boolean, default: false, required: false }
+          - { name: body, label: Body, widget: markdown, required: false }
