@@ -14,8 +14,8 @@ Identity (and Git Gateway with it) in 2024.
 - `public/admin/config.yml` — backend + collection definitions (blog, pages,
   authors, careers, sections, testimonials, FAQ, pricing, contact) plus
   singletons for the homepage and blog landing.
-- `netlify.toml` — `Cache-Control: no-cache` and `X-Robots-Tag: noindex`
-  headers for `/admin/*`.
+- `netlify.toml` — `Cache-Control: no-cache, no-store, must-revalidate`
++  and `X-Robots-Tag: noindex, nofollow
 
 Most collections mirror the Zod schemas in `src/content.config.ts`; when new
 fields get added there, update `public/admin/config.yml` to match. The
@@ -46,7 +46,7 @@ generates their own token once; tokens never get committed.
 ### Classic PAT (fallback)
 
 If fine-grained PATs hit an org restriction, use
-https://github.com/settings/tokens/new with the single **`repo`** scope.
+https://github.com/settings/personal-access-tokens/new with the single **`repo`** scope.
 
 ### Logging in
 
