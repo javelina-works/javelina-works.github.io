@@ -1,25 +1,24 @@
 ---
+title: Treatment Drone Operator
 draft: true
-title: "Business Transformation Consultant"
-
+excerpt: We are looking a good suitable professional person for this very important role. Anyone can apply for...
+customSlug: ''
 fields:
-  - name: "type"
-    content: "Full-time"
-  - name: "location"
-    content: "San Diego, CA"
-  - name: "categories"
-    content: "Strategy & Operations"
-  - name: "Deadline"
-    content: "10 Aug, 2025"
-
+  - name: type
+    content: Full-time
+  - name: location
+    content: San Diego, CA
+  - name: categories
+    content: Strategy & Operations
+  - name: Deadline
+    content: 10 Aug, 2025
 button:
   enable: true
-  label: "Apply Now"
-  url: "https://astro.build"
-  rel: ""
-  target: ""
-  hoverEffect: "text-flip" # "text-flip", "creative-fill", "magnetic", "magnetic-text-flip"
-excerpt: "We are looking a good suitable professional person for this very important role. Anyone can apply for..."
+  label: Apply Now
+  url: https://astro.build
+  rel: ''
+  target: ''
+  hoverEffect: text-flip
 ---
 
 The Marketing Manager will be responsible for developing and executing strategic marketing plans to achieve company objectives. This role requires a blend of creativity, analytical prowess, and leadership skills to effectively drive marketing campaigns and initiatives. The ideal candidate will have a strong background in digital marketing, brand management, and a proven track record of generating leads and enhancing brand visibility.
