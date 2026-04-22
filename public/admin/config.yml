@@ -31,7 +31,7 @@ backend:
 # Site URL — used for preview links inside the editor.
 site_url: https://javelinaworks.com
 display_url: https://javelinaworks.com
-logo_url: /images/Javelina-Works-logo.svg
+logo_url: /images/logo.svg
 
 # Media uploads land under public/images/uploads so they're served from
 # /images/uploads/* in the built site. Existing hand-curated images under
