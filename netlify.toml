@@ -32,6 +32,14 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
+# Sveltia CMS admin. The config.yml is hand-edited in this repo, so never
+# cache it — editors need their changes visible on the next reload.
+[[headers]]
+  for = "/admin/*"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    X-Robots-Tag = "noindex, nofollow"
+
 # PostHog reverse proxy — routes /ingest/* through our own origin so ad
 # blockers targeting *.posthog.com don't drop events or block the JS bundle.
 # Order matters: the /static/* rule must come before the catch-all.
