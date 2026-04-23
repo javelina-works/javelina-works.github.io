@@ -30,7 +30,7 @@ This is the repository hosting the static site and configurations for the Javeli
 [![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?logo=githubactions&logoColor=white)](https://github.com/features/actions)
 [![Dependabot](https://img.shields.io/badge/Dependabot-025E8C?logo=dependabot&logoColor=white)](https://github.com/dependabot)
 [![Jamstack](https://img.shields.io/badge/Jamstack-F0047F?logo=jamstack&logoColor=white)](https://sveltiacms.app/)
-
+[![Lighthouse](https://img.shields.io/badge/Lighthouse-F44B21?logo=lighthouse&logoColor=white)](https://lighthouse-metrics.com)
 
 ## Infrastructure
 
