@@ -1,5 +1,5 @@
 ---
 title: "Thomas Garrison"
-image: "/images/author/thomas-garrison.png"
+image: "/src/assets/images/author/thomas-garrison.png"
 role: "Engineer"
 ---
