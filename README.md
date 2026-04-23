@@ -24,6 +24,11 @@ This is the repository hosting the static site and configurations for the Javeli
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![PostHog](https://img.shields.io/badge/PostHog-1D4AFF?logo=posthog&logoColor=white)](https://posthog.com/)
 [![Sentry](https://img.shields.io/badge/Sentry-362D59?logo=sentry&logoColor=white)](https://sentry.io/)
+[![UptimeRobot](https://img.shields.io/badge/UptimeRobot-44CC11?logo=uptimerobot&logoColor=white)](https://uptimerobot.com/)
+[![CodeRabbit](https://img.shields.io/badge/CodeRabbit-FF5722?logo=coderabbit&logoColor=white)](https://coderabbit.ai/)
+[![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?logo=githubactions&logoColor=white)](https://github.com/features/actions)
+[![Dependabot](https://img.shields.io/badge/Dependabot-025E8C?logo=dependabot&logoColor=white)](https://github.com/dependabot)
+[![Jamstack](https://img.shields.io/badge/Jamstack-F0047F?logo=jamstack&logoColor=white)](https://sveltiacms.app/)
 
 
 ## Infrastructure
@@ -49,12 +54,30 @@ This is the repository hosting the static site and configurations for the Javeli
 - [Sentry](https://javelina-works-inc.sentry.io/dashboard/3850428/?project=4511242748559360)
   - Publish GitHub issues for critical errors
   - Sends Discord notification for critical/regression errors
+- [CodeRabbit](https://coderabbit.ai/): AI code reviewer on every pull request
+  - Posts a PR summary and line-level review comments automatically when a PR is opened or updated
+  - Catches correctness, style, and small security issues before human review
+  - Re-review on demand by commenting `@coderabbitai review`
+  - Free for this repo (public OSS tier)
+- [Dependabot](https://github.com/dependabot): keeps dependencies current
+  - Scans `npm` and `github-actions` ecosystems weekly (Mondays 06:00 America/Chicago) — see [`.github/dependabot.yml`](./.github/dependabot.yml)
+  - Groups PRs to cut noise: `astro` + `@astrojs/*` bundled, minor/patch updates grouped separately for prod vs. dev, all GitHub Actions updates in one PR
+  - Up to 8 open npm PRs and 3 open actions PRs at a time
+  - Auto-merge enabled for low-risk updates (patch-level bumps, dev deps, `@types/*`, all GitHub Actions) — see [`.github/workflows/dependabot-auto-merge.yml`](./.github/workflows/dependabot-auto-merge.yml)
+  - Astro core and all major version bumps require manual review
 
 ## Content editing
 
-Non-developer content updates go through [Sveltia CMS](https://sveltiacms.app/)
-at **`/admin/`**. See [`docs/cms.md`](docs/cms.md) for the GitHub PAT setup
-and an overview of how the collections map to `src/content/`.
+Non-developer content updates go through [Sveltia CMS](https://sveltiacms.app/),
+a Git-backed headless CMS that commits directly to this repo. It's mounted at
+**[javelinaworks.com/admin/](https://javelinaworks.com/admin/)** and edits the
+Markdown/MDX files under `src/content/` that Astro reads from — so there's no
+separate content database, and every edit lands as a normal commit on `staging`
+that flows to `main` through the usual PR review.
+
+Editors sign in with a GitHub PAT (fine-grained, scoped to this repo). See
+[`docs/cms.md`](docs/cms.md) for the token setup and an overview of how each
+Sveltia collection maps to `src/content/`.
 
 ## Roadmap
 - Connect form submissions to CRM hook -> add account
@@ -82,3 +105,27 @@ and an overview of how the collections map to `src/content/`.
 - info@javelinaworks.com
 - support@javelinaworks.com
 - contact@javelinaworks.com
+
+
+## Misc
+
+### Bonus Mercury Benefits
+
+- ElevenLabs: 1 year free + 
+- Apolo: 2k free GPU hours
+- OpenRouter: $1k in free credits
+- Maxime: 1 year AI legal council
+- Rumi.ai: Meeting note transcription
+- AWS: 5k in credits
+- Numi: Startup design help, $12k in credits
+- DigitalOcean: $5k in credits
+
+
+### Bonus Posthog Benefits
+
+Check startup grant email for codes, links, etc. 
+
+- [Chroma](https://www.trychroma.com/): $5000 of credits, 
+- [Incident.io](https://incident.io/): $1500 off team plan
+- [Speakeasy](https://www.speakeasy.com/): 50% off for 6 months - AI control plane 
+

@@ -2,5 +2,5 @@
 enable: true
 title: "We’re right here in Texas."
 subtitle: "Based in Fort Davis — working across the Lone Star State to keep Texas land healthy and thriving."
-image: "/images/texas-effect.jpeg"
+image: "/src/assets/images/texas-effect.jpeg"
 ---

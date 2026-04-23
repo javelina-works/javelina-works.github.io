@@ -31,7 +31,7 @@ backend:
 # Site URL — used for preview links inside the editor.
 site_url: https://javelinaworks.com
 display_url: https://javelinaworks.com
-logo_url: /images/Javelina-Works-logo.svg
+logo_url: /images/logo.svg
 
 # Media uploads land under public/images/uploads so they're served from
 # /images/uploads/* in the built site. Existing hand-curated images under
@@ -58,6 +58,11 @@ collections:
     identifier_field: title
     summary: "{{title}} — {{date | date('YYYY-MM-DD')}}"
     preview_path: "blog/{{slug}}"
+    # Images for blog live under src/assets/images/blog so Astro optimizes
+    # them on build. Sveltia indexes that tree (for thumbnails) and new
+    # uploads from blog entries land there too.
+    media_folder: /src/assets/images/blog
+    public_folder: /src/assets/images/blog
     # No filter: editors see drafts and published posts alike. The build step
     # (remove-draft-from-sitemap) strips drafts from the sitemap automatically.
     fields:
@@ -132,6 +137,8 @@ collections:
     extension: md
     format: frontmatter
     identifier_field: title
+    media_folder: /src/assets/images/author
+    public_folder: /src/assets/images/author
     fields:
       - { name: title, label: Name, widget: string }
       - { name: role, label: Role, widget: string, required: false }
@@ -196,6 +203,10 @@ collections:
     extension: md
     format: frontmatter
     identifier_field: title
+    # Sections reference images across several subtrees of src/assets/images
+    # (homepage/, office/, etc.), so the media root is the whole tree.
+    media_folder: /src/assets/images
+    public_folder: /src/assets/images
     # Section frontmatter varies widely by section type, so the editor gets a
     # free-form "extra frontmatter" object. Swap to typed fields per section
     # once we lock down the shapes.

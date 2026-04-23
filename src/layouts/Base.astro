@@ -4,6 +4,7 @@ import "@/styles/global.css";
 import Head from "@/components/global/Head.astro";
 import Footer from "@/components/global/Footer.astro";
 import Header from "@/components/global/header/Header.astro";
+import CookieBanner from "@/components/global/CookieBanner.astro";
 import type { JSONLDProps } from "@/lib/utils/JsonLdGenerator";
 import PageLoader from "./components/utilities/PageLoader.astro";
 import GlobalScripts from "./components/widgets/GlobalScripts.astro";
@@ -49,5 +50,7 @@ const sectionSpacingClass =
 
     <GlobalScripts />
     <BreakpointIndicator />
+    <CookieBanner />
+
   </body>
 </html>
