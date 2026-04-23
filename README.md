@@ -6,7 +6,8 @@
 [![Lighthouse Accessibility](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/KCerveny/a65b625647ac86bf6014df974993b314/raw/lighthouse-accessibility.json)](https://javelinaworks.com)
 [![Lighthouse Best Practices](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/KCerveny/a65b625647ac86bf6014df974993b314/raw/lighthouse-best-practices.json)](https://javelinaworks.com)
 [![Lighthouse SEO](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/KCerveny/a65b625647ac86bf6014df974993b314/raw/lighthouse-seo.json)](https://javelinaworks.com)
-> Lighthouse scores reflect the most recent scheduled audit (daily at 06:00 UTC).
+[![Lighthouse Preview](https://github.com/javelina-works/javelina-works.github.io/actions/workflows/lighthouse-preview.yml/badge.svg)](https://github.com/javelina-works/javelina-works.github.io/actions/workflows/lighthouse-preview.yml)
+> Lighthouse scores reflect the most recent scheduled audit (daily at 06:00 UTC). The Preview badge tracks per-PR audits run against Netlify deploy previews.
 
 
 [![Uptime Robot status](https://img.shields.io/uptimerobot/status/m802870839-6929194214f813e9a6b86120)](https://stats.uptimerobot.com/SicNbR5xJX)

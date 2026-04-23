@@ -8,19 +8,11 @@
   [build.environment]
     NODE_VERSION = "22"
 
-[[plugins]]
-  package = "@netlify/plugin-lighthouse"
-
-  # optional, deploy the lighthouse report to a path under your site
-  [plugins.inputs.audits]
-    output_path = "reports/lighthouse.html"
-
-  # Optional: fail the deploy if scores fall below thresholds
-  [plugins.inputs.thresholds]
-    performance = 0.9 # Until we figure our the performance issue
-    accessibility = 0.9
-    best-practices = 0.9
-    seo = 0.9
+# Lighthouse runs in GitHub Actions instead — see
+# .github/workflows/lighthouse-preview.yml (per-preview, warn-only) and
+# .github/workflows/lighthouse-badges.yml (production, daily).
+# The @netlify/plugin-lighthouse plugin was removed because it silently
+# swallowed runtime errors and never actually enforced its thresholds.
 
 [[headers]]
   for = "/_astro/*"

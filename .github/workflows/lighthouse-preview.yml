@@ -1,0 +1,198 @@
+name: Lighthouse Preview
+
+# Runs when Netlify finishes deploying a preview. We rely on GitHub's
+# deployment_status event so there's no polling — Netlify emits one when
+# the preview goes live.
+on:
+  deployment_status:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  lighthouse:
+    name: Lighthouse Audit (preview)
+    runs-on: ubuntu-latest
+    # Preview URLs only — skip production and any failed/in-progress states.
+    if: |
+      github.event.deployment_status.state == 'success' &&
+      startsWith(github.event.deployment_status.target_url, 'https://deploy-preview-')
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run Lighthouse
+        id: lhci
+        continue-on-error: true
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          urls: ${{ github.event.deployment_status.target_url }}
+          runs: 1
+          uploadArtifacts: false
+
+      - name: Summarize Lighthouse run
+        if: always()
+        env:
+          TARGET_URL: ${{ github.event.deployment_status.target_url }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          MANIFEST=".lighthouseci/manifest.json"
+
+          # Comment body always gets written so the PR-comment step has
+          # something to post even on failure.
+          COMMENT="comment.md"
+
+          if [ ! -f "$MANIFEST" ]; then
+            echo "::warning::Lighthouse audit did not produce a manifest for ${TARGET_URL}"
+            {
+              echo "## Lighthouse Audit — [preview](${TARGET_URL})"
+              echo ""
+              echo "_Audit failed to produce a manifest — see the [workflow run](${RUN_URL}) for details._"
+            } | tee "$COMMENT" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          REPORT=$(jq -r '(map(select(.isRepresentativeRun)) | .[0] // .[0]).jsonPath' "$MANIFEST")
+          if [ ! -f "$REPORT" ]; then
+            echo "::warning::No LHR report at $REPORT for ${TARGET_URL}"
+            {
+              echo "## Lighthouse Audit — [preview](${TARGET_URL})"
+              echo ""
+              echo "_No LHR report produced — see the [workflow run](${RUN_URL}) for details._"
+            } | tee "$COMMENT" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          PERF=$(jq -r '.categories.performance.score // empty' "$REPORT")
+          A11Y=$(jq -r '.categories.accessibility.score // empty' "$REPORT")
+          BP=$(jq -r '.categories["best-practices"].score // empty' "$REPORT")
+          SEO=$(jq -r '.categories.seo.score // empty' "$REPORT")
+
+          fmt_score() {
+            local raw="$1"
+            if [ -z "$raw" ] || [ "$raw" = "null" ]; then echo "n/a"; return; fi
+            awk "BEGIN {printf \"%d\", $raw * 100}"
+          }
+          # 🟢 ≥90, 🟠 50–89, 🔴 <50, ⚪ n/a
+          score_emoji() {
+            local raw="$1"
+            if [ -z "$raw" ] || [ "$raw" = "null" ]; then echo "⚪"; return; fi
+            local pct
+            pct=$(awk "BEGIN {printf \"%d\", $raw * 100}")
+            if [ "$pct" -ge 90 ]; then echo "🟢"
+            elif [ "$pct" -ge 50 ]; then echo "🟠"
+            else echo "🔴"
+            fi
+          }
+
+          PERF_S=$(fmt_score "$PERF"); PERF_E=$(score_emoji "$PERF")
+          A11Y_S=$(fmt_score "$A11Y"); A11Y_E=$(score_emoji "$A11Y")
+          BP_S=$(fmt_score "$BP");     BP_E=$(score_emoji "$BP")
+          SEO_S=$(fmt_score "$SEO");   SEO_E=$(score_emoji "$SEO")
+
+          # Warn (never fail) if any category drops below 0.9
+          warn_if_low() {
+            local label="$1" raw="$2"
+            if [ -z "$raw" ] || [ "$raw" = "null" ]; then return; fi
+            local pct
+            pct=$(awk "BEGIN {printf \"%d\", $raw * 100}")
+            if [ "$pct" -lt 90 ]; then
+              echo "::warning::${label} score ${pct} is below 90 on ${TARGET_URL}"
+            fi
+          }
+          warn_if_low "Performance" "$PERF"
+          warn_if_low "Accessibility" "$A11Y"
+          warn_if_low "Best Practices" "$BP"
+          warn_if_low "SEO" "$SEO"
+
+          FETCHED=$(jq -r '.fetchTime' "$REPORT")
+
+          metric() {
+            jq -r --arg id "$1" '.audits[$id].displayValue // "n/a"' "$REPORT"
+          }
+
+          # ---- PR comment (sticky, slim) ----
+          {
+            echo "## Lighthouse Audit — [preview](${TARGET_URL})"
+            echo ""
+            echo "| Category | Score |"
+            echo "| --- | --- |"
+            echo "| Performance | ${PERF_E} ${PERF_S} |"
+            echo "| Accessibility | ${A11Y_E} ${A11Y_S} |"
+            echo "| Best Practices | ${BP_E} ${BP_S} |"
+            echo "| SEO | ${SEO_E} ${SEO_S} |"
+            echo ""
+            echo "**Core Web Vitals:** LCP $(metric largest-contentful-paint) · FCP $(metric first-contentful-paint) · TBT $(metric total-blocking-time) · CLS $(metric cumulative-layout-shift)"
+            echo ""
+            echo "<sub>Single run · captured ${FETCHED} · [full report](${RUN_URL})</sub>"
+          } > "$COMMENT"
+
+          # ---- Workflow step summary (full detail) ----
+          {
+            echo "## Lighthouse Audit — ${TARGET_URL}"
+            echo ""
+            echo "_Single run — captured ${FETCHED}_"
+            echo ""
+            echo "### Category Scores"
+            echo ""
+            echo "| Category | Score |"
+            echo "| --- | --- |"
+            echo "| Performance | ${PERF_E} ${PERF_S} |"
+            echo "| Accessibility | ${A11Y_E} ${A11Y_S} |"
+            echo "| Best Practices | ${BP_E} ${BP_S} |"
+            echo "| SEO | ${SEO_E} ${SEO_S} |"
+            echo ""
+            echo "### Core Web Vitals"
+            echo ""
+            echo "| Metric | Value |"
+            echo "| --- | --- |"
+            echo "| Largest Contentful Paint | $(metric largest-contentful-paint) |"
+            echo "| First Contentful Paint | $(metric first-contentful-paint) |"
+            echo "| Total Blocking Time | $(metric total-blocking-time) |"
+            echo "| Cumulative Layout Shift | $(metric cumulative-layout-shift) |"
+            echo "| Speed Index | $(metric speed-index) |"
+            echo "| Time to Interactive | $(metric interactive) |"
+            echo "| Server Response Time | $(metric server-response-time) |"
+            echo ""
+            echo "### Top Performance Opportunities"
+            echo ""
+            jq -r '
+              .audits
+              | to_entries
+              | map(select(.value.details.type == "opportunity" and (.value.numericValue // 0) > 0))
+              | sort_by(-(.value.numericValue // 0))
+              | .[:5]
+              | map("- **" + .value.title + "** — est. savings " + ((.value.numericValue // 0) | tostring) + " ms" + (if .value.displayValue then " (" + .value.displayValue + ")" else "" end))
+              | if length == 0 then ["_No significant opportunities flagged._"] else . end
+              | .[]
+            ' "$REPORT"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # The deployment_status event doesn't carry a PR number, so look it
+      # up from the commit SHA. Skips the comment cleanly if the preview
+      # isn't tied to a PR (e.g. branch-only deploys).
+      - name: Find PR for this deployment
+        id: find-pr
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.deployment.sha }}
+        run: |
+          set -euo pipefail
+          NUMBER=$(gh api "repos/${{ github.repository }}/commits/${SHA}/pulls" \
+            --jq '[.[] | select(.state == "open")] | .[0].number // empty')
+          if [ -z "$NUMBER" ]; then
+            echo "No open PR found for ${SHA} — skipping comment"
+          else
+            echo "Found PR #${NUMBER} for ${SHA}"
+          fi
+          echo "number=${NUMBER}" >> "$GITHUB_OUTPUT"
+
+      - name: Comment Lighthouse results on PR
+        if: always() && steps.find-pr.outputs.number != ''
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          number: ${{ steps.find-pr.outputs.number }}
+          header: lighthouse-preview
+          path: comment.md
