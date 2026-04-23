@@ -6,7 +6,8 @@
 [![Lighthouse Accessibility](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/KCerveny/a65b625647ac86bf6014df974993b314/raw/lighthouse-accessibility.json)](https://javelinaworks.com)
 [![Lighthouse Best Practices](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/KCerveny/a65b625647ac86bf6014df974993b314/raw/lighthouse-best-practices.json)](https://javelinaworks.com)
 [![Lighthouse SEO](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/KCerveny/a65b625647ac86bf6014df974993b314/raw/lighthouse-seo.json)](https://javelinaworks.com)
-> Lighthouse scores reflect the most recent scheduled audit (daily at 06:00 UTC).
+[![Lighthouse Preview](https://github.com/javelina-works/javelina-works.github.io/actions/workflows/lighthouse-preview.yml/badge.svg)](https://github.com/javelina-works/javelina-works.github.io/actions/workflows/lighthouse-preview.yml)
+> Lighthouse scores reflect the most recent scheduled audit (daily at 06:00 UTC). The Preview badge tracks per-PR audits run against Netlify deploy previews.
 
 
 [![Uptime Robot status](https://img.shields.io/uptimerobot/status/m802870839-6929194214f813e9a6b86120)](https://stats.uptimerobot.com/SicNbR5xJX)
@@ -29,7 +30,7 @@ This is the repository hosting the static site and configurations for the Javeli
 [![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?logo=githubactions&logoColor=white)](https://github.com/features/actions)
 [![Dependabot](https://img.shields.io/badge/Dependabot-025E8C?logo=dependabot&logoColor=white)](https://github.com/dependabot)
 [![Jamstack](https://img.shields.io/badge/Jamstack-F0047F?logo=jamstack&logoColor=white)](https://sveltiacms.app/)
-
+[![Lighthouse](https://img.shields.io/badge/Lighthouse-F44B21?logo=lighthouse&logoColor=white)](https://lighthouse-metrics.com)
 
 ## Infrastructure
 

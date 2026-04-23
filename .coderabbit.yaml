@@ -1,0 +1,132 @@
+# CodeRabbit configuration. Schema: https://docs.coderabbit.ai/reference/yaml-template
+#
+# Goal: catch security + correctness issues a human reviewer might miss
+# without spamming nits on content-only PRs from Sveltia CMS or low-risk
+# Dependabot bumps that are already auto-merged.
+
+language: en-US
+early_access: false
+
+reviews:
+  # Lighter touch — we've got human review + this isn't a high-churn repo.
+  profile: chill
+
+  # Don't auto-approve when comments are resolved — humans gate merges.
+  request_changes_workflow: false
+
+  # Useful in the PR description, especially for non-developer authors.
+  high_level_summary: true
+  sequence_diagrams: true
+  poem: false
+
+  auto_review:
+    enabled: true
+    drafts: false
+    ignore_title_keywords:
+      - WIP
+      - DO NOT MERGE
+      - "[skip review]"
+    # Dependabot PRs are auto-merged for low-risk bumps via
+    # .github/workflows/dependabot-auto-merge.yml — review there is noise.
+    ignore_usernames:
+      - dependabot[bot]
+
+  path_filters:
+    - "!pnpm-lock.yaml"
+    - "!dist/**"
+    - "!.astro/**"
+    - "!public/**"
+    - "!**/*.png"
+    - "!**/*.jpg"
+    - "!**/*.jpeg"
+    - "!**/*.webp"
+    - "!**/*.gif"
+    - "!**/*.svg"
+    - "!**/*.ico"
+    - "!**/*.woff"
+    - "!**/*.woff2"
+
+  path_instructions:
+    - path: "src/content/**/*.{md,mdx}"
+      instructions: >
+        These files are edited through Sveltia CMS by non-developers.
+        Focus on prose clarity, broken/dead links, missing or malformed
+        frontmatter, accidental markdown syntax errors, and unsafe HTML.
+        Do NOT suggest code-style refactors or rewrites for tone.
+
+    - path: "netlify/functions/**"
+      instructions: >
+        Serverless functions on Netlify. Prioritize: missing input
+        validation on request bodies/headers, secret handling (no
+        secrets in logs, env vars not in client responses), swallowed
+        errors, unbounded loops or unawaited promises, and any path
+        that could leak PII to logs/analytics.
+
+    - path: ".github/workflows/**"
+      instructions: >
+        GitHub Actions workflows. Flag: third-party actions not pinned
+        to a major version tag (or commit SHA for non-trusted publishers),
+        missing top-level `permissions:` blocks, use of
+        `pull_request_target` without explicit justification, and any
+        step that uses `${{ }}` interpolation with untrusted input
+        (script injection risk).
+
+    - path: "{astro.config.mjs,*.config.{js,mjs,ts},sentry.*.config.ts,wrangler.toml,netlify.toml}"
+      instructions: >
+        Build/runtime configuration. Flag any change that could silently
+        regress production: bundling, image pipeline, routing, redirects,
+        cache headers, or adapter behavior. Call out missing rollback
+        notes for risky changes.
+
+    - path: "src/pages/**/*.astro"
+      instructions: >
+        Astro route components. Check semantic HTML, alt text on images,
+        ARIA correctness, SEO meta tags (title/description/og:*), and
+        Core Web Vitals risk (oversized images, render-blocking scripts,
+        missing `loading="lazy"` on below-fold media).
+
+    - path: "src/layouts/**/*.astro"
+      instructions: >
+        Layout components affect every page that uses them. Flag
+        anything that could regress global a11y, SEO, or performance
+        (third-party scripts, blocking CSS, missing meta).
+
+knowledge_base:
+  # Picks up CLAUDE.md, docs/, and any .cursorrules — keeps suggestions
+  # aligned with project conventions instead of generic best-practice noise.
+  code_guidelines:
+    enabled: true
+  learnings:
+    scope: auto
+  # Lets CodeRabbit verify external claims (broken links, deprecated
+  # APIs, version-specific behavior) instead of guessing.
+  web_search:
+    enabled: true
+
+tools:
+  # Secret scanning on every PR — cheap insurance against committed creds.
+  gitleaks:
+    enabled: true
+  # Lints GitHub Actions YAML — catches typos, unpinned actions, bad
+  # `if:` expressions, etc.
+  actionlint:
+    enabled: true
+  # Markdown linting for the content under src/content/.
+  markdownlint:
+    enabled: true
+  # YAML lint for the rest (.github/, dependabot, etc.).
+  yamllint:
+    enabled: true
+
+chat:
+  # Default behavior: respond when @-mentioned. Don't ASCII-art at people.
+  art: false
+
+finishing_touches:
+  # We don't write JSDoc; auto-generating them would be churn.
+  docstrings:
+    enabled: false
+  # Jest is mostly skipped in CI (ci.yml) — auto-generating tests
+  # would create PRs with no clear owner.
+  unit_tests:
+    enabled: false
