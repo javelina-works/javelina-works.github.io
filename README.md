@@ -28,6 +28,7 @@ This is the repository hosting the static site and configurations for the Javeli
 [![CodeRabbit](https://img.shields.io/badge/CodeRabbit-FF5722?logo=coderabbit&logoColor=white)](https://coderabbit.ai/)
 [![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?logo=githubactions&logoColor=white)](https://github.com/features/actions)
 [![Dependabot](https://img.shields.io/badge/Dependabot-025E8C?logo=dependabot&logoColor=white)](https://github.com/dependabot)
+[![Jamstack](https://img.shields.io/badge/Jamstack-F0047F?logo=jamstack&logoColor=white)](https://sveltiacms.app/)
 
 
 ## Infrastructure
@@ -67,9 +68,16 @@ This is the repository hosting the static site and configurations for the Javeli
 
 ## Content editing
 
-Non-developer content updates go through [Sveltia CMS](https://sveltiacms.app/)
-at **`/admin/`**. See [`docs/cms.md`](docs/cms.md) for the GitHub PAT setup
-and an overview of how the collections map to `src/content/`.
+Non-developer content updates go through [Sveltia CMS](https://sveltiacms.app/),
+a Git-backed headless CMS that commits directly to this repo. It's mounted at
+**[javelinaworks.com/admin/](https://javelinaworks.com/admin/)** and edits the
+Markdown/MDX files under `src/content/` that Astro reads from — so there's no
+separate content database, and every edit lands as a normal commit on `staging`
+that flows to `main` through the usual PR review.
+
+Editors sign in with a GitHub PAT (fine-grained, scoped to this repo). See
+[`docs/cms.md`](docs/cms.md) for the token setup and an overview of how each
+Sveltia collection maps to `src/content/`.
 
 ## Roadmap
 - Connect form submissions to CRM hook -> add account
