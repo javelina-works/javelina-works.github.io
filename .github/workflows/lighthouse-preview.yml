@@ -53,7 +53,7 @@ jobs:
             exit 0
           fi
 
-          REPORT=$(jq -r '(map(select(.isRepresentativeRun)) | .[0] // .[0]).jsonPath' "$MANIFEST")
+          REPORT=$(jq -r '((map(select(.isRepresentativeRun))[0] // .[0]).jsonPath // empty)' "$MANIFEST")
           if [ ! -f "$REPORT" ]; then
             echo "::warning::No LHR report at $REPORT for ${TARGET_URL}"
             {
