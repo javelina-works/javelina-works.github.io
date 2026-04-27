@@ -16,4 +16,12 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  webServer: process.env.PREVIEW_URL
+    ? undefined
+    : {
+        command: "pnpm dev",
+        url: "http://localhost:4321",
+        reuseExistingServer: true,
+        timeout: 120_000,
+      },
 });

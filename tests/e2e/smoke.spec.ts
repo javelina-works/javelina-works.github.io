@@ -26,10 +26,10 @@ test("blog index renders posts without errors", async ({ page }) => {
   expect(errors, errors.join("\n")).toEqual([]);
 });
 
-test("blog post renders without errors", async ({ page }) => {
+test("contact page renders without errors", async ({ page }) => {
   const errors = trackBrowserErrors(page);
-  const response = await page.goto("/blog/post-1/");
-  expect(response?.status(), "blog post returned non-2xx").toBeLessThan(400);
+  const response = await page.goto("/contact/");
+  expect(response?.status(), "contact returned non-2xx").toBeLessThan(400);
   await expect(page.locator("h1").first()).toBeVisible();
   expect(errors, errors.join("\n")).toEqual([]);
 });
