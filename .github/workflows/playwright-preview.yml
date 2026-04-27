@@ -1,0 +1,105 @@
+name: Playwright Smoke (preview)
+
+# Runs when Netlify finishes deploying a preview. Mirrors lighthouse-preview:
+# uses deployment_status so there's no polling — Netlify emits one when the
+# preview goes live.
+on:
+  deployment_status:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  smoke:
+    name: Playwright smoke (preview)
+    runs-on: ubuntu-latest
+    # Preview URLs only — skip production and any failed/in-progress states.
+    if: |
+      github.event.deployment_status.state == 'success' &&
+      startsWith(github.event.deployment_status.target_url, 'https://deploy-preview-')
+    env:
+      PREVIEW_URL: ${{ github.event.deployment_status.target_url }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: latest
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run smoke tests
+        id: smoke
+        run: pnpm run test:e2e
+        continue-on-error: true
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Find PR for this deployment
+        id: find-pr
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.deployment.sha }}
+        run: |
+          set -euo pipefail
+          NUMBER=$(gh api "repos/${{ github.repository }}/commits/${SHA}/pulls" \
+            --jq '[.[] | select(.state == "open")] | .[0].number // empty')
+          if [ -z "$NUMBER" ]; then
+            echo "No open PR found for ${SHA} — skipping comment"
+          else
+            echo "Found PR #${NUMBER} for ${SHA}"
+          fi
+          echo "number=${NUMBER}" >> "$GITHUB_OUTPUT"
+
+      - name: Build PR comment
+        if: always() && steps.find-pr.outputs.number != ''
+        env:
+          OUTCOME: ${{ steps.smoke.outcome }}
+          TARGET_URL: ${{ env.PREVIEW_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          if [ "$OUTCOME" = "success" ]; then
+            STATUS="✅ passed"
+          else
+            STATUS="❌ failed"
+          fi
+          {
+            echo "## Playwright smoke — [preview](${TARGET_URL})"
+            echo ""
+            echo "**Status:** ${STATUS}"
+            echo ""
+            echo "<sub>[full report](${RUN_URL}) · artifact: \`playwright-report\`</sub>"
+          } > comment.md
+
+      - name: Comment Playwright result on PR
+        if: always() && steps.find-pr.outputs.number != ''
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          number: ${{ steps.find-pr.outputs.number }}
+          header: playwright-preview
+          path: comment.md
+
+      - name: Fail job if smoke failed
+        if: steps.smoke.outcome != 'success'
+        run: exit 1

@@ -1,0 +1,55 @@
+name: Lockfile refresh
+
+# Monthly pnpm-lock refresh — catches transitive drift / dedupe opportunities
+# that dependabot's grouped runs don't surface (since dependabot only opens
+# PRs when a *direct* dep has a new release).
+on:
+  schedule:
+    - cron: "0 8 1 * *" # 08:00 UTC on the 1st of each month
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: latest
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Refresh lockfile
+        run: |
+          pnpm install --lockfile-only
+          pnpm dedupe
+
+      - name: Open PR if lockfile changed
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: chore/lockfile-refresh
+          delete-branch: true
+          commit-message: "chore: refresh pnpm-lock and dedupe"
+          title: "chore: monthly lockfile refresh"
+          body: |
+            Automated monthly refresh of `pnpm-lock.yaml` (`pnpm install --lockfile-only` +
+            `pnpm dedupe`). No `package.json` changes — only transitive resolution updates
+            and dedupe opportunities that dependabot's grouped flow doesn't surface.
+
+            CI must be green before merging.
+          labels: |
+            dependencies
+            chore
+          add-paths: |
+            pnpm-lock.yaml

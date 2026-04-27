@@ -1,3 +1,5 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+
 # CodeRabbit configuration. Schema: https://docs.coderabbit.ai/reference/yaml-template
 #
 # Goal: catch security + correctness issues a human reviewer might miss
@@ -6,6 +8,12 @@
 
 language: en-US
 early_access: false
+
+# Keeps comment prose tight. Schema caps this at 250 chars.
+tone_instructions: >
+  Be concise and concrete. Skip generic best-practice lectures. When
+  flagging an issue, propose a specific fix or code suggestion the
+  author can accept with one click.
 
 reviews:
   # Lighter touch — we've got human review + this isn't a high-churn repo.
@@ -17,7 +25,42 @@ reviews:
   # Useful in the PR description, especially for non-developer authors.
   high_level_summary: true
   sequence_diagrams: true
-  poem: false
+  poem: true
+
+  # Verify the PR actually addresses any "Closes #123" issue it links to,
+  # and surface related issues/PRs that touched the same area.
+  assess_linked_issues: true
+  related_issues: true
+  related_prs: true
+
+  # Auto-label PRs based on what changed. Only labels we've actually
+  # created in the repo — adding an unknown label here would error.
+  # Run `gh label list` to see/add more.
+  auto_apply_labels: true
+  labeling_instructions:
+    - label: documentation
+      instructions: >
+        Apply when the only meaningful changes are to README.md, files
+        under docs/, or *.md files outside src/content/.
+    - label: dependencies
+      instructions: >
+        Apply when the PR is from dependabot[bot], or when the only
+        meaningful changes are to package.json, pnpm-lock.yaml, or
+        .github/dependabot.yml.
+    - label: bug
+      instructions: >
+        Apply when the PR description or commit messages indicate a fix
+        for incorrect behavior (keywords: fix, bug, regression, broken,
+        crash, error). Don't apply to dependency-only or content-only PRs.
+    - label: enhancement
+      instructions: >
+        Apply for new features, new pages/components, or non-trivial
+        capability additions. Don't apply to refactors, dep bumps, or
+        content edits.
+    - label: broken-links
+      instructions: >
+        Apply ONLY when the review actually identifies one or more
+        broken external/internal links in the changed files.
 
   auto_review:
     enabled: true
@@ -91,6 +134,56 @@ reviews:
         anything that could regress global a11y, SEO, or performance
         (third-party scripts, blocking CSS, missing meta).
 
+  tools:
+    # Secret scanning on every PR — cheap insurance against committed creds.
+    gitleaks:
+      enabled: true
+    # Lints GitHub Actions YAML — catches typos, unpinned actions, bad
+    # `if:` expressions, etc.
+    actionlint:
+      enabled: true
+    # Markdown linting for the content under src/content/.
+    markdownlint:
+      enabled: true
+    # YAML lint for the rest (.github/, dependabot, etc.).
+    yamllint:
+      enabled: true
+
+  # "Finishing touches" are on-demand commit-producing actions. They don't
+  # fire automatically; the author opts in via a checkbox in the walkthrough
+  # comment or by typing `@coderabbitai run <name>`. Result lands as a
+  # follow-up commit/PR you still get to review.
+  finishing_touches:
+    # We don't write JSDoc; auto-generating them would be churn.
+    docstrings:
+      enabled: false
+    # Jest is mostly skipped in CI (ci.yml) — auto-generating tests
+    # would create PRs with no clear owner.
+    unit_tests:
+      enabled: false
+    # Targeted cleanups: dead code, redundant logic, micro-refactors.
+    # Opt-in per PR — won't fire on every change.
+    simplify:
+      enabled: true
+    custom:
+      - name: pin-actions
+        enabled: true
+        instructions: >
+          For every `uses:` line in .github/workflows/** that references a
+          third-party action (anything NOT under actions/, github/,
+          netlify/, dependabot/, treosh/, or schneegans/), replace the
+          version tag with the full commit SHA of the latest release on
+          that tag, and append a `# vX.Y.Z` comment so future bumps stay
+          readable. Do not touch first-party (actions/*) or already-pinned
+          SHAs.
+      - name: fix-content-prose
+        enabled: true
+        instructions: >
+          For changed files under src/content/**/*.{md,mdx}: fix typos,
+          broken markdown syntax, missing alt text on images, and obviously
+          broken links. Do NOT rewrite for tone or restructure paragraphs.
+          Preserve frontmatter exactly.
+
 knowledge_base:
   # Picks up CLAUDE.md, docs/, and any .cursorrules — keeps suggestions
   # aligned with project conventions instead of generic best-practice noise.
@@ -103,30 +196,36 @@ knowledge_base:
   web_search:
     enabled: true
 
-tools:
-  # Secret scanning on every PR — cheap insurance against committed creds.
-  gitleaks:
-    enabled: true
-  # Lints GitHub Actions YAML — catches typos, unpinned actions, bad
-  # `if:` expressions, etc.
-  actionlint:
-    enabled: true
-  # Markdown linting for the content under src/content/.
-  markdownlint:
-    enabled: true
-  # YAML lint for the rest (.github/, dependabot, etc.).
-  yamllint:
-    enabled: true
-
 chat:
-  # Default behavior: respond when @-mentioned. Don't ASCII-art at people.
-  art: false
+  # Default behavior: respond when @-mentioned.
+  art: true
 
-finishing_touches:
-  # We don't write JSDoc; auto-generating them would be churn.
-  docstrings:
-    enabled: false
-  # Jest is mostly skipped in CI (ci.yml) — auto-generating tests
-  # would create PRs with no clear owner.
-  unit_tests:
-    enabled: false
+# Augments newly-opened issues with implementation plans and labels.
+# Planning is label-gated so it only fires when you want it (avoids
+# spamming every bug report with an AI plan).
+issue_enrichment:
+  planning:
+    enabled: true
+    auto_planning:
+      enabled: true
+      labels:
+        - needs-plan
+  labeling:
+    auto_apply_labels: true
+    labeling_instructions:
+      - label: bug
+        instructions: >
+          Apply when the issue describes a defect, regression, crash, or
+          unexpected behavior.
+      - label: enhancement
+        instructions: >
+          Apply when the issue requests a new feature, capability, or
+          non-trivial improvement to existing functionality.
+      - label: documentation
+        instructions: >
+          Apply when the issue is about clarifying, correcting, or
+          adding to the README, docs/, or in-repo guides.
+      - label: question
+        instructions: >
+          Apply when the issue is a how-do-I question rather than a
+          bug report or feature request.
