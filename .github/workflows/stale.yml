@@ -1,0 +1,31 @@
+name: Stale issue/PR sweep
+
+on:
+  schedule:
+    - cron: "30 7 * * *" # daily at 07:30 UTC
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          days-before-stale: 30
+          days-before-close: 30
+          stale-issue-message: >
+            This issue has been inactive for 30 days. It will be closed in 30 more days
+            unless updated. Add a comment or remove the `stale` label to keep it open.
+          stale-pr-message: >
+            This PR has been inactive for 30 days. It will be closed in 30 more days
+            unless updated. Push a commit or remove the `stale` label to keep it open.
+          close-issue-message: "Closing as stale — feel free to reopen if still relevant."
+          close-pr-message: "Closing as stale — feel free to reopen if still relevant."
+          exempt-issue-labels: "pinned,security,keep"
+          exempt-pr-labels: "pinned,security,keep,dependencies"
+          exempt-draft-pr: true
+          operations-per-run: 60
