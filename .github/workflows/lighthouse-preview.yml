@@ -191,7 +191,7 @@ jobs:
 
       - name: Comment Lighthouse results on PR
         if: always() && steps.find-pr.outputs.number != ''
-        uses: marocchino/sticky-pull-request-comment@v2
+        uses: marocchino/sticky-pull-request-comment@v3
         with:
           number: ${{ steps.find-pr.outputs.number }}
           header: lighthouse-preview
