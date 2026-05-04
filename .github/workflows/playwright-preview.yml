@@ -47,7 +47,7 @@ jobs:
 
       - name: Upload Playwright report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report
           path: playwright-report/
@@ -94,7 +94,7 @@ jobs:
 
       - name: Comment Playwright result on PR
         if: always() && steps.find-pr.outputs.number != ''
-        uses: marocchino/sticky-pull-request-comment@v2
+        uses: marocchino/sticky-pull-request-comment@v3
         with:
           number: ${{ steps.find-pr.outputs.number }}
           header: playwright-preview
