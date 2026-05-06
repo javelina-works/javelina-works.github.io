@@ -101,5 +101,10 @@ export default defineConfig({
     },
   },
 
-  adapter: netlify(),
+  // Build optimized image variants at compile time, then let Netlify's normal
+  // edge CDN serve the generated static assets. This avoids critical images
+  // depending on cold Netlify Image CDN runtime transforms.
+  adapter: netlify({
+    imageCDN: false,
+  }),
 });
