@@ -44,6 +44,7 @@
     "@astrojs/mdx": "^5.0.4",
     "@astrojs/sitemap": "^3.7.2",
     "@netlify/functions": "^5.2.0",
+    "@playwright/test": "^1.59.1",
     "@realfavicongenerator/generate-favicon": "^0.8.3",
     "@realfavicongenerator/image-adapter-node": "^0.8.3",
     "@tailwindcss/forms": "^0.5.11",
