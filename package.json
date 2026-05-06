@@ -33,9 +33,9 @@
     "lucide": "^1.14.0",
     "marked": "^18.0.3",
     "matter-js": "^0.20.0",
-    "motion": "^12.37.0",
+    "motion": "^12.38.0",
     "plyr": "^3.8.4",
-    "preline": "^4.1.2",
+    "preline": "^4.1.3",
     "sharp": "^0.34.5",
     "smoothscroll-for-websites": "^1.5.1"
   },
@@ -44,7 +44,10 @@
     "@astrojs/mdx": "^5.0.4",
     "@astrojs/sitemap": "^3.7.2",
     "@netlify/functions": "^5.2.0",
+<<<<<<< Updated upstream
     "@playwright/test": "^1.59.1",
+=======
+>>>>>>> Stashed changes
     "@realfavicongenerator/generate-favicon": "^0.8.3",
     "@realfavicongenerator/image-adapter-node": "^0.8.3",
     "@tailwindcss/forms": "^0.5.11",
@@ -52,24 +55,36 @@
     "@tailwindcss/vite": "^4.2.4",
     "@types/jest": "^30.0.0",
     "@types/matter-js": "^0.20.2",
+<<<<<<< Updated upstream
     "astro": "^6.2.1",
+=======
+    "astro": "^6.2.2",
+>>>>>>> Stashed changes
     "astro-auto-import": "^0.5.1",
     "cross-env": "^10.1.0",
     "gray-matter": "^4.0.3",
     "ignore": "^7.0.5",
     "jest": "^30.3.0",
     "linkedom": "^0.18.12",
-    "prettier": "^3.8.1",
+    "prettier": "^3.8.3",
     "prettier-plugin-astro": "^0.14.1",
+<<<<<<< Updated upstream
     "prettier-plugin-tailwindcss": "^0.8.0",
+=======
+    "prettier-plugin-tailwindcss": "^0.7.4",
+>>>>>>> Stashed changes
     "prettier-plugin-toml": "^2.0.6",
     "prop-types": "^15.8.1",
     "rehype-external-links": "^3.0.0",
     "remark-toc": "^9.0.0",
+<<<<<<< Updated upstream
     "slugify": "^1.6.8",
+=======
+    "slugify": "^1.6.9",
+>>>>>>> Stashed changes
     "tailwindcss": "^4.2.4",
     "toml": "^4.1.1",
-    "ts-jest": "^29.4.6",
+    "ts-jest": "^29.4.9",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3",
     "unist-util-visit": "^5.1.0",
