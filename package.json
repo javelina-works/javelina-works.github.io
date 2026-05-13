@@ -2,6 +2,7 @@
   "name": "javelina-works-website",
   "type": "module",
   "version": "2.0.0",
+  "packageManager": "pnpm@10.33.0",
   "author": "Kellan Cerveny",
   "license": "UNLICENSED",
   "private": true,
