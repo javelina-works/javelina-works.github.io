@@ -27,17 +27,17 @@
   "dependencies": {
     "@astrojs/netlify": "^7.0.13",
     "@floating-ui/dom": "^1.7.6",
-    "@sentry/astro": "^10.56.0",
-    "@sentry/node": "^10.56.0",
+    "@sentry/astro": "^10.59.0",
+    "@sentry/node": "^10.59.0",
     "aos": "^2.3.4",
     "date-fns": "^4.4.0",
-    "lucide": "^1.17.0",
+    "lucide": "^1.21.0",
     "marked": "^18.0.5",
     "matter-js": "^0.20.0",
     "motion": "^12.40.0",
     "plyr": "^3.8.4",
     "preline": "^4.2.0",
-    "sharp": "^0.34.5",
+    "sharp": "^0.35.2",
     "smoothscroll-for-websites": "^1.5.1"
   },
   "devDependencies": {
