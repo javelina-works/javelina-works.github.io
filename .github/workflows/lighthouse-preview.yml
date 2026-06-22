@@ -19,7 +19,7 @@ jobs:
       github.event.deployment_status.state == 'success' &&
       startsWith(github.event.deployment_status.target_url, 'https://deploy-preview-')
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Run Lighthouse
         id: lhci
