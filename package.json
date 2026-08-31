@@ -53,7 +53,7 @@
     "@tailwindcss/vite": "^4.3.3",
     "@types/jest": "^30.0.0",
     "@types/matter-js": "^0.20.2",
-    "astro": "^6.4.8",
+    "astro": "^7.2.9",
     "astro-auto-import": "^0.6.0",
     "cross-env": "^10.1.0",
     "gray-matter": "^4.0.3",
