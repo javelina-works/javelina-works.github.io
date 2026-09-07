@@ -36,7 +36,7 @@
     "matter-js": "^0.20.0",
     "motion": "^12.43.0",
     "plyr": "^3.8.4",
-    "preline": "^4.2.0",
+    "preline": "^5.0.0",
     "sharp": "^0.35.4",
     "smoothscroll-for-websites": "^1.5.1"
   },

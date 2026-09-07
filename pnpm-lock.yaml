@@ -48,8 +48,8 @@ importers:
         specifier: ^3.8.4
         version: 3.8.4
       preline:
-        specifier: ^4.2.0
-        version: 4.2.0
+        specifier: ^5.0.0
+        version: 5.0.0
       sharp:
         specifier: ^0.35.4
         version: 0.35.4(@types/node@26.4.1)
@@ -5127,8 +5127,9 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  preline@4.2.0:
-    resolution: {integrity: sha512-lDdP5VzJDwVdWFDOUHKtkvWGxnsKt1o7Q9Sla19MMX03Lzzp4Pxwxs+TndcFZaNiSchYSDgSnjCsm7olV5JV3g==}
+  preline@5.0.0:
+    resolution: {integrity: sha512-c1ayJoroSzIUcfsBLHrEbYV1NCjCNvjd8l1e/H5EPNQWzZiK1I36eUBgpR+J9scfrf1+1OnXt8Y+EBYUG640cQ==}
+    engines: {node: 22.22.2, npm: '>=10'}
     hasBin: true
 
   prettier-plugin-astro@0.14.1:
@@ -6085,8 +6086,8 @@ packages:
     resolution: {integrity: sha512-OljLrQ9SQdOUqTaQxqL5dEfZWrXExyyWsozYlAWFawPVNuD83igl7uJD2RTkNMbniIYgt8l81eCJGIdQF7avLQ==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
 
-  vanilla-calendar-pro@3.1.0:
-    resolution: {integrity: sha512-yXDtCaedcKz6i5OOdWGwui0C8MAmjXjj7JzKZyjDlkczSRqnhI8BDGFygqT2K+qL1uY7R2fLYlTlxA6oyFs2yg==}
+  vanilla-calendar-pro@3.3.2:
+    resolution: {integrity: sha512-RaLpDtvQFeKi0ajOpGBedLNrr0YoiYAF+0sppk4XZV/U57AuihJIhw8h2whUvIG1ZSR3LrdSXk3lHLkCPGlHvg==}
 
   vfile-location@5.0.3:
     resolution: {integrity: sha512-5yXvWDEgqeiYiBe1lbxYF7UMAIm/IcopxMHrMQDq3nvKcjPKIhZklUKL+AE7J7uApI4kwe2snsK+eI6UTj9EHg==}
@@ -12293,16 +12294,17 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  preline@4.2.0:
+  preline@5.0.0:
     dependencies:
       '@floating-ui/dom': 1.8.0
       '@types/culori': 4.0.1
       apexcharts: 4.7.0
       culori: 4.0.2
+      datatables.net: 2.3.8
       datatables.net-dt: 2.3.8
       dropzone: 6.0.0-beta.2
       nouislider: 15.8.1
-      vanilla-calendar-pro: 3.1.0
+      vanilla-calendar-pro: 3.3.2
 
   prettier-plugin-astro@0.14.1:
     dependencies:
@@ -13412,7 +13414,7 @@ snapshots:
 
   validate-npm-package-name@5.0.1: {}
 
-  vanilla-calendar-pro@3.1.0: {}
+  vanilla-calendar-pro@3.3.2: {}
 
   vfile-location@5.0.3:
     dependencies:
