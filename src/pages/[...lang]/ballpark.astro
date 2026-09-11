@@ -1,0 +1,1041 @@
+---
+import Base from "@/layouts/Base.astro";
+import { generatePaths } from "@/lib/utils/i18nUtils";
+
+export function getStaticPaths() {
+  return generatePaths();
+}
+
+const meta = {
+  metaTitle: "Brush Clearing Ballpark | Javelina Works",
+  metaDescription:
+    "Draw or upload your fence line and get an instant budget range for clearing the brush on your ranch — free, no phone call required.",
+};
+---
+
+<Base {...meta} sectionSpacing="md">
+  <section class="bp-hero">
+    <div class="container">
+      <p class="bp-eyebrow">Free &middot; instant &middot; no phone call</p>
+      <h1>What would it cost to clear your brush?</h1>
+      <p class="bp-sub">
+        Show us your fence line &mdash; draw it on the map or drop in a file
+        from Google Earth &mdash; and we&rsquo;ll measure the brush from recent
+        imagery and hand you a budget range in about a minute. If you like the
+        numbers, request a firm quote and we&rsquo;ll call you back.
+      </p>
+    </div>
+  </section>
+
+  <section class="bp-toolwrap">
+    <div class="container">
+      <div class="bp-tool">
+        <div class="bp-mapcard">
+          <div id="bpMap"></div>
+          <div class="bp-mapcaption">
+            <span id="bpMapMsg">Scroll and zoom to find your ranch</span>
+            <span id="bpImgCredit"></span>
+          </div>
+        </div>
+
+        <div class="bp-panel">
+          <section id="bpStepLocate">
+            <h2>Where&rsquo;s the ranch?</h2>
+            <p class="bp-panelsub">
+              Find your ground on the imagery, then mark the boundary.
+            </p>
+            <div class="bp-btnrow">
+              <label class="bp-btn bp-btn-primary" tabindex="0">
+                Upload a boundary file
+                <small>KMZ or KML from Google Earth, or GeoJSON</small>
+                <input
+                  type="file"
+                  id="bpFileInput"
+                  accept=".kmz,.kml,.geojson,.json"
+                  hidden
+                />
+              </label>
+              <button class="bp-btn" id="bpBtnDraw">
+                Draw the fence line on the map
+                <small>Click the corners on the imagery, then finish</small>
+              </button>
+            </div>
+            <p class="bp-filemsg" id="bpFileMsg" hidden></p>
+            <div id="bpDrawTools" hidden style="margin-top:14px;">
+              <button class="bp-cta" id="bpBtnFinish" disabled>
+                Finish the boundary
+              </button>
+              <button class="bp-ghost" id="bpBtnClearDraw">Start over</button>
+            </div>
+          </section>
+
+          <section id="bpStepBrush" hidden>
+            <h2>How heavy is the brush?</h2>
+            <span class="bp-acrepill" id="bpAcrePill"></span>
+            <p class="bp-panelsub">
+              If you&rsquo;re not sure, let us measure it.
+            </p>
+            <div class="bp-seg" role="radiogroup" aria-label="Brush level">
+              <label>
+                <input type="radio" name="bpBrush" value="sat" checked /> Measure
+                it from the imagery <small>&mdash; recommended</small>
+              </label>
+              <label>
+                <input type="radio" name="bpBrush" value="light" /> Light
+              </label>
+              <label>
+                <input type="radio" name="bpBrush" value="medium" /> Medium
+              </label>
+              <label>
+                <input type="radio" name="bpBrush" value="heavy" /> Heavy
+              </label>
+            </div>
+            <p class="bp-ppa">
+              <label>
+                Plants per acre, if you know it (optional)
+                <input
+                  type="number"
+                  id="bpPpaInput"
+                  min="1"
+                  max="500"
+                  placeholder="—"
+                />
+              </label>
+            </p>
+            <button class="bp-cta" id="bpBtnEstimate">Get my ballpark</button>
+            <button class="bp-ghost" id="bpBtnBack1">
+              &larr; Change the boundary
+            </button>
+          </section>
+
+          <section id="bpStepScan" hidden>
+            <h2>Reading your country&hellip;</h2>
+            <div class="bp-bar"><div id="bpBarFill"></div></div>
+            <ul class="bp-stages" id="bpStageList"></ul>
+            <p class="bp-scannote" id="bpScanNote">
+              Usually under a minute for a working ranch.
+            </p>
+            <p class="bp-filemsg" id="bpScanErr" hidden></p>
+          </section>
+
+          <section id="bpStepResult" hidden>
+            <h2>Your ballpark</h2>
+            <div class="bp-band">
+              <span class="bp-band-big" id="bpPriceBand"></span>
+              <p id="bpPerAcre"></p>
+            </div>
+            <table class="bp-rows">
+              <tbody>
+                <tr class="bp-rows-head">
+                  <td colspan="2">What we measured</td>
+                </tr>
+                <tr><td>Area inside the fence</td><td id="bpRAcres"></td></tr>
+                <tr><td>Brush coverage</td><td id="bpRCover"></td></tr>
+                <tr><td>Brush to treat</td><td id="bpRCanopy"></td></tr>
+                <tr>
+                  <td id="bpRPlantsLabel">Rough plant count</td><td
+                    id="bpRPlants">
+                  </td>
+                </tr>
+                <tr><td>Time on the ranch</td><td id="bpRDays"></td></tr>
+              </tbody>
+            </table>
+            <p class="bp-confnote">
+              Hover the green tiles on the map to see the measured cover. This
+              is a planning range, not a bid &mdash; your firm quote comes from
+              a dedicated survey flight over your ground.
+            </p>
+            <div class="bp-lead" id="bpLeadBlock">
+              <h3>Like these numbers?</h3>
+              <p>
+                Leave your name and a phone or email &mdash; we&rsquo;ll take a
+                closer look at the same ground and call you back with a firm
+                quote.
+              </p>
+              <input
+                type="text"
+                id="bpLeadName"
+                maxlength="200"
+                placeholder="Your name"
+                autocomplete="name"
+              />
+              <input
+                type="text"
+                id="bpLeadContact"
+                maxlength="300"
+                placeholder="Phone or email"
+                autocomplete="tel"
+              />
+              <textarea
+                id="bpLeadNotes"
+                maxlength="2000"
+                placeholder="Anything we should know? (optional)">
+              </textarea>
+              <button class="bp-cta" id="bpLeadSend">
+                Request a firm quote
+              </button>
+              <p class="bp-leadmsg" id="bpLeadMsg" hidden></p>
+            </div>
+            <div class="bp-resultactions">
+              <button class="bp-ghost" id="bpBtnAdjust">
+                Adjust the brush level
+              </button>
+              <button class="bp-ghost" id="bpBtnRestart">
+                Start over with a new boundary
+              </button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
+/>
+
+<style is:global>
+  /* Ballpark tool — namespaced .bp-*; colors come from the site theme tokens. */
+  .bp-hero h1 {
+    margin-top: 0.5rem;
+  }
+  .bp-eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-primary);
+    font-weight: 700;
+  }
+  .bp-sub {
+    color: var(--color-text-default);
+    max-width: 66ch;
+    margin-top: 1rem;
+  }
+  .bp-tool {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr);
+    gap: 20px;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    .bp-tool {
+      grid-template-columns: 1fr;
+    }
+  }
+  .bp-mapcard {
+    background: var(--color-light);
+    border: 1px solid var(--color-border-light);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  #bpMap {
+    height: 620px;
+  }
+  #bpMap.bp-drawing {
+    cursor: crosshair;
+  }
+  .bp-mapcaption {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 14px;
+    font-size: 0.78rem;
+    color: var(--color-text-default);
+    border-top: 1px solid var(--color-border-light);
+  }
+  .bp-panel {
+    background: var(--color-light);
+    border: 1px solid var(--color-border-light);
+    border-radius: 8px;
+    padding: 22px;
+  }
+  .bp-panel h2 {
+    font-size: var(--text-h5);
+    margin: 0 0 4px;
+  }
+  .bp-panelsub {
+    color: var(--color-text-default);
+    opacity: 0.75;
+    font-size: 0.9rem;
+    margin: 0 0 18px;
+  }
+  .bp-btnrow {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .bp-btn {
+    font: inherit;
+    font-weight: 600;
+    text-align: left;
+    border: 1.5px solid var(--color-border-light);
+    border-radius: 6px;
+    background: var(--color-light);
+    color: var(--color-dark);
+    padding: 12px 16px;
+    cursor: pointer;
+    width: 100%;
+    display: block;
+    line-height: 1.45;
+  }
+  .bp-btn:hover {
+    border-color: var(--color-primary);
+  }
+  .bp-btn small {
+    display: block;
+    font-weight: 400;
+    opacity: 0.7;
+    font-size: 0.82rem;
+  }
+  .bp-btn-primary {
+    border-color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 7%, var(--color-light));
+  }
+  .bp-cta {
+    font: inherit;
+    font-weight: 700;
+    font-size: 1.05rem;
+    background: var(--color-primary);
+    color: var(--color-light);
+    border: none;
+    border-radius: 6px;
+    padding: 14px 20px;
+    cursor: pointer;
+    width: 100%;
+  }
+  .bp-cta:hover {
+    background: color-mix(in srgb, var(--color-primary) 85%, black);
+  }
+  .bp-cta:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  .bp-ghost {
+    font: inherit;
+    background: none;
+    border: none;
+    color: var(--color-text-default);
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 6px 0 0;
+    font-size: 0.88rem;
+  }
+  .bp-filemsg {
+    font-size: 0.85rem;
+    color: var(--color-error);
+    margin: 8px 0 0;
+  }
+  .bp-filemsg.bp-ok {
+    color: var(--color-success);
+  }
+  .bp-acrepill {
+    display: inline-block;
+    background: color-mix(
+      in srgb,
+      var(--color-success) 14%,
+      var(--color-light)
+    );
+    border-radius: 999px;
+    padding: 5px 14px;
+    font-weight: 700;
+    font-size: 0.92rem;
+    margin-bottom: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  .bp-seg {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0 0 16px;
+  }
+  .bp-seg label {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    border: 1.5px solid var(--color-border-light);
+    border-radius: 6px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 0.94rem;
+  }
+  .bp-seg label:has(input:checked) {
+    border-color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 7%, var(--color-light));
+  }
+  .bp-seg small {
+    opacity: 0.7;
+  }
+  .bp-seg input {
+    accent-color: var(--color-primary);
+  }
+  .bp-ppa {
+    margin: 0 0 18px;
+    font-size: 0.9rem;
+  }
+  .bp-ppa input[type="number"] {
+    font: inherit;
+    width: 90px;
+    padding: 6px 8px;
+    margin-left: 8px;
+    border: 1.5px solid var(--color-border-light);
+    border-radius: 6px;
+    background: var(--color-light);
+    color: var(--color-dark);
+  }
+  .bp-stages {
+    list-style: none;
+    margin: 8px 0 0;
+    padding: 0;
+    font-size: 0.88rem;
+    min-height: 100px;
+  }
+  .bp-stages li {
+    padding: 4px 0 4px 26px;
+    position: relative;
+    opacity: 0.75;
+  }
+  .bp-stages li::before {
+    content: "\2713";
+    position: absolute;
+    left: 2px;
+    color: var(--color-success);
+    font-weight: 700;
+  }
+  .bp-stages li.bp-current {
+    opacity: 1;
+    font-weight: 600;
+  }
+  .bp-stages li.bp-current::before {
+    content: "\25CC";
+    color: var(--color-primary);
+    animation: bp-pulse 1s ease-in-out infinite;
+  }
+  @keyframes bp-pulse {
+    50% {
+      opacity: 0.25;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bp-stages li.bp-current::before {
+      animation: none;
+    }
+  }
+  .bp-scannote {
+    font-size: 0.85rem;
+    opacity: 0.75;
+  }
+  .bp-bar {
+    height: 8px;
+    border-radius: 4px;
+    background: var(--color-border-light);
+    overflow: hidden;
+    margin: 14px 0 10px;
+  }
+  .bp-bar div {
+    height: 100%;
+    width: 0%;
+    background: var(--color-primary);
+    transition: width 0.2s linear;
+  }
+  .bp-band {
+    background: color-mix(
+      in srgb,
+      var(--color-success) 10%,
+      var(--color-light)
+    );
+    border: 1.5px solid var(--color-success);
+    border-radius: 8px;
+    padding: 16px 18px;
+    margin: 4px 0 18px;
+  }
+  .bp-band-big {
+    font-size: clamp(28px, 4vw, 38px);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-dark);
+    line-height: 1.1;
+  }
+  .bp-band p {
+    margin: 4px 0 0;
+    font-size: 0.85rem;
+    opacity: 0.8;
+  }
+  .bp-rows {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .bp-rows td {
+    padding: 7px 0;
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .bp-rows td:last-child {
+    text-align: right;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .bp-rows tr.bp-rows-head td {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-bottom: none;
+    padding-top: 14px;
+    font-weight: 700;
+    opacity: 0.7;
+  }
+  .bp-confnote {
+    font-size: 0.85rem;
+    opacity: 0.75;
+    margin: 14px 0 18px;
+  }
+  .bp-lead {
+    border-top: 1.5px solid var(--color-border-light);
+    margin-top: 6px;
+    padding-top: 14px;
+  }
+  .bp-lead h3 {
+    margin: 0 0 4px;
+    font-size: 1rem;
+  }
+  .bp-lead p {
+    margin: 0 0 10px;
+    font-size: 0.85rem;
+    opacity: 0.75;
+  }
+  .bp-lead input,
+  .bp-lead textarea {
+    font: inherit;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 10px;
+    margin: 0 0 8px;
+    border: 1.5px solid var(--color-border-light);
+    border-radius: 6px;
+    background: var(--color-light);
+    color: var(--color-dark);
+  }
+  .bp-lead textarea {
+    resize: vertical;
+    min-height: 54px;
+  }
+  .bp-leadmsg {
+    font-size: 0.85rem;
+    margin: 6px 0 0;
+  }
+  .bp-leadmsg.bp-ok {
+    color: var(--color-success);
+    font-weight: 600;
+  }
+  .bp-leadmsg.bp-err {
+    color: var(--color-error);
+  }
+  .bp-resultactions {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 14px;
+  }
+  [hidden] {
+    display: none !important;
+  }
+</style>
+
+<script
+  is:inline
+  src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js">
+</script>
+<script
+  is:inline
+  src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.min.js">
+</script>
+<script
+  is:inline
+  src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js">
+</script>
+<script is:inline>
+  (function () {
+    "use strict";
+
+    // Same-origin in production (Netlify proxies /api/ballpark/* to the
+    // estimate service); the staging API directly when developing locally.
+    var API =
+      location.hostname === "localhost" || location.hostname === "127.0.0.1"
+        ? "https://fastapi-staging.up.railway.app/api/v2/ballpark"
+        : "/api/ballpark";
+
+    /* ---------------- map ---------------- */
+    var map = L.map("bpMap", { preferCanvas: true }).setView([31.2, -99.8], 6);
+    L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      { maxZoom: 19, attribution: "&copy; Esri" },
+    ).addTo(map);
+    L.control.scale({ imperial: true }).addTo(map);
+    var canvasRenderer = L.canvas({ padding: 0.3 });
+    var boundaryLayer = L.layerGroup().addTo(map);
+    var tileGroup = L.layerGroup().addTo(map);
+    var drawLayer = L.layerGroup().addTo(map);
+
+    var st = { geometry: null, mode: "idle", drawPts: [], runId: null };
+
+    function el(id) {
+      return document.getElementById(id);
+    }
+    function panelsShow(name) {
+      ["bpStepLocate", "bpStepBrush", "bpStepScan", "bpStepResult"].forEach(
+        function (id) {
+          el(id).hidden = id !== name;
+        },
+      );
+    }
+    function mapmsg(t) {
+      el("bpMapMsg").textContent = t;
+    }
+
+    /* ---------------- UTM helpers ---------------- */
+    function utmDef(epsg) {
+      var south = epsg >= 32700;
+      var zone = epsg - (south ? 32700 : 32600);
+      return (
+        "+proj=utm +zone=" +
+        zone +
+        (south ? " +south" : "") +
+        " +datum=WGS84 +units=m +no_defs"
+      );
+    }
+    function utmToLatLng(def, x, y) {
+      var ll = proj4(def).inverse([x, y]);
+      return [ll[1], ll[0]];
+    }
+
+    /* ---------------- boundary intake ---------------- */
+    var fileMsg = el("bpFileMsg");
+    function msg(t, ok) {
+      fileMsg.textContent = t;
+      fileMsg.classList.toggle("bp-ok", !!ok);
+      fileMsg.hidden = false;
+    }
+
+    function setBoundary(geometry, label) {
+      st.geometry = geometry;
+      st.runId = null;
+      tileGroup.clearLayers();
+      boundaryLayer.clearLayers();
+      var layer = L.geoJSON(geometry, {
+        style: { color: "#f2b23a", weight: 3, fill: false },
+      }).addTo(boundaryLayer);
+      map.fitBounds(layer.getBounds().pad(0.25));
+      el("bpAcrePill").textContent = label;
+      mapmsg("Boundary set");
+      panelsShow("bpStepBrush");
+    }
+
+    function firstPolyFromGeoJSON(g) {
+      if (!g) return null;
+      if (g.type === "FeatureCollection") {
+        for (var i = 0; i < g.features.length; i++) {
+          var r = firstPolyFromGeoJSON(g.features[i]);
+          if (r) return r;
+        }
+        return null;
+      }
+      if (g.type === "Feature") return firstPolyFromGeoJSON(g.geometry);
+      if (g.type === "Polygon" || g.type === "MultiPolygon") return g;
+      return null;
+    }
+    function geomFromKML(text) {
+      var doc = new DOMParser().parseFromString(text, "text/xml");
+      var polys = doc.getElementsByTagName("Polygon");
+      for (var i = 0; i < polys.length; i++) {
+        var coords = polys[i].getElementsByTagName("coordinates")[0];
+        if (!coords) continue;
+        var ring = coords.textContent
+          .trim()
+          .split(/\s+/)
+          .map(function (t) {
+            var p = t.split(",");
+            return [parseFloat(p[0]), parseFloat(p[1])];
+          })
+          .filter(function (p) {
+            return isFinite(p[0]) && isFinite(p[1]);
+          });
+        if (ring.length >= 3) return { type: "Polygon", coordinates: [ring] };
+      }
+      return null;
+    }
+    el("bpFileInput").addEventListener("change", function (ev) {
+      var file = ev.target.files && ev.target.files[0];
+      ev.target.value = "";
+      if (!file) return;
+      var name = file.name.toLowerCase();
+      var ok = function (g) {
+        if (g) {
+          fileMsg.hidden = true;
+          setBoundary(g, "Boundary: " + file.name);
+        } else msg("No polygon found in that file.");
+      };
+      if (name.endsWith(".geojson") || name.endsWith(".json")) {
+        file
+          .text()
+          .then(function (t) {
+            ok(firstPolyFromGeoJSON(JSON.parse(t)));
+          })
+          .catch(function () {
+            msg("Couldn't read that GeoJSON.");
+          });
+      } else if (name.endsWith(".kml")) {
+        file
+          .text()
+          .then(function (t) {
+            ok(geomFromKML(t));
+          })
+          .catch(function () {
+            msg("Couldn't read that KML.");
+          });
+      } else if (name.endsWith(".kmz")) {
+        JSZip.loadAsync(file)
+          .then(function (zip) {
+            var entry = null;
+            zip.forEach(function (p, f) {
+              if (!entry && p.toLowerCase().endsWith(".kml")) entry = f;
+            });
+            if (!entry) {
+              msg("No KML inside that KMZ.");
+              return;
+            }
+            entry.async("string").then(function (t) {
+              ok(geomFromKML(t));
+            });
+          })
+          .catch(function () {
+            msg("Couldn't open that KMZ.");
+          });
+      } else msg("Use KMZ, KML, or GeoJSON.");
+    });
+
+    /* ---------------- draw on the map ---------------- */
+    var btnFinish = el("bpBtnFinish");
+    function redrawDraft() {
+      drawLayer.clearLayers();
+      st.drawPts.forEach(function (ll) {
+        L.circleMarker(ll, {
+          radius: 5,
+          color: "#f2b23a",
+          fillColor: "#f2b23a",
+          fillOpacity: 1,
+        }).addTo(drawLayer);
+      });
+      if (st.drawPts.length >= 2) {
+        L.polyline(st.drawPts, {
+          color: "#f2b23a",
+          weight: 3,
+          dashArray: "6 4",
+        }).addTo(drawLayer);
+      }
+    }
+    map.on("click", function (ev) {
+      if (st.mode !== "drawing") return;
+      st.drawPts.push([ev.latlng.lat, ev.latlng.lng]);
+      if (st.drawPts.length >= 3) btnFinish.disabled = false;
+      redrawDraft();
+    });
+    el("bpBtnDraw").addEventListener("click", function () {
+      st.mode = "drawing";
+      st.drawPts = [];
+      boundaryLayer.clearLayers();
+      tileGroup.clearLayers();
+      el("bpMap").classList.add("bp-drawing");
+      el("bpDrawTools").hidden = false;
+      btnFinish.disabled = true;
+      msg(
+        "Click the corners of the property on the imagery, then hit “Finish the boundary.”",
+        true,
+      );
+      mapmsg("Drawing — click to add corners");
+    });
+    el("bpBtnClearDraw").addEventListener("click", function () {
+      st.drawPts = [];
+      btnFinish.disabled = true;
+      redrawDraft();
+    });
+    btnFinish.addEventListener("click", function () {
+      if (st.drawPts.length < 3) return;
+      st.mode = "idle";
+      el("bpMap").classList.remove("bp-drawing");
+      el("bpDrawTools").hidden = true;
+      fileMsg.hidden = true;
+      var ring = st.drawPts.map(function (ll) {
+        return [ll[1], ll[0]];
+      });
+      ring.push(ring[0].slice());
+      st.drawPts = [];
+      drawLayer.clearLayers();
+      setBoundary({ type: "Polygon", coordinates: [ring] }, "Your boundary");
+    });
+
+    /* ---------------- the scan ---------------- */
+    function renderStages(labels, allDone) {
+      var ul = el("bpStageList");
+      ul.innerHTML = "";
+      labels.forEach(function (label, i) {
+        var li = document.createElement("li");
+        li.textContent = label;
+        if (!allDone && i === labels.length - 1) li.className = "bp-current";
+        ul.appendChild(li);
+      });
+    }
+
+    el("bpBtnEstimate").addEventListener("click", function () {
+      panelsShow("bpStepScan");
+      el("bpScanErr").hidden = true;
+      var bar = el("bpBarFill");
+      var note = el("bpScanNote");
+      var p = 0;
+      var pulse = setInterval(function () {
+        p = Math.min(88, p + (88 - p) * 0.04);
+        bar.style.width = p.toFixed(1) + "%";
+      }, 200);
+      var t0 = Date.now();
+      var elapsed = setInterval(function () {
+        note.textContent = ((Date.now() - t0) / 1000).toFixed(0) + "s elapsed";
+      }, 1000);
+
+      var ppa = parseFloat(el("bpPpaInput").value) || null;
+      var brush = document.querySelector('input[name="bpBrush"]:checked').value;
+
+      function stopTimers() {
+        clearInterval(pulse);
+        clearInterval(elapsed);
+      }
+      function done(resp, labels) {
+        stopTimers();
+        bar.style.width = "100%";
+        labels.push("Done in " + ((Date.now() - t0) / 1000).toFixed(1) + "s");
+        renderStages(labels, true);
+        setTimeout(function () {
+          renderResult(resp);
+        }, 400);
+      }
+      function fail(err) {
+        stopTimers();
+        var e = el("bpScanErr");
+        e.textContent = err.message;
+        e.hidden = false;
+        setTimeout(function () {
+          panelsShow("bpStepBrush");
+        }, 4000);
+      }
+
+      var labels = ["Boundary sent for measurement"];
+      renderStages(labels, false);
+      fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          geometry: st.geometry,
+          brush: brush,
+          plants_per_acre: ppa,
+        }),
+      })
+        .then(function (r) {
+          if (!r.ok)
+            return r.json().then(function (e) {
+              throw new Error(e.detail || r.statusText);
+            });
+          return r.json();
+        })
+        .then(function (trig) {
+          st.runId = trig.workflow_run_id;
+          var sawRunning = false,
+            tries = 0;
+          var poll = setInterval(function () {
+            tries += 1;
+            if (tries > 90) {
+              clearInterval(poll);
+              fail(
+                new Error(
+                  "This is taking longer than it should — give it another try in a minute.",
+                ),
+              );
+              return;
+            }
+            fetch(API + "/" + trig.workflow_run_id)
+              .then(function (r) {
+                return r.ok ? r.json() : null;
+              })
+              .then(function (stt) {
+                if (!stt) return;
+                if (stt.status === "running" && !sawRunning) {
+                  sawRunning = true;
+                  labels.push("Measuring the brush on your ground…");
+                  renderStages(labels, false);
+                } else if (stt.status === "succeeded") {
+                  clearInterval(poll);
+                  if (!sawRunning)
+                    labels.push("Measured the brush on your ground");
+                  done(stt.result, labels);
+                } else if (stt.status === "failed") {
+                  clearInterval(poll);
+                  fail(
+                    new Error(stt.error || "The measurement didn't finish."),
+                  );
+                }
+              })
+              .catch(function () {});
+          }, 1500);
+        })
+        .catch(fail);
+    });
+
+    /* ---------------- render ---------------- */
+    function renderResult(resp) {
+      var def = utmDef(resp.epsg);
+      tileGroup.clearLayers();
+      el("bpImgCredit").textContent =
+        "Measured from " + resp.naip_year + " imagery · © Esri basemap";
+      var h = resp.tile_m / 2;
+      var rects = resp.tiles.map(function (t) {
+        var swc = utmToLatLng(def, t[0] - h, t[1] - h);
+        var nec = utmToLatLng(def, t[0] + h, t[1] + h);
+        var alpha = Math.min(0.68, 0.06 + t[2] * 1.5);
+        var r = L.rectangle([swc, nec], {
+          renderer: canvasRenderer,
+          stroke: false,
+          fillColor: "#2f6a1f",
+          fillOpacity: alpha,
+        });
+        r.bindTooltip(Math.round(t[2] * 100) + "% cover", {
+          sticky: true,
+          direction: "top",
+        });
+        return r;
+      });
+      var reduce = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+      if (reduce || rects.length === 0) {
+        rects.forEach(function (r) {
+          r.addTo(tileGroup);
+        });
+        showNumbers(resp);
+        return;
+      }
+      var i = 0,
+        batch = Math.max(1, Math.ceil(rects.length / 60));
+      var timer = setInterval(function () {
+        for (var k = 0; k < batch && i < rects.length; k++, i++)
+          rects[i].addTo(tileGroup);
+        if (i >= rects.length) {
+          clearInterval(timer);
+          setTimeout(function () {
+            showNumbers(resp);
+          }, 250);
+        }
+      }, 35);
+      mapmsg("Hover a tile for its measured cover");
+    }
+
+    function money(x) {
+      return "$" + Math.round(x).toLocaleString();
+    }
+    function money50(x) {
+      return "$" + (Math.round(x / 50) * 50).toLocaleString();
+    }
+    function showNumbers(resp) {
+      var q = resp.quote;
+      el("bpPriceBand").textContent = money50(q.low) + " – " + money50(q.high);
+      el("bpPerAcre").textContent = "about " + money(q.per_acre) + " per acre";
+      el("bpRAcres").textContent = resp.acres.toLocaleString() + " ac";
+      el("bpRCover").textContent = (resp.cover_used * 100).toFixed(1) + "%";
+      el("bpRCanopy").textContent = q.canopy_ac.toLocaleString() + " ac";
+      el("bpRPlantsLabel").textContent = q.used_ppa
+        ? "Plant count (yours)"
+        : "Rough plant count";
+      el("bpRPlants").textContent = q.used_ppa
+        ? q.plants.toLocaleString()
+        : "~" +
+          q.plants_low.toLocaleString() +
+          " – " +
+          q.plants_high.toLocaleString();
+      el("bpRDays").textContent =
+        "~" + q.days + (q.days === 1 ? " day" : " days");
+      el("bpLeadMsg").hidden = true;
+      el("bpLeadSend").disabled = false;
+      panelsShow("bpStepResult");
+    }
+
+    /* ---------------- lead capture ---------------- */
+    el("bpLeadSend").addEventListener("click", function () {
+      var name = el("bpLeadName").value.trim();
+      var contact = el("bpLeadContact").value.trim();
+      var notes = el("bpLeadNotes").value.trim();
+      var lm = el("bpLeadMsg");
+      function say(text, ok) {
+        lm.textContent = text;
+        lm.className = "bp-leadmsg " + (ok ? "bp-ok" : "bp-err");
+        lm.hidden = false;
+      }
+      if (!name || contact.length < 3) {
+        say("Name and a phone or email, please.", false);
+        return;
+      }
+      if (!st.runId) {
+        say("Run the estimate first, then send us your info.", false);
+        return;
+      }
+      var btn = el("bpLeadSend");
+      btn.disabled = true;
+      fetch(API + "/" + st.runId + "/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name,
+          contact: contact,
+          notes: notes || null,
+          channel: "marketing",
+        }),
+      })
+        .then(function (r) {
+          if (r.status === 202) {
+            say("Got it — we’ll be in touch.", true);
+            return;
+          }
+          return r.json().then(function (b) {
+            btn.disabled = false;
+            say(b.detail || "Submission failed — try again.", false);
+          });
+        })
+        .catch(function () {
+          btn.disabled = false;
+          say("Submission failed — try again.", false);
+        });
+    });
+
+    /* ---------------- result actions ---------------- */
+    el("bpBtnAdjust").addEventListener("click", function () {
+      tileGroup.clearLayers();
+      panelsShow("bpStepBrush");
+    });
+    el("bpBtnBack1").addEventListener("click", reset);
+    el("bpBtnRestart").addEventListener("click", reset);
+    function reset() {
+      st.geometry = null;
+      st.mode = "idle";
+      st.drawPts = [];
+      st.runId = null;
+      boundaryLayer.clearLayers();
+      tileGroup.clearLayers();
+      drawLayer.clearLayers();
+      el("bpMap").classList.remove("bp-drawing");
+      el("bpDrawTools").hidden = true;
+      el("bpPpaInput").value = "";
+      document.querySelector('input[name="bpBrush"][value="sat"]').checked =
+        true;
+      fileMsg.hidden = true;
+      mapmsg("Scroll and zoom to find your ranch");
+      panelsShow("bpStepLocate");
+    }
+  })();
+</script>

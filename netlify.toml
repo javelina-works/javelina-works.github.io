@@ -46,3 +46,18 @@
   to = "https://us.i.posthog.com/:splat"
   status = 200
   force = true
+
+# Ballpark estimate proxy — the /ballpark page calls same-origin /api/ballpark
+# so the estimate service's host never appears in client code and needs no
+# CORS entry for this site. Splat rule first (poll + contact), exact rule after.
+[[redirects]]
+  from = "/api/ballpark/*"
+  to = "https://brush-targeting-production.up.railway.app/api/v2/ballpark/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/ballpark"
+  to = "https://brush-targeting-production.up.railway.app/api/v2/ballpark"
+  status = 200
+  force = true
