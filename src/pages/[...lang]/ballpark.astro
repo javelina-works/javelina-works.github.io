@@ -56,6 +56,7 @@ const meta = {
               <input
                 type="text"
                 id="bpAddrInput"
+                aria-label="Ranch address or town"
                 placeholder="Ranch address, or town"
                 autocomplete="street-address"
               />
@@ -71,7 +72,11 @@ const meta = {
             <details class="bp-more">
               <summary>More ways</summary>
               <div class="bp-btnrow" style="margin-top:8px;">
-                <label class="bp-btn" tabindex="0">
+                <label
+                  class="bp-btn"
+                  tabindex="0"
+                  role="button"
+                  id="bpFileLabel">
                   Upload a boundary file
                   <small>KMZ or KML from Google Earth, or GeoJSON</small>
                   <input
@@ -215,6 +220,7 @@ const meta = {
               <input
                 type="text"
                 id="bpLeadName"
+                aria-label="Your name"
                 maxlength="200"
                 placeholder="Your name"
                 autocomplete="name"
@@ -222,12 +228,14 @@ const meta = {
               <input
                 type="text"
                 id="bpLeadContact"
+                aria-label="Phone or email"
                 maxlength="300"
                 placeholder="Phone or email"
                 autocomplete="tel"
               />
               <textarea
                 id="bpLeadNotes"
+                aria-label="Notes for the crew (optional)"
                 maxlength="2000"
                 placeholder="Anything we should know? (optional)">
               </textarea>
@@ -254,6 +262,8 @@ const meta = {
 <link
   rel="stylesheet"
   href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
+  integrity="sha384-c6Rcwz4e4CITMbu/NBmnNS8yN2sC3cUElMEMfP3vqqKFp7GOYaaBBCqmaWBjmkjb"
+  crossorigin="anonymous"
 />
 
 <style is:global>
@@ -709,19 +719,27 @@ const meta = {
 
 <script
   is:inline
-  src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js">
+  src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
+  integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO"
+  crossorigin="anonymous">
 </script>
 <script
   is:inline
-  src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.min.js">
+  src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.min.js"
+  integrity="sha384-/afhbJsRXHGy6vxnKzUwacQTDFat0eLiUZYYZT+ejWlu3RQytlhScgS3zO42xtMj"
+  crossorigin="anonymous">
 </script>
 <script
   is:inline
-  src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js">
+  src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
+  integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG"
+  crossorigin="anonymous">
 </script>
 <script
   is:inline
-  src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/7.2.0/turf.min.js">
+  src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/7.2.0/turf.min.js"
+  integrity="sha384-ll8qH0IE3im19Dtlr1jtv5fdy+gm+0bx8T4+OYxPeJpc6PO1XLNFnyvdzaKJ78bU"
+  crossorigin="anonymous">
 </script>
 <script is:inline>
   (function () {
@@ -824,12 +842,22 @@ const meta = {
       county: null,
       ringCenter: null,
       ringR: 700,
+      intakeSeq: 0,
     };
     var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     function el(id) {
       return document.getElementById(id);
     }
+    // Formatters indent the closing tag, and that whitespace becomes the
+    // textarea's value, hiding the placeholder.
+    el("bpLeadNotes").value = "";
+    el("bpFileLabel").addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        el("bpFileInput").click();
+      }
+    });
     function panelsShow(name) {
       ["bpStepLocate", "bpStepConfirm", "bpStepScan", "bpStepResult"].forEach(
         function (id) {
@@ -1173,6 +1201,7 @@ const meta = {
     }
 
     function parcelFlow(lat, lng) {
+      var seq = ++st.intakeSeq;
       clearIntakeLayers();
       clearShowLayers();
       tileGroup.clearLayers();
@@ -1184,6 +1213,7 @@ const meta = {
       el("bpRingCtl").hidden = true;
       findSeed(lng, lat)
         .then(function (seed) {
+          if (seq !== st.intakeSeq) return; // user moved on — drop stale result
           if (!seed) {
             ringFlow(
               lat,
@@ -1194,6 +1224,7 @@ const meta = {
           }
           st.county = seed.properties.county || null;
           return assemble(seed).then(function (r) {
+            if (seq !== st.intakeSeq) return;
             r.members.forEach(function (f) {
               addParcel(f, true);
             });
@@ -1211,6 +1242,7 @@ const meta = {
           });
         })
         .catch(function () {
+          if (seq !== st.intakeSeq) return;
           ringFlow(
             lat,
             lng,
@@ -1303,6 +1335,7 @@ const meta = {
       );
     });
     el("bpBtnSample").addEventListener("click", function () {
+      st.intakeSeq++;
       fileMsg.hidden = true;
       clearIntakeLayers();
       clearShowLayers();
@@ -1360,6 +1393,7 @@ const meta = {
       return null;
     }
     function setDirectBoundary(geometry, label) {
+      st.intakeSeq++;
       clearIntakeLayers();
       clearShowLayers();
       tileGroup.clearLayers();
@@ -1564,15 +1598,30 @@ const meta = {
       })
         .then(function (r) {
           if (!r.ok)
-            return r.json().then(function (e) {
-              throw new Error(e.detail || r.statusText);
-            });
+            return r
+              .json()
+              .catch(function () {
+                return {};
+              })
+              .then(function (e) {
+                var d = e && e.detail;
+                if (Array.isArray(d))
+                  d = "That boundary didn't validate — try adjusting it.";
+                throw new Error(
+                  typeof d === "string" && d
+                    ? d
+                    : "The estimate couldn't start — try again in a minute.",
+                );
+              });
           return r.json();
         })
         .then(function (trig) {
           st.runId = trig.workflow_run_id;
           var tries = 0;
+          var inFlight = false;
+          var settled = false;
           var poll = setInterval(function () {
+            if (inFlight || settled) return;
             tries += 1;
             if (tries > 90) {
               clearInterval(poll);
@@ -1583,13 +1632,16 @@ const meta = {
               );
               return;
             }
+            inFlight = true;
             fetch(API + "/" + trig.workflow_run_id)
               .then(function (r) {
                 return r.ok ? r.json() : null;
               })
               .then(function (stt) {
-                if (!stt) return;
+                inFlight = false;
+                if (!stt || settled) return;
                 if (stt.status === "succeeded") {
+                  settled = true;
                   clearInterval(poll);
                   stopTimers();
                   bar.style.width = "100%";
@@ -1599,13 +1651,16 @@ const meta = {
                     playShow(stt.result);
                   }, 400);
                 } else if (stt.status === "failed") {
+                  settled = true;
                   clearInterval(poll);
                   fail(
                     new Error(stt.error || "The measurement didn't finish."),
                   );
                 }
               })
-              .catch(function () {});
+              .catch(function () {
+                inFlight = false;
+              });
           }, 1500);
         })
         .catch(fail);
@@ -1902,6 +1957,7 @@ const meta = {
     });
     el("bpBtnRestart").addEventListener("click", reset);
     function reset() {
+      st.intakeSeq++;
       st.geometry = null;
       st.runId = null;
       st.resp = null;
