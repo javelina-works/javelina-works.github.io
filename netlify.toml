@@ -50,15 +50,18 @@
 # Ballpark estimate proxy — the /ballpark page calls same-origin /api/ballpark
 # so the estimate service's host never appears in client code and needs no
 # CORS entry for this site. Splat rule first (poll + contact), exact rule after.
+# Exact rule FIRST: the splat also matches the bare path with an empty
+# splat, whose trailing-slash target FastAPI 307-redirects — and the
+# browser then follows it cross-origin into a CORS failure.
 [[redirects]]
-  from = "/api/ballpark/*"
-  to = "https://brush-targeting-production.up.railway.app/api/v2/ballpark/:splat"
+  from = "/api/ballpark"
+  to = "https://brush-targeting-production.up.railway.app/api/v2/ballpark"
   status = 200
   force = true
 
 [[redirects]]
-  from = "/api/ballpark"
-  to = "https://brush-targeting-production.up.railway.app/api/v2/ballpark"
+  from = "/api/ballpark/*"
+  to = "https://brush-targeting-production.up.railway.app/api/v2/ballpark/:splat"
   status = 200
   force = true
 
@@ -66,13 +69,13 @@
 # same-origin pattern (the page picks /api/ballpark-staging when its host
 # is not javelinaworks.com). Production traffic never uses these.
 [[redirects]]
-  from = "/api/ballpark-staging/*"
-  to = "https://fastapi-staging.up.railway.app/api/v2/ballpark/:splat"
+  from = "/api/ballpark-staging"
+  to = "https://fastapi-staging.up.railway.app/api/v2/ballpark"
   status = 200
   force = true
 
 [[redirects]]
-  from = "/api/ballpark-staging"
-  to = "https://fastapi-staging.up.railway.app/api/v2/ballpark"
+  from = "/api/ballpark-staging/*"
+  to = "https://fastapi-staging.up.railway.app/api/v2/ballpark/:splat"
   status = 200
   force = true
