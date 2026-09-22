@@ -721,26 +721,26 @@ const meta = {
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
   integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.min.js"
   integrity="sha384-/afhbJsRXHGy6vxnKzUwacQTDFat0eLiUZYYZT+ejWlu3RQytlhScgS3zO42xtMj"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
   integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/7.2.0/turf.min.js"
   integrity="sha384-ll8qH0IE3im19Dtlr1jtv5fdy+gm+0bx8T4+OYxPeJpc6PO1XLNFnyvdzaKJ78bU"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script is:inline>
   (function () {
     "use strict";
@@ -1200,8 +1200,8 @@ const meta = {
       panelsShow("bpStepConfirm");
     }
 
-    function parcelFlow(lat, lng) {
-      var seq = ++st.intakeSeq;
+    function parcelFlow(lat, lng, seq) {
+      if (seq !== st.intakeSeq) return; // a newer intake started meanwhile
       clearIntakeLayers();
       clearShowLayers();
       tileGroup.clearLayers();
@@ -1303,11 +1303,12 @@ const meta = {
         msg("Type the ranch address, the nearest town, or lat, lng.");
         return;
       }
+      var seq = ++st.intakeSeq;
       fileMsg.hidden = true;
       mapmsg("Finding it…");
       geocode(q)
         .then(function (p) {
-          parcelFlow(p.lat, p.lng);
+          parcelFlow(p.lat, p.lng, seq);
         })
         .catch(function () {
           msg(
@@ -1322,11 +1323,12 @@ const meta = {
         );
         return;
       }
+      var seq = ++st.intakeSeq;
       fileMsg.hidden = true;
       mapmsg("Getting your position…");
       navigator.geolocation.getCurrentPosition(
         function (pos) {
-          parcelFlow(pos.coords.latitude, pos.coords.longitude);
+          parcelFlow(pos.coords.latitude, pos.coords.longitude, seq);
         },
         function () {
           msg("Couldn't get your position — try the address instead.");
