@@ -721,26 +721,26 @@ const meta = {
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
   integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO"
-  crossorigin="anonymous"
-></script>
+  crossorigin="anonymous">
+</script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.min.js"
   integrity="sha384-/afhbJsRXHGy6vxnKzUwacQTDFat0eLiUZYYZT+ejWlu3RQytlhScgS3zO42xtMj"
-  crossorigin="anonymous"
-></script>
+  crossorigin="anonymous">
+</script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
   integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG"
-  crossorigin="anonymous"
-></script>
+  crossorigin="anonymous">
+</script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/7.2.0/turf.min.js"
   integrity="sha384-ll8qH0IE3im19Dtlr1jtv5fdy+gm+0bx8T4+OYxPeJpc6PO1XLNFnyvdzaKJ78bU"
-  crossorigin="anonymous"
-></script>
+  crossorigin="anonymous">
+</script>
 <script is:inline>
   (function () {
     "use strict";
@@ -1311,6 +1311,7 @@ const meta = {
           parcelFlow(p.lat, p.lng, seq);
         })
         .catch(function () {
+          if (seq !== st.intakeSeq) return;
           msg(
             "Couldn't place that address — try the nearest town, or drop a pin with “I'm standing on it.”",
           );
@@ -1331,6 +1332,7 @@ const meta = {
           parcelFlow(pos.coords.latitude, pos.coords.longitude, seq);
         },
         function () {
+          if (seq !== st.intakeSeq) return;
           msg("Couldn't get your position — try the address instead.");
         },
         { enableHighAccuracy: true, timeout: 12000 },
