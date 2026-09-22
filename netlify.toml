@@ -61,3 +61,18 @@
   to = "https://brush-targeting-production.up.railway.app/api/v2/ballpark"
   status = 200
   force = true
+
+# Deploy previews exercise the STAGING estimate service through the same
+# same-origin pattern (the page picks /api/ballpark-staging when its host
+# is not javelinaworks.com). Production traffic never uses these.
+[[redirects]]
+  from = "/api/ballpark-staging/*"
+  to = "https://fastapi-staging.up.railway.app/api/v2/ballpark/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/ballpark-staging"
+  to = "https://fastapi-staging.up.railway.app/api/v2/ballpark"
+  status = 200
+  force = true
