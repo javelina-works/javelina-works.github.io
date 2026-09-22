@@ -109,9 +109,27 @@ const meta = {
           </section>
 
           <section id="bpStepScan" hidden>
-            <h2>Reading your country&hellip;</h2>
+            <h2 id="bpScanTitle">Reading your country&hellip;</h2>
             <div class="bp-bar"><div id="bpBarFill"></div></div>
             <ul class="bp-stages" id="bpStageList"></ul>
+            <div class="bp-acts" id="bpActs" hidden>
+              <div class="bp-act" id="bpActTerrain">
+                <strong>Terrain</strong> — a lidar scan of your ground
+                <span class="bp-actstat" id="bpActTerrainStat"></span>
+              </div>
+              <div class="bp-act" id="bpActCanopy">
+                <strong>Canopy height</strong> — what stands above the dirt
+                <span class="bp-actstat" id="bpActCanopyStat"></span>
+              </div>
+              <div class="bp-act" id="bpActInfra">
+                <strong>Infrared</strong> — everything alive burns red
+                <span class="bp-actstat" id="bpActInfraStat"></span>
+              </div>
+              <div class="bp-act" id="bpActGreen">
+                <strong>Living vegetation</strong> — where the brush is
+                <span class="bp-actstat" id="bpActGreenStat"></span>
+              </div>
+            </div>
             <p class="bp-scannote" id="bpScanNote">
               Usually under a minute for a working ranch.
             </p>
@@ -422,6 +440,29 @@ const meta = {
       animation: none;
     }
   }
+  .bp-acts {
+    margin: 10px 0 4px;
+  }
+  .bp-act {
+    border-left: 3px solid var(--color-border-light);
+    padding: 6px 0 6px 12px;
+    margin: 6px 0;
+    font-size: 0.88rem;
+    opacity: 0.3;
+    transition:
+      opacity 0.5s,
+      border-color 0.5s;
+  }
+  .bp-act.bp-on {
+    opacity: 1;
+    border-color: var(--color-primary);
+  }
+  .bp-actstat {
+    display: block;
+    font-size: 0.8rem;
+    opacity: 0.75;
+    font-variant-numeric: tabular-nums;
+  }
   .bp-scannote {
     font-size: 0.85rem;
     opacity: 0.75;
@@ -545,16 +586,16 @@ const meta = {
 
 <script
   is:inline
-  src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js">
-</script>
+  src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
+></script>
 <script
   is:inline
-  src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.min.js">
-</script>
+  src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.min.js"
+></script>
 <script
   is:inline
-  src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js">
-</script>
+  src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
+></script>
 <script is:inline>
   (function () {
     "use strict";
@@ -577,8 +618,16 @@ const meta = {
     var boundaryLayer = L.layerGroup().addTo(map);
     var tileGroup = L.layerGroup().addTo(map);
     var drawLayer = L.layerGroup().addTo(map);
+    var showGroups = {};
+    var layersCtl = null;
 
-    var st = { geometry: null, mode: "idle", drawPts: [], runId: null };
+    var st = {
+      geometry: null,
+      mode: "idle",
+      drawPts: [],
+      runId: null,
+      resp: null,
+    };
 
     function el(id) {
       return document.getElementById(id);
@@ -592,6 +641,22 @@ const meta = {
     }
     function mapmsg(t) {
       el("bpMapMsg").textContent = t;
+    }
+    function clearShowLayers() {
+      Object.keys(showGroups).forEach(function (k) {
+        map.removeLayer(showGroups[k]);
+      });
+      showGroups = {};
+      if (layersCtl) {
+        map.removeControl(layersCtl);
+        layersCtl = null;
+      }
+      el("bpActs").hidden = true;
+      ["bpActTerrain", "bpActCanopy", "bpActInfra", "bpActGreen"].forEach(
+        function (id) {
+          el(id).classList.remove("bp-on");
+        },
+      );
     }
 
     /* ---------------- UTM helpers ---------------- */
@@ -622,6 +687,7 @@ const meta = {
       st.geometry = geometry;
       st.runId = null;
       tileGroup.clearLayers();
+      clearShowLayers();
       boundaryLayer.clearLayers();
       var layer = L.geoJSON(geometry, {
         style: { color: "#f2b23a", weight: 3, fill: false },
@@ -889,12 +955,127 @@ const meta = {
         .catch(fail);
     });
 
+    /* ---------------- the show: four acts from worker layers -------- */
+    var ACTS = [
+      {
+        key: "hillshade",
+        act: "bpActTerrain",
+        opacity: 0.8,
+        stat: function (ss) {
+          return ss.relief_ft != null
+            ? ss.relief_ft.toLocaleString() + " ft of relief"
+            : "";
+        },
+      },
+      {
+        key: "canopy",
+        act: "bpActCanopy",
+        opacity: 0.9,
+        stat: function (ss) {
+          return ss.tallest_ft != null
+            ? "tallest stand " + ss.tallest_ft.toLocaleString() + " ft"
+            : "";
+        },
+      },
+      {
+        key: "falsecolor",
+        act: "bpActInfra",
+        opacity: 1.0,
+        stat: function (ss) {
+          return ss.naip_year
+            ? ss.naip_year + " imagery, near-infrared band"
+            : "";
+        },
+      },
+      {
+        key: "greenness",
+        act: "bpActGreen",
+        opacity: 0.8,
+        stat: function (ss) {
+          return ss.green_pct != null
+            ? ss.green_pct + "% reads as living vegetation"
+            : "";
+        },
+      },
+    ];
+    var ACT_TITLES = {
+      hillshade: "Terrain (lidar)",
+      canopy: "Canopy height",
+      falsecolor: "Infrared",
+      greenness: "Living vegetation",
+    };
+
+    function addShowLayer(key, meta, opacity, instant) {
+      var group = L.layerGroup().addTo(map);
+      var ov = L.imageOverlay(
+        API + "/" + st.runId + "/layers/" + key,
+        meta.bounds,
+        { opacity: 0, interactive: false },
+      ).addTo(group);
+      var img = ov.getElement();
+      if (img && !instant) img.style.transition = "opacity 1.2s ease";
+      setTimeout(function () {
+        ov.setOpacity(opacity);
+      }, 60);
+      showGroups[key] = group;
+      return group;
+    }
+
+    function playShow(resp) {
+      clearShowLayers();
+      var layers = resp.layers || {};
+      var ss = resp.layer_stats || {};
+      var present = ACTS.filter(function (a) {
+        return layers[a.key];
+      });
+      var reduce = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+      if (!st.runId || present.length === 0) {
+        renderResult(resp);
+        return;
+      }
+      el("bpScanTitle").textContent = "Watch what we can see.";
+      el("bpActs").hidden = false;
+      var gap = reduce ? 250 : 2400;
+      present.forEach(function (a, i) {
+        setTimeout(
+          function () {
+            if (a.key === "greenness" && showGroups.falsecolor) {
+              showGroups.falsecolor.eachLayer(function (l) {
+                if (l.setOpacity) l.setOpacity(0.25);
+              });
+            }
+            addShowLayer(a.key, layers[a.key], a.opacity, reduce);
+            el(a.act).classList.add("bp-on");
+            var statEl = el(a.act + "Stat");
+            if (statEl) statEl.textContent = a.stat(ss);
+          },
+          500 + i * gap,
+        );
+      });
+      setTimeout(
+        function () {
+          var overlays = {};
+          present.forEach(function (a) {
+            overlays[ACT_TITLES[a.key]] = showGroups[a.key];
+          });
+          overlays["Measured tiles"] = tileGroup;
+          layersCtl = L.control
+            .layers(null, overlays, { collapsed: true })
+            .addTo(map);
+          renderResult(resp);
+        },
+        500 + present.length * gap + 300,
+      );
+    }
+
     /* ---------------- render ---------------- */
     function renderResult(resp) {
       var def = utmDef(resp.epsg);
       tileGroup.clearLayers();
       el("bpImgCredit").textContent =
-        "Measured from " + resp.naip_year + " imagery · © Esri basemap";
+        "Measured from " + resp.naip_year + " imagery + lidar · © Esri basemap";
       var h = resp.tile_m / 2;
       var rects = resp.tiles.map(function (t) {
         var swc = utmToLatLng(def, t[0] - h, t[1] - h);
@@ -1016,6 +1197,7 @@ const meta = {
     /* ---------------- result actions ---------------- */
     el("bpBtnAdjust").addEventListener("click", function () {
       tileGroup.clearLayers();
+      clearShowLayers();
       panelsShow("bpStepBrush");
     });
     el("bpBtnBack1").addEventListener("click", reset);
@@ -1025,6 +1207,8 @@ const meta = {
       st.mode = "idle";
       st.drawPts = [];
       st.runId = null;
+      st.resp = null;
+      clearShowLayers();
       boundaryLayer.clearLayers();
       tileGroup.clearLayers();
       drawLayer.clearLayers();
