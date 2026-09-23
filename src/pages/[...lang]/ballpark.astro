@@ -103,8 +103,8 @@ const meta = {
               📍&ensp;I&rsquo;m standing on it
             </button>
             <button class="bp-btn" id="bpBtnSample" style="margin-top:10px;">
-              See it work on Scott King Ranch
-              <small>a West Texas ranch we actually flew &amp; treated</small>
+              See it work on Fox Canyon
+              <small>682 rough acres of West Texas brush country</small>
             </button>
             <details class="bp-more">
               <summary>More ways</summary>
@@ -1140,54 +1140,25 @@ const meta = {
       "https://feature.geographic.texas.gov/arcgis/rest/services/Parcels/stratmap_land_parcels_48_most_recent/MapServer/identify";
     var ACRE_M2 = 4046.8564224;
 
-    // Scott King Ranch — the flown-and-treated demo boundary.
-    var SK_DEMO = {
+    // Fox Canyon Bowl — 682 acres of West Texas country we've scouted
+    // for treatment. Boundary is the prod region cutout (12 vertices).
+    var FOX_DEMO = {
       type: "MultiPolygon",
       coordinates: [
         [
           [
-            [-103.616806, 30.789244],
-            [-103.617719, 30.789237],
-            [-103.618068, 30.789111],
-            [-103.618251, 30.788887],
-            [-103.618232, 30.788584],
-            [-103.618171, 30.788354],
-            [-103.618124, 30.787973],
-            [-103.618231, 30.787682],
-            [-103.618437, 30.787406],
-            [-103.619016, 30.787257],
-            [-103.619693, 30.787266],
-            [-103.620313, 30.787208],
-            [-103.620486, 30.787076],
-            [-103.620381, 30.785518],
-            [-103.618901, 30.785518],
-            [-103.613898, 30.785467],
-            [-103.612204, 30.785483],
-            [-103.611747, 30.78561],
-            [-103.611739, 30.786001],
-            [-103.611761, 30.786229],
-            [-103.611786, 30.786252],
-            [-103.611769, 30.786263],
-            [-103.611768, 30.786315],
-            [-103.612015, 30.788933],
-            [-103.612377, 30.789146],
-            [-103.613039, 30.789203],
-            [-103.613648, 30.789205],
-            [-103.613833, 30.788954],
-            [-103.613901, 30.788704],
-            [-103.613726, 30.787832],
-            [-103.61407, 30.78728],
-            [-103.614512, 30.786906],
-            [-103.615343, 30.786749],
-            [-103.616132, 30.787084],
-            [-103.616588, 30.787345],
-            [-103.616757, 30.787554],
-            [-103.616711, 30.787823],
-            [-103.616499, 30.788295],
-            [-103.61628, 30.788552],
-            [-103.616203, 30.788824],
-            [-103.616226, 30.789147],
-            [-103.616806, 30.789244],
+            [-104.050727, 30.934307],
+            [-104.051022, 30.940186],
+            [-104.039437, 30.940159],
+            [-104.039761, 30.924842],
+            [-104.040007, 30.92015],
+            [-104.046959, 30.922379],
+            [-104.049057, 30.922334],
+            [-104.057209, 30.921081],
+            [-104.054635, 30.924106],
+            [-104.05431, 30.930889],
+            [-104.056714, 30.934178],
+            [-104.050727, 30.934307],
           ],
         ],
       ],
@@ -1997,8 +1968,8 @@ const meta = {
       clearShowLayers();
       tileGroup.clearLayers();
       st.county = "Jeff Davis";
-      st.geometry = SK_DEMO;
-      var f = turf.feature(SK_DEMO);
+      st.geometry = FOX_DEMO;
+      var f = turf.feature(FOX_DEMO);
       var outline = L.geoJSON(f, {
         style: { color: "#f2b23a", weight: 3, fill: false },
       }).addTo(boundaryLayer);
@@ -2007,9 +1978,9 @@ const meta = {
         "≈ " +
         Math.round(turf.area(f) / ACRE_M2).toLocaleString() +
         " acres · Jeff Davis County";
-      mapmsg("Scott King Ranch — flown & treated by Javelina Works");
+      mapmsg("Fox Canyon — West Texas brush country");
       showConfirm(
-        "A ranch we actually cleared. Watch what our machine saw.",
+        "Real country we've scouted for treatment. Watch what the machine sees.",
         false,
       );
     });
@@ -2243,8 +2214,17 @@ const meta = {
         bar.style.width = p.toFixed(1) + "%";
       }, 200);
       var t0 = Date.now();
+      var bigAcres = 0;
+      try {
+        bigAcres = turf.area(turf.feature(st.geometry)) / ACRE_M2;
+      } catch (e) {
+        /* cosmetic only */
+      }
+      var noteSuffix =
+        bigAcres > 300 ? " · big country — expect a few minutes" : "";
       var elapsed = setInterval(function () {
-        note.textContent = ((Date.now() - t0) / 1000).toFixed(0) + "s elapsed";
+        note.textContent =
+          ((Date.now() - t0) / 1000).toFixed(0) + "s elapsed" + noteSuffix;
       }, 1000);
       var feedN = 1;
       feedRender(1, false);
@@ -2321,7 +2301,7 @@ const meta = {
           var poll = setInterval(function () {
             if (inFlight || settled) return;
             tries += 1;
-            if (tries > 90) {
+            if (tries > 220) {
               clearInterval(poll);
               fail(
                 new Error(
