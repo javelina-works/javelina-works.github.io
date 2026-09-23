@@ -11,6 +11,11 @@ const meta = {
   metaDescription:
     "Type your ranch address — or stand on it — and get a measured budget range for clearing the brush, free, in about a minute.",
 };
+
+// Public URL-restricted Mapbox token, injected at build time so the literal
+// never lives in git (GitHub secret scanning flags every Mapbox JWT, pk or
+// not). Absent token = typeahead silently off, submit lookup still works.
+const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
 ---
 
 <Base {...meta} sectionSpacing="md">
@@ -1097,39 +1102,42 @@ const meta = {
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
   integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO"
-  crossorigin="anonymous"
-></script>
+  crossorigin="anonymous">
+</script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.fullscreen/3.0.2/Control.FullScreen.min.js"
   integrity="sha384-/Z8ZSkAZbvbRJgCQuFPpP3C2uNZWPV7H2wnxJyih5g4uZsLLFrKSIsaM6RLKuZK2"
-  crossorigin="anonymous"
-></script>
+  crossorigin="anonymous">
+</script>
 <!-- Turnstile ships without SRI on purpose: Cloudflare rotates the script. -->
 <script
   is:inline
   src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
   async
-  defer
-></script>
+  defer>
+</script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.min.js"
   integrity="sha384-/afhbJsRXHGy6vxnKzUwacQTDFat0eLiUZYYZT+ejWlu3RQytlhScgS3zO42xtMj"
-  crossorigin="anonymous"
-></script>
+  crossorigin="anonymous">
+</script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
   integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG"
-  crossorigin="anonymous"
-></script>
+  crossorigin="anonymous">
+</script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/7.2.0/turf.min.js"
   integrity="sha384-ll8qH0IE3im19Dtlr1jtv5fdy+gm+0bx8T4+OYxPeJpc6PO1XLNFnyvdzaKJ78bU"
-  crossorigin="anonymous"
-></script>
+  crossorigin="anonymous">
+</script>
+<script is:inline define:vars={{ mapboxToken }}>
+  window.BP_MB_TOKEN = mapboxToken;
+</script>
 <script is:inline>
   (function () {
     "use strict";
@@ -1715,8 +1723,7 @@ const meta = {
     /* Mapbox Search Box typeahead. Public URL-restricted token; on
        hosts it rejects (LAN-IP dev) the census/nominatim submit path
        below still works untouched. */
-    var MAPBOX_TOKEN =
-      "";
+    var MAPBOX_TOKEN = window.BP_MB_TOKEN || "";
     var MB_BASE = "https://api.mapbox.com/search/searchbox/v1";
     var mbSession = null;
     var mbSeq = 0;
@@ -1937,7 +1944,7 @@ const meta = {
       el("bpAddrMsg").hidden = true;
       var q = this.value.trim();
       clearTimeout(mbTimer);
-      if (q.length < 3 || parseLatLng(q)) {
+      if (!MAPBOX_TOKEN || q.length < 3 || parseLatLng(q)) {
         mbHide();
         return;
       }
