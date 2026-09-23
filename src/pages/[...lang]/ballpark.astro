@@ -90,12 +90,14 @@ const meta = {
               <input
                 type="text"
                 id="bpAddrInput"
-                aria-label="Ranch address or town"
-                placeholder="Ranch address, or town"
+                aria-label="Ranch address, town, or GPS coordinates"
+                placeholder="Address, town, or GPS (lat, long)"
                 autocomplete="street-address"
               />
               <button class="bp-cta bp-cta-slim" id="bpBtnFind">Find it</button>
             </div>
+            <p class="bp-filemsg" id="bpAddrMsg" hidden></p>
+            <div class="bp-suggest" id="bpSuggest" hidden></div>
             <button class="bp-cta" id="bpBtnHere" style="margin-top:10px;">
               📍&ensp;I&rsquo;m standing on it
             </button>
@@ -982,6 +984,25 @@ const meta = {
       #d84315
     );
   }
+  .bp-suggest {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+  }
+  .bp-suggestion {
+    text-align: left;
+    border: 1px solid var(--color-border-light);
+    background: var(--color-light);
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-size: 0.8rem;
+    color: var(--color-text-default);
+    cursor: pointer;
+  }
+  .bp-suggestion:hover {
+    border-color: var(--color-primary);
+  }
   [hidden] {
     display: none !important;
   }
@@ -1236,30 +1257,38 @@ const meta = {
         document.head.appendChild(s);
       });
     }
-    function nominatimGeocode(address) {
+    function nominatimList(address) {
       return fetch(
         "https://nominatim.openstreetmap.org/search?" +
           new URLSearchParams({
             q: address,
             format: "json",
-            limit: "1",
+            limit: "6",
             countrycodes: "us",
           }),
       )
         .then(function (r) {
-          return r.json();
+          return r.ok ? r.json() : [];
         })
         .then(function (d) {
-          if (!d.length) throw new Error("no match");
-          return { lat: +d[0].lat, lng: +d[0].lon };
+          var seen = {};
+          return (d || [])
+            .map(function (m) {
+              return {
+                lat: parseFloat(m.lat),
+                lng: parseFloat(m.lon),
+                label: (m.display_name || "")
+                  .split(", ")
+                  .slice(0, 3)
+                  .join(", "),
+              };
+            })
+            .filter(function (o) {
+              if (!isFinite(o.lat) || !o.label || seen[o.label]) return false;
+              seen[o.label] = 1;
+              return true;
+            });
         });
-    }
-    function geocode(q) {
-      var ll = parseLatLng(q);
-      if (ll) return Promise.resolve(ll);
-      return censusGeocode(q).catch(function () {
-        return nominatimGeocode(q);
-      });
     }
 
     /* ---------------- parcels (TxGIO identify) ---------------- */
@@ -1593,24 +1622,92 @@ const meta = {
     });
     function doFind() {
       var q = el("bpAddrInput").value.trim();
+      var am = el("bpAddrMsg");
+      var sg = el("bpSuggest");
+      var btn = el("bpBtnFind");
+      function say(t, ok) {
+        am.textContent = t;
+        am.classList.toggle("bp-ok", !!ok);
+        am.hidden = false;
+      }
+      function idle() {
+        btn.disabled = false;
+        btn.textContent = "Find it";
+      }
+      sg.hidden = true;
+      sg.innerHTML = "";
       if (!q) {
-        msg("Type the ranch address, the nearest town, or lat, lng.");
+        say("Type the ranch address, the nearest town, or lat, long.", false);
         return;
       }
       var seq = ++st.intakeSeq;
       fileMsg.hidden = true;
-      mapmsg("Finding it…");
-      geocode(q)
+      var ll = parseLatLng(q);
+      if (ll) {
+        am.hidden = true;
+        parcelFlow(ll.lat, ll.lng, seq);
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = "Searching…";
+      say("Looking that up…", true);
+      function pick(o) {
+        sg.hidden = true;
+        am.hidden = true;
+        el("bpAddrInput").value = o.label;
+        parcelFlow(o.lat, o.lng, ++st.intakeSeq);
+      }
+      censusGeocode(q)
         .then(function (p) {
+          if (seq !== st.intakeSeq) return;
+          idle();
+          am.hidden = true;
           parcelFlow(p.lat, p.lng, seq);
         })
         .catch(function () {
           if (seq !== st.intakeSeq) return;
-          msg(
-            "Couldn't place that address — try the nearest town, or drop a pin with “I'm standing on it.”",
-          );
+          nominatimList(q)
+            .then(function (list) {
+              if (seq !== st.intakeSeq) return;
+              idle();
+              if (!list.length) {
+                say(
+                  "Couldn't place that — add the town or ZIP, tap “I'm standing on it,” or open “More ways.”",
+                  false,
+                );
+                return;
+              }
+              if (list.length === 1) {
+                pick(list[0]);
+                return;
+              }
+              say("A few matches — pick yours:", true);
+              list.forEach(function (o) {
+                var b = document.createElement("button");
+                b.type = "button";
+                b.className = "bp-suggestion";
+                b.textContent = o.label;
+                b.addEventListener("click", function () {
+                  pick(o);
+                });
+                sg.appendChild(b);
+              });
+              sg.hidden = false;
+            })
+            .catch(function () {
+              if (seq !== st.intakeSeq) return;
+              idle();
+              say(
+                "The address service didn't answer — try again in a moment.",
+                false,
+              );
+            });
         });
     }
+    el("bpAddrInput").addEventListener("input", function () {
+      el("bpSuggest").hidden = true;
+      el("bpAddrMsg").hidden = true;
+    });
     el("bpBtnHere").addEventListener("click", function () {
       if (!navigator.geolocation) {
         msg(
