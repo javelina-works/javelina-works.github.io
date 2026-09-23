@@ -263,9 +263,9 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
             <div class="bp-lead" id="bpLeadBlock">
               <h3>Like these numbers?</h3>
               <p>
-                Leave your name and a phone or email &mdash; we&rsquo;ll reach
-                out to schedule a survey flight over your ground. That&rsquo;s
-                what turns this range into a firm quote.
+                Leave your name, phone, and email &mdash; we&rsquo;ll reach out
+                to schedule a survey flight over your ground. That&rsquo;s what
+                turns this range into a firm quote.
               </p>
               <label class="bp-field">
                 <span>Full name <b aria-hidden="true">*</b></span>
@@ -372,6 +372,12 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
     /* Leaflet panes reach z-index 1000; contain them so the map can
        never ride over the sticky site header. */
     isolation: isolate;
+  }
+  /* In pseudo-fullscreen the whole card must beat the sticky header —
+     the fixed map container cannot escape the isolation context. */
+  .bp-mapcard:has(.leaflet-pseudo-fullscreen) {
+    z-index: 900;
+    overflow: visible;
   }
   #bpMap {
     height: 620px;
@@ -1102,39 +1108,39 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
   integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.fullscreen/3.0.2/Control.FullScreen.min.js"
   integrity="sha384-/Z8ZSkAZbvbRJgCQuFPpP3C2uNZWPV7H2wnxJyih5g4uZsLLFrKSIsaM6RLKuZK2"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <!-- Turnstile ships without SRI on purpose: Cloudflare rotates the script. -->
 <script
   is:inline
   src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
   async
-  defer>
-</script>
+  defer
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.min.js"
   integrity="sha384-/afhbJsRXHGy6vxnKzUwacQTDFat0eLiUZYYZT+ejWlu3RQytlhScgS3zO42xtMj"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
   integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/7.2.0/turf.min.js"
   integrity="sha384-ll8qH0IE3im19Dtlr1jtv5fdy+gm+0bx8T4+OYxPeJpc6PO1XLNFnyvdzaKJ78bU"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script is:inline define:vars={{ mapboxToken }}>
   window.BP_MB_TOKEN = mapboxToken;
 </script>
@@ -1186,7 +1192,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         position: "topleft",
         title: "Full screen",
         titleCancel: "Exit full screen",
-        pseudoFullscreen: true,
+        forcePseudoFullscreen: true,
       }),
     );
     // Show chrome lives inside the map container so it survives
@@ -1556,7 +1562,13 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         ? feats[0]
         : turf.union(turf.featureCollection(feats));
     }
+    function invalidateRun() {
+      st.resp = null;
+      st.runId = null;
+      stepsRender();
+    }
     function refreshFromMembers(fit) {
+      invalidateRun();
       var u = membersUnion();
       boundaryLayer.clearLayers();
       if (!u) {
@@ -1625,8 +1637,9 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
     }
 
     function parcelFlow(lat, lng, seq) {
-      st.demoBase = null;
       if (seq !== st.intakeSeq) return; // a newer intake started meanwhile
+      st.demoBase = null;
+      invalidateRun();
       clearIntakeLayers();
       clearShowLayers();
       tileGroup.clearLayers();
@@ -1678,6 +1691,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
 
     function ringFlow(lat, lng, hint) {
       st.demoBase = null;
+      invalidateRun();
       clearIntakeLayers();
       st.county = null;
       st.ringCenter = [lat, lng];
@@ -1690,6 +1704,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       );
     }
     function drawRing() {
+      invalidateRun();
       ringLayer.clearLayers();
       boundaryLayer.clearLayers();
       if (!st.ringCenter) return;
@@ -1737,6 +1752,8 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
     }
     mbNewSession();
     function mbHide() {
+      clearTimeout(mbTimer);
+      mbSeq++; // drop any in-flight suggest response
       var sg = el("bpSuggest");
       sg.hidden = true;
       sg.innerHTML = "";
@@ -1808,6 +1825,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       var s = mbItems[i];
       if (!s) return;
       mbHide();
+      var seq = ++st.intakeSeq;
       el("bpAddrInput").value = mbLabel(s);
       el("bpAddrMsg").hidden = true;
       fetch(
@@ -1825,13 +1843,27 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         })
         .then(function (d) {
           mbNewSession();
+          if (seq !== st.intakeSeq) return;
           var f = d && d.features && d.features[0];
           var c = f && f.geometry && f.geometry.coordinates;
-          if (!c) return;
-          parcelFlow(c[1], c[0], ++st.intakeSeq);
+          if (!c) {
+            var am = el("bpAddrMsg");
+            am.textContent =
+              "Couldn't pin that spot — press Find it to search instead.";
+            am.classList.remove("bp-ok");
+            am.hidden = false;
+            return;
+          }
+          parcelFlow(c[1], c[0], seq);
         })
         .catch(function () {
           mbNewSession();
+          if (seq !== st.intakeSeq) return;
+          var am = el("bpAddrMsg");
+          am.textContent =
+            "Couldn't pin that spot — press Find it to search instead.";
+          am.classList.remove("bp-ok");
+          am.hidden = false;
         });
     }
     el("bpAddrInput").addEventListener("keydown", function (e) {
@@ -1870,8 +1902,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         btn.disabled = false;
         btn.textContent = "Find it";
       }
-      sg.hidden = true;
-      sg.innerHTML = "";
+      mbHide();
       if (!q) {
         say("Type the ranch address, the nearest town, or lat, long.", false);
         return;
@@ -1980,6 +2011,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       clearShowLayers();
       tileGroup.clearLayers();
       st.county = "Jeff Davis";
+      invalidateRun();
       st.geometry = FOX_DEMO;
       st.demoBase = "/demo/fox-canyon/";
       var f = turf.feature(FOX_DEMO);
@@ -2034,6 +2066,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
     }
     function setDirectBoundary(geometry, label) {
       st.demoBase = null;
+      invalidateRun();
       st.intakeSeq++;
       clearIntakeLayers();
       clearShowLayers();
@@ -2140,6 +2173,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
     });
     btnFinish.addEventListener("click", function () {
       st.demoBase = null;
+      invalidateRun();
       if (st.drawPts.length < 3) return;
       st.mode = "idle";
       el("bpMap").classList.remove("bp-drawing");
@@ -2208,8 +2242,10 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       ul.scrollTop = ul.scrollHeight;
     }
 
+    var scanSeq = 0;
     el("bpBtnEstimate").addEventListener("click", function () {
       if (!st.geometry) return;
+      var myScan = ++scanSeq;
       panelsShow("bpStepScan");
       if (!reduce) el("bpScan").hidden = false;
       el("bpMapCard").classList.add("bp-dim");
@@ -2266,11 +2302,13 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         clearTimeout(earlyT);
       }
       cancelScan = function () {
+        scanSeq++;
         stopTimers();
         el("bpScan").hidden = true;
         el("bpMapCard").classList.remove("bp-dim");
       };
       function fail(err) {
+        if (myScan !== scanSeq) return;
         stopTimers();
         clearEarlyTerrain();
         el("bpScan").hidden = true;
@@ -2279,12 +2317,15 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         e.textContent = err.message;
         e.hidden = false;
         setTimeout(function () {
+          if (myScan !== scanSeq) return;
           panelsShow("bpStepConfirm");
         }, 4000);
       }
 
       if (st.demoBase) {
-        runDemo(stopTimers, fail, bar);
+        runDemo(stopTimers, fail, bar, function () {
+          return myScan === scanSeq;
+        });
         return;
       }
 
@@ -2317,11 +2358,16 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
           return r.json();
         })
         .then(function (trig) {
+          if (myScan !== scanSeq) return;
           st.runId = trig.workflow_run_id;
           var tries = 0;
           var inFlight = false;
           var settled = false;
           var poll = setInterval(function () {
+            if (myScan !== scanSeq) {
+              clearInterval(poll);
+              return;
+            }
             if (inFlight || settled) return;
             tries += 1;
             if (tries > 220) {
@@ -2364,6 +2410,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
               });
           }, 1500);
           cancelScan = function () {
+            scanSeq++;
             settled = true;
             clearInterval(poll);
             stopTimers();
@@ -2374,16 +2421,16 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         .catch(fail);
     });
 
-    function runDemo(stopTimers, fail, bar) {
+    function runDemo(stopTimers, fail, bar, live) {
       var mySeq = st.intakeSeq;
       var demoT = setTimeout(function () {
-        if (mySeq !== st.intakeSeq) return;
+        if (mySeq !== st.intakeSeq || !live()) return;
         fetch(st.demoBase + "result.json")
           .then(function (r) {
             return r.json();
           })
           .then(function (result) {
-            if (mySeq !== st.intakeSeq) return;
+            if (mySeq !== st.intakeSeq || !live()) return;
             stopTimers();
             bar.style.width = "100%";
             feedRender(FEED.length, true);
@@ -2394,7 +2441,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
             }, 300);
           })
           .catch(function () {
-            if (mySeq !== st.intakeSeq) return;
+            if (mySeq !== st.intakeSeq || !live()) return;
             fail(
               new Error(
                 "The demo didn't load — try reading your own ranch instead.",
@@ -2403,6 +2450,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
           });
       }, 7600);
       cancelScan = function () {
+        scanSeq++;
         clearTimeout(demoT);
         stopTimers();
         el("bpScan").hidden = true;
