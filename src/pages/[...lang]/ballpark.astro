@@ -11,14 +11,17 @@ const meta = {
   metaDescription:
     "Type your ranch address — or stand on it — and get a measured budget range for clearing the brush, free, in about a minute.",
 };
+
+// Public URL-restricted Mapbox token, injected at build time so the literal
+// never lives in git (GitHub secret scanning flags every Mapbox JWT, pk or
+// not). Absent token = typeahead silently off, submit lookup still works.
+const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
 ---
 
 <Base {...meta} sectionSpacing="md">
   <section class="bp-hero">
     <div class="container">
-      <p class="bp-eyebrow">
-        Free &middot; about a minute &middot; nobody calls unless you ask
-      </p>
+      <p class="bp-eyebrow">Free &middot; about a minute</p>
       <h1>What would it cost to clear your brush?</h1>
       <p class="bp-sub">
         Tell us where the ranch is &mdash; we&rsquo;ll find the property, read
@@ -30,12 +33,43 @@ const meta = {
 
   <section class="bp-toolwrap">
     <div class="container">
+      <ol class="bp-steps" id="bpSteps" aria-label="Progress">
+        <li>
+          <button type="button" class="bp-step" id="bpStep1" disabled>
+            <span class="bp-step-n">1</span> Find your ranch
+          </button>
+        </li>
+        <li>
+          <button type="button" class="bp-step" id="bpStep2" disabled>
+            <span class="bp-step-n">2</span> Analysis
+          </button>
+        </li>
+        <li>
+          <button type="button" class="bp-step" id="bpStep3" disabled>
+            <span class="bp-step-n">3</span> Get ballpark
+          </button>
+        </li>
+      </ol>
       <div class="bp-tool">
         <div class="bp-mapcard" id="bpMapCard">
           <div id="bpMap"></div>
           <div class="bp-flash" id="bpFlash"></div>
+          <div class="bp-scan" id="bpScan" hidden></div>
+          <div class="bp-viewpanel" id="bpViewbar" hidden>
+            <div class="bp-views" id="bpViews"></div>
+            <div class="bp-viewlegend" id="bpViewLegend" hidden>
+              <span id="bpVlL"></span>
+              <i id="bpVlBar"></i>
+              <span id="bpVlR"></span>
+            </div>
+          </div>
           <div class="bp-lt" id="bpLt">
             <div class="bp-lt-line" id="bpLtLine"></div>
+            <div class="bp-lt-ramp" id="bpLtRamp" hidden>
+              <span id="bpLtRampL"></span>
+              <i id="bpLtRampBar"></i>
+              <span id="bpLtRampR"></span>
+            </div>
             <span class="bp-lt-chip" id="bpLtChip"></span>
           </div>
           <div class="bp-mapcaption">
@@ -47,7 +81,7 @@ const meta = {
         </div>
 
         <div class="bp-panel">
-          <section id="bpStepLocate">
+          <div id="bpStepLocate">
             <h2>Where&rsquo;s the ranch?</h2>
             <p class="bp-panelsub">
               We&rsquo;ll pull the property lines for you.
@@ -56,18 +90,26 @@ const meta = {
               <input
                 type="text"
                 id="bpAddrInput"
-                aria-label="Ranch address or town"
-                placeholder="Ranch address, or town"
+                aria-label="Ranch address, town, or GPS coordinates"
+                placeholder="Address, town, or GPS (lat, long)"
                 autocomplete="street-address"
               />
               <button class="bp-cta bp-cta-slim" id="bpBtnFind">Find it</button>
+            </div>
+            <p class="bp-filemsg" id="bpAddrMsg" hidden></p>
+            <div
+              class="bp-suggest"
+              id="bpSuggest"
+              role="listbox"
+              aria-label="Address suggestions"
+              hidden>
             </div>
             <button class="bp-cta" id="bpBtnHere" style="margin-top:10px;">
               📍&ensp;I&rsquo;m standing on it
             </button>
             <button class="bp-btn" id="bpBtnSample" style="margin-top:10px;">
-              See it work on Scott King Ranch
-              <small>a West Texas ranch we actually flew &amp; treated</small>
+              See it work on Fox Canyon
+              <small>a 180-acre slice of West Texas canyon country</small>
             </button>
             <details class="bp-more">
               <summary>More ways</summary>
@@ -99,9 +141,9 @@ const meta = {
               </button>
               <button class="bp-ghost" id="bpBtnClearDraw">Start over</button>
             </div>
-          </section>
+          </div>
 
-          <section id="bpStepConfirm" hidden>
+          <div id="bpStepConfirm" hidden>
             <h2>Is this the place?</h2>
             <span class="bp-acrepill" id="bpAcrePill"></span>
             <p class="bp-panelsub" id="bpConfirmHint"></p>
@@ -155,9 +197,9 @@ const meta = {
             <button class="bp-ghost" id="bpBtnBack1">
               &larr; Different place
             </button>
-          </section>
+          </div>
 
-          <section id="bpStepScan" hidden>
+          <div id="bpStepScan" hidden>
             <h2 id="bpScanTitle">Reading your country&hellip;</h2>
             <div class="bp-bar"><div id="bpBarFill"></div></div>
             <ul class="bp-stages" id="bpStageList"></ul>
@@ -181,9 +223,9 @@ const meta = {
             </div>
             <p class="bp-scannote" id="bpScanNote">Usually under a minute.</p>
             <p class="bp-filemsg" id="bpScanErr" hidden></p>
-          </section>
+          </div>
 
-          <section id="bpStepResult" hidden>
+          <div id="bpStepResult" hidden>
             <h2>Your ballpark</h2>
             <div class="bp-band">
               <span class="bp-band-big" id="bpPriceBand"></span>
@@ -206,39 +248,60 @@ const meta = {
               </tbody>
             </table>
             <p class="bp-confnote">
-              Tap the layers control on the map to replay what we saw. This is a
-              planning range, not a bid &mdash; your firm quote comes from a
-              survey flight over your ground.
+              Use the map views to explore what we saw. This is a planning
+              range, not a bid &mdash; a firm quote takes a scheduled survey
+              flight over your ground.
             </p>
+            <div class="bp-lead" id="bpDemoCta" hidden>
+              <h3>That&rsquo;s the machine at work.</h3>
+              <p>
+                Everything you just watched was computed from real public data
+                over that canyon. Now point it at your own ground.
+              </p>
+              <button class="bp-cta" id="bpBtnOwn">Read my ranch &rarr;</button>
+            </div>
             <div class="bp-lead" id="bpLeadBlock">
               <h3>Like these numbers?</h3>
               <p>
-                Leave your name and a phone or email &mdash; we&rsquo;ll take a
-                closer look at the same ground and call you back with a firm
-                quote.
+                Leave your name, phone, and email &mdash; we&rsquo;ll reach out
+                to schedule a survey flight over your ground. That&rsquo;s what
+                turns this range into a firm quote.
               </p>
-              <input
-                type="text"
-                id="bpLeadName"
-                aria-label="Your name"
-                maxlength="200"
-                placeholder="Your name"
-                autocomplete="name"
-              />
-              <input
-                type="text"
-                id="bpLeadContact"
-                aria-label="Phone or email"
-                maxlength="300"
-                placeholder="Phone or email"
-                autocomplete="tel"
-              />
-              <textarea
-                id="bpLeadNotes"
-                aria-label="Notes for the crew (optional)"
-                maxlength="2000"
-                placeholder="Anything we should know? (optional)">
-              </textarea>
+              <label class="bp-field">
+                <span>Full name <b aria-hidden="true">*</b></span>
+                <input
+                  type="text"
+                  id="bpLeadName"
+                  maxlength="200"
+                  autocomplete="name"
+                  required
+                />
+              </label>
+              <label class="bp-field">
+                <span>Phone <b aria-hidden="true">*</b></span>
+                <input
+                  type="tel"
+                  id="bpLeadPhone"
+                  maxlength="40"
+                  autocomplete="tel"
+                  required
+                />
+              </label>
+              <label class="bp-field">
+                <span>Email <b aria-hidden="true">*</b></span>
+                <input
+                  type="email"
+                  id="bpLeadEmail"
+                  maxlength="254"
+                  autocomplete="email"
+                  required
+                />
+              </label>
+              <label class="bp-field">
+                <span>Anything we should know? <em>(optional)</em></span>
+                <textarea id="bpLeadNotes" maxlength="2000"></textarea>
+              </label>
+              <div class="bp-turnstile" id="bpTurnstile"></div>
               <button class="bp-cta" id="bpLeadSend">
                 Request a firm quote
               </button>
@@ -252,7 +315,7 @@ const meta = {
                 Start over with new ground
               </button>
             </div>
-          </section>
+          </div>
         </div>
       </div>
     </div>
@@ -263,6 +326,12 @@ const meta = {
   rel="stylesheet"
   href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
   integrity="sha384-c6Rcwz4e4CITMbu/NBmnNS8yN2sC3cUElMEMfP3vqqKFp7GOYaaBBCqmaWBjmkjb"
+  crossorigin="anonymous"
+/>
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.fullscreen/3.0.2/Control.FullScreen.min.css"
+  integrity="sha384-rlEXvAXKofl01ReiHwhh3+evcnpVfpwcnPbd38VbIK8L9Ebpi1ldCOrsqIrkRg/b"
   crossorigin="anonymous"
 />
 
@@ -300,6 +369,15 @@ const meta = {
     border-radius: 8px;
     overflow: hidden;
     position: relative;
+    /* Leaflet panes reach z-index 1000; contain them so the map can
+       never ride over the sticky site header. */
+    isolation: isolate;
+  }
+  /* In pseudo-fullscreen the whole card must beat the sticky header —
+     the fixed map container cannot escape the isolation context. */
+  .bp-mapcard:has(.leaflet-pseudo-fullscreen) {
+    z-index: 900;
+    overflow: visible;
   }
   #bpMap {
     height: 620px;
@@ -538,38 +616,50 @@ const meta = {
   .bp-stages {
     list-style: none;
     margin: 8px 0 0;
-    padding: 0;
-    font-size: 0.88rem;
-    min-height: 84px;
+    padding: 10px 12px;
+    background: #0f130f;
+    border: 1px solid #273023;
+    border-radius: 8px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: #9ecf9a;
+    min-height: 150px;
+    max-height: 210px;
+    overflow-y: auto;
   }
   .bp-stages li {
-    padding: 4px 0 4px 26px;
-    position: relative;
-    opacity: 0.75;
+    padding: 1px 0;
   }
-  .bp-stages li::before {
-    content: "\2713";
-    position: absolute;
-    left: 2px;
-    color: var(--color-success);
-    font-weight: 700;
+  .bp-stages li .bp-tprompt {
+    color: #55804f;
+    user-select: none;
+  }
+  .bp-stages li.bp-done {
+    opacity: 0.6;
   }
   .bp-stages li.bp-current {
-    opacity: 1;
-    font-weight: 600;
+    color: #cfe8c9;
   }
-  .bp-stages li.bp-current::before {
-    content: "\25CC";
-    color: var(--color-primary);
-    animation: bp-pulse 1s ease-in-out infinite;
+  .bp-stages .bp-tok {
+    color: #d9ef86;
   }
-  @keyframes bp-pulse {
+  .bp-cursor {
+    display: inline-block;
+    width: 0.55em;
+    height: 1em;
+    margin-left: 2px;
+    vertical-align: -0.15em;
+    background: #9ecf9a;
+    animation: bpBlink 1s steps(1) infinite;
+  }
+  @keyframes bpBlink {
     50% {
-      opacity: 0.25;
+      opacity: 0;
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .bp-stages li.bp-current::before {
+    .bp-cursor {
       animation: none;
     }
   }
@@ -679,13 +769,30 @@ const meta = {
     font-size: 0.85rem;
     opacity: 0.75;
   }
+  .bp-field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin: 0 0 8px;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+  .bp-field b {
+    color: #d64545;
+  }
+  .bp-field em {
+    font-weight: 400;
+    font-style: normal;
+    opacity: 0.65;
+  }
   .bp-lead input,
   .bp-lead textarea {
     font: inherit;
     width: 100%;
     box-sizing: border-box;
     padding: 8px 10px;
-    margin: 0 0 8px;
+    margin: 0;
+    font-weight: 400;
     border: 1.5px solid var(--color-border-light);
     border-radius: 6px;
     background: #fff;
@@ -712,6 +819,286 @@ const meta = {
     gap: 4px;
     margin-top: 14px;
   }
+  /* step indicator */
+  .bp-steps {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    list-style: none;
+    margin: 0 0 14px;
+    padding: 0;
+  }
+  .bp-steps li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .bp-steps li + li::before {
+    content: "›";
+    color: var(--color-text-default);
+    opacity: 0.45;
+    font-size: 1.05rem;
+    line-height: 1;
+  }
+  .bp-step {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border: 0;
+    background: none;
+    color: var(--color-text-default);
+    padding: 2px;
+    font: inherit;
+    font-size: 0.85rem;
+    opacity: 0.5;
+  }
+  .bp-step-n {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid currentColor;
+    font-weight: 700;
+    font-size: 0.75rem;
+  }
+  .bp-step.bp-active {
+    opacity: 1;
+    color: var(--color-primary);
+    font-weight: 600;
+  }
+  .bp-step.bp-active .bp-step-n,
+  .bp-step.bp-done .bp-step-n {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+  }
+  .bp-step.bp-click {
+    opacity: 0.85;
+    cursor: pointer;
+  }
+  .bp-step.bp-click:hover {
+    text-decoration: underline;
+  }
+  /* satellite sweep while the analysis runs */
+  .bp-scan {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    z-index: 640;
+    pointer-events: none;
+  }
+  .bp-scan::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 16%;
+    top: -20%;
+    background: linear-gradient(
+      180deg,
+      transparent,
+      rgba(170, 255, 160, 0.14) 55%,
+      rgba(255, 255, 255, 0.32) 97%,
+      transparent
+    );
+    animation: bpScanSweep 2.8s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bp-scan::after {
+      animation: none;
+    }
+  }
+  @keyframes bpScanSweep {
+    to {
+      top: 104%;
+    }
+  }
+  /* layer wash-in: a feathered wipe down the map, sharpening as it lands */
+  @keyframes bpReveal {
+    from {
+      -webkit-mask-position: 0% 100%;
+      mask-position: 0% 100%;
+      filter: blur(5px);
+    }
+    to {
+      -webkit-mask-position: 0% 0%;
+      mask-position: 0% 0%;
+      filter: blur(0);
+    }
+  }
+  img.bp-reveal {
+    -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent 60%);
+    mask-image: linear-gradient(to bottom, #000 40%, transparent 60%);
+    -webkit-mask-size: 100% 300%;
+    mask-size: 100% 300%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    animation: bpReveal 1.7s cubic-bezier(0.33, 0, 0.2, 1) forwards;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    img.bp-reveal {
+      animation: none;
+      -webkit-mask-image: none;
+      mask-image: none;
+    }
+  }
+  /* what-am-I-looking-at chrome: legend ramp + layer thumbnail rail */
+  .bp-lt-ramp {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    font-size: 0.66rem;
+    opacity: 0.9;
+  }
+  .bp-lt-ramp i {
+    flex: 0 0 92px;
+    height: 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+  }
+  .bp-ramp-canopy {
+    background: linear-gradient(90deg, #440154, #31688e, #35b779, #fde725);
+  }
+  .bp-ramp-falsecolor {
+    background: linear-gradient(90deg, #4a4a52, #8c4a3a, #e03a2a);
+  }
+  .bp-ramp-greenness {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.12),
+      #7ac943,
+      #1c7a22
+    );
+  }
+  .bp-viewpanel {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 660;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 6px 12px;
+    max-width: calc(100% - 90px);
+    background: rgba(20, 24, 18, 0.72);
+    border-radius: 999px;
+    padding: 5px 12px;
+    backdrop-filter: blur(4px);
+  }
+  .bp-mapcard .leaflet-popup-content-wrapper,
+  .bp-mapcard .leaflet-popup-tip {
+    background: var(--color-light);
+    color: var(--color-text-default);
+  }
+  .bp-tilepop canvas {
+    display: block;
+    border-radius: 6px;
+  }
+  .bp-tilepop p {
+    margin: 6px 0 0;
+    font-size: 0.74rem;
+    max-width: 176px;
+    color: var(--color-text-default);
+  }
+  .bp-tilepop p b {
+    color: var(--color-primary);
+  }
+  .bp-tilepop-key {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 4px;
+    font-size: 0.68rem;
+    color: var(--color-text-default);
+    opacity: 0.85;
+  }
+  .bp-tilepop-key i {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    background: #e621d8;
+    opacity: 0.75;
+  }
+  .bp-ramp-plants {
+    background: linear-gradient(90deg, rgba(53, 201, 58, 0.08), #35c93a);
+  }
+  .bp-views {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .bp-view {
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    background: transparent;
+    color: #fff3e6;
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 0.72rem;
+    cursor: pointer;
+  }
+  .bp-view.bp-on {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+  }
+  .bp-viewlegend {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.68rem;
+    color: #fff3e6;
+  }
+  .bp-viewlegend i {
+    flex: 0 0 80px;
+    height: 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+  }
+  .bp-ramp-density {
+    background: linear-gradient(
+      90deg,
+      rgba(245, 222, 130, 0.3),
+      #f5c542 45%,
+      #d84315
+    );
+  }
+  .bp-turnstile {
+    margin: 0 0 8px;
+  }
+  .bp-turnstile:empty {
+    margin: 0;
+  }
+  .bp-suggest {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+  }
+  .bp-suggestion {
+    text-align: left;
+    border: 1px solid var(--color-border-light);
+    background: var(--color-light);
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-size: 0.8rem;
+    color: var(--color-text-default);
+    cursor: pointer;
+  }
+  .bp-suggestion:hover,
+  .bp-suggestion.bp-on {
+    border-color: var(--color-primary);
+  }
+  .bp-suggestion small {
+    display: block;
+    opacity: 0.65;
+    font-size: 0.72rem;
+  }
   [hidden] {
     display: none !important;
   }
@@ -721,40 +1108,53 @@ const meta = {
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
   integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
+<script
+  is:inline
+  src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.fullscreen/3.0.2/Control.FullScreen.min.js"
+  integrity="sha384-/Z8ZSkAZbvbRJgCQuFPpP3C2uNZWPV7H2wnxJyih5g4uZsLLFrKSIsaM6RLKuZK2"
+  crossorigin="anonymous"
+></script>
+<!-- Turnstile ships without SRI on purpose: Cloudflare rotates the script. -->
+<script
+  is:inline
+  src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+  async
+  defer
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.min.js"
   integrity="sha384-/afhbJsRXHGy6vxnKzUwacQTDFat0eLiUZYYZT+ejWlu3RQytlhScgS3zO42xtMj"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
   integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/7.2.0/turf.min.js"
   integrity="sha384-ll8qH0IE3im19Dtlr1jtv5fdy+gm+0bx8T4+OYxPeJpc6PO1XLNFnyvdzaKJ78bU"
-  crossorigin="anonymous">
+  crossorigin="anonymous"
+></script>
+<script is:inline define:vars={{ mapboxToken }}>
+  window.BP_MB_TOKEN = mapboxToken;
 </script>
 <script is:inline>
   (function () {
     "use strict";
 
-    // Same-origin proxies in production and on Netlify deploy previews
-    // (previews talk to the staging engine); the staging API directly when
-    // developing on localhost.
-    var HOST = location.hostname;
-    var API =
-      HOST === "localhost" || HOST === "127.0.0.1"
-        ? "https://fastapi-staging.up.railway.app/api/v2/ballpark"
-        : HOST.endsWith("javelinaworks.com")
-          ? "/api/ballpark"
-          : "/api/ballpark-staging";
+    // Always same-origin: production proxies /api/ballpark via Netlify;
+    // deploy previews get /api/ballpark-staging from netlify.toml; local
+    // `astro dev` serves the same staging path through a Vite proxy
+    // (astro.config.mjs), so localhost and LAN/phone testing both work.
+    var API = location.hostname.endsWith("javelinaworks.com")
+      ? "/api/ballpark"
+      : "/api/ballpark-staging";
 
     // TxGIO StratMap statewide parcels (identify-only public service) — from
     // the address-to-site exploration in brush-targeting.
@@ -762,54 +1162,19 @@ const meta = {
       "https://feature.geographic.texas.gov/arcgis/rest/services/Parcels/stratmap_land_parcels_48_most_recent/MapServer/identify";
     var ACRE_M2 = 4046.8564224;
 
-    // Scott King Ranch — the flown-and-treated demo boundary.
-    var SK_DEMO = {
+    // Fox Canyon — a 180-acre slice of the scouted bowl, chosen from the
+    // full run's own layers: densest detected brush, cleanest lidar ground
+    // coverage, ~60s runtime on the 1 m path.
+    var FOX_DEMO = {
       type: "MultiPolygon",
       coordinates: [
         [
           [
-            [-103.616806, 30.789244],
-            [-103.617719, 30.789237],
-            [-103.618068, 30.789111],
-            [-103.618251, 30.788887],
-            [-103.618232, 30.788584],
-            [-103.618171, 30.788354],
-            [-103.618124, 30.787973],
-            [-103.618231, 30.787682],
-            [-103.618437, 30.787406],
-            [-103.619016, 30.787257],
-            [-103.619693, 30.787266],
-            [-103.620313, 30.787208],
-            [-103.620486, 30.787076],
-            [-103.620381, 30.785518],
-            [-103.618901, 30.785518],
-            [-103.613898, 30.785467],
-            [-103.612204, 30.785483],
-            [-103.611747, 30.78561],
-            [-103.611739, 30.786001],
-            [-103.611761, 30.786229],
-            [-103.611786, 30.786252],
-            [-103.611769, 30.786263],
-            [-103.611768, 30.786315],
-            [-103.612015, 30.788933],
-            [-103.612377, 30.789146],
-            [-103.613039, 30.789203],
-            [-103.613648, 30.789205],
-            [-103.613833, 30.788954],
-            [-103.613901, 30.788704],
-            [-103.613726, 30.787832],
-            [-103.61407, 30.78728],
-            [-103.614512, 30.786906],
-            [-103.615343, 30.786749],
-            [-103.616132, 30.787084],
-            [-103.616588, 30.787345],
-            [-103.616757, 30.787554],
-            [-103.616711, 30.787823],
-            [-103.616499, 30.788295],
-            [-103.61628, 30.788552],
-            [-103.616203, 30.788824],
-            [-103.616226, 30.789147],
-            [-103.616806, 30.789244],
+            [-104.049101, 30.930708],
+            [-104.049101, 30.938208],
+            [-104.039936, 30.938208],
+            [-104.039936, 30.930708],
+            [-104.049101, 30.930708],
           ],
         ],
       ],
@@ -822,6 +1187,33 @@ const meta = {
       { maxZoom: 19, attribution: "&copy; Esri" },
     ).addTo(map);
     L.control.scale({ imperial: true }).addTo(map);
+    map.addControl(
+      L.control.fullscreen({
+        position: "topleft",
+        title: "Full screen",
+        titleCancel: "Exit full screen",
+        forcePseudoFullscreen: true,
+      }),
+    );
+    // Show chrome lives inside the map container so it survives
+    // fullscreen, which promotes only the container.
+    ["bpFlash", "bpScan", "bpLt", "bpViewbar"].forEach(function (cid) {
+      map.getContainer().appendChild(document.getElementById(cid));
+    });
+    L.DomEvent.disableClickPropagation(document.getElementById("bpViewbar"));
+    L.DomEvent.disableScrollPropagation(document.getElementById("bpViewbar"));
+    map.on("enterFullscreen exitFullscreen", function () {
+      setTimeout(function () {
+        map.invalidateSize();
+      }, 120);
+    });
+    document.addEventListener("keydown", function (e) {
+      if (
+        e.key === "Escape" &&
+        map.getContainer().classList.contains("leaflet-pseudo-fullscreen")
+      )
+        map.toggleFullscreen();
+    });
     var canvasRenderer = L.canvas({ padding: 0.3 });
     var boundaryLayer = L.layerGroup().addTo(map);
     var parcelLayer = L.layerGroup().addTo(map);
@@ -829,7 +1221,6 @@ const meta = {
     var tileGroup = L.layerGroup().addTo(map);
     var drawLayer = L.layerGroup().addTo(map);
     var showGroups = {};
-    var layersCtl = null;
 
     var st = {
       geometry: null,
@@ -843,8 +1234,11 @@ const meta = {
       ringCenter: null,
       ringR: 700,
       intakeSeq: 0,
+      demoBase: null,
     };
     var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var showSeq = 0;
+    var cancelScan = null;
 
     function el(id) {
       return document.getElementById(id);
@@ -858,13 +1252,42 @@ const meta = {
         el("bpFileInput").click();
       }
     });
+    var STEP_OF = {
+      bpStepLocate: 1,
+      bpStepConfirm: 1,
+      bpStepScan: 2,
+      bpStepResult: 3,
+    };
+    var curStep = 1;
+    function stepsRender() {
+      var canReplay = !!st.resp;
+      [
+        { n: 1, can: curStep > 1 },
+        { n: 2, can: canReplay && curStep !== 2 },
+        { n: 3, can: canReplay && curStep !== 3 },
+      ].forEach(function (c) {
+        var b = el("bpStep" + c.n);
+        var on = curStep === c.n;
+        var done = c.n < curStep;
+        b.classList.toggle("bp-active", on);
+        b.classList.toggle("bp-done", done);
+        b.classList.toggle("bp-click", c.can);
+        b.querySelector(".bp-step-n").textContent = done ? "✓" : String(c.n);
+        b.disabled = !c.can;
+        if (on) b.setAttribute("aria-current", "step");
+        else b.removeAttribute("aria-current");
+      });
+    }
     function panelsShow(name) {
       ["bpStepLocate", "bpStepConfirm", "bpStepScan", "bpStepResult"].forEach(
         function (id) {
           el(id).hidden = id !== name;
         },
       );
+      curStep = STEP_OF[name] || curStep;
+      stepsRender();
     }
+    stepsRender();
     function mapmsg(t) {
       el("bpMapMsg").textContent = t;
     }
@@ -942,30 +1365,38 @@ const meta = {
         document.head.appendChild(s);
       });
     }
-    function nominatimGeocode(address) {
+    function nominatimList(address) {
       return fetch(
         "https://nominatim.openstreetmap.org/search?" +
           new URLSearchParams({
             q: address,
             format: "json",
-            limit: "1",
+            limit: "6",
             countrycodes: "us",
           }),
       )
         .then(function (r) {
-          return r.json();
+          return r.ok ? r.json() : [];
         })
         .then(function (d) {
-          if (!d.length) throw new Error("no match");
-          return { lat: +d[0].lat, lng: +d[0].lon };
+          var seen = {};
+          return (d || [])
+            .map(function (m) {
+              return {
+                lat: parseFloat(m.lat),
+                lng: parseFloat(m.lon),
+                label: (m.display_name || "")
+                  .split(", ")
+                  .slice(0, 3)
+                  .join(", "),
+              };
+            })
+            .filter(function (o) {
+              if (!isFinite(o.lat) || !o.label || seen[o.label]) return false;
+              seen[o.label] = 1;
+              return true;
+            });
         });
-    }
-    function geocode(q) {
-      var ll = parseLatLng(q);
-      if (ll) return Promise.resolve(ll);
-      return censusGeocode(q).catch(function () {
-        return nominatimGeocode(q);
-      });
     }
 
     /* ---------------- parcels (TxGIO identify) ---------------- */
@@ -1131,7 +1562,22 @@ const meta = {
         ? feats[0]
         : turf.union(turf.featureCollection(feats));
     }
+    function invalidateRun() {
+      st.resp = null;
+      st.runId = null;
+      stepsRender();
+    }
     function refreshFromMembers(fit) {
+      invalidateRun();
+      // Gray parcels stay clickable during the scan (the sweep overlay is
+      // pointer-events: none) — a boundary change mid-scan or mid-show
+      // must cancel the run, not let a late poll resurrect it.
+      if (curStep !== 1) {
+        if (cancelScan) cancelScan();
+        clearShowLayers();
+        tileGroup.clearLayers();
+        panelsShow("bpStepConfirm");
+      }
       var u = membersUnion();
       boundaryLayer.clearLayers();
       if (!u) {
@@ -1150,46 +1596,45 @@ const meta = {
         " acres" +
         (st.county ? " · " + st.county + " County" : "");
     }
+    // Selected ground is solid gold; neighboring parcels are visibly
+    // grayed ghosts so a wrong-parcel landing is obviously recoverable.
+    var PARCEL_ON = {
+      color: "#f2b23a",
+      weight: 1,
+      dashArray: null,
+      fillColor: "#f2b23a",
+      fillOpacity: 0.12,
+    };
+    var PARCEL_OFF = {
+      color: "#f2efe6",
+      weight: 1.5,
+      dashArray: "5 4",
+      fillColor: "#6d685c",
+      fillOpacity: 0.14,
+    };
     function addParcel(f, isMember) {
       var key = String(f.properties.objectid);
       var lyr = L.geoJSON(f, {
-        style: isMember
-          ? {
-              color: "#f2b23a",
-              weight: 1,
-              fillColor: "#f2b23a",
-              fillOpacity: 0.12,
-            }
-          : {
-              color: "#ffd9a0",
-              weight: 1.5,
-              dashArray: "6 5",
-              fill: true,
-              fillOpacity: 0.03,
-            },
+        style: isMember ? PARCEL_ON : PARCEL_OFF,
       }).addTo(parcelLayer);
       lyr.feature = f;
       (isMember ? st.members : st.others)[key] = lyr;
+      lyr.on("mouseover", function () {
+        if (st.others[key]) lyr.setStyle({ fillOpacity: 0.28 });
+      });
+      lyr.on("mouseout", function () {
+        if (st.others[key]) lyr.setStyle(PARCEL_OFF);
+      });
       lyr.on("click", function () {
         if (st.members[key]) {
           if (Object.keys(st.members).length === 1) return; // keep one
           delete st.members[key];
           st.others[key] = lyr;
-          lyr.setStyle({
-            color: "#ffd9a0",
-            weight: 1.5,
-            dashArray: "6 5",
-            fillOpacity: 0.03,
-          });
+          lyr.setStyle(PARCEL_OFF);
         } else {
           delete st.others[key];
           st.members[key] = lyr;
-          lyr.setStyle({
-            color: "#f2b23a",
-            weight: 1,
-            dashArray: null,
-            fillOpacity: 0.12,
-          });
+          lyr.setStyle(PARCEL_ON);
         }
         refreshFromMembers(false);
       });
@@ -1202,6 +1647,8 @@ const meta = {
 
     function parcelFlow(lat, lng, seq) {
       if (seq !== st.intakeSeq) return; // a newer intake started meanwhile
+      st.demoBase = null;
+      invalidateRun();
       clearIntakeLayers();
       clearShowLayers();
       tileGroup.clearLayers();
@@ -1235,7 +1682,7 @@ const meta = {
             mapmsg("Property lines from county records");
             showConfirm(
               r.others.length
-                ? "Tap dashed pieces to add them; tap solid ones to drop them."
+                ? "Gold is what we'll measure. Wrong ground? Tap a gray parcel to add it, tap gold to drop it."
                 : "Tap the boundary if a piece is wrong — or just go.",
               false,
             );
@@ -1252,6 +1699,8 @@ const meta = {
     }
 
     function ringFlow(lat, lng, hint) {
+      st.demoBase = null;
+      invalidateRun();
       clearIntakeLayers();
       st.county = null;
       st.ringCenter = [lat, lng];
@@ -1264,6 +1713,7 @@ const meta = {
       );
     }
     function drawRing() {
+      invalidateRun();
       ringLayer.clearLayers();
       boundaryLayer.clearLayers();
       if (!st.ringCenter) return;
@@ -1294,29 +1744,254 @@ const meta = {
 
     /* ---------------- intake actions ---------------- */
     el("bpBtnFind").addEventListener("click", doFind);
+    /* Mapbox Search Box typeahead. Public URL-restricted token; on
+       hosts it rejects (LAN-IP dev) the census/nominatim submit path
+       below still works untouched. */
+    var MAPBOX_TOKEN = window.BP_MB_TOKEN || "";
+    var MB_BASE = "https://api.mapbox.com/search/searchbox/v1";
+    var mbSession = null;
+    var mbSeq = 0;
+    var mbTimer = null;
+    var mbItems = [];
+    var mbActive = -1;
+    function mbNewSession() {
+      mbSession =
+        (window.crypto && crypto.randomUUID && crypto.randomUUID()) ||
+        String(Math.random()).slice(2) + Date.now();
+    }
+    mbNewSession();
+    function mbHide() {
+      clearTimeout(mbTimer);
+      mbSeq++; // drop any in-flight suggest response
+      var sg = el("bpSuggest");
+      sg.hidden = true;
+      sg.innerHTML = "";
+      mbItems = [];
+      mbActive = -1;
+    }
+    function mbLabel(s) {
+      return s.name + (s.place_formatted ? ", " + s.place_formatted : "");
+    }
+    function mbRenderList() {
+      var sg = el("bpSuggest");
+      sg.innerHTML = "";
+      if (!mbItems.length) {
+        sg.hidden = true;
+        return;
+      }
+      mbItems.forEach(function (s, i) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "bp-suggestion" + (i === mbActive ? " bp-on" : "");
+        b.setAttribute("role", "option");
+        b.setAttribute("aria-selected", i === mbActive ? "true" : "false");
+        b.innerHTML = "";
+        var nm = document.createElement("span");
+        nm.textContent = s.name;
+        var ctx = document.createElement("small");
+        ctx.textContent = s.place_formatted || "";
+        b.appendChild(nm);
+        b.appendChild(ctx);
+        b.addEventListener("click", function () {
+          mbPick(i);
+        });
+        sg.appendChild(b);
+      });
+      sg.hidden = false;
+    }
+    function mbSuggest(q) {
+      var mySeq = ++mbSeq;
+      fetch(
+        MB_BASE +
+          "/suggest?" +
+          new URLSearchParams({
+            q: q,
+            access_token: MAPBOX_TOKEN,
+            session_token: mbSession,
+            limit: "6",
+            country: "US",
+            language: "en",
+            proximity: "-99.5,31.2",
+            types: "address,street,place,locality,poi",
+          }),
+      )
+        .then(function (r) {
+          return r.ok ? r.json() : null;
+        })
+        .then(function (d) {
+          if (!d || mySeq !== mbSeq) return;
+          mbItems = (d.suggestions || []).filter(function (s) {
+            return s.mapbox_id;
+          });
+          mbActive = -1;
+          mbRenderList();
+        })
+        .catch(function () {
+          /* typeahead is best-effort; Find it still works */
+        });
+    }
+    function mbPick(i) {
+      var s = mbItems[i];
+      if (!s) return;
+      mbHide();
+      var seq = ++st.intakeSeq;
+      el("bpAddrInput").value = mbLabel(s);
+      el("bpAddrMsg").hidden = true;
+      fetch(
+        MB_BASE +
+          "/retrieve/" +
+          encodeURIComponent(s.mapbox_id) +
+          "?" +
+          new URLSearchParams({
+            access_token: MAPBOX_TOKEN,
+            session_token: mbSession,
+          }),
+      )
+        .then(function (r) {
+          return r.ok ? r.json() : null;
+        })
+        .then(function (d) {
+          if (seq !== st.intakeSeq) return;
+          mbNewSession();
+          var f = d && d.features && d.features[0];
+          var c = f && f.geometry && f.geometry.coordinates;
+          if (!c) {
+            var am = el("bpAddrMsg");
+            am.textContent =
+              "Couldn't pin that spot — press Find it to search instead.";
+            am.classList.remove("bp-ok");
+            am.hidden = false;
+            return;
+          }
+          parcelFlow(c[1], c[0], seq);
+        })
+        .catch(function () {
+          if (seq !== st.intakeSeq) return;
+          mbNewSession();
+          var am = el("bpAddrMsg");
+          am.textContent =
+            "Couldn't pin that spot — press Find it to search instead.";
+          am.classList.remove("bp-ok");
+          am.hidden = false;
+        });
+    }
     el("bpAddrInput").addEventListener("keydown", function (e) {
-      if (e.key === "Enter") doFind();
+      var open = !el("bpSuggest").hidden && mbItems.length;
+      if (e.key === "ArrowDown" && open) {
+        e.preventDefault();
+        mbActive = (mbActive + 1) % mbItems.length;
+        mbRenderList();
+      } else if (e.key === "ArrowUp" && open) {
+        e.preventDefault();
+        mbActive = (mbActive - 1 + mbItems.length) % mbItems.length;
+        mbRenderList();
+      } else if (e.key === "Escape" && open) {
+        mbHide();
+      } else if (e.key === "Enter") {
+        if (open && mbActive >= 0) {
+          e.preventDefault();
+          mbPick(mbActive);
+        } else {
+          mbHide();
+          doFind();
+        }
+      }
     });
     function doFind() {
       var q = el("bpAddrInput").value.trim();
+      var am = el("bpAddrMsg");
+      var sg = el("bpSuggest");
+      var btn = el("bpBtnFind");
+      function say(t, ok) {
+        am.textContent = t;
+        am.classList.toggle("bp-ok", !!ok);
+        am.hidden = false;
+      }
+      function idle() {
+        btn.disabled = false;
+        btn.textContent = "Find it";
+      }
+      mbHide();
       if (!q) {
-        msg("Type the ranch address, the nearest town, or lat, lng.");
+        say("Type the ranch address, the nearest town, or lat, long.", false);
         return;
       }
       var seq = ++st.intakeSeq;
       fileMsg.hidden = true;
-      mapmsg("Finding it…");
-      geocode(q)
+      var ll = parseLatLng(q);
+      if (ll) {
+        am.hidden = true;
+        parcelFlow(ll.lat, ll.lng, seq);
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = "Searching…";
+      say("Looking that up…", true);
+      function pick(o) {
+        sg.hidden = true;
+        am.hidden = true;
+        el("bpAddrInput").value = o.label;
+        parcelFlow(o.lat, o.lng, ++st.intakeSeq);
+      }
+      censusGeocode(q)
         .then(function (p) {
+          if (seq !== st.intakeSeq) return;
+          idle();
+          am.hidden = true;
           parcelFlow(p.lat, p.lng, seq);
         })
         .catch(function () {
           if (seq !== st.intakeSeq) return;
-          msg(
-            "Couldn't place that address — try the nearest town, or drop a pin with “I'm standing on it.”",
-          );
+          nominatimList(q)
+            .then(function (list) {
+              if (seq !== st.intakeSeq) return;
+              idle();
+              if (!list.length) {
+                say(
+                  "Couldn't place that — add the town or ZIP, tap “I'm standing on it,” or open “More ways.”",
+                  false,
+                );
+                return;
+              }
+              if (list.length === 1) {
+                pick(list[0]);
+                return;
+              }
+              say("A few matches — pick yours:", true);
+              list.forEach(function (o) {
+                var b = document.createElement("button");
+                b.type = "button";
+                b.className = "bp-suggestion";
+                b.textContent = o.label;
+                b.addEventListener("click", function () {
+                  pick(o);
+                });
+                sg.appendChild(b);
+              });
+              sg.hidden = false;
+            })
+            .catch(function () {
+              if (seq !== st.intakeSeq) return;
+              idle();
+              say(
+                "The address service didn't answer — try again in a moment.",
+                false,
+              );
+            });
         });
     }
+    el("bpAddrInput").addEventListener("input", function () {
+      el("bpAddrMsg").hidden = true;
+      var q = this.value.trim();
+      clearTimeout(mbTimer);
+      if (!MAPBOX_TOKEN || q.length < 3 || parseLatLng(q)) {
+        mbHide();
+        return;
+      }
+      mbTimer = setTimeout(function () {
+        mbSuggest(q);
+      }, 250);
+    });
     el("bpBtnHere").addEventListener("click", function () {
       if (!navigator.geolocation) {
         msg(
@@ -1345,8 +2020,10 @@ const meta = {
       clearShowLayers();
       tileGroup.clearLayers();
       st.county = "Jeff Davis";
-      st.geometry = SK_DEMO;
-      var f = turf.feature(SK_DEMO);
+      invalidateRun();
+      st.geometry = FOX_DEMO;
+      st.demoBase = "/demo/fox-canyon/";
+      var f = turf.feature(FOX_DEMO);
       var outline = L.geoJSON(f, {
         style: { color: "#f2b23a", weight: 3, fill: false },
       }).addTo(boundaryLayer);
@@ -1355,9 +2032,9 @@ const meta = {
         "≈ " +
         Math.round(turf.area(f) / ACRE_M2).toLocaleString() +
         " acres · Jeff Davis County";
-      mapmsg("Scott King Ranch — flown & treated by Javelina Works");
+      mapmsg("Fox Canyon — West Texas brush country");
       showConfirm(
-        "A ranch we actually cleared. Watch what our machine saw.",
+        "Real country we've scouted for treatment. Watch what the machine sees.",
         false,
       );
     });
@@ -1397,6 +2074,8 @@ const meta = {
       return null;
     }
     function setDirectBoundary(geometry, label) {
+      st.demoBase = null;
+      invalidateRun();
       st.intakeSeq++;
       clearIntakeLayers();
       clearShowLayers();
@@ -1502,6 +2181,8 @@ const meta = {
       redrawDraft();
     });
     btnFinish.addEventListener("click", function () {
+      st.demoBase = null;
+      invalidateRun();
       if (st.drawPts.length < 3) return;
       st.mode = "idle";
       el("bpMap").classList.remove("bp-drawing");
@@ -1530,20 +2211,53 @@ const meta = {
       "Measuring what's standing…",
       "Pricing the treatment plan…",
     ];
+    var typerT = null;
     function feedRender(n, done) {
       var ul = el("bpStageList");
+      clearInterval(typerT);
       ul.innerHTML = "";
       for (var i = 0; i < n; i++) {
         var li = document.createElement("li");
-        li.textContent = FEED[i];
-        if (!done && i === n - 1) li.className = "bp-current";
+        var isCur = !done && i === n - 1;
+        li.className = isCur ? "bp-current" : "bp-done";
+        var pre = document.createElement("span");
+        pre.className = "bp-tprompt";
+        pre.textContent = "> ";
+        li.appendChild(pre);
+        var txt = document.createElement("span");
+        txt.className = "bp-ttext";
+        li.appendChild(txt);
+        if (isCur && !reduce) {
+          (function (full, node, host) {
+            var j = 0;
+            var cur = document.createElement("span");
+            cur.className = "bp-cursor";
+            host.appendChild(cur);
+            typerT = setInterval(function () {
+              j += 1 + Math.floor(Math.random() * 2);
+              node.textContent = full.slice(0, j);
+              if (j >= full.length) clearInterval(typerT);
+            }, 22);
+          })(FEED[i], txt, li);
+        } else {
+          txt.textContent = FEED[i];
+          var ok = document.createElement("span");
+          ok.className = "bp-tok";
+          ok.textContent = " \u2713";
+          li.appendChild(ok);
+        }
         ul.appendChild(li);
       }
+      ul.scrollTop = ul.scrollHeight;
     }
 
+    var scanSeq = 0;
     el("bpBtnEstimate").addEventListener("click", function () {
       if (!st.geometry) return;
+      var myScan = ++scanSeq;
       panelsShow("bpStepScan");
+      if (!reduce) el("bpScan").hidden = false;
+      el("bpMapCard").classList.add("bp-dim");
       el("bpScanErr").hidden = true;
       el("bpActs").hidden = true;
       el("bpScanTitle").textContent = "Reading your country…";
@@ -1560,17 +2274,30 @@ const meta = {
         bar.style.width = p.toFixed(1) + "%";
       }, 200);
       var t0 = Date.now();
+      var bigAcres = 0;
+      try {
+        bigAcres = turf.area(turf.feature(st.geometry)) / ACRE_M2;
+      } catch (e) {
+        /* cosmetic only */
+      }
+      var noteSuffix =
+        bigAcres > 300 ? " · big country — expect a few minutes" : "";
       var elapsed = setInterval(function () {
-        note.textContent = ((Date.now() - t0) / 1000).toFixed(0) + "s elapsed";
+        note.textContent =
+          ((Date.now() - t0) / 1000).toFixed(0) + "s elapsed" + noteSuffix;
       }, 1000);
       var feedN = 1;
       feedRender(1, false);
-      var feedInt = setInterval(function () {
-        if (feedN < FEED.length - 1) {
-          feedN++;
-          feedRender(feedN, false);
-        }
-      }, 3400);
+      var feedInt = setInterval(
+        function () {
+          if (feedN < FEED.length - 1) {
+            feedN++;
+            feedRender(feedN, false);
+          }
+        },
+        st.demoBase ? 900 : 3400,
+      );
+      var earlyT = st.demoBase ? null : setTimeout(addEarlyTerrain, 6800);
 
       var ppa = parseFloat(el("bpPpaInput").value) || null;
       var brushSel = document.querySelector('input[name="bpBrush"]:checked');
@@ -1580,15 +2307,35 @@ const meta = {
         clearInterval(pulse);
         clearInterval(elapsed);
         clearInterval(feedInt);
+        clearInterval(typerT);
+        clearTimeout(earlyT);
       }
-      function fail(err) {
+      cancelScan = function () {
+        scanSeq++;
         stopTimers();
+        el("bpScan").hidden = true;
+        el("bpMapCard").classList.remove("bp-dim");
+      };
+      function fail(err) {
+        if (myScan !== scanSeq) return;
+        stopTimers();
+        clearEarlyTerrain();
+        el("bpScan").hidden = true;
+        el("bpMapCard").classList.remove("bp-dim");
         var e = el("bpScanErr");
         e.textContent = err.message;
         e.hidden = false;
         setTimeout(function () {
+          if (myScan !== scanSeq) return;
           panelsShow("bpStepConfirm");
         }, 4000);
+      }
+
+      if (st.demoBase) {
+        runDemo(stopTimers, fail, bar, function () {
+          return myScan === scanSeq;
+        });
+        return;
       }
 
       fetch(API, {
@@ -1620,14 +2367,19 @@ const meta = {
           return r.json();
         })
         .then(function (trig) {
+          if (myScan !== scanSeq) return;
           st.runId = trig.workflow_run_id;
           var tries = 0;
           var inFlight = false;
           var settled = false;
           var poll = setInterval(function () {
+            if (myScan !== scanSeq) {
+              clearInterval(poll);
+              return;
+            }
             if (inFlight || settled) return;
             tries += 1;
-            if (tries > 90) {
+            if (tries > 220) {
               clearInterval(poll);
               fail(
                 new Error(
@@ -1666,9 +2418,54 @@ const meta = {
                 inFlight = false;
               });
           }, 1500);
+          cancelScan = function () {
+            scanSeq++;
+            settled = true;
+            clearInterval(poll);
+            stopTimers();
+            el("bpScan").hidden = true;
+            el("bpMapCard").classList.remove("bp-dim");
+          };
         })
         .catch(fail);
     });
+
+    function runDemo(stopTimers, fail, bar, live) {
+      var mySeq = st.intakeSeq;
+      var demoT = setTimeout(function () {
+        if (mySeq !== st.intakeSeq || !live()) return;
+        fetch(st.demoBase + "result.json")
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function (result) {
+            if (mySeq !== st.intakeSeq || !live()) return;
+            stopTimers();
+            bar.style.width = "100%";
+            feedRender(FEED.length, true);
+            st.resp = result;
+            st.runId = null;
+            setTimeout(function () {
+              playShow(result);
+            }, 300);
+          })
+          .catch(function () {
+            if (mySeq !== st.intakeSeq || !live()) return;
+            fail(
+              new Error(
+                "The demo didn't load — try reading your own ranch instead.",
+              ),
+            );
+          });
+      }, 7600);
+      cancelScan = function () {
+        scanSeq++;
+        clearTimeout(demoT);
+        stopTimers();
+        el("bpScan").hidden = true;
+        el("bpMapCard").classList.remove("bp-dim");
+      };
+    }
 
     /* ---------------- the directed show ---------------- */
     var ACTS = [
@@ -1676,7 +2473,7 @@ const meta = {
         key: "hillshade",
         act: "bpActTerrain",
         opacity: 0.8,
-        line: "A laser flown by USGS aircraft has already mapped this ground.",
+        line: "The laser-mapped ground — now sharpened to a single meter.",
         chip: function (ss) {
           return ss.relief_ft != null
             ? ss.relief_ft.toLocaleString() + " ft of relief inside the fence"
@@ -1725,42 +2522,313 @@ const meta = {
       greenness: "Living vegetation",
     };
 
-    function clearShowLayers() {
+    function clearShowLayers(keepEarly) {
+      showSeq++; // invalidates every pending show timeout
       Object.keys(showGroups).forEach(function (k) {
         map.removeLayer(showGroups[k]);
       });
       showGroups = {};
-      if (layersCtl) {
-        map.removeControl(layersCtl);
-        layersCtl = null;
-      }
+      st.plantsCanvas = null;
+      st.plantsBounds = null;
+      viewbarHide();
+      if (!map.hasLayer(tileGroup)) tileGroup.addTo(map);
+      if (!keepEarly) clearEarlyTerrain();
+      el("bpScan").hidden = true;
       el("bpMapCard").classList.remove("bp-dim");
       el("bpLt").classList.remove("bp-on");
     }
+    // Demo runs serve their layers as baked static assets; live runs
+    // stream them from the engine.
+    function layerUrl(key) {
+      return st.demoBase
+        ? st.demoBase + key + ".png"
+        : API + "/" + st.runId + "/layers/" + key;
+    }
+    function revealOverlay(ov, opacity) {
+      var go = function () {
+        var n = ov.getElement();
+        if (n) n.classList.add("bp-reveal");
+        ov.setOpacity(opacity);
+      };
+      var node = ov.getElement();
+      if (node && node.complete && node.naturalWidth) go();
+      else if (node) node.addEventListener("load", go, { once: true });
+      else
+        setTimeout(function () {
+          ov.setOpacity(opacity);
+        }, 60);
+    }
     function addShowLayer(key, meta, opacity, instant) {
       var group = L.layerGroup().addTo(map);
-      var ov = L.imageOverlay(
-        API + "/" + st.runId + "/layers/" + key,
-        meta.bounds,
-        {
-          opacity: 0,
-          interactive: false,
-        },
-      ).addTo(group);
-      var img = ov.getElement();
-      if (img && !instant) img.style.transition = "opacity 1.2s ease";
-      setTimeout(function () {
-        ov.setOpacity(opacity);
-      }, 60);
+      var url = layerUrl(key);
+      var ov = L.imageOverlay(url, meta.bounds, {
+        opacity: instant ? opacity : 0,
+        interactive: false,
+      }).addTo(group);
       showGroups[key] = group;
+      if (!instant) revealOverlay(ov, opacity);
       return group;
     }
-    function setLT(line, chip) {
+    /* Early terrain beat: while the engine is still measuring, USGS's
+       public 3DEP hillshade for the same ground washes in — real lidar
+       terrain, display-only, replaced by our 1 m render at show time. */
+    var earlyGroup = null;
+    function geomBounds(g) {
+      var w = 180,
+        s = 90,
+        e = -180,
+        n = -90;
+      var polys = g.type === "MultiPolygon" ? g.coordinates : [g.coordinates];
+      polys.forEach(function (p) {
+        p.forEach(function (ring) {
+          ring.forEach(function (c) {
+            if (c[0] < w) w = c[0];
+            if (c[0] > e) e = c[0];
+            if (c[1] < s) s = c[1];
+            if (c[1] > n) n = c[1];
+          });
+        });
+      });
+      var padX = (e - w) * 0.15;
+      var padY = (n - s) * 0.15;
+      return [w - padX, s - padY, e + padX, n + padY];
+    }
+    function addEarlyTerrain() {
+      if (earlyGroup || !st.geometry) return;
+      var b = geomBounds(st.geometry);
+      var mid = ((b[1] + b[3]) / 2) * (Math.PI / 180);
+      var wpx = 1000;
+      var hpx = Math.min(
+        1400,
+        Math.max(
+          200,
+          Math.round((wpx * (b[3] - b[1])) / ((b[2] - b[0]) * Math.cos(mid))),
+        ),
+      );
+      var url =
+        "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer/exportImage" +
+        "?bbox=" +
+        b.join(",") +
+        "&bboxSR=4326&imageSR=4326&size=" +
+        wpx +
+        "," +
+        hpx +
+        "&format=png&transparent=true&f=image&renderingRule=" +
+        encodeURIComponent('{"rasterFunction":"Hillshade Gray"}');
+      earlyGroup = L.layerGroup().addTo(map);
+      var ov = L.imageOverlay(
+        url,
+        [
+          [b[1], b[0]],
+          [b[3], b[2]],
+        ],
+        { opacity: 0, interactive: false },
+      ).addTo(earlyGroup);
+      revealOverlay(ov, 0.55);
+      setLT("Terrain is already on file for this ground.", "USGS 3DEP lidar");
+      var mySeq = showSeq;
+      setTimeout(function () {
+        if (mySeq === showSeq) el("bpLt").classList.remove("bp-on");
+      }, 4200);
+    }
+    function clearEarlyTerrain() {
+      if (!earlyGroup) return;
+      map.removeLayer(earlyGroup);
+      earlyGroup = null;
+    }
+    var VIEWS = [
+      { key: "density", label: "Density" },
+      { key: "plants", label: "Likely brush" },
+      { key: "hillshade", label: "Terrain" },
+    ];
+    function actOpacity(key) {
+      for (var i = 0; i < ACTS.length; i++)
+        if (ACTS[i].key === key) return ACTS[i].opacity;
+      return 0.85;
+    }
+    var curView = "density";
+    function viewSelect(key) {
+      curView = key;
+      Array.prototype.forEach.call(el("bpViews").children, function (b) {
+        var on = b.dataset.key === key;
+        b.classList.toggle("bp-on", on);
+        b.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+      Object.keys(showGroups).forEach(function (k) {
+        var g = showGroups[k];
+        if (k === key) {
+          g.addTo(map);
+          g.eachLayer(function (l) {
+            if (l.setOpacity) l.setOpacity(actOpacity(k));
+          });
+        } else {
+          map.removeLayer(g);
+        }
+      });
+      if (key === "density") tileGroup.addTo(map);
+      else map.removeLayer(tileGroup);
+      var r = key === "density" ? ["open ground", "thick brush"] : RAMPS[key];
+      var lg = el("bpViewLegend");
+      lg.hidden = !r;
+      if (r) {
+        el("bpVlL").textContent = r[0];
+        el("bpVlR").textContent = r[1];
+        el("bpVlBar").className = "bp-ramp-" + key;
+      }
+    }
+    function viewbarRender() {
+      var bar = el("bpViews");
+      bar.innerHTML = "";
+      VIEWS.forEach(function (v) {
+        if (v.key !== "density" && !showGroups[v.key]) return;
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "bp-view";
+        b.dataset.key = v.key;
+        b.textContent = v.label;
+        b.addEventListener("click", function () {
+          viewSelect(v.key);
+        });
+        bar.appendChild(b);
+      });
+      el("bpViewbar").hidden = false;
+    }
+    function viewbarShow() {
+      viewbarRender();
+      viewSelect("density");
+      buildPlantsLayer(function (ok) {
+        if (ok) {
+          viewbarRender();
+          viewSelect(curView);
+        }
+      });
+    }
+    function viewbarHide() {
+      el("bpViewbar").hidden = true;
+    }
+    /* "Likely brush": the height and greenness renders intersected in a
+       canvas — where the laser saw standing structure AND the infrared saw
+       living growth. A display-side stand-in until the worker publishes
+       the real priced mask. */
+    function buildPlantsLayer(done) {
+      var Ls = (st.resp && st.resp.layers) || {};
+      if (showGroups.plants || (!st.runId && !st.demoBase))
+        return done && done(false);
+      if (Ls.plants) {
+        // The worker published the real priced mask — use it directly.
+        var pim = new Image();
+        pim.crossOrigin = "anonymous";
+        var pSeq = showSeq;
+        pim.onload = function () {
+          if (pSeq !== showSeq) return;
+          try {
+            var pcv = document.createElement("canvas");
+            pcv.width = pim.naturalWidth;
+            pcv.height = pim.naturalHeight;
+            pcv.getContext("2d").drawImage(pim, 0, 0);
+            st.plantsCanvas = pcv;
+            st.plantsBounds = Ls.plants.bounds;
+          } catch (e) {
+            /* popup crops degrade; overlay still works */
+          }
+          var pg = L.layerGroup();
+          L.imageOverlay(pim.src, Ls.plants.bounds, {
+            opacity: 0.8,
+            interactive: false,
+          }).addTo(pg);
+          showGroups.plants = pg;
+          if (done) done(true);
+        };
+        pim.onerror = function () {
+          if (done) done(false);
+        };
+        pim.src = layerUrl("plants");
+        return;
+      }
+      if (!Ls.canopy || !Ls.greenness) return done && done(false);
+      var mySeq = showSeq;
+      var loaded = 0;
+      var imgs = {};
+      ["canopy", "greenness"].forEach(function (k) {
+        var im = new Image();
+        im.crossOrigin = "anonymous";
+        im.onload = function () {
+          imgs[k] = im;
+          if (++loaded === 2) compose();
+        };
+        im.onerror = function () {
+          if (done) done(false);
+          done = null;
+        };
+        im.src = layerUrl(k);
+      });
+      function compose() {
+        if (mySeq !== showSeq) return;
+        try {
+          var cb = Ls.canopy.bounds;
+          var gb = Ls.greenness.bounds;
+          var W = imgs.canopy.naturalWidth;
+          var H = imgs.canopy.naturalHeight;
+          var c1 = document.createElement("canvas");
+          c1.width = W;
+          c1.height = H;
+          var x1 = c1.getContext("2d");
+          x1.drawImage(imgs.canopy, 0, 0);
+          var A = x1.getImageData(0, 0, W, H);
+          var c2 = document.createElement("canvas");
+          c2.width = W;
+          c2.height = H;
+          var x2 = c2.getContext("2d");
+          var dx = ((gb[0][1] - cb[0][1]) / (cb[1][1] - cb[0][1])) * W;
+          var dy = ((cb[1][0] - gb[1][0]) / (cb[1][0] - cb[0][0])) * H;
+          var dw = ((gb[1][1] - gb[0][1]) / (cb[1][1] - cb[0][1])) * W;
+          var dh = ((gb[1][0] - gb[0][0]) / (cb[1][0] - cb[0][0])) * H;
+          x2.drawImage(imgs.greenness, dx, dy, dw, dh);
+          var B = x2.getImageData(0, 0, W, H);
+          var out = x1.createImageData(W, H);
+          for (var i = 3; i < A.data.length; i += 4) {
+            if (A.data[i] > 40 && B.data[i] > 40) {
+              out.data[i - 3] = 53;
+              out.data[i - 2] = 201;
+              out.data[i - 1] = 58;
+              out.data[i] = 235;
+            }
+          }
+          x1.putImageData(out, 0, 0);
+          st.plantsCanvas = c1;
+          st.plantsBounds = cb;
+          var group = L.layerGroup();
+          L.imageOverlay(c1.toDataURL("image/png"), cb, {
+            opacity: 0.8,
+            interactive: false,
+          }).addTo(group);
+          showGroups.plants = group;
+          if (done) done(true);
+        } catch (e) {
+          if (done) done(false);
+        }
+      }
+    }
+    var RAMPS = {
+      canopy: ["knee-high", "tree height"],
+      falsecolor: ["bare ground", "living plants"],
+      greenness: ["sparse", "dense growth"],
+      plants: ["open ground", "likely brush"],
+    };
+    function setLT(line, chip, rampKey) {
       var lt = el("bpLt");
       lt.classList.remove("bp-on");
       setTimeout(
         function () {
           el("bpLtLine").textContent = line;
+          var r = RAMPS[rampKey];
+          var ramp = el("bpLtRamp");
+          ramp.hidden = !r;
+          if (r) {
+            el("bpLtRampL").textContent = r[0];
+            el("bpLtRampR").textContent = r[1];
+            el("bpLtRampBar").className = "bp-ramp-" + rampKey;
+          }
           var c = el("bpLtChip");
           c.textContent = chip;
           c.style.display = chip ? "" : "none";
@@ -1771,23 +2839,27 @@ const meta = {
     }
 
     function playShow(resp) {
-      clearShowLayers();
+      clearShowLayers(true);
+      var mySeq = showSeq;
       var layers = resp.layers || {};
       var ss = resp.layer_stats || {};
       var present = ACTS.filter(function (a) {
         return layers[a.key];
       });
-      if (!st.runId || present.length === 0) {
+      if (present.length === 0) {
+        clearEarlyTerrain();
+        viewbarShow();
         renderResult(resp);
         return;
       }
       el("bpScanTitle").textContent = "Watch what we can see.";
       el("bpActs").hidden = false;
       el("bpMapCard").classList.add("bp-dim");
-      var gap = reduce ? 250 : 3200;
+      var gap = reduce ? 250 : 2400;
       present.forEach(function (a, i) {
         setTimeout(
           function () {
+            if (mySeq !== showSeq) return;
             if (a.flash && !reduce) {
               var fl = el("bpFlash");
               fl.style.transition = "none";
@@ -1803,34 +2875,198 @@ const meta = {
               });
             }
             addShowLayer(a.key, layers[a.key], a.opacity, reduce);
+            if (a.key === "hillshade") setTimeout(clearEarlyTerrain, 1900);
             el(a.act).classList.add("bp-on");
             var statEl = el(a.act + "Stat");
             if (statEl) statEl.textContent = a.chip(ss);
-            setLT(a.line, a.chip(ss));
+            setLT(a.line, a.chip(ss), a.key);
           },
-          500 + i * gap,
+          150 + i * gap,
         );
       });
       setTimeout(
         function () {
+          if (mySeq !== showSeq) return;
           el("bpLt").classList.remove("bp-on");
           el("bpMapCard").classList.remove("bp-dim");
-          var overlays = {};
-          present.forEach(function (a) {
-            overlays[ACT_TITLES[a.key]] = showGroups[a.key];
-          });
-          overlays["Measured tiles"] = tileGroup;
-          layersCtl = L.control
-            .layers(null, overlays, { collapsed: true })
-            .addTo(map);
+          clearEarlyTerrain();
+          viewbarShow();
           renderResult(resp);
         },
-        500 + present.length * gap + (reduce ? 100 : 1400),
+        150 + (present.length - 1) * gap + (reduce ? 100 : 1400),
       );
     }
 
     /* ---------------- result ---------------- */
+    // Straw -> amber -> burnt red, keyed to brush cover fraction.
+    function densColor(c) {
+      var stops = [
+        [0, 245, 222, 130],
+        [0.25, 245, 197, 66],
+        [0.6, 216, 67, 21],
+      ];
+      var lo = stops[0];
+      var hi = stops[stops.length - 1];
+      for (var i = 0; i < stops.length - 1; i++) {
+        if (c >= stops[i][0] && c <= stops[i + 1][0]) {
+          lo = stops[i];
+          hi = stops[i + 1];
+        }
+      }
+      if (c >= hi[0]) lo = hi;
+      var f = hi[0] === lo[0] ? 0 : (c - lo[0]) / (hi[0] - lo[0]);
+      if (f > 1) f = 1;
+      var mix = function (a, b) {
+        return Math.round(a + (b - a) * f);
+      };
+      return (
+        "rgb(" +
+        mix(lo[1], hi[1]) +
+        "," +
+        mix(lo[2], hi[2]) +
+        "," +
+        mix(lo[3], hi[3]) +
+        ")"
+      );
+    }
+    function bpTileXY(lng, lat, z) {
+      var n = Math.pow(2, z);
+      var r = (lat * Math.PI) / 180;
+      return [
+        ((lng + 180) / 360) * n,
+        ((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2) * n,
+      ];
+    }
+    function bpBoundaryPath(cx, swc, nec, size) {
+      var polys =
+        st.geometry.type === "MultiPolygon"
+          ? st.geometry.coordinates
+          : [st.geometry.coordinates];
+      polys.forEach(function (p) {
+        p.forEach(function (ring) {
+          ring.forEach(function (c2, i2) {
+            var px = ((c2[0] - swc[1]) / (nec[1] - swc[1])) * size;
+            var py = ((nec[0] - c2[1]) / (nec[0] - swc[0])) * size;
+            if (i2 === 0) cx.moveTo(px, py);
+            else cx.lineTo(px, py);
+          });
+          cx.closePath();
+        });
+      });
+    }
+    function tilePopup(t, swc, nec) {
+      var SZ = 168;
+      var wrap = document.createElement("div");
+      wrap.className = "bp-tilepop";
+      var c = document.createElement("canvas");
+      c.width = SZ;
+      c.height = SZ;
+      var cx = c.getContext("2d");
+      cx.fillStyle = "#20261d";
+      cx.fillRect(0, 0, SZ, SZ);
+      wrap.appendChild(c);
+      function overlays() {
+        if (st.geometry) {
+          cx.save();
+          cx.beginPath();
+          cx.rect(0, 0, SZ, SZ);
+          bpBoundaryPath(cx, swc, nec, SZ);
+          cx.fillStyle = "rgba(8, 10, 6, 0.55)";
+          cx.fill("evenodd");
+          cx.restore();
+          cx.save();
+          cx.beginPath();
+          bpBoundaryPath(cx, swc, nec, SZ);
+          cx.strokeStyle = "#ffd27a";
+          cx.lineWidth = 2;
+          cx.stroke();
+          cx.restore();
+        }
+        var pc = st.plantsCanvas;
+        var pb = st.plantsBounds;
+        if (pc && pb) {
+          var W = pc.width;
+          var H = pc.height;
+          var sx = ((swc[1] - pb[0][1]) / (pb[1][1] - pb[0][1])) * W;
+          var sy = ((pb[1][0] - nec[0]) / (pb[1][0] - pb[0][0])) * H;
+          var sw = ((nec[1] - swc[1]) / (pb[1][1] - pb[0][1])) * W;
+          var sh = ((nec[0] - swc[0]) / (pb[1][0] - pb[0][0])) * H;
+          if (sw > 0.5 && sh > 0.5) {
+            var m = document.createElement("canvas");
+            m.width = SZ;
+            m.height = SZ;
+            var mx = m.getContext("2d");
+            mx.imageSmoothingEnabled = false;
+            mx.drawImage(pc, sx, sy, sw, sh, 0, 0, SZ, SZ);
+            mx.globalCompositeOperation = "source-in";
+            mx.fillStyle = "#e621d8";
+            mx.fillRect(0, 0, SZ, SZ);
+            cx.globalAlpha = 0.55;
+            cx.drawImage(m, 0, 0);
+            cx.globalAlpha = 1;
+          }
+        }
+      }
+      var z = 18;
+      var a2 = bpTileXY(swc[1], nec[0], z);
+      var b2 = bpTileXY(nec[1], swc[0], z);
+      var need = [];
+      for (var tx = Math.floor(a2[0]); tx <= Math.floor(b2[0]); tx++)
+        for (var ty = Math.floor(a2[1]); ty <= Math.floor(b2[1]); ty++)
+          need.push([tx, ty]);
+      var left = need.length;
+      var scaleX = SZ / (b2[0] - a2[0]);
+      var scaleY = SZ / (b2[1] - a2[1]);
+      if (!left || left > 9) {
+        overlays();
+      } else {
+        need.forEach(function (tt) {
+          var im = new Image();
+          im.crossOrigin = "anonymous";
+          function step() {
+            if (--left === 0) overlays();
+          }
+          im.onload = function () {
+            try {
+              cx.drawImage(
+                im,
+                (tt[0] - a2[0]) * scaleX,
+                (tt[1] - a2[1]) * scaleY,
+                scaleX + 0.5,
+                scaleY + 0.5,
+              );
+            } catch (e) {
+              /* decode issue: mask and fence still draw */
+            }
+            step();
+          };
+          im.onerror = step;
+          im.src =
+            "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/" +
+            z +
+            "/" +
+            tt[1] +
+            "/" +
+            tt[0];
+        });
+      }
+      var cap = document.createElement("p");
+      var ft = Math.round(((st.resp && st.resp.tile_m) || 30) * 3.281);
+      cap.innerHTML =
+        "<b>" +
+        Math.round(t[2] * 100) +
+        "%</b> of this " +
+        ft +
+        " ft square reads as likely brush";
+      wrap.appendChild(cap);
+      var key = document.createElement("span");
+      key.className = "bp-tilepop-key";
+      key.innerHTML = "<i></i> flagged as brush by the analysis";
+      wrap.appendChild(key);
+      return wrap;
+    }
     function renderResult(resp) {
+      var mySeq = showSeq; // a boundary change mid-rain invalidates this
       var def = utmDef(resp.epsg);
       tileGroup.clearLayers();
       el("bpImgCredit").textContent =
@@ -1839,17 +3075,22 @@ const meta = {
       var rects = resp.tiles.map(function (t) {
         var swc = utmToLatLng(def, t[0] - h, t[1] - h);
         var nec = utmToLatLng(def, t[0] + h, t[1] + h);
-        var alpha = Math.min(0.68, 0.06 + t[2] * 1.5);
         var r = L.rectangle([swc, nec], {
           renderer: canvasRenderer,
           stroke: false,
-          fillColor: "#2f6a1f",
-          fillOpacity: alpha,
+          fillColor: densColor(t[2]),
+          fillOpacity: Math.min(0.8, 0.18 + t[2] * 1.6),
         });
         r.bindTooltip(Math.round(t[2] * 100) + "% cover", {
           sticky: true,
           direction: "top",
         });
+        r.bindPopup(
+          function () {
+            return tilePopup(t, swc, nec);
+          },
+          { maxWidth: 200 },
+        );
         return r;
       });
       if (reduce || rects.length === 0) {
@@ -1862,11 +3103,16 @@ const meta = {
       var i = 0,
         batch = Math.max(1, Math.ceil(rects.length / 60));
       var timer = setInterval(function () {
+        if (mySeq !== showSeq) {
+          clearInterval(timer);
+          return;
+        }
         for (var k = 0; k < batch && i < rects.length; k++, i++)
           rects[i].addTo(tileGroup);
         if (i >= rects.length) {
           clearInterval(timer);
           setTimeout(function () {
+            if (mySeq !== showSeq) return;
             showNumbers(resp);
           }, 250);
         }
@@ -1902,13 +3148,48 @@ const meta = {
         "~" + q.days + (q.days === 1 ? " day" : " days");
       el("bpLeadMsg").hidden = true;
       el("bpLeadSend").disabled = false;
+      var demo = !!st.demoBase;
+      el("bpLeadBlock").hidden = demo;
+      el("bpDemoCta").hidden = !demo;
       panelsShow("bpStepResult");
+      if (!demo) ensureTurnstile();
     }
 
     /* ---------------- lead capture ---------------- */
+    // Managed + interaction-only: invisible for nearly every human; the
+    // token rides along and the API only enforces it where a secret is set.
+    var TURNSTILE_KEY = "0x4AAAAAAFBfthdalHd12htM";
+    var tsWidget = null;
+    function ensureTurnstile() {
+      if (!window.turnstile) return;
+      if (tsWidget !== null) {
+        try {
+          window.turnstile.reset(tsWidget);
+        } catch (e) {
+          /* stale widget — fall through and leave it */
+        }
+        return;
+      }
+      try {
+        tsWidget = window.turnstile.render(el("bpTurnstile"), {
+          sitekey: TURNSTILE_KEY,
+          theme: "auto",
+          appearance: "interaction-only",
+          // Returning true marks the error handled: a widget failure
+          // (unlisted hostname, network) degrades to a tokenless submit
+          // instead of throwing an unhandled error into Sentry.
+          "error-callback": function () {
+            return true;
+          },
+        });
+      } catch (e) {
+        tsWidget = null; // unsupported host (e.g. LAN-IP dev) — submit bare
+      }
+    }
     el("bpLeadSend").addEventListener("click", function () {
       var name = el("bpLeadName").value.trim();
-      var contact = el("bpLeadContact").value.trim();
+      var phone = el("bpLeadPhone").value.trim();
+      var email = el("bpLeadEmail").value.trim();
       var notes = el("bpLeadNotes").value.trim();
       var lm = el("bpLeadMsg");
       function say(text, ok) {
@@ -1916,25 +3197,43 @@ const meta = {
         lm.className = "bp-leadmsg " + (ok ? "bp-ok" : "bp-err");
         lm.hidden = false;
       }
-      if (!name || contact.length < 3) {
-        say("Name and a phone or email, please.", false);
+      if (!name) {
+        say("Your full name, please.", false);
         return;
       }
+      if (phone.replace(/\D/g, "").length < 7) {
+        say("A phone number we can reach you at, please.", false);
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        say("That email doesn't look complete.", false);
+        return;
+      }
+      var contact = (phone + " \u00b7 " + email).slice(0, 300);
       if (!st.runId) {
         say("Run the estimate first, then send us your info.", false);
         return;
       }
       var btn = el("bpLeadSend");
       btn.disabled = true;
+      var payload = {
+        name: name,
+        contact: contact,
+        notes: notes || null,
+        channel: "marketing",
+      };
+      // Only send the field when a token exists — the API forbids unknown
+      // fields, so this keeps the page compatible with a backend deployed
+      // before the Turnstile release.
+      var tsToken =
+        window.turnstile &&
+        tsWidget !== null &&
+        window.turnstile.getResponse(tsWidget);
+      if (tsToken) payload.turnstile_token = tsToken;
       fetch(API + "/" + st.runId + "/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name,
-          contact: contact,
-          notes: notes || null,
-          channel: "marketing",
-        }),
+        body: JSON.stringify(payload),
       })
         .then(function (r) {
           if (r.status === 202) {
@@ -1943,6 +3242,13 @@ const meta = {
           }
           return r.json().then(function (b) {
             btn.disabled = false;
+            if (r.status === 403 && window.turnstile && tsWidget !== null) {
+              try {
+                window.turnstile.reset(tsWidget);
+              } catch (e) {
+                /* nothing to reset */
+              }
+            }
             say(b.detail || "Submission failed — try again.", false);
           });
         })
@@ -1953,6 +3259,31 @@ const meta = {
     });
 
     /* ---------------- navigation ---------------- */
+    function replayShow() {
+      if (!st.resp) return;
+      el("bpScanErr").hidden = true;
+      el("bpBarFill").style.width = "100%";
+      feedRender(FEED.length, true);
+      panelsShow("bpStepScan");
+      playShow(st.resp);
+    }
+    el("bpStep1").addEventListener("click", function () {
+      if (cancelScan) cancelScan();
+      clearShowLayers();
+      tileGroup.clearLayers();
+      panelsShow("bpStepConfirm");
+    });
+    el("bpStep2").addEventListener("click", replayShow);
+    el("bpStep3").addEventListener("click", function () {
+      if (!st.resp) return;
+      showSeq++; // cancel pending show beats, keep landed layers
+      clearEarlyTerrain();
+      el("bpScan").hidden = true;
+      el("bpLt").classList.remove("bp-on");
+      el("bpMapCard").classList.remove("bp-dim");
+      viewbarShow();
+      renderResult(st.resp);
+    });
     el("bpBtnBack1").addEventListener("click", reset);
     el("bpBtnAdjust").addEventListener("click", function () {
       tileGroup.clearLayers();
@@ -1960,9 +3291,12 @@ const meta = {
       panelsShow("bpStepConfirm");
     });
     el("bpBtnRestart").addEventListener("click", reset);
+    el("bpBtnOwn").addEventListener("click", reset);
     function reset() {
+      if (cancelScan) cancelScan();
       st.intakeSeq++;
       st.geometry = null;
+      st.demoBase = null;
       st.runId = null;
       st.resp = null;
       st.mode = "idle";

@@ -11,9 +11,9 @@ description: Get environmental insights, boost efficiency, and improve outcomes 
 image: "/src/assets/images/homepage/hero-background-poster.png" # image dimensions: ?x?
 buttons:
   - enable: true
-    label: "GET IN TOUCH"
+    label: "Get an estimate"
     variant: "fill" # "fill", "outline", "text"
-    url: "/contact"
+    url: "/ballpark/"
     rel: ""
     target: ""
     hoverEffect: "text-flip" # "text-flip", "creative-fill", "magnetic", "magnetic-text-flip"
