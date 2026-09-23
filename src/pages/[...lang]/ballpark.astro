@@ -16,9 +16,7 @@ const meta = {
 <Base {...meta} sectionSpacing="md">
   <section class="bp-hero">
     <div class="container">
-      <p class="bp-eyebrow">
-        Free &middot; about a minute &middot; nobody calls unless you ask
-      </p>
+      <p class="bp-eyebrow">Free &middot; about a minute</p>
       <h1>What would it cost to clear your brush?</h1>
       <p class="bp-sub">
         Tell us where the ranch is &mdash; we&rsquo;ll find the property, read
@@ -239,39 +237,51 @@ const meta = {
               </tbody>
             </table>
             <p class="bp-confnote">
-              Tap the layers control on the map to replay what we saw. This is a
-              planning range, not a bid &mdash; your firm quote comes from a
-              survey flight over your ground.
+              Use the map views to explore what we saw. This is a planning
+              range, not a bid &mdash; a firm quote takes a scheduled survey
+              flight over your ground.
             </p>
             <div class="bp-lead" id="bpLeadBlock">
               <h3>Like these numbers?</h3>
               <p>
-                Leave your name and a phone or email &mdash; we&rsquo;ll take a
-                closer look at the same ground and call you back with a firm
-                quote.
+                Leave your name and a phone or email &mdash; we&rsquo;ll reach
+                out to schedule a survey flight over your ground. That&rsquo;s
+                what turns this range into a firm quote.
               </p>
-              <input
-                type="text"
-                id="bpLeadName"
-                aria-label="Your name"
-                maxlength="200"
-                placeholder="Your name"
-                autocomplete="name"
-              />
-              <input
-                type="text"
-                id="bpLeadContact"
-                aria-label="Phone or email"
-                maxlength="300"
-                placeholder="Phone or email"
-                autocomplete="tel"
-              />
-              <textarea
-                id="bpLeadNotes"
-                aria-label="Notes for the crew (optional)"
-                maxlength="2000"
-                placeholder="Anything we should know? (optional)">
-              </textarea>
+              <label class="bp-field">
+                <span>Full name <b aria-hidden="true">*</b></span>
+                <input
+                  type="text"
+                  id="bpLeadName"
+                  maxlength="200"
+                  autocomplete="name"
+                  required
+                />
+              </label>
+              <label class="bp-field">
+                <span>Phone <b aria-hidden="true">*</b></span>
+                <input
+                  type="tel"
+                  id="bpLeadPhone"
+                  maxlength="40"
+                  autocomplete="tel"
+                  required
+                />
+              </label>
+              <label class="bp-field">
+                <span>Email <b aria-hidden="true">*</b></span>
+                <input
+                  type="email"
+                  id="bpLeadEmail"
+                  maxlength="254"
+                  autocomplete="email"
+                  required
+                />
+              </label>
+              <label class="bp-field">
+                <span>Anything we should know? <em>(optional)</em></span>
+                <textarea id="bpLeadNotes" maxlength="2000"></textarea>
+              </label>
               <button class="bp-cta" id="bpLeadSend">
                 Request a firm quote
               </button>
@@ -296,6 +306,12 @@ const meta = {
   rel="stylesheet"
   href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
   integrity="sha384-c6Rcwz4e4CITMbu/NBmnNS8yN2sC3cUElMEMfP3vqqKFp7GOYaaBBCqmaWBjmkjb"
+  crossorigin="anonymous"
+/>
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.fullscreen/3.0.2/Control.FullScreen.min.css"
+  integrity="sha384-rlEXvAXKofl01ReiHwhh3+evcnpVfpwcnPbd38VbIK8L9Ebpi1ldCOrsqIrkRg/b"
   crossorigin="anonymous"
 />
 
@@ -727,13 +743,30 @@ const meta = {
     font-size: 0.85rem;
     opacity: 0.75;
   }
+  .bp-field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin: 0 0 8px;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+  .bp-field b {
+    color: #d64545;
+  }
+  .bp-field em {
+    font-weight: 400;
+    font-style: normal;
+    opacity: 0.65;
+  }
   .bp-lead input,
   .bp-lead textarea {
     font: inherit;
     width: 100%;
     box-sizing: border-box;
     padding: 8px 10px;
-    margin: 0 0 8px;
+    margin: 0;
+    font-weight: 400;
     border: 1.5px solid var(--color-border-light);
     border-radius: 6px;
     background: #fff;
@@ -920,7 +953,7 @@ const meta = {
     top: 10px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 705;
+    z-index: 660;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -932,35 +965,39 @@ const meta = {
     padding: 5px 12px;
     backdrop-filter: blur(4px);
   }
-  .bp-fsbtn {
-    font-size: 16px;
-  }
-  .bp-mapcard:fullscreen,
-  .bp-mapcard.bp-full {
-    display: flex;
-    flex-direction: column;
-    border-radius: 0;
-  }
-  .bp-mapcard.bp-full {
-    position: fixed;
-    inset: 0;
-    z-index: 500;
-  }
-  .bp-mapcard:fullscreen #bpMap,
-  .bp-mapcard.bp-full #bpMap {
-    flex: 1 1 auto;
-    height: auto;
-    min-height: 0;
+  .bp-mapcard .leaflet-popup-content-wrapper,
+  .bp-mapcard .leaflet-popup-tip {
+    background: var(--color-light);
+    color: var(--color-text-default);
   }
   .bp-tilepop canvas {
     display: block;
     border-radius: 6px;
-    image-rendering: pixelated;
   }
   .bp-tilepop p {
     margin: 6px 0 0;
-    font-size: 0.72rem;
-    max-width: 150px;
+    font-size: 0.74rem;
+    max-width: 176px;
+    color: var(--color-text-default);
+  }
+  .bp-tilepop p b {
+    color: var(--color-primary);
+  }
+  .bp-tilepop-key {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 4px;
+    font-size: 0.68rem;
+    color: var(--color-text-default);
+    opacity: 0.85;
+  }
+  .bp-tilepop-key i {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    background: #e621d8;
+    opacity: 0.75;
   }
   .bp-ramp-plants {
     background: linear-gradient(90deg, rgba(53, 201, 58, 0.08), #35c93a);
@@ -1033,6 +1070,12 @@ const meta = {
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
   integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO"
+  crossorigin="anonymous">
+</script>
+<script
+  is:inline
+  src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.fullscreen/3.0.2/Control.FullScreen.min.js"
+  integrity="sha384-/Z8ZSkAZbvbRJgCQuFPpP3C2uNZWPV7H2wnxJyih5g4uZsLLFrKSIsaM6RLKuZK2"
   crossorigin="anonymous">
 </script>
 <script
@@ -1131,59 +1174,32 @@ const meta = {
       { maxZoom: 19, attribution: "&copy; Esri" },
     ).addTo(map);
     L.control.scale({ imperial: true }).addTo(map);
-    var FullCtl = L.Control.extend({
-      options: { position: "topleft" },
-      onAdd: function () {
-        var div = L.DomUtil.create("div", "leaflet-bar");
-        var a = L.DomUtil.create("a", "bp-fsbtn", div);
-        a.href = "#";
-        a.setAttribute("role", "button");
-        a.setAttribute("aria-label", "Toggle full screen");
-        a.title = "Full screen";
-        a.textContent = "\u26f6";
-        L.DomEvent.on(a, "click", function (e) {
-          L.DomEvent.stop(e);
-          toggleFullscreen();
-        });
-        return div;
-      },
+    map.addControl(
+      L.control.fullscreen({
+        position: "topleft",
+        title: "Full screen",
+        titleCancel: "Exit full screen",
+        pseudoFullscreen: true,
+      }),
+    );
+    // Show chrome lives inside the map container so it survives
+    // fullscreen, which promotes only the container.
+    ["bpFlash", "bpScan", "bpLt", "bpViewbar"].forEach(function (cid) {
+      map.getContainer().appendChild(document.getElementById(cid));
     });
-    map.addControl(new FullCtl());
-    function fauxFull(card) {
-      card.classList.add("bp-full");
-      document.body.style.overflow = "hidden";
-    }
-    function toggleFullscreen() {
-      var card = document.getElementById("bpMapCard");
-      var active =
-        document.fullscreenElement === card ||
-        card.classList.contains("bp-full");
-      if (active) {
-        if (document.fullscreenElement) document.exitFullscreen();
-        card.classList.remove("bp-full");
-        document.body.style.overflow = "";
-      } else if (card.requestFullscreen) {
-        card.requestFullscreen().catch(function () {
-          fauxFull(card);
-        });
-      } else {
-        fauxFull(card);
-      }
+    L.DomEvent.disableClickPropagation(document.getElementById("bpViewbar"));
+    L.DomEvent.disableScrollPropagation(document.getElementById("bpViewbar"));
+    map.on("enterFullscreen exitFullscreen", function () {
       setTimeout(function () {
         map.invalidateSize();
-      }, 250);
-    }
-    document.addEventListener("fullscreenchange", function () {
-      setTimeout(function () {
-        map.invalidateSize();
-      }, 150);
+      }, 120);
     });
     document.addEventListener("keydown", function (e) {
       if (
         e.key === "Escape" &&
-        document.getElementById("bpMapCard").classList.contains("bp-full")
+        map.getContainer().classList.contains("leaflet-pseudo-fullscreen")
       )
-        toggleFullscreen();
+        map.toggleFullscreen();
     });
     var canvasRenderer = L.canvas({ padding: 0.3 });
     var boundaryLayer = L.layerGroup().addTo(map);
@@ -2642,31 +2658,126 @@ const meta = {
         ")"
       );
     }
+    function bpTileXY(lng, lat, z) {
+      var n = Math.pow(2, z);
+      var r = (lat * Math.PI) / 180;
+      return [
+        ((lng + 180) / 360) * n,
+        ((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2) * n,
+      ];
+    }
+    function bpBoundaryPath(cx, swc, nec, size) {
+      var polys =
+        st.geometry.type === "MultiPolygon"
+          ? st.geometry.coordinates
+          : [st.geometry.coordinates];
+      polys.forEach(function (p) {
+        p.forEach(function (ring) {
+          ring.forEach(function (c2, i2) {
+            var px = ((c2[0] - swc[1]) / (nec[1] - swc[1])) * size;
+            var py = ((nec[0] - c2[1]) / (nec[0] - swc[0])) * size;
+            if (i2 === 0) cx.moveTo(px, py);
+            else cx.lineTo(px, py);
+          });
+          cx.closePath();
+        });
+      });
+    }
     function tilePopup(t, swc, nec) {
+      var SZ = 168;
       var wrap = document.createElement("div");
       wrap.className = "bp-tilepop";
-      var pc = st.plantsCanvas;
-      var pb = st.plantsBounds;
-      if (pc && pb) {
-        var W = pc.width;
-        var H = pc.height;
-        var cs = pb[0][0];
-        var cw = pb[0][1];
-        var cn = pb[1][0];
-        var ce = pb[1][1];
-        var sx = ((swc[1] - cw) / (ce - cw)) * W;
-        var sy = ((cn - nec[0]) / (cn - cs)) * H;
-        var sw = ((nec[1] - swc[1]) / (ce - cw)) * W;
-        var sh = ((nec[0] - swc[0]) / (cn - cs)) * H;
-        var c = document.createElement("canvas");
-        c.width = 140;
-        c.height = 140;
-        var cx = c.getContext("2d");
-        cx.imageSmoothingEnabled = false;
-        cx.fillStyle = "#191d16";
-        cx.fillRect(0, 0, 140, 140);
-        if (sw > 1 && sh > 1) cx.drawImage(pc, sx, sy, sw, sh, 0, 0, 140, 140);
-        wrap.appendChild(c);
+      var c = document.createElement("canvas");
+      c.width = SZ;
+      c.height = SZ;
+      var cx = c.getContext("2d");
+      cx.fillStyle = "#20261d";
+      cx.fillRect(0, 0, SZ, SZ);
+      wrap.appendChild(c);
+      function overlays() {
+        if (st.geometry) {
+          cx.save();
+          cx.beginPath();
+          cx.rect(0, 0, SZ, SZ);
+          bpBoundaryPath(cx, swc, nec, SZ);
+          cx.fillStyle = "rgba(8, 10, 6, 0.55)";
+          cx.fill("evenodd");
+          cx.restore();
+          cx.save();
+          cx.beginPath();
+          bpBoundaryPath(cx, swc, nec, SZ);
+          cx.strokeStyle = "#ffd27a";
+          cx.lineWidth = 2;
+          cx.stroke();
+          cx.restore();
+        }
+        var pc = st.plantsCanvas;
+        var pb = st.plantsBounds;
+        if (pc && pb) {
+          var W = pc.width;
+          var H = pc.height;
+          var sx = ((swc[1] - pb[0][1]) / (pb[1][1] - pb[0][1])) * W;
+          var sy = ((pb[1][0] - nec[0]) / (pb[1][0] - pb[0][0])) * H;
+          var sw = ((nec[1] - swc[1]) / (pb[1][1] - pb[0][1])) * W;
+          var sh = ((nec[0] - swc[0]) / (pb[1][0] - pb[0][0])) * H;
+          if (sw > 0.5 && sh > 0.5) {
+            var m = document.createElement("canvas");
+            m.width = SZ;
+            m.height = SZ;
+            var mx = m.getContext("2d");
+            mx.imageSmoothingEnabled = false;
+            mx.drawImage(pc, sx, sy, sw, sh, 0, 0, SZ, SZ);
+            mx.globalCompositeOperation = "source-in";
+            mx.fillStyle = "#e621d8";
+            mx.fillRect(0, 0, SZ, SZ);
+            cx.globalAlpha = 0.55;
+            cx.drawImage(m, 0, 0);
+            cx.globalAlpha = 1;
+          }
+        }
+      }
+      var z = 18;
+      var a2 = bpTileXY(swc[1], nec[0], z);
+      var b2 = bpTileXY(nec[1], swc[0], z);
+      var need = [];
+      for (var tx = Math.floor(a2[0]); tx <= Math.floor(b2[0]); tx++)
+        for (var ty = Math.floor(a2[1]); ty <= Math.floor(b2[1]); ty++)
+          need.push([tx, ty]);
+      var left = need.length;
+      var scaleX = SZ / (b2[0] - a2[0]);
+      var scaleY = SZ / (b2[1] - a2[1]);
+      if (!left || left > 9) {
+        overlays();
+      } else {
+        need.forEach(function (tt) {
+          var im = new Image();
+          im.crossOrigin = "anonymous";
+          function step() {
+            if (--left === 0) overlays();
+          }
+          im.onload = function () {
+            try {
+              cx.drawImage(
+                im,
+                (tt[0] - a2[0]) * scaleX,
+                (tt[1] - a2[1]) * scaleY,
+                scaleX + 0.5,
+                scaleY + 0.5,
+              );
+            } catch (e) {
+              /* decode issue: mask and fence still draw */
+            }
+            step();
+          };
+          im.onerror = step;
+          im.src =
+            "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/" +
+            z +
+            "/" +
+            tt[1] +
+            "/" +
+            tt[0];
+        });
       }
       var cap = document.createElement("p");
       var ft = Math.round(((st.resp && st.resp.tile_m) || 30) * 3.281);
@@ -2677,6 +2788,10 @@ const meta = {
         ft +
         " ft square reads as likely brush";
       wrap.appendChild(cap);
+      var key = document.createElement("span");
+      key.className = "bp-tilepop-key";
+      key.innerHTML = "<i></i> flagged as brush by the analysis";
+      wrap.appendChild(key);
       return wrap;
     }
     function renderResult(resp) {
@@ -2762,7 +2877,8 @@ const meta = {
     /* ---------------- lead capture ---------------- */
     el("bpLeadSend").addEventListener("click", function () {
       var name = el("bpLeadName").value.trim();
-      var contact = el("bpLeadContact").value.trim();
+      var phone = el("bpLeadPhone").value.trim();
+      var email = el("bpLeadEmail").value.trim();
       var notes = el("bpLeadNotes").value.trim();
       var lm = el("bpLeadMsg");
       function say(text, ok) {
@@ -2770,10 +2886,19 @@ const meta = {
         lm.className = "bp-leadmsg " + (ok ? "bp-ok" : "bp-err");
         lm.hidden = false;
       }
-      if (!name || contact.length < 3) {
-        say("Name and a phone or email, please.", false);
+      if (!name) {
+        say("Your full name, please.", false);
         return;
       }
+      if (phone.replace(/\D/g, "").length < 7) {
+        say("A phone number we can reach you at, please.", false);
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        say("That email doesn't look complete.", false);
+        return;
+      }
+      var contact = (phone + " \u00b7 " + email).slice(0, 300);
       if (!st.runId) {
         say("Run the estimate first, then send us your info.", false);
         return;
