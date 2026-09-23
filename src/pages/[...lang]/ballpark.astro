@@ -247,6 +247,14 @@ const meta = {
               range, not a bid &mdash; a firm quote takes a scheduled survey
               flight over your ground.
             </p>
+            <div class="bp-lead" id="bpDemoCta" hidden>
+              <h3>That&rsquo;s the machine at work.</h3>
+              <p>
+                Everything you just watched was computed from real public data
+                over that canyon. Now point it at your own ground.
+              </p>
+              <button class="bp-cta" id="bpBtnOwn">Read my ranch &rarr;</button>
+            </div>
             <div class="bp-lead" id="bpLeadBlock">
               <h3>Like these numbers?</h3>
               <p>
@@ -1089,39 +1097,39 @@ const meta = {
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
   integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.fullscreen/3.0.2/Control.FullScreen.min.js"
   integrity="sha384-/Z8ZSkAZbvbRJgCQuFPpP3C2uNZWPV7H2wnxJyih5g4uZsLLFrKSIsaM6RLKuZK2"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <!-- Turnstile ships without SRI on purpose: Cloudflare rotates the script. -->
 <script
   is:inline
   src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
   async
-  defer>
-</script>
+  defer
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.min.js"
   integrity="sha384-/afhbJsRXHGy6vxnKzUwacQTDFat0eLiUZYYZT+ejWlu3RQytlhScgS3zO42xtMj"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
   integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/7.2.0/turf.min.js"
   integrity="sha384-ll8qH0IE3im19Dtlr1jtv5fdy+gm+0bx8T4+OYxPeJpc6PO1XLNFnyvdzaKJ78bU"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script is:inline>
   (function () {
     "use strict";
@@ -1212,6 +1220,7 @@ const meta = {
       ringCenter: null,
       ringR: 700,
       intakeSeq: 0,
+      demoBase: null,
     };
     var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     var showSeq = 0;
@@ -1608,6 +1617,7 @@ const meta = {
     }
 
     function parcelFlow(lat, lng, seq) {
+      st.demoBase = null;
       if (seq !== st.intakeSeq) return; // a newer intake started meanwhile
       clearIntakeLayers();
       clearShowLayers();
@@ -1659,6 +1669,7 @@ const meta = {
     }
 
     function ringFlow(lat, lng, hint) {
+      st.demoBase = null;
       clearIntakeLayers();
       st.county = null;
       st.ringCenter = [lat, lng];
@@ -1963,6 +1974,7 @@ const meta = {
       tileGroup.clearLayers();
       st.county = "Jeff Davis";
       st.geometry = FOX_DEMO;
+      st.demoBase = "/demo/fox-canyon/";
       var f = turf.feature(FOX_DEMO);
       var outline = L.geoJSON(f, {
         style: { color: "#f2b23a", weight: 3, fill: false },
@@ -2014,6 +2026,7 @@ const meta = {
       return null;
     }
     function setDirectBoundary(geometry, label) {
+      st.demoBase = null;
       st.intakeSeq++;
       clearIntakeLayers();
       clearShowLayers();
@@ -2119,6 +2132,7 @@ const meta = {
       redrawDraft();
     });
     btnFinish.addEventListener("click", function () {
+      st.demoBase = null;
       if (st.drawPts.length < 3) return;
       st.mode = "idle";
       el("bpMap").classList.remove("bp-drawing");
@@ -2222,13 +2236,16 @@ const meta = {
       }, 1000);
       var feedN = 1;
       feedRender(1, false);
-      var feedInt = setInterval(function () {
-        if (feedN < FEED.length - 1) {
-          feedN++;
-          feedRender(feedN, false);
-        }
-      }, 3400);
-      var earlyT = setTimeout(addEarlyTerrain, 6800);
+      var feedInt = setInterval(
+        function () {
+          if (feedN < FEED.length - 1) {
+            feedN++;
+            feedRender(feedN, false);
+          }
+        },
+        st.demoBase ? 900 : 3400,
+      );
+      var earlyT = st.demoBase ? null : setTimeout(addEarlyTerrain, 6800);
 
       var ppa = parseFloat(el("bpPpaInput").value) || null;
       var brushSel = document.querySelector('input[name="bpBrush"]:checked');
@@ -2257,6 +2274,11 @@ const meta = {
         setTimeout(function () {
           panelsShow("bpStepConfirm");
         }, 4000);
+      }
+
+      if (st.demoBase) {
+        runDemo(stopTimers, fail, bar);
+        return;
       }
 
       fetch(API, {
@@ -2345,6 +2367,42 @@ const meta = {
         .catch(fail);
     });
 
+    function runDemo(stopTimers, fail, bar) {
+      var mySeq = st.intakeSeq;
+      var demoT = setTimeout(function () {
+        if (mySeq !== st.intakeSeq) return;
+        fetch(st.demoBase + "result.json")
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function (result) {
+            if (mySeq !== st.intakeSeq) return;
+            stopTimers();
+            bar.style.width = "100%";
+            feedRender(FEED.length, true);
+            st.resp = result;
+            st.runId = null;
+            setTimeout(function () {
+              playShow(result);
+            }, 300);
+          })
+          .catch(function () {
+            if (mySeq !== st.intakeSeq) return;
+            fail(
+              new Error(
+                "The demo didn't load — try reading your own ranch instead.",
+              ),
+            );
+          });
+      }, 7600);
+      cancelScan = function () {
+        clearTimeout(demoT);
+        stopTimers();
+        el("bpScan").hidden = true;
+        el("bpMapCard").classList.remove("bp-dim");
+      };
+    }
+
     /* ---------------- the directed show ---------------- */
     var ACTS = [
       {
@@ -2415,6 +2473,13 @@ const meta = {
       el("bpMapCard").classList.remove("bp-dim");
       el("bpLt").classList.remove("bp-on");
     }
+    // Demo runs serve their layers as baked static assets; live runs
+    // stream them from the engine.
+    function layerUrl(key) {
+      return st.demoBase
+        ? st.demoBase + key + ".png"
+        : API + "/" + st.runId + "/layers/" + key;
+    }
     function revealOverlay(ov, opacity) {
       var go = function () {
         var n = ov.getElement();
@@ -2431,7 +2496,7 @@ const meta = {
     }
     function addShowLayer(key, meta, opacity, instant) {
       var group = L.layerGroup().addTo(map);
-      var url = API + "/" + st.runId + "/layers/" + key;
+      var url = layerUrl(key);
       var ov = L.imageOverlay(url, meta.bounds, {
         opacity: instant ? opacity : 0,
         interactive: false,
@@ -2583,7 +2648,8 @@ const meta = {
        the real priced mask. */
     function buildPlantsLayer(done) {
       var Ls = (st.resp && st.resp.layers) || {};
-      if (showGroups.plants || !st.runId) return done && done(false);
+      if (showGroups.plants || (!st.runId && !st.demoBase))
+        return done && done(false);
       if (Ls.plants) {
         // The worker published the real priced mask — use it directly.
         var pim = new Image();
@@ -2612,7 +2678,7 @@ const meta = {
         pim.onerror = function () {
           if (done) done(false);
         };
-        pim.src = API + "/" + st.runId + "/layers/plants";
+        pim.src = layerUrl("plants");
         return;
       }
       if (!Ls.canopy || !Ls.greenness) return done && done(false);
@@ -2630,7 +2696,7 @@ const meta = {
           if (done) done(false);
           done = null;
         };
-        im.src = API + "/" + st.runId + "/layers/" + k;
+        im.src = layerUrl(k);
       });
       function compose() {
         if (mySeq !== showSeq) return;
@@ -2716,7 +2782,7 @@ const meta = {
       var present = ACTS.filter(function (a) {
         return layers[a.key];
       });
-      if (!st.runId || present.length === 0) {
+      if (present.length === 0) {
         clearEarlyTerrain();
         viewbarShow();
         renderResult(resp);
@@ -3012,8 +3078,11 @@ const meta = {
         "~" + q.days + (q.days === 1 ? " day" : " days");
       el("bpLeadMsg").hidden = true;
       el("bpLeadSend").disabled = false;
+      var demo = !!st.demoBase;
+      el("bpLeadBlock").hidden = demo;
+      el("bpDemoCta").hidden = !demo;
       panelsShow("bpStepResult");
-      ensureTurnstile();
+      if (!demo) ensureTurnstile();
     }
 
     /* ---------------- lead capture ---------------- */
@@ -3152,10 +3221,12 @@ const meta = {
       panelsShow("bpStepConfirm");
     });
     el("bpBtnRestart").addEventListener("click", reset);
+    el("bpBtnOwn").addEventListener("click", reset);
     function reset() {
       if (cancelScan) cancelScan();
       st.intakeSeq++;
       st.geometry = null;
+      st.demoBase = null;
       st.runId = null;
       st.resp = null;
       st.mode = "idle";
