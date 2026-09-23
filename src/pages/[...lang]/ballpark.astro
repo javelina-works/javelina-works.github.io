@@ -61,7 +61,14 @@ const meta = {
             </div>
             <span class="bp-lt-chip" id="bpLtChip"></span>
           </div>
-          <div class="bp-strip" id="bpStrip" hidden></div>
+          <div class="bp-viewbar" id="bpViewbar" hidden>
+            <div class="bp-views" id="bpViews"></div>
+            <div class="bp-viewlegend" id="bpViewLegend" hidden>
+              <span id="bpVlL"></span>
+              <i id="bpVlBar"></i>
+              <span id="bpVlR"></span>
+            </div>
+          </div>
           <div class="bp-mapcaption">
             <span id="bpMapMsg">
               Scroll and zoom, or just tell us the address
@@ -562,38 +569,50 @@ const meta = {
   .bp-stages {
     list-style: none;
     margin: 8px 0 0;
-    padding: 0;
-    font-size: 0.88rem;
-    min-height: 84px;
+    padding: 10px 12px;
+    background: #0f130f;
+    border: 1px solid #273023;
+    border-radius: 8px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: #9ecf9a;
+    min-height: 150px;
+    max-height: 210px;
+    overflow-y: auto;
   }
   .bp-stages li {
-    padding: 4px 0 4px 26px;
-    position: relative;
-    opacity: 0.75;
+    padding: 1px 0;
   }
-  .bp-stages li::before {
-    content: "\2713";
-    position: absolute;
-    left: 2px;
-    color: var(--color-success);
-    font-weight: 700;
+  .bp-stages li .bp-tprompt {
+    color: #55804f;
+    user-select: none;
+  }
+  .bp-stages li.bp-done {
+    opacity: 0.6;
   }
   .bp-stages li.bp-current {
-    opacity: 1;
-    font-weight: 600;
+    color: #cfe8c9;
   }
-  .bp-stages li.bp-current::before {
-    content: "\25CC";
-    color: var(--color-primary);
-    animation: bp-pulse 1s ease-in-out infinite;
+  .bp-stages .bp-tok {
+    color: #d9ef86;
   }
-  @keyframes bp-pulse {
+  .bp-cursor {
+    display: inline-block;
+    width: 0.55em;
+    height: 1em;
+    margin-left: 2px;
+    vertical-align: -0.15em;
+    background: #9ecf9a;
+    animation: bpBlink 1s steps(1) infinite;
+  }
+  @keyframes bpBlink {
     50% {
-      opacity: 0.25;
+      opacity: 0;
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .bp-stages li.bp-current::before {
+    .bp-cursor {
       animation: none;
     }
   }
@@ -890,53 +909,61 @@ const meta = {
       #1c7a22
     );
   }
-  .bp-strip {
+  .bp-viewbar {
     position: absolute;
     top: 10px;
     left: 50%;
     transform: translateX(-50%);
-    display: flex;
-    gap: 6px;
     z-index: 705;
-  }
-  .bp-thumb {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
-    padding: 3px 3px 2px;
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    border-radius: 6px;
+    gap: 5px;
+    max-width: calc(100% - 16px);
+  }
+  .bp-views {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+  }
+  .bp-view {
+    border: 1px solid rgba(255, 255, 255, 0.4);
     background: rgba(20, 24, 18, 0.72);
     color: #fff3e6;
-    font-size: 0.62rem;
-    letter-spacing: 0.04em;
+    border-radius: 999px;
+    padding: 4px 11px;
+    font-size: 0.72rem;
     cursor: pointer;
-    animation: bpThumbIn 0.5s ease both;
   }
-  .bp-thumb img {
-    width: 52px;
-    height: 36px;
-    object-fit: cover;
-    border-radius: 3px;
-    background: #2c3328;
+  .bp-view.bp-on {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
   }
-  .bp-thumb.bp-off img {
-    opacity: 0.35;
+  .bp-viewlegend {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.66rem;
+    color: #fff3e6;
+    background: rgba(20, 24, 18, 0.72);
+    border-radius: 999px;
+    padding: 3px 10px;
   }
-  .bp-thumb.bp-off {
-    border-color: rgba(255, 255, 255, 0.15);
+  .bp-viewlegend i {
+    flex: 0 0 92px;
+    height: 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
   }
-  @keyframes bpThumbIn {
-    from {
-      opacity: 0;
-      transform: translateY(-6px);
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .bp-thumb {
-      animation: none;
-    }
+  .bp-ramp-density {
+    background: linear-gradient(
+      90deg,
+      rgba(245, 222, 130, 0.3),
+      #f5c542 45%,
+      #d84315
+    );
   }
   [hidden] {
     display: none !important;
@@ -947,26 +974,26 @@ const meta = {
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
   integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO"
-  crossorigin="anonymous"
-></script>
+  crossorigin="anonymous">
+</script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.min.js"
   integrity="sha384-/afhbJsRXHGy6vxnKzUwacQTDFat0eLiUZYYZT+ejWlu3RQytlhScgS3zO42xtMj"
-  crossorigin="anonymous"
-></script>
+  crossorigin="anonymous">
+</script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
   integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG"
-  crossorigin="anonymous"
-></script>
+  crossorigin="anonymous">
+</script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/7.2.0/turf.min.js"
   integrity="sha384-ll8qH0IE3im19Dtlr1jtv5fdy+gm+0bx8T4+OYxPeJpc6PO1XLNFnyvdzaKJ78bU"
-  crossorigin="anonymous"
-></script>
+  crossorigin="anonymous">
+</script>
 <script is:inline>
   (function () {
     "use strict";
@@ -1052,7 +1079,6 @@ const meta = {
     var tileGroup = L.layerGroup().addTo(map);
     var drawLayer = L.layerGroup().addTo(map);
     var showGroups = {};
-    var layersCtl = null;
 
     var st = {
       geometry: null,
@@ -1781,15 +1807,44 @@ const meta = {
       "Measuring what's standing…",
       "Pricing the treatment plan…",
     ];
+    var typerT = null;
     function feedRender(n, done) {
       var ul = el("bpStageList");
+      clearInterval(typerT);
       ul.innerHTML = "";
       for (var i = 0; i < n; i++) {
         var li = document.createElement("li");
-        li.textContent = FEED[i];
-        if (!done && i === n - 1) li.className = "bp-current";
+        var isCur = !done && i === n - 1;
+        li.className = isCur ? "bp-current" : "bp-done";
+        var pre = document.createElement("span");
+        pre.className = "bp-tprompt";
+        pre.textContent = "> ";
+        li.appendChild(pre);
+        var txt = document.createElement("span");
+        txt.className = "bp-ttext";
+        li.appendChild(txt);
+        if (isCur && !reduce) {
+          (function (full, node, host) {
+            var j = 0;
+            var cur = document.createElement("span");
+            cur.className = "bp-cursor";
+            host.appendChild(cur);
+            typerT = setInterval(function () {
+              j += 1 + Math.floor(Math.random() * 2);
+              node.textContent = full.slice(0, j);
+              if (j >= full.length) clearInterval(typerT);
+            }, 22);
+          })(FEED[i], txt, li);
+        } else {
+          txt.textContent = FEED[i];
+          var ok = document.createElement("span");
+          ok.className = "bp-tok";
+          ok.textContent = " \u2713";
+          li.appendChild(ok);
+        }
         ul.appendChild(li);
       }
+      ul.scrollTop = ul.scrollHeight;
     }
 
     el("bpBtnEstimate").addEventListener("click", function () {
@@ -1834,6 +1889,7 @@ const meta = {
         clearInterval(pulse);
         clearInterval(elapsed);
         clearInterval(feedInt);
+        clearInterval(typerT);
         clearTimeout(earlyT);
       }
       cancelScan = function () {
@@ -2001,12 +2057,9 @@ const meta = {
         map.removeLayer(showGroups[k]);
       });
       showGroups = {};
-      if (layersCtl) {
-        map.removeControl(layersCtl);
-        layersCtl = null;
-      }
+      viewbarHide();
+      if (!map.hasLayer(tileGroup)) tileGroup.addTo(map);
       if (!keepEarly) clearEarlyTerrain();
-      stripClear();
       el("bpScan").hidden = true;
       el("bpMapCard").classList.remove("bp-dim");
       el("bpLt").classList.remove("bp-on");
@@ -2103,43 +2156,66 @@ const meta = {
       map.removeLayer(earlyGroup);
       earlyGroup = null;
     }
-    var STRIP_INFO = {
-      hillshade: "Terrain",
-      canopy: "Height",
-      falsecolor: "Infrared",
-      greenness: "Green",
-    };
-    function stripAdd(key) {
-      var strip = el("bpStrip");
-      strip.hidden = false;
-      var b = document.createElement("button");
-      b.type = "button";
-      b.className = "bp-thumb";
-      b.setAttribute("aria-label", "Toggle " + STRIP_INFO[key] + " layer");
-      var im = document.createElement("img");
-      im.alt = "";
-      im.src = API + "/" + st.runId + "/layers/" + key;
-      var sp = document.createElement("span");
-      sp.textContent = STRIP_INFO[key];
-      b.appendChild(im);
-      b.appendChild(sp);
-      b.addEventListener("click", function () {
-        var g = showGroups[key];
-        if (!g) return;
-        if (map.hasLayer(g)) {
-          map.removeLayer(g);
-          b.classList.add("bp-off");
-        } else {
+    var VIEWS = [
+      { key: "density", label: "Density" },
+      { key: "canopy", label: "Height" },
+      { key: "falsecolor", label: "Infrared" },
+      { key: "greenness", label: "Green" },
+      { key: "hillshade", label: "Terrain" },
+    ];
+    function actOpacity(key) {
+      for (var i = 0; i < ACTS.length; i++)
+        if (ACTS[i].key === key) return ACTS[i].opacity;
+      return 0.85;
+    }
+    function viewSelect(key) {
+      Array.prototype.forEach.call(el("bpViews").children, function (b) {
+        var on = b.dataset.key === key;
+        b.classList.toggle("bp-on", on);
+        b.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+      Object.keys(showGroups).forEach(function (k) {
+        var g = showGroups[k];
+        if (k === key) {
           g.addTo(map);
-          b.classList.remove("bp-off");
+          g.eachLayer(function (l) {
+            if (l.setOpacity) l.setOpacity(actOpacity(k));
+          });
+        } else {
+          map.removeLayer(g);
         }
       });
-      strip.appendChild(b);
+      if (key === "density") tileGroup.addTo(map);
+      else map.removeLayer(tileGroup);
+      var r = key === "density" ? ["open ground", "thick brush"] : RAMPS[key];
+      var lg = el("bpViewLegend");
+      lg.hidden = !r;
+      if (r) {
+        el("bpVlL").textContent = r[0];
+        el("bpVlR").textContent = r[1];
+        el("bpVlBar").className = "bp-ramp-" + key;
+      }
     }
-    function stripClear() {
-      var strip = el("bpStrip");
-      strip.innerHTML = "";
-      strip.hidden = true;
+    function viewbarShow() {
+      var bar = el("bpViews");
+      bar.innerHTML = "";
+      VIEWS.forEach(function (v) {
+        if (v.key !== "density" && !showGroups[v.key]) return;
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "bp-view";
+        b.dataset.key = v.key;
+        b.textContent = v.label;
+        b.addEventListener("click", function () {
+          viewSelect(v.key);
+        });
+        bar.appendChild(b);
+      });
+      el("bpViewbar").hidden = false;
+      viewSelect("density");
+    }
+    function viewbarHide() {
+      el("bpViewbar").hidden = true;
     }
     var RAMPS = {
       canopy: ["knee-high", "tree height"],
@@ -2179,6 +2255,7 @@ const meta = {
       });
       if (!st.runId || present.length === 0) {
         clearEarlyTerrain();
+        viewbarShow();
         renderResult(resp);
         return;
       }
@@ -2205,7 +2282,6 @@ const meta = {
               });
             }
             addShowLayer(a.key, layers[a.key], a.opacity, reduce);
-            stripAdd(a.key);
             if (a.key === "hillshade") setTimeout(clearEarlyTerrain, 1900);
             el(a.act).classList.add("bp-on");
             var statEl = el(a.act + "Stat");
@@ -2221,14 +2297,7 @@ const meta = {
           el("bpLt").classList.remove("bp-on");
           el("bpMapCard").classList.remove("bp-dim");
           clearEarlyTerrain();
-          var overlays = {};
-          present.forEach(function (a) {
-            overlays[ACT_TITLES[a.key]] = showGroups[a.key];
-          });
-          overlays["Measured tiles"] = tileGroup;
-          layersCtl = L.control
-            .layers(null, overlays, { collapsed: true })
-            .addTo(map);
+          viewbarShow();
           renderResult(resp);
         },
         150 + (present.length - 1) * gap + (reduce ? 100 : 1400),
@@ -2236,6 +2305,37 @@ const meta = {
     }
 
     /* ---------------- result ---------------- */
+    // Straw -> amber -> burnt red, keyed to brush cover fraction.
+    function densColor(c) {
+      var stops = [
+        [0, 245, 222, 130],
+        [0.25, 245, 197, 66],
+        [0.6, 216, 67, 21],
+      ];
+      var lo = stops[0];
+      var hi = stops[stops.length - 1];
+      for (var i = 0; i < stops.length - 1; i++) {
+        if (c >= stops[i][0] && c <= stops[i + 1][0]) {
+          lo = stops[i];
+          hi = stops[i + 1];
+        }
+      }
+      if (c >= hi[0]) lo = hi;
+      var f = hi[0] === lo[0] ? 0 : (c - lo[0]) / (hi[0] - lo[0]);
+      if (f > 1) f = 1;
+      var mix = function (a, b) {
+        return Math.round(a + (b - a) * f);
+      };
+      return (
+        "rgb(" +
+        mix(lo[1], hi[1]) +
+        "," +
+        mix(lo[2], hi[2]) +
+        "," +
+        mix(lo[3], hi[3]) +
+        ")"
+      );
+    }
     function renderResult(resp) {
       var def = utmDef(resp.epsg);
       tileGroup.clearLayers();
@@ -2245,12 +2345,11 @@ const meta = {
       var rects = resp.tiles.map(function (t) {
         var swc = utmToLatLng(def, t[0] - h, t[1] - h);
         var nec = utmToLatLng(def, t[0] + h, t[1] + h);
-        var alpha = Math.min(0.68, 0.06 + t[2] * 1.5);
         var r = L.rectangle([swc, nec], {
           renderer: canvasRenderer,
           stroke: false,
-          fillColor: "#2f6a1f",
-          fillOpacity: alpha,
+          fillColor: densColor(t[2]),
+          fillOpacity: Math.min(0.8, 0.18 + t[2] * 1.6),
         });
         r.bindTooltip(Math.round(t[2] * 100) + "% cover", {
           sticky: true,
@@ -2376,7 +2475,12 @@ const meta = {
     el("bpStep2").addEventListener("click", replayShow);
     el("bpStep3").addEventListener("click", function () {
       if (!st.resp) return;
-      clearShowLayers();
+      showSeq++; // cancel pending show beats, keep landed layers
+      clearEarlyTerrain();
+      el("bpScan").hidden = true;
+      el("bpLt").classList.remove("bp-on");
+      el("bpMapCard").classList.remove("bp-dim");
+      viewbarShow();
       renderResult(st.resp);
     });
     el("bpBtnBack1").addEventListener("click", reset);
