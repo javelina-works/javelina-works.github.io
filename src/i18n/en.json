@@ -13,8 +13,7 @@
     "careerApplyNow": "Apply Now"
   },
   "navigation": {
-    "buttonLabel": "Contact"
-
+    "buttonLabel": "Ballpark"
   },
   "contactInfo": {
     "locationLabel": "Location",
@@ -33,6 +32,6 @@
     "colTitleTwo": "Resources",
     "colTitleThree": "Contact",
     "description": "Intelligent land management solutions for Texas ranchers. From brush clearing to environmental insights, we help you keep your land healthy and thriving.",
-    "copyright": "Copyright © 2026 Javelina Works, Inc. All Rights Reserved."
+    "copyright": "Copyright \u00a9 2026 Javelina Works, Inc. All Rights Reserved."
   }
 }
