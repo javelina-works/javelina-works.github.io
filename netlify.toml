@@ -8,11 +8,11 @@
   [build.environment]
     NODE_VERSION = "22"
 
-# Lighthouse runs in GitHub Actions instead — see
-# .github/workflows/lighthouse-preview.yml (per-preview, warn-only) and
-# .github/workflows/lighthouse-badges.yml (production, daily).
-# The @netlify/plugin-lighthouse plugin was removed because it silently
-# swallowed runtime errors and never actually enforced its thresholds.
+    # Lighthouse runs in GitHub Actions instead — see
+    # .github/workflows/lighthouse-preview.yml (per-preview, warn-only) and
+    # .github/workflows/lighthouse-badges.yml (production, daily).
+    # The @netlify/plugin-lighthouse plugin was removed because it silently
+    # swallowed runtime errors and never actually enforced its thresholds.
 
 [[headers]]
   for = "/_astro/*"
@@ -30,19 +30,44 @@
   for = "/admin/*"
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
-    X-Robots-Tag = "noindex, nofollow"
+    X-Robots-Tag  = "noindex, nofollow"
 
 # PostHog reverse proxy — routes /ingest/* through our own origin so ad
 # blockers targeting *.posthog.com don't drop events or block the JS bundle.
 # Order matters: the /static/* rule must come before the catch-all.
 [[redirects]]
-  from = "/ingest/static/*"
-  to = "https://us-assets.i.posthog.com/static/:splat"
+  from   = "/ingest/static/*"
+  to     = "https://us-assets.i.posthog.com/static/:splat"
   status = 200
-  force = true
+  force  = true
 
 [[redirects]]
-  from = "/ingest/*"
-  to = "https://us.i.posthog.com/:splat"
+  from   = "/ingest/*"
+  to     = "https://us.i.posthog.com/:splat"
   status = 200
-  force = true
+  force  = true
+
+# Ballpark estimate proxy — the /ballpark page calls same-origin /api/ballpark
+# so the estimate service's host never appears in client code and needs no
+# CORS entry for this site. Splat rule first (poll + contact), exact rule after.
+# Exact rule FIRST: the splat also matches the bare path with an empty
+# splat, whose trailing-slash target FastAPI 307-redirects — and the
+# browser then follows it cross-origin into a CORS failure.
+[[redirects]]
+  from   = "/api/ballpark"
+  to     = "https://brush-targeting-production.up.railway.app/api/v2/ballpark"
+  status = 200
+  force  = true
+
+[[redirects]]
+  from   = "/api/ballpark/*"
+  to     = "https://brush-targeting-production.up.railway.app/api/v2/ballpark/:splat"
+  status = 200
+  force  = true
+
+# The STAGING proxy exists ONLY on deploy previews: the context override
+# below appends it to dist/_redirects at build time (the _redirects file is
+# evaluated before these rules; exact path precedes the splat to avoid the
+# trailing-slash 307). Production never carries these routes.
+[context.deploy-preview]
+  command = "pnpm build && printf '/api/ballpark-staging https://fastapi-staging.up.railway.app/api/v2/ballpark 200!\n/api/ballpark-staging/* https://fastapi-staging.up.railway.app/api/v2/ballpark/:splat 200!\n' >> dist/_redirects"
