@@ -61,14 +61,6 @@ const meta = {
             </div>
             <span class="bp-lt-chip" id="bpLtChip"></span>
           </div>
-          <div class="bp-viewbar" id="bpViewbar" hidden>
-            <div class="bp-views" id="bpViews"></div>
-            <div class="bp-viewlegend" id="bpViewLegend" hidden>
-              <span id="bpVlL"></span>
-              <i id="bpVlBar"></i>
-              <span id="bpVlR"></span>
-            </div>
-          </div>
           <div class="bp-mapcaption">
             <span id="bpMapMsg">
               Scroll and zoom, or just tell us the address
@@ -215,6 +207,15 @@ const meta = {
           </section>
 
           <section id="bpStepResult" hidden>
+            <div class="bp-viewpanel" id="bpViewbar" hidden>
+              <span class="bp-viewlabel">Map view</span>
+              <div class="bp-views" id="bpViews"></div>
+              <div class="bp-viewlegend" id="bpViewLegend" hidden>
+                <span id="bpVlL"></span>
+                <i id="bpVlBar"></i>
+                <span id="bpVlR"></span>
+              </div>
+            </div>
             <h2>Your ballpark</h2>
             <div class="bp-band">
               <span class="bp-band-big" id="bpPriceBand"></span>
@@ -331,6 +332,9 @@ const meta = {
     border-radius: 8px;
     overflow: hidden;
     position: relative;
+    /* Leaflet panes reach z-index 1000; contain them so the map can
+       never ride over the sticky site header. */
+    isolation: isolate;
   }
   #bpMap {
     height: 620px;
@@ -909,31 +913,34 @@ const meta = {
       #1c7a22
     );
   }
-  .bp-viewbar {
-    position: absolute;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 705;
+  .bp-viewpanel {
+    margin: 0 0 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--color-border-light);
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    max-width: calc(100% - 16px);
+    gap: 6px;
+  }
+  .bp-viewlabel {
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--color-text-default);
+    opacity: 0.6;
   }
   .bp-views {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
     gap: 4px;
   }
   .bp-view {
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    background: rgba(20, 24, 18, 0.72);
-    color: #fff3e6;
+    border: 1px solid var(--color-border-light);
+    background: transparent;
+    color: var(--color-text-default);
     border-radius: 999px;
     padding: 4px 11px;
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     cursor: pointer;
   }
   .bp-view.bp-on {
@@ -945,17 +952,14 @@ const meta = {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.66rem;
-    color: #fff3e6;
-    background: rgba(20, 24, 18, 0.72);
-    border-radius: 999px;
-    padding: 3px 10px;
+    font-size: 0.68rem;
+    color: var(--color-text-default);
   }
   .bp-viewlegend i {
     flex: 0 0 92px;
     height: 8px;
     border-radius: 4px;
-    border: 1px solid rgba(255, 255, 255, 0.35);
+    border: 1px solid var(--color-border-light);
   }
   .bp-ramp-density {
     background: linear-gradient(
@@ -974,26 +978,26 @@ const meta = {
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
   integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.min.js"
   integrity="sha384-/afhbJsRXHGy6vxnKzUwacQTDFat0eLiUZYYZT+ejWlu3RQytlhScgS3zO42xtMj"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
   integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/7.2.0/turf.min.js"
   integrity="sha384-ll8qH0IE3im19Dtlr1jtv5fdy+gm+0bx8T4+OYxPeJpc6PO1XLNFnyvdzaKJ78bU"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script is:inline>
   (function () {
     "use strict";
