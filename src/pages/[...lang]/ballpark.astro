@@ -30,10 +30,28 @@ const meta = {
 
   <section class="bp-toolwrap">
     <div class="container">
+      <ol class="bp-steps" id="bpSteps" aria-label="Progress">
+        <li>
+          <button type="button" class="bp-step" id="bpStep1" disabled>
+            <span class="bp-step-n">1</span> Find your ranch
+          </button>
+        </li>
+        <li>
+          <button type="button" class="bp-step" id="bpStep2" disabled>
+            <span class="bp-step-n">2</span> Analysis
+          </button>
+        </li>
+        <li>
+          <button type="button" class="bp-step" id="bpStep3" disabled>
+            <span class="bp-step-n">3</span> Get ballpark
+          </button>
+        </li>
+      </ol>
       <div class="bp-tool">
         <div class="bp-mapcard" id="bpMapCard">
           <div id="bpMap"></div>
           <div class="bp-flash" id="bpFlash"></div>
+          <div class="bp-scan" id="bpScan" hidden></div>
           <div class="bp-lt" id="bpLt">
             <div class="bp-lt-line" id="bpLtLine"></div>
             <span class="bp-lt-chip" id="bpLtChip"></span>
@@ -712,6 +730,102 @@ const meta = {
     gap: 4px;
     margin-top: 14px;
   }
+  /* step indicator */
+  .bp-steps {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    list-style: none;
+    margin: 0 0 14px;
+    padding: 0;
+  }
+  .bp-steps li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .bp-steps li + li::before {
+    content: "";
+    width: 22px;
+    height: 1px;
+    background: var(--color-border-light);
+  }
+  .bp-step {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--color-border-light);
+    background: var(--color-light);
+    color: var(--color-text-default);
+    border-radius: 999px;
+    padding: 5px 14px 5px 5px;
+    font: inherit;
+    font-size: 0.85rem;
+    opacity: 0.55;
+  }
+  .bp-step-n {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-border-light);
+    color: var(--color-text-default);
+    font-weight: 700;
+    font-size: 0.75rem;
+  }
+  .bp-step.bp-active {
+    opacity: 1;
+    border-color: var(--color-primary);
+  }
+  .bp-step.bp-active .bp-step-n,
+  .bp-step.bp-click .bp-step-n {
+    background: var(--color-primary);
+    color: #fff;
+  }
+  .bp-step.bp-click {
+    opacity: 1;
+    cursor: pointer;
+  }
+  .bp-step.bp-click:hover {
+    border-color: var(--color-primary);
+  }
+  /* satellite sweep while the analysis runs */
+  .bp-scan {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    z-index: 640;
+    pointer-events: none;
+  }
+  .bp-scan::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 16%;
+    top: -20%;
+    background: linear-gradient(
+      180deg,
+      transparent,
+      rgba(170, 255, 160, 0.14) 55%,
+      rgba(255, 255, 255, 0.32) 97%,
+      transparent
+    );
+    animation: bpScanSweep 2.8s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bp-scan::after {
+      animation: none;
+    }
+  }
+  @keyframes bpScanSweep {
+    to {
+      top: 104%;
+    }
+  }
   [hidden] {
     display: none !important;
   }
@@ -721,40 +835,37 @@ const meta = {
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
   integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.min.js"
   integrity="sha384-/afhbJsRXHGy6vxnKzUwacQTDFat0eLiUZYYZT+ejWlu3RQytlhScgS3zO42xtMj"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
   integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/7.2.0/turf.min.js"
   integrity="sha384-ll8qH0IE3im19Dtlr1jtv5fdy+gm+0bx8T4+OYxPeJpc6PO1XLNFnyvdzaKJ78bU"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script is:inline>
   (function () {
     "use strict";
 
-    // Same-origin proxies in production and on Netlify deploy previews
-    // (previews talk to the staging engine); the staging API directly when
-    // developing on localhost.
-    var HOST = location.hostname;
-    var API =
-      HOST === "localhost" || HOST === "127.0.0.1"
-        ? "https://fastapi-staging.up.railway.app/api/v2/ballpark"
-        : HOST.endsWith("javelinaworks.com")
-          ? "/api/ballpark"
-          : "/api/ballpark-staging";
+    // Always same-origin: production proxies /api/ballpark via Netlify;
+    // deploy previews get /api/ballpark-staging from netlify.toml; local
+    // `astro dev` serves the same staging path through a Vite proxy
+    // (astro.config.mjs), so localhost and LAN/phone testing both work.
+    var API = location.hostname.endsWith("javelinaworks.com")
+      ? "/api/ballpark"
+      : "/api/ballpark-staging";
 
     // TxGIO StratMap statewide parcels (identify-only public service) — from
     // the address-to-site exploration in brush-targeting.
@@ -845,6 +956,8 @@ const meta = {
       intakeSeq: 0,
     };
     var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var showSeq = 0;
+    var cancelScan = null;
 
     function el(id) {
       return document.getElementById(id);
@@ -858,13 +971,39 @@ const meta = {
         el("bpFileInput").click();
       }
     });
+    var STEP_OF = {
+      bpStepLocate: 1,
+      bpStepConfirm: 1,
+      bpStepScan: 2,
+      bpStepResult: 3,
+    };
+    var curStep = 1;
+    function stepsRender() {
+      var canReplay = !!st.resp;
+      [
+        { n: 1, can: curStep > 1 },
+        { n: 2, can: canReplay && curStep !== 2 },
+        { n: 3, can: canReplay && curStep !== 3 },
+      ].forEach(function (c) {
+        var b = el("bpStep" + c.n);
+        var on = curStep === c.n;
+        b.classList.toggle("bp-active", on);
+        b.classList.toggle("bp-click", c.can);
+        b.disabled = !c.can;
+        if (on) b.setAttribute("aria-current", "step");
+        else b.removeAttribute("aria-current");
+      });
+    }
     function panelsShow(name) {
       ["bpStepLocate", "bpStepConfirm", "bpStepScan", "bpStepResult"].forEach(
         function (id) {
           el(id).hidden = id !== name;
         },
       );
+      curStep = STEP_OF[name] || curStep;
+      stepsRender();
     }
+    stepsRender();
     function mapmsg(t) {
       el("bpMapMsg").textContent = t;
     }
@@ -1544,6 +1683,8 @@ const meta = {
     el("bpBtnEstimate").addEventListener("click", function () {
       if (!st.geometry) return;
       panelsShow("bpStepScan");
+      if (!reduce) el("bpScan").hidden = false;
+      el("bpMapCard").classList.add("bp-dim");
       el("bpScanErr").hidden = true;
       el("bpActs").hidden = true;
       el("bpScanTitle").textContent = "Reading your country…";
@@ -1581,8 +1722,15 @@ const meta = {
         clearInterval(elapsed);
         clearInterval(feedInt);
       }
+      cancelScan = function () {
+        stopTimers();
+        el("bpScan").hidden = true;
+        el("bpMapCard").classList.remove("bp-dim");
+      };
       function fail(err) {
         stopTimers();
+        el("bpScan").hidden = true;
+        el("bpMapCard").classList.remove("bp-dim");
         var e = el("bpScanErr");
         e.textContent = err.message;
         e.hidden = false;
@@ -1666,6 +1814,13 @@ const meta = {
                 inFlight = false;
               });
           }, 1500);
+          cancelScan = function () {
+            settled = true;
+            clearInterval(poll);
+            stopTimers();
+            el("bpScan").hidden = true;
+            el("bpMapCard").classList.remove("bp-dim");
+          };
         })
         .catch(fail);
     });
@@ -1726,6 +1881,7 @@ const meta = {
     };
 
     function clearShowLayers() {
+      showSeq++; // invalidates every pending show timeout
       Object.keys(showGroups).forEach(function (k) {
         map.removeLayer(showGroups[k]);
       });
@@ -1734,25 +1890,75 @@ const meta = {
         map.removeControl(layersCtl);
         layersCtl = null;
       }
+      el("bpScan").hidden = true;
       el("bpMapCard").classList.remove("bp-dim");
       el("bpLt").classList.remove("bp-on");
     }
+    var BLANK =
+      "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+    function pixFrame(img, w) {
+      var h = Math.max(
+        1,
+        Math.round((img.naturalHeight / img.naturalWidth) * w),
+      );
+      var c = document.createElement("canvas");
+      c.width = w;
+      c.height = h;
+      var cx = c.getContext("2d");
+      cx.imageSmoothingEnabled = false;
+      cx.drawImage(img, 0, 0, w, h);
+      try {
+        return c.toDataURL("image/png");
+      } catch (e) {
+        return img.src; // tainted canvas — use the real image
+      }
+    }
     function addShowLayer(key, meta, opacity, instant) {
       var group = L.layerGroup().addTo(map);
-      var ov = L.imageOverlay(
-        API + "/" + st.runId + "/layers/" + key,
-        meta.bounds,
-        {
-          opacity: 0,
-          interactive: false,
-        },
-      ).addTo(group);
-      var img = ov.getElement();
-      if (img && !instant) img.style.transition = "opacity 1.2s ease";
-      setTimeout(function () {
-        ov.setOpacity(opacity);
-      }, 60);
+      var url = API + "/" + st.runId + "/layers/" + key;
+      var ov = L.imageOverlay(instant ? url : BLANK, meta.bounds, {
+        opacity: instant ? opacity : 0,
+        interactive: false,
+      }).addTo(group);
       showGroups[key] = group;
+      if (instant) return group;
+      // Downlink theater: the layer resolves from coarse blocks to full
+      // resolution, like imagery arriving over a thin pipe.
+      var mySeq = showSeq;
+      var img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = function () {
+        if (mySeq !== showSeq) return;
+        var node = ov.getElement();
+        if (node) {
+          node.style.transition = "opacity 0.5s ease";
+          node.style.imageRendering = "pixelated";
+        }
+        ov.setOpacity(opacity);
+        var steps = [14, 44, 150];
+        var i = 0;
+        (function next() {
+          if (mySeq !== showSeq) return;
+          if (i >= steps.length) {
+            var n2 = ov.getElement();
+            if (n2) n2.style.imageRendering = "";
+            ov.setUrl(url);
+            return;
+          }
+          ov.setUrl(pixFrame(img, steps[i]));
+          i++;
+          setTimeout(next, 380);
+        })();
+      };
+      img.onerror = function () {
+        // No CORS-clean copy — fall back to the plain fade-in.
+        if (mySeq !== showSeq) return;
+        var node = ov.getElement();
+        if (node) node.style.transition = "opacity 1.2s ease";
+        ov.setUrl(url);
+        ov.setOpacity(opacity);
+      };
+      img.src = url;
       return group;
     }
     function setLT(line, chip) {
@@ -1772,6 +1978,7 @@ const meta = {
 
     function playShow(resp) {
       clearShowLayers();
+      var mySeq = showSeq;
       var layers = resp.layers || {};
       var ss = resp.layer_stats || {};
       var present = ACTS.filter(function (a) {
@@ -1788,6 +1995,7 @@ const meta = {
       present.forEach(function (a, i) {
         setTimeout(
           function () {
+            if (mySeq !== showSeq) return;
             if (a.flash && !reduce) {
               var fl = el("bpFlash");
               fl.style.transition = "none";
@@ -1813,6 +2021,7 @@ const meta = {
       });
       setTimeout(
         function () {
+          if (mySeq !== showSeq) return;
           el("bpLt").classList.remove("bp-on");
           el("bpMapCard").classList.remove("bp-dim");
           var overlays = {};
@@ -1953,6 +2162,26 @@ const meta = {
     });
 
     /* ---------------- navigation ---------------- */
+    function replayShow() {
+      if (!st.resp) return;
+      el("bpScanErr").hidden = true;
+      el("bpBarFill").style.width = "100%";
+      feedRender(FEED.length, true);
+      panelsShow("bpStepScan");
+      playShow(st.resp);
+    }
+    el("bpStep1").addEventListener("click", function () {
+      if (cancelScan) cancelScan();
+      clearShowLayers();
+      tileGroup.clearLayers();
+      panelsShow("bpStepConfirm");
+    });
+    el("bpStep2").addEventListener("click", replayShow);
+    el("bpStep3").addEventListener("click", function () {
+      if (!st.resp) return;
+      clearShowLayers();
+      renderResult(st.resp);
+    });
     el("bpBtnBack1").addEventListener("click", reset);
     el("bpBtnAdjust").addEventListener("click", function () {
       tileGroup.clearLayers();
@@ -1961,6 +2190,7 @@ const meta = {
     });
     el("bpBtnRestart").addEventListener("click", reset);
     function reset() {
+      if (cancelScan) cancelScan();
       st.intakeSeq++;
       st.geometry = null;
       st.runId = null;
