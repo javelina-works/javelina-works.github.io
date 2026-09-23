@@ -15,9 +15,9 @@ backgroundVideo:
   # mobileFallbackImage: "/src/assets/images/hero-background-mobile.jpg"
 buttons:
   - enable: true
-    label: "GET IN TOUCH"
+    label: "Get an estimate"
     variant: "fill"
-    url: "/contact"
+    url: "/ballpark/"
     rel: ""
     target: ""
     hoverEffect: "magnetic" # "text-flip", "creative-fill", "magnetic", "magnetic-text-flip"

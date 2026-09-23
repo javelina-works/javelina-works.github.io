@@ -3,7 +3,7 @@
 /* ====================================================== */
 
 @utility btn {
-  @apply shadow-button relative inline-block overflow-hidden rounded-full px-8 py-3 leading-tight font-medium whitespace-nowrap uppercase duration-[.35s] disabled:cursor-not-allowed md:px-11;
+  @apply shadow-button relative inline-block overflow-hidden rounded-full px-8 py-3 leading-tight font-medium whitespace-nowrap duration-[.35s] disabled:cursor-not-allowed md:px-11;
 }
 @utility btn-md {
   @apply px-10 py-4 md:text-lg xl:px-12;
