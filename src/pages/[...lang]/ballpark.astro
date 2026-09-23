@@ -1108,39 +1108,39 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
   integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.fullscreen/3.0.2/Control.FullScreen.min.js"
   integrity="sha384-/Z8ZSkAZbvbRJgCQuFPpP3C2uNZWPV7H2wnxJyih5g4uZsLLFrKSIsaM6RLKuZK2"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <!-- Turnstile ships without SRI on purpose: Cloudflare rotates the script. -->
 <script
   is:inline
   src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
   async
-  defer>
-</script>
+  defer
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.min.js"
   integrity="sha384-/afhbJsRXHGy6vxnKzUwacQTDFat0eLiUZYYZT+ejWlu3RQytlhScgS3zO42xtMj"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
   integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/7.2.0/turf.min.js"
   integrity="sha384-ll8qH0IE3im19Dtlr1jtv5fdy+gm+0bx8T4+OYxPeJpc6PO1XLNFnyvdzaKJ78bU"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script is:inline define:vars={{ mapboxToken }}>
   window.BP_MB_TOKEN = mapboxToken;
 </script>
@@ -3066,6 +3066,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       return wrap;
     }
     function renderResult(resp) {
+      var mySeq = showSeq; // a boundary change mid-rain invalidates this
       var def = utmDef(resp.epsg);
       tileGroup.clearLayers();
       el("bpImgCredit").textContent =
@@ -3102,11 +3103,16 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       var i = 0,
         batch = Math.max(1, Math.ceil(rects.length / 60));
       var timer = setInterval(function () {
+        if (mySeq !== showSeq) {
+          clearInterval(timer);
+          return;
+        }
         for (var k = 0; k < batch && i < rects.length; k++, i++)
           rects[i].addTo(tileGroup);
         if (i >= rects.length) {
           clearInterval(timer);
           setTimeout(function () {
+            if (mySeq !== showSeq) return;
             showNumbers(resp);
           }, 250);
         }
