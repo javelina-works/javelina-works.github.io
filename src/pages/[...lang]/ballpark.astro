@@ -92,7 +92,13 @@ const meta = {
               <button class="bp-cta bp-cta-slim" id="bpBtnFind">Find it</button>
             </div>
             <p class="bp-filemsg" id="bpAddrMsg" hidden></p>
-            <div class="bp-suggest" id="bpSuggest" hidden></div>
+            <div
+              class="bp-suggest"
+              id="bpSuggest"
+              role="listbox"
+              aria-label="Address suggestions"
+              hidden>
+            </div>
             <button class="bp-cta" id="bpBtnHere" style="margin-top:10px;">
               📍&ensp;I&rsquo;m standing on it
             </button>
@@ -1065,8 +1071,14 @@ const meta = {
     color: var(--color-text-default);
     cursor: pointer;
   }
-  .bp-suggestion:hover {
+  .bp-suggestion:hover,
+  .bp-suggestion.bp-on {
     border-color: var(--color-primary);
+  }
+  .bp-suggestion small {
+    display: block;
+    opacity: 0.65;
+    font-size: 0.72rem;
   }
   [hidden] {
     display: none !important;
@@ -1077,39 +1089,39 @@ const meta = {
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
   integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.fullscreen/3.0.2/Control.FullScreen.min.js"
   integrity="sha384-/Z8ZSkAZbvbRJgCQuFPpP3C2uNZWPV7H2wnxJyih5g4uZsLLFrKSIsaM6RLKuZK2"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <!-- Turnstile ships without SRI on purpose: Cloudflare rotates the script. -->
 <script
   is:inline
   src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
   async
-  defer>
-</script>
+  defer
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.min.js"
   integrity="sha384-/afhbJsRXHGy6vxnKzUwacQTDFat0eLiUZYYZT+ejWlu3RQytlhScgS3zO42xtMj"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
   integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/7.2.0/turf.min.js"
   integrity="sha384-ll8qH0IE3im19Dtlr1jtv5fdy+gm+0bx8T4+OYxPeJpc6PO1XLNFnyvdzaKJ78bU"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script is:inline>
   (function () {
     "use strict";
@@ -1725,8 +1737,142 @@ const meta = {
 
     /* ---------------- intake actions ---------------- */
     el("bpBtnFind").addEventListener("click", doFind);
+    /* Mapbox Search Box typeahead. Public URL-restricted token; on
+       hosts it rejects (LAN-IP dev) the census/nominatim submit path
+       below still works untouched. */
+    var MAPBOX_TOKEN =
+      "";
+    var MB_BASE = "https://api.mapbox.com/search/searchbox/v1";
+    var mbSession = null;
+    var mbSeq = 0;
+    var mbTimer = null;
+    var mbItems = [];
+    var mbActive = -1;
+    function mbNewSession() {
+      mbSession =
+        (window.crypto && crypto.randomUUID && crypto.randomUUID()) ||
+        String(Math.random()).slice(2) + Date.now();
+    }
+    mbNewSession();
+    function mbHide() {
+      var sg = el("bpSuggest");
+      sg.hidden = true;
+      sg.innerHTML = "";
+      mbItems = [];
+      mbActive = -1;
+    }
+    function mbLabel(s) {
+      return s.name + (s.place_formatted ? ", " + s.place_formatted : "");
+    }
+    function mbRenderList() {
+      var sg = el("bpSuggest");
+      sg.innerHTML = "";
+      if (!mbItems.length) {
+        sg.hidden = true;
+        return;
+      }
+      mbItems.forEach(function (s, i) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "bp-suggestion" + (i === mbActive ? " bp-on" : "");
+        b.setAttribute("role", "option");
+        b.setAttribute("aria-selected", i === mbActive ? "true" : "false");
+        b.innerHTML = "";
+        var nm = document.createElement("span");
+        nm.textContent = s.name;
+        var ctx = document.createElement("small");
+        ctx.textContent = s.place_formatted || "";
+        b.appendChild(nm);
+        b.appendChild(ctx);
+        b.addEventListener("click", function () {
+          mbPick(i);
+        });
+        sg.appendChild(b);
+      });
+      sg.hidden = false;
+    }
+    function mbSuggest(q) {
+      var mySeq = ++mbSeq;
+      fetch(
+        MB_BASE +
+          "/suggest?" +
+          new URLSearchParams({
+            q: q,
+            access_token: MAPBOX_TOKEN,
+            session_token: mbSession,
+            limit: "6",
+            country: "US",
+            language: "en",
+            proximity: "-99.5,31.2",
+            types: "address,street,place,locality,poi",
+          }),
+      )
+        .then(function (r) {
+          return r.ok ? r.json() : null;
+        })
+        .then(function (d) {
+          if (!d || mySeq !== mbSeq) return;
+          mbItems = (d.suggestions || []).filter(function (s) {
+            return s.mapbox_id;
+          });
+          mbActive = -1;
+          mbRenderList();
+        })
+        .catch(function () {
+          /* typeahead is best-effort; Find it still works */
+        });
+    }
+    function mbPick(i) {
+      var s = mbItems[i];
+      if (!s) return;
+      mbHide();
+      el("bpAddrInput").value = mbLabel(s);
+      el("bpAddrMsg").hidden = true;
+      fetch(
+        MB_BASE +
+          "/retrieve/" +
+          encodeURIComponent(s.mapbox_id) +
+          "?" +
+          new URLSearchParams({
+            access_token: MAPBOX_TOKEN,
+            session_token: mbSession,
+          }),
+      )
+        .then(function (r) {
+          return r.ok ? r.json() : null;
+        })
+        .then(function (d) {
+          mbNewSession();
+          var f = d && d.features && d.features[0];
+          var c = f && f.geometry && f.geometry.coordinates;
+          if (!c) return;
+          parcelFlow(c[1], c[0], ++st.intakeSeq);
+        })
+        .catch(function () {
+          mbNewSession();
+        });
+    }
     el("bpAddrInput").addEventListener("keydown", function (e) {
-      if (e.key === "Enter") doFind();
+      var open = !el("bpSuggest").hidden && mbItems.length;
+      if (e.key === "ArrowDown" && open) {
+        e.preventDefault();
+        mbActive = (mbActive + 1) % mbItems.length;
+        mbRenderList();
+      } else if (e.key === "ArrowUp" && open) {
+        e.preventDefault();
+        mbActive = (mbActive - 1 + mbItems.length) % mbItems.length;
+        mbRenderList();
+      } else if (e.key === "Escape" && open) {
+        mbHide();
+      } else if (e.key === "Enter") {
+        if (open && mbActive >= 0) {
+          e.preventDefault();
+          mbPick(mbActive);
+        } else {
+          mbHide();
+          doFind();
+        }
+      }
     });
     function doFind() {
       var q = el("bpAddrInput").value.trim();
@@ -1813,8 +1959,16 @@ const meta = {
         });
     }
     el("bpAddrInput").addEventListener("input", function () {
-      el("bpSuggest").hidden = true;
       el("bpAddrMsg").hidden = true;
+      var q = this.value.trim();
+      clearTimeout(mbTimer);
+      if (q.length < 3 || parseLatLng(q)) {
+        mbHide();
+        return;
+      }
+      mbTimer = setTimeout(function () {
+        mbSuggest(q);
+      }, 250);
     });
     el("bpBtnHere").addEventListener("click", function () {
       if (!navigator.geolocation) {
