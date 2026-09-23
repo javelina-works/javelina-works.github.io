@@ -54,8 +54,14 @@ const meta = {
           <div class="bp-scan" id="bpScan" hidden></div>
           <div class="bp-lt" id="bpLt">
             <div class="bp-lt-line" id="bpLtLine"></div>
+            <div class="bp-lt-ramp" id="bpLtRamp" hidden>
+              <span id="bpLtRampL"></span>
+              <i id="bpLtRampBar"></i>
+              <span id="bpLtRampR"></span>
+            </div>
             <span class="bp-lt-chip" id="bpLtChip"></span>
           </div>
+          <div class="bp-strip" id="bpStrip" hidden></div>
           <div class="bp-mapcaption">
             <span id="bpMapMsg">
               Scroll and zoom, or just tell us the address
@@ -855,6 +861,83 @@ const meta = {
       mask-image: none;
     }
   }
+  /* what-am-I-looking-at chrome: legend ramp + layer thumbnail rail */
+  .bp-lt-ramp {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    font-size: 0.66rem;
+    opacity: 0.9;
+  }
+  .bp-lt-ramp i {
+    flex: 0 0 92px;
+    height: 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+  }
+  .bp-ramp-canopy {
+    background: linear-gradient(90deg, #440154, #31688e, #35b779, #fde725);
+  }
+  .bp-ramp-falsecolor {
+    background: linear-gradient(90deg, #4a4a52, #8c4a3a, #e03a2a);
+  }
+  .bp-ramp-greenness {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.12),
+      #7ac943,
+      #1c7a22
+    );
+  }
+  .bp-strip {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    z-index: 705;
+  }
+  .bp-thumb {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 3px 3px 2px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 6px;
+    background: rgba(20, 24, 18, 0.72);
+    color: #fff3e6;
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    animation: bpThumbIn 0.5s ease both;
+  }
+  .bp-thumb img {
+    width: 52px;
+    height: 36px;
+    object-fit: cover;
+    border-radius: 3px;
+    background: #2c3328;
+  }
+  .bp-thumb.bp-off img {
+    opacity: 0.35;
+  }
+  .bp-thumb.bp-off {
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+  @keyframes bpThumbIn {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bp-thumb {
+      animation: none;
+    }
+  }
   [hidden] {
     display: none !important;
   }
@@ -864,26 +947,26 @@ const meta = {
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
   integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.min.js"
   integrity="sha384-/afhbJsRXHGy6vxnKzUwacQTDFat0eLiUZYYZT+ejWlu3RQytlhScgS3zO42xtMj"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
   integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/7.2.0/turf.min.js"
   integrity="sha384-ll8qH0IE3im19Dtlr1jtv5fdy+gm+0bx8T4+OYxPeJpc6PO1XLNFnyvdzaKJ78bU"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script is:inline>
   (function () {
     "use strict";
@@ -1923,6 +2006,7 @@ const meta = {
         layersCtl = null;
       }
       if (!keepEarly) clearEarlyTerrain();
+      stripClear();
       el("bpScan").hidden = true;
       el("bpMapCard").classList.remove("bp-dim");
       el("bpLt").classList.remove("bp-on");
@@ -2019,12 +2103,63 @@ const meta = {
       map.removeLayer(earlyGroup);
       earlyGroup = null;
     }
-    function setLT(line, chip) {
+    var STRIP_INFO = {
+      hillshade: "Terrain",
+      canopy: "Height",
+      falsecolor: "Infrared",
+      greenness: "Green",
+    };
+    function stripAdd(key) {
+      var strip = el("bpStrip");
+      strip.hidden = false;
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "bp-thumb";
+      b.setAttribute("aria-label", "Toggle " + STRIP_INFO[key] + " layer");
+      var im = document.createElement("img");
+      im.alt = "";
+      im.src = API + "/" + st.runId + "/layers/" + key;
+      var sp = document.createElement("span");
+      sp.textContent = STRIP_INFO[key];
+      b.appendChild(im);
+      b.appendChild(sp);
+      b.addEventListener("click", function () {
+        var g = showGroups[key];
+        if (!g) return;
+        if (map.hasLayer(g)) {
+          map.removeLayer(g);
+          b.classList.add("bp-off");
+        } else {
+          g.addTo(map);
+          b.classList.remove("bp-off");
+        }
+      });
+      strip.appendChild(b);
+    }
+    function stripClear() {
+      var strip = el("bpStrip");
+      strip.innerHTML = "";
+      strip.hidden = true;
+    }
+    var RAMPS = {
+      canopy: ["knee-high", "tree height"],
+      falsecolor: ["bare ground", "living plants"],
+      greenness: ["sparse", "dense growth"],
+    };
+    function setLT(line, chip, rampKey) {
       var lt = el("bpLt");
       lt.classList.remove("bp-on");
       setTimeout(
         function () {
           el("bpLtLine").textContent = line;
+          var r = RAMPS[rampKey];
+          var ramp = el("bpLtRamp");
+          ramp.hidden = !r;
+          if (r) {
+            el("bpLtRampL").textContent = r[0];
+            el("bpLtRampR").textContent = r[1];
+            el("bpLtRampBar").className = "bp-ramp-" + rampKey;
+          }
           var c = el("bpLtChip");
           c.textContent = chip;
           c.style.display = chip ? "" : "none";
@@ -2070,11 +2205,12 @@ const meta = {
               });
             }
             addShowLayer(a.key, layers[a.key], a.opacity, reduce);
+            stripAdd(a.key);
             if (a.key === "hillshade") setTimeout(clearEarlyTerrain, 1900);
             el(a.act).classList.add("bp-on");
             var statEl = el(a.act + "Stat");
             if (statEl) statEl.textContent = a.chip(ss);
-            setLT(a.line, a.chip(ss));
+            setLT(a.line, a.chip(ss), a.key);
           },
           150 + i * gap,
         );
