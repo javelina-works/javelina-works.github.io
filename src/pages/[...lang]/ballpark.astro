@@ -282,6 +282,7 @@ const meta = {
                 <span>Anything we should know? <em>(optional)</em></span>
                 <textarea id="bpLeadNotes" maxlength="2000"></textarea>
               </label>
+              <div class="bp-turnstile" id="bpTurnstile"></div>
               <button class="bp-cta" id="bpLeadSend">
                 Request a firm quote
               </button>
@@ -1042,6 +1043,12 @@ const meta = {
       #d84315
     );
   }
+  .bp-turnstile {
+    margin: 0 0 8px;
+  }
+  .bp-turnstile:empty {
+    margin: 0;
+  }
   .bp-suggest {
     display: flex;
     flex-direction: column;
@@ -1070,32 +1077,39 @@ const meta = {
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
   integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.fullscreen/3.0.2/Control.FullScreen.min.js"
   integrity="sha384-/Z8ZSkAZbvbRJgCQuFPpP3C2uNZWPV7H2wnxJyih5g4uZsLLFrKSIsaM6RLKuZK2"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
+<!-- Turnstile ships without SRI on purpose: Cloudflare rotates the script. -->
+<script
+  is:inline
+  src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+  async
+  defer
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.min.js"
   integrity="sha384-/afhbJsRXHGy6vxnKzUwacQTDFat0eLiUZYYZT+ejWlu3RQytlhScgS3zO42xtMj"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
   integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/7.2.0/turf.min.js"
   integrity="sha384-ll8qH0IE3im19Dtlr1jtv5fdy+gm+0bx8T4+OYxPeJpc6PO1XLNFnyvdzaKJ78bU"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script is:inline>
   (function () {
     "use strict";
@@ -2872,9 +2886,34 @@ const meta = {
       el("bpLeadMsg").hidden = true;
       el("bpLeadSend").disabled = false;
       panelsShow("bpStepResult");
+      ensureTurnstile();
     }
 
     /* ---------------- lead capture ---------------- */
+    // Managed + interaction-only: invisible for nearly every human; the
+    // token rides along and the API only enforces it where a secret is set.
+    var TURNSTILE_KEY = "0x4AAAAAAFBfthdalHd12htM";
+    var tsWidget = null;
+    function ensureTurnstile() {
+      if (!window.turnstile) return;
+      if (tsWidget !== null) {
+        try {
+          window.turnstile.reset(tsWidget);
+        } catch (e) {
+          /* stale widget — fall through and leave it */
+        }
+        return;
+      }
+      try {
+        tsWidget = window.turnstile.render(el("bpTurnstile"), {
+          sitekey: TURNSTILE_KEY,
+          theme: "auto",
+          appearance: "interaction-only",
+        });
+      } catch (e) {
+        tsWidget = null; // unsupported host (e.g. LAN-IP dev) — submit bare
+      }
+    }
     el("bpLeadSend").addEventListener("click", function () {
       var name = el("bpLeadName").value.trim();
       var phone = el("bpLeadPhone").value.trim();
@@ -2913,6 +2952,11 @@ const meta = {
           contact: contact,
           notes: notes || null,
           channel: "marketing",
+          turnstile_token:
+            (window.turnstile &&
+              tsWidget !== null &&
+              window.turnstile.getResponse(tsWidget)) ||
+            null,
         }),
       })
         .then(function (r) {
@@ -2922,6 +2966,13 @@ const meta = {
           }
           return r.json().then(function (b) {
             btn.disabled = false;
+            if (r.status === 403 && window.turnstile && tsWidget !== null) {
+              try {
+                window.turnstile.reset(tsWidget);
+              } catch (e) {
+                /* nothing to reset */
+              }
+            }
             say(b.detail || "Submission failed — try again.", false);
           });
         })
