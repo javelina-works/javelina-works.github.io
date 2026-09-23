@@ -48,35 +48,32 @@ const meta = {
         </li>
       </ol>
       <div class="bp-tool">
-        <div class="bp-mapcol">
-          <div class="bp-mapcard" id="bpMapCard">
-            <div id="bpMap"></div>
-            <div class="bp-flash" id="bpFlash"></div>
-            <div class="bp-scan" id="bpScan" hidden></div>
-            <div class="bp-lt" id="bpLt">
-              <div class="bp-lt-line" id="bpLtLine"></div>
-              <div class="bp-lt-ramp" id="bpLtRamp" hidden>
-                <span id="bpLtRampL"></span>
-                <i id="bpLtRampBar"></i>
-                <span id="bpLtRampR"></span>
-              </div>
-              <span class="bp-lt-chip" id="bpLtChip"></span>
-            </div>
-            <div class="bp-mapcaption">
-              <span id="bpMapMsg">
-                Scroll and zoom, or just tell us the address
-              </span>
-              <span id="bpImgCredit"></span>
-            </div>
-          </div>
+        <div class="bp-mapcard" id="bpMapCard">
+          <div id="bpMap"></div>
+          <div class="bp-flash" id="bpFlash"></div>
+          <div class="bp-scan" id="bpScan" hidden></div>
           <div class="bp-viewpanel" id="bpViewbar" hidden>
-            <span class="bp-viewlabel">Map view</span>
             <div class="bp-views" id="bpViews"></div>
             <div class="bp-viewlegend" id="bpViewLegend" hidden>
               <span id="bpVlL"></span>
               <i id="bpVlBar"></i>
               <span id="bpVlR"></span>
             </div>
+          </div>
+          <div class="bp-lt" id="bpLt">
+            <div class="bp-lt-line" id="bpLtLine"></div>
+            <div class="bp-lt-ramp" id="bpLtRamp" hidden>
+              <span id="bpLtRampL"></span>
+              <i id="bpLtRampBar"></i>
+              <span id="bpLtRampR"></span>
+            </div>
+            <span class="bp-lt-chip" id="bpLtChip"></span>
+          </div>
+          <div class="bp-mapcaption">
+            <span id="bpMapMsg">
+              Scroll and zoom, or just tell us the address
+            </span>
+            <span id="bpImgCredit"></span>
           </div>
         </div>
 
@@ -779,23 +776,23 @@ const meta = {
     gap: 6px;
   }
   .bp-steps li + li::before {
-    content: "";
-    width: 22px;
-    height: 1px;
-    background: var(--color-border-light);
+    content: "›";
+    color: var(--color-text-default);
+    opacity: 0.45;
+    font-size: 1.05rem;
+    line-height: 1;
   }
   .bp-step {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    border: 1px solid var(--color-border-light);
-    background: var(--color-light);
+    gap: 7px;
+    border: 0;
+    background: none;
     color: var(--color-text-default);
-    border-radius: 999px;
-    padding: 5px 14px 5px 5px;
+    padding: 2px;
     font: inherit;
     font-size: 0.85rem;
-    opacity: 0.55;
+    opacity: 0.5;
   }
   .bp-step-n {
     width: 22px;
@@ -804,26 +801,27 @@ const meta = {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: var(--color-border-light);
-    color: var(--color-text-default);
+    border: 1.5px solid currentColor;
     font-weight: 700;
     font-size: 0.75rem;
   }
   .bp-step.bp-active {
     opacity: 1;
-    border-color: var(--color-primary);
+    color: var(--color-primary);
+    font-weight: 600;
   }
   .bp-step.bp-active .bp-step-n,
-  .bp-step.bp-click .bp-step-n {
+  .bp-step.bp-done .bp-step-n {
     background: var(--color-primary);
+    border-color: var(--color-primary);
     color: #fff;
   }
   .bp-step.bp-click {
-    opacity: 1;
+    opacity: 0.85;
     cursor: pointer;
   }
   .bp-step.bp-click:hover {
-    border-color: var(--color-primary);
+    text-decoration: underline;
   }
   /* satellite sweep while the analysis runs */
   .bp-scan {
@@ -917,32 +915,55 @@ const meta = {
       #1c7a22
     );
   }
-  .bp-mapcol {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    min-width: 0;
-  }
   .bp-viewpanel {
-    background: var(--color-light);
-    border: 1px solid var(--color-border-light);
-    border-radius: 8px;
-    padding: 10px 14px;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 705;
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     align-items: center;
-    gap: 8px 14px;
+    gap: 6px 12px;
+    max-width: calc(100% - 90px);
+    background: rgba(20, 24, 18, 0.72);
+    border-radius: 999px;
+    padding: 5px 12px;
+    backdrop-filter: blur(4px);
+  }
+  .bp-fsbtn {
+    font-size: 16px;
+  }
+  .bp-mapcard:fullscreen,
+  .bp-mapcard.bp-full {
+    display: flex;
+    flex-direction: column;
+    border-radius: 0;
+  }
+  .bp-mapcard.bp-full {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+  }
+  .bp-mapcard:fullscreen #bpMap,
+  .bp-mapcard.bp-full #bpMap {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
+  }
+  .bp-tilepop canvas {
+    display: block;
+    border-radius: 6px;
+    image-rendering: pixelated;
+  }
+  .bp-tilepop p {
+    margin: 6px 0 0;
+    font-size: 0.72rem;
+    max-width: 150px;
   }
   .bp-ramp-plants {
     background: linear-gradient(90deg, rgba(53, 201, 58, 0.08), #35c93a);
-  }
-  .bp-viewlabel {
-    font-size: 0.68rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    font-weight: 700;
-    color: var(--color-text-default);
-    opacity: 0.6;
   }
   .bp-views {
     display: flex;
@@ -950,12 +971,12 @@ const meta = {
     gap: 4px;
   }
   .bp-view {
-    border: 1px solid var(--color-border-light);
+    border: 1px solid rgba(255, 255, 255, 0.45);
     background: transparent;
-    color: var(--color-text-default);
+    color: #fff3e6;
     border-radius: 999px;
-    padding: 4px 11px;
-    font-size: 0.75rem;
+    padding: 3px 10px;
+    font-size: 0.72rem;
     cursor: pointer;
   }
   .bp-view.bp-on {
@@ -968,13 +989,13 @@ const meta = {
     align-items: center;
     gap: 6px;
     font-size: 0.68rem;
-    color: var(--color-text-default);
+    color: #fff3e6;
   }
   .bp-viewlegend i {
-    flex: 0 0 92px;
+    flex: 0 0 80px;
     height: 8px;
     border-radius: 4px;
-    border: 1px solid var(--color-border-light);
+    border: 1px solid rgba(255, 255, 255, 0.4);
   }
   .bp-ramp-density {
     background: linear-gradient(
@@ -1012,26 +1033,26 @@ const meta = {
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
   integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO"
-  crossorigin="anonymous"
-></script>
+  crossorigin="anonymous">
+</script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.min.js"
   integrity="sha384-/afhbJsRXHGy6vxnKzUwacQTDFat0eLiUZYYZT+ejWlu3RQytlhScgS3zO42xtMj"
-  crossorigin="anonymous"
-></script>
+  crossorigin="anonymous">
+</script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
   integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG"
-  crossorigin="anonymous"
-></script>
+  crossorigin="anonymous">
+</script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/7.2.0/turf.min.js"
   integrity="sha384-ll8qH0IE3im19Dtlr1jtv5fdy+gm+0bx8T4+OYxPeJpc6PO1XLNFnyvdzaKJ78bU"
-  crossorigin="anonymous"
-></script>
+  crossorigin="anonymous">
+</script>
 <script is:inline>
   (function () {
     "use strict";
@@ -1110,6 +1131,60 @@ const meta = {
       { maxZoom: 19, attribution: "&copy; Esri" },
     ).addTo(map);
     L.control.scale({ imperial: true }).addTo(map);
+    var FullCtl = L.Control.extend({
+      options: { position: "topleft" },
+      onAdd: function () {
+        var div = L.DomUtil.create("div", "leaflet-bar");
+        var a = L.DomUtil.create("a", "bp-fsbtn", div);
+        a.href = "#";
+        a.setAttribute("role", "button");
+        a.setAttribute("aria-label", "Toggle full screen");
+        a.title = "Full screen";
+        a.textContent = "\u26f6";
+        L.DomEvent.on(a, "click", function (e) {
+          L.DomEvent.stop(e);
+          toggleFullscreen();
+        });
+        return div;
+      },
+    });
+    map.addControl(new FullCtl());
+    function fauxFull(card) {
+      card.classList.add("bp-full");
+      document.body.style.overflow = "hidden";
+    }
+    function toggleFullscreen() {
+      var card = document.getElementById("bpMapCard");
+      var active =
+        document.fullscreenElement === card ||
+        card.classList.contains("bp-full");
+      if (active) {
+        if (document.fullscreenElement) document.exitFullscreen();
+        card.classList.remove("bp-full");
+        document.body.style.overflow = "";
+      } else if (card.requestFullscreen) {
+        card.requestFullscreen().catch(function () {
+          fauxFull(card);
+        });
+      } else {
+        fauxFull(card);
+      }
+      setTimeout(function () {
+        map.invalidateSize();
+      }, 250);
+    }
+    document.addEventListener("fullscreenchange", function () {
+      setTimeout(function () {
+        map.invalidateSize();
+      }, 150);
+    });
+    document.addEventListener("keydown", function (e) {
+      if (
+        e.key === "Escape" &&
+        document.getElementById("bpMapCard").classList.contains("bp-full")
+      )
+        toggleFullscreen();
+    });
     var canvasRenderer = L.canvas({ padding: 0.3 });
     var boundaryLayer = L.layerGroup().addTo(map);
     var parcelLayer = L.layerGroup().addTo(map);
@@ -1163,8 +1238,11 @@ const meta = {
       ].forEach(function (c) {
         var b = el("bpStep" + c.n);
         var on = curStep === c.n;
+        var done = c.n < curStep;
         b.classList.toggle("bp-active", on);
+        b.classList.toggle("bp-done", done);
         b.classList.toggle("bp-click", c.can);
+        b.querySelector(".bp-step-n").textContent = done ? "✓" : String(c.n);
         b.disabled = !c.can;
         if (on) b.setAttribute("aria-current", "step");
         else b.removeAttribute("aria-current");
@@ -2171,6 +2249,8 @@ const meta = {
         map.removeLayer(showGroups[k]);
       });
       showGroups = {};
+      st.plantsCanvas = null;
+      st.plantsBounds = null;
       viewbarHide();
       if (!map.hasLayer(tileGroup)) tileGroup.addTo(map);
       if (!keepEarly) clearEarlyTerrain();
@@ -2346,8 +2426,39 @@ const meta = {
        the real priced mask. */
     function buildPlantsLayer(done) {
       var Ls = (st.resp && st.resp.layers) || {};
-      if (!Ls.canopy || !Ls.greenness || showGroups.plants || !st.runId)
-        return done && done(false);
+      if (showGroups.plants || !st.runId) return done && done(false);
+      if (Ls.plants) {
+        // The worker published the real priced mask — use it directly.
+        var pim = new Image();
+        pim.crossOrigin = "anonymous";
+        var pSeq = showSeq;
+        pim.onload = function () {
+          if (pSeq !== showSeq) return;
+          try {
+            var pcv = document.createElement("canvas");
+            pcv.width = pim.naturalWidth;
+            pcv.height = pim.naturalHeight;
+            pcv.getContext("2d").drawImage(pim, 0, 0);
+            st.plantsCanvas = pcv;
+            st.plantsBounds = Ls.plants.bounds;
+          } catch (e) {
+            /* popup crops degrade; overlay still works */
+          }
+          var pg = L.layerGroup();
+          L.imageOverlay(pim.src, Ls.plants.bounds, {
+            opacity: 0.8,
+            interactive: false,
+          }).addTo(pg);
+          showGroups.plants = pg;
+          if (done) done(true);
+        };
+        pim.onerror = function () {
+          if (done) done(false);
+        };
+        pim.src = API + "/" + st.runId + "/layers/plants";
+        return;
+      }
+      if (!Ls.canopy || !Ls.greenness) return done && done(false);
       var mySeq = showSeq;
       var loaded = 0;
       var imgs = {};
@@ -2397,6 +2508,8 @@ const meta = {
             }
           }
           x1.putImageData(out, 0, 0);
+          st.plantsCanvas = c1;
+          st.plantsBounds = cb;
           var group = L.layerGroup();
           L.imageOverlay(c1.toDataURL("image/png"), cb, {
             opacity: 0.8,
@@ -2529,6 +2642,43 @@ const meta = {
         ")"
       );
     }
+    function tilePopup(t, swc, nec) {
+      var wrap = document.createElement("div");
+      wrap.className = "bp-tilepop";
+      var pc = st.plantsCanvas;
+      var pb = st.plantsBounds;
+      if (pc && pb) {
+        var W = pc.width;
+        var H = pc.height;
+        var cs = pb[0][0];
+        var cw = pb[0][1];
+        var cn = pb[1][0];
+        var ce = pb[1][1];
+        var sx = ((swc[1] - cw) / (ce - cw)) * W;
+        var sy = ((cn - nec[0]) / (cn - cs)) * H;
+        var sw = ((nec[1] - swc[1]) / (ce - cw)) * W;
+        var sh = ((nec[0] - swc[0]) / (cn - cs)) * H;
+        var c = document.createElement("canvas");
+        c.width = 140;
+        c.height = 140;
+        var cx = c.getContext("2d");
+        cx.imageSmoothingEnabled = false;
+        cx.fillStyle = "#191d16";
+        cx.fillRect(0, 0, 140, 140);
+        if (sw > 1 && sh > 1) cx.drawImage(pc, sx, sy, sw, sh, 0, 0, 140, 140);
+        wrap.appendChild(c);
+      }
+      var cap = document.createElement("p");
+      var ft = Math.round(((st.resp && st.resp.tile_m) || 30) * 3.281);
+      cap.innerHTML =
+        "<b>" +
+        Math.round(t[2] * 100) +
+        "%</b> of this " +
+        ft +
+        " ft square reads as likely brush";
+      wrap.appendChild(cap);
+      return wrap;
+    }
     function renderResult(resp) {
       var def = utmDef(resp.epsg);
       tileGroup.clearLayers();
@@ -2548,6 +2698,12 @@ const meta = {
           sticky: true,
           direction: "top",
         });
+        r.bindPopup(
+          function () {
+            return tilePopup(t, swc, nec);
+          },
+          { maxWidth: 200 },
+        );
         return r;
       });
       if (reduce || rects.length === 0) {
