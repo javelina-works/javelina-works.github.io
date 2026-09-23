@@ -48,24 +48,35 @@ const meta = {
         </li>
       </ol>
       <div class="bp-tool">
-        <div class="bp-mapcard" id="bpMapCard">
-          <div id="bpMap"></div>
-          <div class="bp-flash" id="bpFlash"></div>
-          <div class="bp-scan" id="bpScan" hidden></div>
-          <div class="bp-lt" id="bpLt">
-            <div class="bp-lt-line" id="bpLtLine"></div>
-            <div class="bp-lt-ramp" id="bpLtRamp" hidden>
-              <span id="bpLtRampL"></span>
-              <i id="bpLtRampBar"></i>
-              <span id="bpLtRampR"></span>
+        <div class="bp-mapcol">
+          <div class="bp-mapcard" id="bpMapCard">
+            <div id="bpMap"></div>
+            <div class="bp-flash" id="bpFlash"></div>
+            <div class="bp-scan" id="bpScan" hidden></div>
+            <div class="bp-lt" id="bpLt">
+              <div class="bp-lt-line" id="bpLtLine"></div>
+              <div class="bp-lt-ramp" id="bpLtRamp" hidden>
+                <span id="bpLtRampL"></span>
+                <i id="bpLtRampBar"></i>
+                <span id="bpLtRampR"></span>
+              </div>
+              <span class="bp-lt-chip" id="bpLtChip"></span>
             </div>
-            <span class="bp-lt-chip" id="bpLtChip"></span>
+            <div class="bp-mapcaption">
+              <span id="bpMapMsg">
+                Scroll and zoom, or just tell us the address
+              </span>
+              <span id="bpImgCredit"></span>
+            </div>
           </div>
-          <div class="bp-mapcaption">
-            <span id="bpMapMsg">
-              Scroll and zoom, or just tell us the address
-            </span>
-            <span id="bpImgCredit"></span>
+          <div class="bp-viewpanel" id="bpViewbar" hidden>
+            <span class="bp-viewlabel">Map view</span>
+            <div class="bp-views" id="bpViews"></div>
+            <div class="bp-viewlegend" id="bpViewLegend" hidden>
+              <span id="bpVlL"></span>
+              <i id="bpVlBar"></i>
+              <span id="bpVlR"></span>
+            </div>
           </div>
         </div>
 
@@ -207,15 +218,6 @@ const meta = {
           </div>
 
           <div id="bpStepResult" hidden>
-            <div class="bp-viewpanel" id="bpViewbar" hidden>
-              <span class="bp-viewlabel">Map view</span>
-              <div class="bp-views" id="bpViews"></div>
-              <div class="bp-viewlegend" id="bpViewLegend" hidden>
-                <span id="bpVlL"></span>
-                <i id="bpVlBar"></i>
-                <span id="bpVlR"></span>
-              </div>
-            </div>
             <h2>Your ballpark</h2>
             <div class="bp-band">
               <span class="bp-band-big" id="bpPriceBand"></span>
@@ -913,13 +915,24 @@ const meta = {
       #1c7a22
     );
   }
-  .bp-viewpanel {
-    margin: 0 0 14px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--color-border-light);
+  .bp-mapcol {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 10px;
+    min-width: 0;
+  }
+  .bp-viewpanel {
+    background: var(--color-light);
+    border: 1px solid var(--color-border-light);
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+  }
+  .bp-ramp-plants {
+    background: linear-gradient(90deg, rgba(53, 201, 58, 0.08), #35c93a);
   }
   .bp-viewlabel {
     font-size: 0.68rem;
@@ -978,26 +991,26 @@ const meta = {
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
   integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.min.js"
   integrity="sha384-/afhbJsRXHGy6vxnKzUwacQTDFat0eLiUZYYZT+ejWlu3RQytlhScgS3zO42xtMj"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
   integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/7.2.0/turf.min.js"
   integrity="sha384-ll8qH0IE3im19Dtlr1jtv5fdy+gm+0bx8T4+OYxPeJpc6PO1XLNFnyvdzaKJ78bU"
-  crossorigin="anonymous">
-</script>
+  crossorigin="anonymous"
+></script>
 <script is:inline>
   (function () {
     "use strict";
@@ -2162,9 +2175,7 @@ const meta = {
     }
     var VIEWS = [
       { key: "density", label: "Density" },
-      { key: "canopy", label: "Height" },
-      { key: "falsecolor", label: "Infrared" },
-      { key: "greenness", label: "Green" },
+      { key: "plants", label: "Likely brush" },
       { key: "hillshade", label: "Terrain" },
     ];
     function actOpacity(key) {
@@ -2172,7 +2183,9 @@ const meta = {
         if (ACTS[i].key === key) return ACTS[i].opacity;
       return 0.85;
     }
+    var curView = "density";
     function viewSelect(key) {
+      curView = key;
       Array.prototype.forEach.call(el("bpViews").children, function (b) {
         var on = b.dataset.key === key;
         b.classList.toggle("bp-on", on);
@@ -2200,7 +2213,7 @@ const meta = {
         el("bpVlBar").className = "bp-ramp-" + key;
       }
     }
-    function viewbarShow() {
+    function viewbarRender() {
       var bar = el("bpViews");
       bar.innerHTML = "";
       VIEWS.forEach(function (v) {
@@ -2216,15 +2229,94 @@ const meta = {
         bar.appendChild(b);
       });
       el("bpViewbar").hidden = false;
+    }
+    function viewbarShow() {
+      viewbarRender();
       viewSelect("density");
+      buildPlantsLayer(function (ok) {
+        if (ok) {
+          viewbarRender();
+          viewSelect(curView);
+        }
+      });
     }
     function viewbarHide() {
       el("bpViewbar").hidden = true;
+    }
+    /* "Likely brush": the height and greenness renders intersected in a
+       canvas — where the laser saw standing structure AND the infrared saw
+       living growth. A display-side stand-in until the worker publishes
+       the real priced mask. */
+    function buildPlantsLayer(done) {
+      var Ls = (st.resp && st.resp.layers) || {};
+      if (!Ls.canopy || !Ls.greenness || showGroups.plants || !st.runId)
+        return done && done(false);
+      var mySeq = showSeq;
+      var loaded = 0;
+      var imgs = {};
+      ["canopy", "greenness"].forEach(function (k) {
+        var im = new Image();
+        im.crossOrigin = "anonymous";
+        im.onload = function () {
+          imgs[k] = im;
+          if (++loaded === 2) compose();
+        };
+        im.onerror = function () {
+          if (done) done(false);
+          done = null;
+        };
+        im.src = API + "/" + st.runId + "/layers/" + k;
+      });
+      function compose() {
+        if (mySeq !== showSeq) return;
+        try {
+          var cb = Ls.canopy.bounds;
+          var gb = Ls.greenness.bounds;
+          var W = imgs.canopy.naturalWidth;
+          var H = imgs.canopy.naturalHeight;
+          var c1 = document.createElement("canvas");
+          c1.width = W;
+          c1.height = H;
+          var x1 = c1.getContext("2d");
+          x1.drawImage(imgs.canopy, 0, 0);
+          var A = x1.getImageData(0, 0, W, H);
+          var c2 = document.createElement("canvas");
+          c2.width = W;
+          c2.height = H;
+          var x2 = c2.getContext("2d");
+          var dx = ((gb[0][1] - cb[0][1]) / (cb[1][1] - cb[0][1])) * W;
+          var dy = ((cb[1][0] - gb[1][0]) / (cb[1][0] - cb[0][0])) * H;
+          var dw = ((gb[1][1] - gb[0][1]) / (cb[1][1] - cb[0][1])) * W;
+          var dh = ((gb[1][0] - gb[0][0]) / (cb[1][0] - cb[0][0])) * H;
+          x2.drawImage(imgs.greenness, dx, dy, dw, dh);
+          var B = x2.getImageData(0, 0, W, H);
+          var out = x1.createImageData(W, H);
+          for (var i = 3; i < A.data.length; i += 4) {
+            if (A.data[i] > 40 && B.data[i] > 40) {
+              out.data[i - 3] = 53;
+              out.data[i - 2] = 201;
+              out.data[i - 1] = 58;
+              out.data[i] = 235;
+            }
+          }
+          x1.putImageData(out, 0, 0);
+          var group = L.layerGroup();
+          L.imageOverlay(c1.toDataURL("image/png"), cb, {
+            opacity: 0.8,
+            interactive: false,
+          }).addTo(group);
+          showGroups.plants = group;
+          if (done) done(true);
+        } catch (e) {
+          if (done) done(false);
+        }
+      }
     }
     var RAMPS = {
       canopy: ["knee-high", "tree height"],
       falsecolor: ["bare ground", "living plants"],
       greenness: ["sparse", "dense growth"],
+      plants: ["open ground", "likely brush"],
     };
     function setLT(line, chip, rampKey) {
       var lt = el("bpLt");
