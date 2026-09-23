@@ -826,6 +826,35 @@ const meta = {
       top: 104%;
     }
   }
+  /* layer wash-in: a feathered wipe down the map, sharpening as it lands */
+  @keyframes bpReveal {
+    from {
+      -webkit-mask-position: 0% 100%;
+      mask-position: 0% 100%;
+      filter: blur(5px);
+    }
+    to {
+      -webkit-mask-position: 0% 0%;
+      mask-position: 0% 0%;
+      filter: blur(0);
+    }
+  }
+  img.bp-reveal {
+    -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent 60%);
+    mask-image: linear-gradient(to bottom, #000 40%, transparent 60%);
+    -webkit-mask-size: 100% 300%;
+    mask-size: 100% 300%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    animation: bpReveal 1.7s cubic-bezier(0.33, 0, 0.2, 1) forwards;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    img.bp-reveal {
+      animation: none;
+      -webkit-mask-image: none;
+      mask-image: none;
+    }
+  }
   [hidden] {
     display: none !important;
   }
@@ -835,26 +864,26 @@ const meta = {
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
   integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO"
-  crossorigin="anonymous"
-></script>
+  crossorigin="anonymous">
+</script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.min.js"
   integrity="sha384-/afhbJsRXHGy6vxnKzUwacQTDFat0eLiUZYYZT+ejWlu3RQytlhScgS3zO42xtMj"
-  crossorigin="anonymous"
-></script>
+  crossorigin="anonymous">
+</script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
   integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG"
-  crossorigin="anonymous"
-></script>
+  crossorigin="anonymous">
+</script>
 <script
   is:inline
   src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/7.2.0/turf.min.js"
   integrity="sha384-ll8qH0IE3im19Dtlr1jtv5fdy+gm+0bx8T4+OYxPeJpc6PO1XLNFnyvdzaKJ78bU"
-  crossorigin="anonymous"
-></script>
+  crossorigin="anonymous">
+</script>
 <script is:inline>
   (function () {
     "use strict";
@@ -1712,6 +1741,7 @@ const meta = {
           feedRender(feedN, false);
         }
       }, 3400);
+      var earlyT = setTimeout(addEarlyTerrain, 6800);
 
       var ppa = parseFloat(el("bpPpaInput").value) || null;
       var brushSel = document.querySelector('input[name="bpBrush"]:checked');
@@ -1721,6 +1751,7 @@ const meta = {
         clearInterval(pulse);
         clearInterval(elapsed);
         clearInterval(feedInt);
+        clearTimeout(earlyT);
       }
       cancelScan = function () {
         stopTimers();
@@ -1729,6 +1760,7 @@ const meta = {
       };
       function fail(err) {
         stopTimers();
+        clearEarlyTerrain();
         el("bpScan").hidden = true;
         el("bpMapCard").classList.remove("bp-dim");
         var e = el("bpScanErr");
@@ -1831,7 +1863,7 @@ const meta = {
         key: "hillshade",
         act: "bpActTerrain",
         opacity: 0.8,
-        line: "A laser flown by USGS aircraft has already mapped this ground.",
+        line: "The laser-mapped ground — now sharpened to a single meter.",
         chip: function (ss) {
           return ss.relief_ft != null
             ? ss.relief_ft.toLocaleString() + " ft of relief inside the fence"
@@ -1880,7 +1912,7 @@ const meta = {
       greenness: "Living vegetation",
     };
 
-    function clearShowLayers() {
+    function clearShowLayers(keepEarly) {
       showSeq++; // invalidates every pending show timeout
       Object.keys(showGroups).forEach(function (k) {
         map.removeLayer(showGroups[k]);
@@ -1890,76 +1922,102 @@ const meta = {
         map.removeControl(layersCtl);
         layersCtl = null;
       }
+      if (!keepEarly) clearEarlyTerrain();
       el("bpScan").hidden = true;
       el("bpMapCard").classList.remove("bp-dim");
       el("bpLt").classList.remove("bp-on");
     }
-    var BLANK =
-      "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-    function pixFrame(img, w) {
-      var h = Math.max(
-        1,
-        Math.round((img.naturalHeight / img.naturalWidth) * w),
-      );
-      var c = document.createElement("canvas");
-      c.width = w;
-      c.height = h;
-      var cx = c.getContext("2d");
-      cx.imageSmoothingEnabled = false;
-      cx.drawImage(img, 0, 0, w, h);
-      try {
-        return c.toDataURL("image/png");
-      } catch (e) {
-        return img.src; // tainted canvas — use the real image
-      }
+    function revealOverlay(ov, opacity) {
+      var go = function () {
+        var n = ov.getElement();
+        if (n) n.classList.add("bp-reveal");
+        ov.setOpacity(opacity);
+      };
+      var node = ov.getElement();
+      if (node && node.complete && node.naturalWidth) go();
+      else if (node) node.addEventListener("load", go, { once: true });
+      else
+        setTimeout(function () {
+          ov.setOpacity(opacity);
+        }, 60);
     }
     function addShowLayer(key, meta, opacity, instant) {
       var group = L.layerGroup().addTo(map);
       var url = API + "/" + st.runId + "/layers/" + key;
-      var ov = L.imageOverlay(instant ? url : BLANK, meta.bounds, {
+      var ov = L.imageOverlay(url, meta.bounds, {
         opacity: instant ? opacity : 0,
         interactive: false,
       }).addTo(group);
       showGroups[key] = group;
-      if (instant) return group;
-      // Downlink theater: the layer resolves from coarse blocks to full
-      // resolution, like imagery arriving over a thin pipe.
-      var mySeq = showSeq;
-      var img = new Image();
-      img.crossOrigin = "anonymous";
-      img.onload = function () {
-        if (mySeq !== showSeq) return;
-        var node = ov.getElement();
-        if (node) {
-          node.style.transition = "opacity 0.5s ease";
-          node.style.imageRendering = "pixelated";
-        }
-        ov.setOpacity(opacity);
-        var steps = [14, 44, 150];
-        var i = 0;
-        (function next() {
-          if (mySeq !== showSeq) return;
-          if (i >= steps.length) {
-            var n2 = ov.getElement();
-            if (n2) n2.style.imageRendering = "";
-            ov.setUrl(url);
-            return;
-          }
-          ov.setUrl(pixFrame(img, steps[i]));
-          i++;
-          setTimeout(next, 380);
-        })();
-      };
-      img.onerror = function () {
-        // No CORS-clean copy — fall back to the plain fade-in.
-        if (mySeq !== showSeq) return;
-        var node = ov.getElement();
-        if (node) node.style.transition = "opacity 1.2s ease";
-        ov.setUrl(url);
-        ov.setOpacity(opacity);
-      };
-      img.src = url;
+      if (!instant) revealOverlay(ov, opacity);
       return group;
+    }
+    /* Early terrain beat: while the engine is still measuring, USGS's
+       public 3DEP hillshade for the same ground washes in — real lidar
+       terrain, display-only, replaced by our 1 m render at show time. */
+    var earlyGroup = null;
+    function geomBounds(g) {
+      var w = 180,
+        s = 90,
+        e = -180,
+        n = -90;
+      var polys = g.type === "MultiPolygon" ? g.coordinates : [g.coordinates];
+      polys.forEach(function (p) {
+        p.forEach(function (ring) {
+          ring.forEach(function (c) {
+            if (c[0] < w) w = c[0];
+            if (c[0] > e) e = c[0];
+            if (c[1] < s) s = c[1];
+            if (c[1] > n) n = c[1];
+          });
+        });
+      });
+      var padX = (e - w) * 0.15;
+      var padY = (n - s) * 0.15;
+      return [w - padX, s - padY, e + padX, n + padY];
+    }
+    function addEarlyTerrain() {
+      if (earlyGroup || !st.geometry) return;
+      var b = geomBounds(st.geometry);
+      var mid = ((b[1] + b[3]) / 2) * (Math.PI / 180);
+      var wpx = 1000;
+      var hpx = Math.min(
+        1400,
+        Math.max(
+          200,
+          Math.round((wpx * (b[3] - b[1])) / ((b[2] - b[0]) * Math.cos(mid))),
+        ),
+      );
+      var url =
+        "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer/exportImage" +
+        "?bbox=" +
+        b.join(",") +
+        "&bboxSR=4326&imageSR=4326&size=" +
+        wpx +
+        "," +
+        hpx +
+        "&format=png&transparent=true&f=image&renderingRule=" +
+        encodeURIComponent('{"rasterFunction":"Hillshade Gray"}');
+      earlyGroup = L.layerGroup().addTo(map);
+      var ov = L.imageOverlay(
+        url,
+        [
+          [b[1], b[0]],
+          [b[3], b[2]],
+        ],
+        { opacity: 0, interactive: false },
+      ).addTo(earlyGroup);
+      revealOverlay(ov, 0.55);
+      setLT("Terrain is already on file for this ground.", "USGS 3DEP lidar");
+      var mySeq = showSeq;
+      setTimeout(function () {
+        if (mySeq === showSeq) el("bpLt").classList.remove("bp-on");
+      }, 4200);
+    }
+    function clearEarlyTerrain() {
+      if (!earlyGroup) return;
+      map.removeLayer(earlyGroup);
+      earlyGroup = null;
     }
     function setLT(line, chip) {
       var lt = el("bpLt");
@@ -1977,7 +2035,7 @@ const meta = {
     }
 
     function playShow(resp) {
-      clearShowLayers();
+      clearShowLayers(true);
       var mySeq = showSeq;
       var layers = resp.layers || {};
       var ss = resp.layer_stats || {};
@@ -1985,13 +2043,14 @@ const meta = {
         return layers[a.key];
       });
       if (!st.runId || present.length === 0) {
+        clearEarlyTerrain();
         renderResult(resp);
         return;
       }
       el("bpScanTitle").textContent = "Watch what we can see.";
       el("bpActs").hidden = false;
       el("bpMapCard").classList.add("bp-dim");
-      var gap = reduce ? 250 : 3200;
+      var gap = reduce ? 250 : 2400;
       present.forEach(function (a, i) {
         setTimeout(
           function () {
@@ -2011,12 +2070,13 @@ const meta = {
               });
             }
             addShowLayer(a.key, layers[a.key], a.opacity, reduce);
+            if (a.key === "hillshade") setTimeout(clearEarlyTerrain, 1900);
             el(a.act).classList.add("bp-on");
             var statEl = el(a.act + "Stat");
             if (statEl) statEl.textContent = a.chip(ss);
             setLT(a.line, a.chip(ss));
           },
-          500 + i * gap,
+          150 + i * gap,
         );
       });
       setTimeout(
@@ -2024,6 +2084,7 @@ const meta = {
           if (mySeq !== showSeq) return;
           el("bpLt").classList.remove("bp-on");
           el("bpMapCard").classList.remove("bp-dim");
+          clearEarlyTerrain();
           var overlays = {};
           present.forEach(function (a) {
             overlays[ACT_TITLES[a.key]] = showGroups[a.key];
@@ -2034,7 +2095,7 @@ const meta = {
             .addTo(map);
           renderResult(resp);
         },
-        500 + present.length * gap + (reduce ? 100 : 1400),
+        150 + (present.length - 1) * gap + (reduce ? 100 : 1400),
       );
     }
 
