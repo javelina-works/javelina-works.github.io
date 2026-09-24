@@ -24,6 +24,7 @@ We collect two types of information from you:
   - Operating system
   - Pages visited and time spent on our site
   - Referring website
+  - Interactions with our on-site tools, including searches and inputs you submit to them (for example, an address or location you look up in our estimate tool)
 
 ### How We Use Your Information
 
