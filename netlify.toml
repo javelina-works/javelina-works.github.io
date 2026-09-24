@@ -47,6 +47,10 @@
   status = 200
   force  = true
 
+# Build-time env: PUBLIC_MAPBOX_BALLPARK_TOKEN (synced from Infisical) bakes
+# the public Mapbox token into the prerendered ballpark page for the address
+# typeahead. Empty/missing = typeahead silently disabled, submit lookup works.
+
 # Ballpark estimate proxy — the /ballpark page calls same-origin /api/ballpark
 # so the estimate service's host never appears in client code and needs no
 # CORS entry for this site. Splat rule first (poll + contact), exact rule after.
