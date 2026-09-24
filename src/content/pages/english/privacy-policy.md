@@ -17,6 +17,7 @@ We collect two types of information from you:
   - Email address
   - Billing information (e.g., credit card details)
   - Any information you provide voluntarily through forms, surveys, or account creation
+  - Searches and inputs you submit to our on-site tools, which may include personal information such as an address or location you look up in our estimate tool
 
 - **Non-Personal Information:**
   - IP address
@@ -24,7 +25,6 @@ We collect two types of information from you:
   - Operating system
   - Pages visited and time spent on our site
   - Referring website
-  - Interactions with our on-site tools, including searches and inputs you submit to them (for example, an address or location you look up in our estimate tool)
 
 ### How We Use Your Information
 
