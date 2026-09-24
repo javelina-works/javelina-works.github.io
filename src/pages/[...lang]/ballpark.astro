@@ -3286,21 +3286,27 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
             say("Got it — a person, not a robot, will call you.", true);
             return;
           }
-          return r.json().then(function (b) {
-            btn.disabled = false;
-            track("ballpark_lead_error", {
-              status: r.status,
-              detail: typeof b.detail === "string" ? b.detail : "validation",
-            });
-            if (r.status === 403 && window.turnstile && tsWidget !== null) {
-              try {
-                window.turnstile.reset(tsWidget);
-              } catch (e) {
-                /* nothing to reset */
+          return r
+            .json()
+            .catch(function () {
+              return {};
+            })
+            .then(function (b) {
+              btn.disabled = false;
+              var detail = b && typeof b.detail === "string" ? b.detail : null;
+              track("ballpark_lead_error", {
+                status: r.status,
+                detail: detail || "validation",
+              });
+              if (r.status === 403 && window.turnstile && tsWidget !== null) {
+                try {
+                  window.turnstile.reset(tsWidget);
+                } catch (e) {
+                  /* nothing to reset */
+                }
               }
-            }
-            say(b.detail || "Submission failed — try again.", false);
-          });
+              say(detail || "Submission failed — try again.", false);
+            });
         })
         .catch(function () {
           btn.disabled = false;
