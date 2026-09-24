@@ -3,7 +3,10 @@
 // In production we proxy through /ingest (see netlify.toml rewrites) so ad
 // blockers can't drop events or block the JS bundle. Dev hits PostHog directly
 // because Netlify rewrites don't apply to `pnpm dev`.
-const apiHost = import.meta.env.PROD
+// Exceptions are dropped outside production builds so dev-server errors (for
+// example Vite dependency re-optimization reloads) stay out of error tracking.
+const isProd = import.meta.env.PROD;
+const apiHost = isProd
   ? "/ingest"
   : import.meta.env.PUBLIC_POSTHOG_HOST;
 ---
@@ -13,6 +16,7 @@ const apiHost = import.meta.env.PROD
   define:vars={{
     apiKey: import.meta.env.PUBLIC_POSTHOG_PROJECT_TOKEN,
     apiHost,
+    isProd,
     uiHost: "https://us.posthog.com",
   }}
 >
@@ -69,6 +73,10 @@ const apiHost = import.meta.env.PROD
     api_host: apiHost || "",
     ui_host: uiHost,
     defaults: "2026-01-30",
+    before_send: function (event) {
+      if (!isProd && event && event.event === "$exception") return null;
+      return event;
+    },
   });
 
   try {
