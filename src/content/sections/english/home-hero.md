@@ -22,7 +22,7 @@ buttons:
     tag: "button"
     type: "video"
     hoverEffect: "creative-fill" # "text-flip", "creative-fill", "magnetic", "magnetic-text-flip"
-    variant: "fill" # "fill", "outline", "text"
+    variant: "outline" # "fill", "outline", "text"
     video:
       src: "/videos/quiver-product-promo_source.mp4" # video url or path eg: "/videos/test-video.mp4" or "https://example.com/test-video.mp4"
       type: mp4 # video type eg: mp4, webm etc

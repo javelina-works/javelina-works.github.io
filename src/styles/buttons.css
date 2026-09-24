@@ -152,3 +152,11 @@
     }
   }
 }
+
+/* Ghost treatment for outline buttons sitting on photo/video heroes —
+   the default btn-outline uses the dark text token and disappears
+   against terrain footage. */
+.home-video-hero .btn-outline,
+.home-hero .btn-outline {
+  @apply border-white/60 bg-white/10 text-white backdrop-blur-sm;
+}
