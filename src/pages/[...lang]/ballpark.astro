@@ -1170,6 +1170,17 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         /* no-op */
       }
     }
+    // One row per address lookup: what they typed and whether it yielded
+    // ground (a parcel), a ring fallback, or nothing.
+    function trackSearch(outcome) {
+      if (!st.pendingSearch) return;
+      track("ballpark_address_search", {
+        query: st.pendingSearch.query,
+        source: st.pendingSearch.source,
+        outcome: outcome,
+      });
+      st.pendingSearch = null;
+    }
 
     // Fox Canyon — a 180-acre slice of the scouted bowl, chosen from the
     // full run's own layers: densest detected brush, cleanest lidar ground
@@ -1671,6 +1682,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         .then(function (seed) {
           if (seq !== st.intakeSeq) return; // user moved on — drop stale result
           if (!seed) {
+            trackSearch("no_parcel");
             ringFlow(
               lat,
               lng,
@@ -1688,6 +1700,13 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
               addParcel(f, false);
             });
             refreshFromMembers(true);
+            trackSearch("parcel");
+            track("ballpark_boundary_set", {
+              method: "parcel",
+              acres: st.geometry
+                ? Math.round(turf.area(turf.feature(st.geometry)) / ACRE_M2)
+                : null,
+            });
             mapmsg("Property lines from county records");
             showConfirm(
               r.others.length
@@ -1699,6 +1718,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         })
         .catch(function () {
           if (seq !== st.intakeSeq) return;
+          trackSearch("parcel_error");
           ringFlow(
             lat,
             lng,
@@ -1716,6 +1736,12 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       st.ringR = parseInt(el("bpRingRange").value, 10) || 700;
       map.setView([lat, lng], 13);
       drawRing();
+      track("ballpark_boundary_set", {
+        method: "ring",
+        acres: st.geometry
+          ? Math.round(turf.area(turf.feature(st.geometry)) / ACRE_M2)
+          : null,
+      });
       showConfirm(
         hint + " Rough circle is fine — the firm quote flies your real fence.",
         true,
@@ -1844,6 +1870,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       if (!s) return;
       mbHide();
       var seq = ++st.intakeSeq;
+      st.pendingSearch = { query: mbLabel(s), source: "typeahead" };
       el("bpAddrInput").value = mbLabel(s);
       el("bpAddrMsg").hidden = true;
       fetch(
@@ -1865,6 +1892,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
           var f = d && d.features && d.features[0];
           var c = f && f.geometry && f.geometry.coordinates;
           if (!c) {
+            trackSearch("not_found");
             var am = el("bpAddrMsg");
             am.textContent =
               "Couldn't pin that spot — press Find it to search instead.";
@@ -1876,6 +1904,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         })
         .catch(function () {
           if (seq !== st.intakeSeq) return;
+          trackSearch("error");
           mbNewSession();
           var am = el("bpAddrMsg");
           am.textContent =
@@ -1928,6 +1957,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       var seq = ++st.intakeSeq;
       fileMsg.hidden = true;
       var ll = parseLatLng(q);
+      st.pendingSearch = { query: q, source: ll ? "latlng" : "search" };
       if (ll) {
         am.hidden = true;
         parcelFlow(ll.lat, ll.lng, seq);
@@ -1956,6 +1986,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
               if (seq !== st.intakeSeq) return;
               idle();
               if (!list.length) {
+                trackSearch("not_found");
                 say(
                   "Couldn't place that — add the town or ZIP, tap “I'm standing on it,” or open “More ways.”",
                   false,
@@ -1982,6 +2013,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
             .catch(function () {
               if (seq !== st.intakeSeq) return;
               idle();
+              trackSearch("error");
               say(
                 "The address service didn't answer — try again in a moment.",
                 false,
@@ -2010,6 +2042,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       }
       var seq = ++st.intakeSeq;
       fileMsg.hidden = true;
+      st.pendingSearch = { query: null, source: "geolocation" };
       mapmsg("Getting your position…");
       navigator.geolocation.getCurrentPosition(
         function (pos) {
@@ -2017,6 +2050,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         },
         function () {
           if (seq !== st.intakeSeq) return;
+          trackSearch("error");
           msg("Couldn't get your position — try the address instead.");
         },
         { enableHighAccuracy: true, timeout: 12000 },
@@ -2042,6 +2076,10 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         Math.round(turf.area(f) / ACRE_M2).toLocaleString() +
         " acres · Jeff Davis County";
       mapmsg("Fox Canyon — West Texas brush country");
+      track("ballpark_boundary_set", {
+        method: "demo",
+        acres: Math.round(turf.area(f) / ACRE_M2),
+      });
       showConfirm(
         "Real country we've scouted for treatment. Watch what the machine sees.",
         false,
@@ -2082,7 +2120,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       }
       return null;
     }
-    function setDirectBoundary(geometry, label) {
+    function setDirectBoundary(geometry, label, method) {
       st.demoBase = null;
       invalidateRun();
       st.intakeSeq++;
@@ -2098,6 +2136,10 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       map.fitBounds(outline.getBounds().pad(0.3));
       el("bpAcrePill").textContent =
         "≈ " + Math.round(turf.area(f) / ACRE_M2).toLocaleString() + " acres";
+      track("ballpark_boundary_set", {
+        method: method || "direct",
+        acres: Math.round(turf.area(f) / ACRE_M2),
+      });
       showConfirm(label, false);
     }
     el("bpFileInput").addEventListener("change", function (ev) {
@@ -2108,7 +2150,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       var ok = function (g) {
         if (g) {
           fileMsg.hidden = true;
-          setDirectBoundary(g, "Boundary from " + file.name + ".");
+          setDirectBoundary(g, "Boundary from " + file.name + ".", "upload");
         } else msg("No polygon found in that file.");
       };
       if (name.endsWith(".geojson") || name.endsWith(".json")) {
@@ -2206,6 +2248,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       setDirectBoundary(
         { type: "Polygon", coordinates: [ring] },
         "Hand-drawn boundary.",
+        "draw",
       );
     });
 
