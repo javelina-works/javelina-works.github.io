@@ -1,5 +1,6 @@
 ---
 import Base from "@/layouts/Base.astro";
+import "@/styles/leafletVendor.css";
 import { generatePaths } from "@/lib/utils/i18nUtils";
 
 export function getStaticPaths() {
@@ -25,8 +26,10 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       <h1>What would it cost to clear your brush?</h1>
       <p class="bp-sub">
         Tell us where the ranch is &mdash; we&rsquo;ll find the property, read
-        it with lidar and infrared imagery, and hand you a budget range. If you
-        like the numbers, we&rsquo;ll fly it and firm them up.
+        it with lidar and infrared imagery, and hand you a budget range.
+        <span class="bp-sub-more">
+          If you like the numbers, we&rsquo;ll fly it and firm them up.
+        </span>
       </p>
     </div>
   </section>
@@ -159,7 +162,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
                 />
               </label>
             </div>
-            <button class="bp-cta" id="bpBtnEstimate">Read my country →</button>
+            <button class="bp-cta" id="bpBtnEstimate">Run the analysis on this land →</button>
             <details class="bp-more">
               <summary>Advanced: tell us about the brush</summary>
               <div
@@ -322,18 +325,10 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
   </section>
 </Base>
 
-<link
-  rel="stylesheet"
-  href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
-  integrity="sha384-c6Rcwz4e4CITMbu/NBmnNS8yN2sC3cUElMEMfP3vqqKFp7GOYaaBBCqmaWBjmkjb"
-  crossorigin="anonymous"
-/>
-<link
-  rel="stylesheet"
-  href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.fullscreen/3.0.2/Control.FullScreen.min.css"
-  integrity="sha384-rlEXvAXKofl01ReiHwhh3+evcnpVfpwcnPbd38VbIK8L9Ebpi1ldCOrsqIrkRg/b"
-  crossorigin="anonymous"
-/>
+<!-- Map styles are vendored into the page bundle (leafletVendor.css) so
+     first paint never blocks on a second origin; the scripts below still
+     come from cdnjs, so warm the connection early. -->
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
 
 <style is:global>
   /* Ballpark tool — namespaced .bp-*; colors from the site theme tokens. */
@@ -1205,6 +1200,23 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
     L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
       { maxZoom: 19, attribution: "&copy; Esri" },
+    ).addTo(map);
+    // Hybrid reference overlays — city/place labels and highways on top
+    // of the imagery so people can navigate to their ranch. Missing tiles
+    // past native zoom are transparent, which is fine out here. They get
+    // their own pane: above the imagery, below the analysis overlays
+    // (which own overlayPane — the show deliberately covers labels), and
+    // never intercepting taps.
+    map.createPane("bpRef");
+    map.getPane("bpRef").style.zIndex = "350";
+    map.getPane("bpRef").style.pointerEvents = "none";
+    L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}",
+      { maxZoom: 19, pane: "bpRef" },
+    ).addTo(map);
+    L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+      { maxZoom: 19, pane: "bpRef" },
     ).addTo(map);
     L.control.scale({ imperial: true }).addTo(map);
     map.addControl(
@@ -3415,5 +3427,366 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       mapmsg("Scroll and zoom, or just tell us the address");
       panelsShow("bpStepLocate");
     }
+  })();
+</script>
+
+<!-- ================= Guided intake + mobile presentation ================= -->
+<!-- The choice sheet greets every visitor over the map (the address input
+     lives below the fold on phones, and unguided visitors poke the map
+     instead of finding it). The style/observer block below also carries
+     the mobile presentation fixes: fold reclaim, framed analysis, docked
+     view switcher, and result auto-scroll. -->
+<style is:global>
+  /* --- Fold reclaim: the hero and the tool section each inherit the
+     global 80px section padding — 160px of chrome before the tool at
+     every width. --- */
+  main.has-section-spacing-md section.bp-hero {
+    padding-top: 32px;
+  }
+  main.has-section-spacing-md section.bp-toolwrap {
+    padding-top: 24px;
+  }
+  @media (max-width: 900px) {
+    main.has-section-spacing-md section.bp-toolwrap {
+      padding-top: 16px;
+    }
+  }
+  @media (max-width: 640px) {
+    main.has-section-spacing-md section.bp-hero {
+      padding-top: 20px;
+    }
+    .bp-hero h1 {
+      margin-top: 0.35rem;
+      font-size: calc(var(--text-h1-sm) * 0.9);
+    }
+    .bp-sub {
+      margin-top: 0.5rem;
+      font-size: 0.95rem;
+    }
+    .bp-sub-more {
+      display: none;
+    }
+    .bp-eyebrow {
+      display: none;
+    }
+    .bp-mapcaption {
+      display: none;
+    }
+  }
+
+  /* --- Framed analysis: on mobile the scan panel sits below a map that
+     fills the screen, so the live feed plays out of sight. While the
+     scan step is active the map shrinks and the panel becomes a console
+     directly beneath it — both in view, nothing pinned. --- */
+  @media (max-width: 900px) {
+    body.bp-analyzing #bpMap {
+      height: 34vh;
+      min-height: 220px;
+    }
+    body.bp-analyzing #bpStepScan {
+      background: rgba(20, 16, 12, 0.95);
+      color: #f2efe6;
+      border-radius: 12px;
+      padding: 12px 14px 10px;
+      margin-top: 10px;
+    }
+    body.bp-analyzing #bpStepScan h2 {
+      font-size: 0.95rem;
+      margin: 0 0 8px;
+      color: #f2efe6;
+    }
+    body.bp-analyzing #bpStepScan .bp-scannote {
+      color: #b8b2a4;
+    }
+    /* The sticky site header floats over the top of the map on phones,
+       burying the view switcher. Dock it to the bottom instead, clear
+       of the scale and attribution. */
+    .bp-viewpanel {
+      top: auto;
+      bottom: 34px;
+      max-width: calc(100% - 16px);
+      border-radius: 14px;
+    }
+  }
+
+  /* --- The choice sheet over the map --- */
+  .bp-sheetwrap {
+    position: absolute;
+    inset: 0;
+    z-index: 1100;
+    background: rgba(20, 16, 12, 0.55);
+    display: none;
+    align-items: flex-end;
+  }
+  .bp-sheetwrap.open {
+    display: flex;
+  }
+  .bp-sheet {
+    position: relative;
+    max-height: 100%;
+    overflow-y: auto;
+    background: #fffdf8;
+    color: #1c1917;
+    width: 100%;
+    border-radius: 16px 16px 0 0;
+    padding: 18px 16px 20px;
+    box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.35);
+  }
+  .bp-sheet h3 {
+    margin: 0 0 12px;
+    font-size: 1.05rem;
+  }
+  .bp-sheet button {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    padding: 13px 16px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    background: #f7f3ea;
+    font-size: 0.95rem;
+    text-align: left;
+    cursor: pointer;
+  }
+  .bp-sheet button.bp-sheet-primary {
+    background: #f2b23a;
+    border-color: #f2b23a;
+    font-weight: 700;
+  }
+  .bp-sheet .bp-sheet-x {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+    margin: 0;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    background: #f7f3ea;
+    font-size: 0.85rem;
+    line-height: 1;
+    text-align: center;
+    cursor: pointer;
+  }
+  .bp-sheet-or {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+    color: #8a8577;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .bp-sheet-or::before,
+  .bp-sheet-or::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.12);
+  }
+  .bp-sheet .bp-sheet-demo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #1c1917;
+    border: none;
+    color: #f2efe6;
+    text-align: left;
+    padding: 12px 14px;
+  }
+  .bp-sheet-demo-play {
+    flex: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #f2b23a;
+    color: #1c1917;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    padding-left: 3px;
+  }
+  .bp-sheet-demo-txt strong {
+    display: block;
+    font-size: 0.92rem;
+  }
+  .bp-sheet-demo-txt small {
+    color: #b8b2a4;
+    font-size: 0.78rem;
+  }
+  .bp-sheet-more {
+    margin-top: 10px;
+  }
+  .bp-sheet-more summary {
+    text-align: center;
+    color: #6d685c;
+    font-size: 0.85rem;
+    padding: 6px 0;
+    cursor: pointer;
+  }
+  .bp-dockbar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1100;
+    border: none;
+    background: rgba(20, 16, 12, 0.92);
+    color: #f2b23a;
+    padding: 13px 16px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    display: none;
+  }
+  .bp-dockbar.show {
+    display: block;
+  }
+  /* Keep Leaflet's attribution visible above the docked bar. */
+  .bp-mapcard:has(.bp-dockbar.show) .leaflet-control-attribution {
+    margin-bottom: 46px;
+  }
+</style>
+<script is:inline>
+  (function () {
+    "use strict";
+    var mobileMq = window.matchMedia("(max-width: 900px)");
+    var mapCard = document.getElementById("bpMapCard");
+
+    function goType() {
+      var inp = document.getElementById("bpAddrInput");
+      inp.scrollIntoView({ behavior: "smooth", block: "center" });
+      setTimeout(function () {
+        inp.focus();
+      }, 450);
+    }
+
+    // Framed analysis: while the scan step is active on mobile, shrink
+    // the map (CSS above), let Leaflet re-measure, and frame map +
+    // console together.
+    var scanPanel = document.getElementById("bpStepScan");
+    new MutationObserver(function () {
+      var on = !scanPanel.hidden;
+      document.body.classList.toggle("bp-analyzing", on);
+      setTimeout(function () {
+        window.dispatchEvent(new Event("resize"));
+      }, 80);
+      if (on && mobileMq.matches) {
+        window.scrollTo({
+          top: mapCard.getBoundingClientRect().top + window.scrollY - 88,
+          behavior: "smooth",
+        });
+      }
+    }).observe(scanPanel, { attributes: true, attributeFilter: ["hidden"] });
+
+    // When the ballpark lands, bring the numbers into view on mobile —
+    // the result panel sits below a full-height map otherwise.
+    var resultPanel = document.getElementById("bpStepResult");
+    new MutationObserver(function () {
+      if (!resultPanel.hidden && mobileMq.matches) {
+        setTimeout(function () {
+          window.scrollTo({
+            top:
+              resultPanel.getBoundingClientRect().top + window.scrollY - 88,
+            behavior: "smooth",
+          });
+        }, 150);
+      }
+    }).observe(resultPanel, {
+      attributes: true,
+      attributeFilter: ["hidden"],
+    });
+
+    // The choice sheet.
+    var wrap = document.createElement("div");
+    wrap.className = "bp-sheetwrap open";
+    wrap.innerHTML =
+      '<div class="bp-sheet">' +
+      '<button type="button" class="bp-sheet-x" data-act="collapse" aria-label="Collapse">\u2715</button>' +
+      "<h3>How do you want to find your ranch?</h3>" +
+      '<button type="button" class="bp-sheet-primary" data-act="type">\ud83d\udd0e&ensp;Type the address</button>' +
+      '<button type="button" data-act="here">\ud83d\udccd&ensp;I\u2019m standing on it</button>' +
+      '<div class="bp-sheet-or"><span>no ranch handy?</span></div>' +
+      '<button type="button" class="bp-sheet-demo" data-act="demo">' +
+      '<span class="bp-sheet-demo-play">\u25b6</span>' +
+      '<span class="bp-sheet-demo-txt"><strong>Watch a live demo</strong>' +
+      "<small>Fox Canyon \u2014 a real 180-acre West Texas ranch</small></span>" +
+      "</button>" +
+      '<details class="bp-sheet-more"><summary>More ways</summary>' +
+      '<button type="button" data-act="upload">\ud83d\udcc1&ensp;Upload a boundary file</button>' +
+      '<button type="button" data-act="draw">\u270f\ufe0f&ensp;Draw the fence line</button>' +
+      "</details>" +
+      "</div>";
+    var dock = document.createElement("button");
+    dock.type = "button";
+    dock.className = "bp-dockbar";
+    dock.innerHTML =
+      "Find your ranch \u2014 address, GPS, demo & more&ensp;\u25b4";
+    mapCard.appendChild(wrap);
+    mapCard.appendChild(dock);
+    function close(collapse) {
+      wrap.classList.remove("open");
+      dock.classList.toggle("show", !!collapse);
+    }
+    dock.addEventListener("click", function () {
+      wrap.classList.add("open");
+      dock.classList.remove("show");
+    });
+    // Once the visitor is past step 1 the collapsed bar disappears;
+    // a reset brings it back collapsed, never the full sheet again.
+    var locatePanel = document.getElementById("bpStepLocate");
+    new MutationObserver(function () {
+      if (locatePanel.hidden) close(false);
+      else if (!wrap.classList.contains("open")) close(true);
+    }).observe(locatePanel, {
+      attributes: true,
+      attributeFilter: ["hidden"],
+    });
+    wrap.addEventListener("click", function (e) {
+      var t = e.target;
+      if (t === wrap) {
+        close(true);
+        return;
+      }
+      var hit = t && t.closest ? t.closest("[data-act]") : null;
+      var act = hit ? hit.getAttribute("data-act") : null;
+      if (!act) return;
+      if (act === "collapse") {
+        close(true);
+      } else if (act === "type") {
+        close(true);
+        goType();
+      } else if (act === "here") {
+        close(true);
+        document.getElementById("bpBtnHere").click();
+        // The confirmation — or the geolocation error — lands in the
+        // panel below a full-height map; frame map bottom + panel top.
+        setTimeout(function () {
+          if (mobileMq.matches) {
+            window.scrollTo({
+              top: mapCard.getBoundingClientRect().top + window.scrollY - 88,
+              behavior: "smooth",
+            });
+          }
+        }, 400);
+      } else if (act === "demo") {
+        close(false);
+        document.getElementById("bpBtnSample").click();
+        setTimeout(function () {
+          document.getElementById("bpBtnEstimate").click();
+        }, 300);
+      } else if (act === "upload") {
+        close(true);
+        document.getElementById("bpFileInput").click();
+      } else if (act === "draw") {
+        close(false);
+        document.getElementById("bpBtnDraw").click();
+        mapCard.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
   })();
 </script>
