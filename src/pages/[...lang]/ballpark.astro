@@ -1203,14 +1203,20 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
     ).addTo(map);
     // Hybrid reference overlays — city/place labels and highways on top
     // of the imagery so people can navigate to their ranch. Missing tiles
-    // past native zoom are transparent, which is fine out here.
+    // past native zoom are transparent, which is fine out here. They get
+    // their own pane: above the imagery, below the analysis overlays
+    // (which own overlayPane — the show deliberately covers labels), and
+    // never intercepting taps.
+    map.createPane("bpRef");
+    map.getPane("bpRef").style.zIndex = "350";
+    map.getPane("bpRef").style.pointerEvents = "none";
     L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}",
-      { maxZoom: 19, pane: "overlayPane" },
+      { maxZoom: 19, pane: "bpRef" },
     ).addTo(map);
     L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
-      { maxZoom: 19, pane: "overlayPane" },
+      { maxZoom: 19, pane: "bpRef" },
     ).addTo(map);
     L.control.scale({ imperial: true }).addTo(map);
     map.addControl(
@@ -3517,6 +3523,8 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
   }
   .bp-sheet {
     position: relative;
+    max-height: 100%;
+    overflow-y: auto;
     background: #fffdf8;
     color: #1c1917;
     width: 100%;
@@ -3638,6 +3646,10 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
   .bp-dockbar.show {
     display: block;
   }
+  /* Keep Leaflet's attribution visible above the docked bar. */
+  .bp-mapcard:has(.bp-dockbar.show) .leaflet-control-attribution {
+    margin-bottom: 46px;
+  }
 </style>
 <script is:inline>
   (function () {
@@ -3751,6 +3763,16 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       } else if (act === "here") {
         close(true);
         document.getElementById("bpBtnHere").click();
+        // The confirmation — or the geolocation error — lands in the
+        // panel below a full-height map; frame map bottom + panel top.
+        setTimeout(function () {
+          if (mobileMq.matches) {
+            window.scrollTo({
+              top: mapCard.getBoundingClientRect().top + window.scrollY - 88,
+              behavior: "smooth",
+            });
+          }
+        }, 400);
       } else if (act === "demo") {
         close(false);
         document.getElementById("bpBtnSample").click();
