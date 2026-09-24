@@ -1162,6 +1162,15 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       "https://feature.geographic.texas.gov/arcgis/rest/services/Parcels/stratmap_land_parcels_48_most_recent/MapServer/identify";
     var ACRE_M2 = 4046.8564224;
 
+    // Product analytics — best-effort; analytics must never break the page.
+    function track(name, props) {
+      try {
+        if (window.posthog) window.posthog.capture(name, props);
+      } catch (e) {
+        /* no-op */
+      }
+    }
+
     // Fox Canyon — a 180-acre slice of the scouted bowl, chosen from the
     // full run's own layers: densest detected brush, cleanest lidar ground
     // coverage, ~60s runtime on the 1 m path.
@@ -2303,6 +2312,12 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       var brushSel = document.querySelector('input[name="bpBrush"]:checked');
       var brush = brushSel ? brushSel.value : "sat";
 
+      track("ballpark_estimate_started", {
+        acres: Math.round(bigAcres),
+        brush: brush,
+        demo: !!st.demoBase,
+      });
+
       function stopTimers() {
         clearInterval(pulse);
         clearInterval(elapsed);
@@ -2318,6 +2333,12 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       };
       function fail(err) {
         if (myScan !== scanSeq) return;
+        track("ballpark_estimate_failed", {
+          message: err.message,
+          duration_ms: Date.now() - t0,
+          acres: Math.round(bigAcres),
+          demo: !!st.demoBase,
+        });
         stopTimers();
         clearEarlyTerrain();
         el("bpScan").hidden = true;
@@ -2400,6 +2421,19 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
                   settled = true;
                   clearInterval(poll);
                   stopTimers();
+                  var rr = stt.result || {};
+                  var rq = rr.quote || {};
+                  track("ballpark_estimate_completed", {
+                    duration_ms: Date.now() - t0,
+                    acres: rr.acres,
+                    cover_pct:
+                      rr.cover_used != null
+                        ? Math.round(rr.cover_used * 1000) / 10
+                        : null,
+                    quote_low: rq.low,
+                    quote_high: rq.high,
+                    demo: false,
+                  });
                   bar.style.width = "100%";
                   feedRender(FEED.length, true);
                   st.resp = stt.result;
@@ -2445,6 +2479,17 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
             feedRender(FEED.length, true);
             st.resp = result;
             st.runId = null;
+            var dq = result.quote || {};
+            track("ballpark_estimate_completed", {
+              acres: result.acres,
+              cover_pct:
+                result.cover_used != null
+                  ? Math.round(result.cover_used * 1000) / 10
+                  : null,
+              quote_low: dq.low,
+              quote_high: dq.high,
+              demo: true,
+            });
             setTimeout(function () {
               playShow(result);
             }, 300);
@@ -3237,11 +3282,16 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       })
         .then(function (r) {
           if (r.status === 202) {
+            track("ballpark_lead_submitted", { run_id: st.runId });
             say("Got it — a person, not a robot, will call you.", true);
             return;
           }
           return r.json().then(function (b) {
             btn.disabled = false;
+            track("ballpark_lead_error", {
+              status: r.status,
+              detail: typeof b.detail === "string" ? b.detail : "validation",
+            });
             if (r.status === 403 && window.turnstile && tsWidget !== null) {
               try {
                 window.turnstile.reset(tsWidget);
@@ -3254,6 +3304,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         })
         .catch(function () {
           btn.disabled = false;
+          track("ballpark_lead_error", { status: 0, detail: "network" });
           say("Submission failed — try again.", false);
         });
     });
