@@ -15,9 +15,9 @@ backgroundVideo:
   # mobileFallbackImage: "/src/assets/images/hero-background-mobile.jpg"
 buttons:
   - enable: true
-    label: "GET IN TOUCH"
+    label: "Get an estimate"
     variant: "fill"
-    url: "/contact"
+    url: "/ballpark/"
     rel: ""
     target: ""
     hoverEffect: "magnetic" # "text-flip", "creative-fill", "magnetic", "magnetic-text-flip"
@@ -26,7 +26,7 @@ buttons:
     tag: "button"
     type: "video"
     hoverEffect: "creative-fill" # "text-flip", "creative-fill", "magnetic", "magnetic-text-flip"
-    variant: "fill" # "fill", "outline", "text"
+    variant: "outline" # "fill", "outline", "text"
     video:
       src: "/videos/quiver-product-promo_source.mp4"
       type: mp4
