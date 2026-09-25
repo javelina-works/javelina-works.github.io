@@ -1,8 +1,11 @@
 ---
-// PostHog analytics snippet for client-side tracking.
+// PostHog analytics snippet for client-side tracking. Head.astro renders it
+// only in production builds, so `pnpm dev` does not send events or exceptions
+// to the production project.
 // In production we proxy through /ingest (see netlify.toml rewrites) so ad
-// blockers can't drop events or block the JS bundle. Dev hits PostHog directly
-// because Netlify rewrites don't apply to `pnpm dev`.
+// blockers can't drop events or block the JS bundle. If you remove the gate to
+// test locally, dev hits PostHog directly because Netlify rewrites don't apply
+// to `pnpm dev`.
 const apiHost = import.meta.env.PROD
   ? "/ingest"
   : import.meta.env.PUBLIC_POSTHOG_HOST;

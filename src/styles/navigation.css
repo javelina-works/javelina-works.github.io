@@ -77,7 +77,7 @@ footer {
   @apply text-primary relative rounded-full border;
 
   .language-switcher-button {
-    @apply flex items-center gap-1.5 px-3.5 py-1.5 text-inherit uppercase;
+    @apply flex items-center gap-1.5 px-3.5 py-1.5 text-inherit;
 
     svg * {
       @apply stroke-current!;

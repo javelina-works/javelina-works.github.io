@@ -7,36 +7,52 @@
   import SmoothScroll from "smoothscroll-for-websites";
 
   document.addEventListener("DOMContentLoaded", async () => {
-    await initLucide();
+    // Each init is isolated so one failed chunk (e.g. deploy skew) does not
+    // stop the rest of the page from becoming interactive.
+    await safeInit("lucide", initLucide);
 
     // Dynamic Preline imports
-    await loadPrelineComponents();
+    await safeInit("preline", loadPrelineComponents);
 
     // AOS - https://github.com/michalsnik/aos
-    const AOS = await import("aos");
-    AOS.init({
-      duration: 700,
-      easing: "ease-out",
-      disable: "mobile",
-      once: true,
+    await safeInit("aos", async () => {
+      const AOS = await import("aos");
+      AOS.init({
+        duration: 700,
+        easing: "ease-out",
+        disable: "mobile",
+        once: true,
+      });
     });
 
     // Smooth Scroll - https://github.com/gblazex/smoothscroll-for-websites/wiki
-    SmoothScroll({
-      animationTime: 600, // [ms]
-      stepSize: 60, // [px]
-      touchpadSupport: true,
-    });
+    await safeInit("smooth-scroll", () =>
+      SmoothScroll({
+        animationTime: 600, // [ms]
+        stepSize: 60, // [px]
+        touchpadSupport: true,
+      }),
+    );
 
     // Fix: Support horizontal scrolling by using the mouse wheel + shift
-    initHorizontalScroll();
+    await safeInit("horizontal-scroll", initHorizontalScroll);
 
     // Button Hover Animation
-    initCreativeHoverAnimation();
+    await safeInit("creative-hover", initCreativeHoverAnimation);
 
     // Magnetic Hover Animation
-    initMagneticHoverAnimation();
+    await safeInit("magnetic-hover", initMagneticHoverAnimation);
   });
+
+  async function safeInit(name: string, init: () => unknown) {
+    try {
+      await init();
+    } catch (error) {
+      console.error(`Failed to initialize ${name}`, error);
+      // Keep the error visible to global error handlers (PostHog, Sentry).
+      globalThis.reportError?.(error);
+    }
+  }
 
   // Lucide Icons
   async function initLucide() {
