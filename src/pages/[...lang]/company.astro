@@ -13,7 +13,14 @@ export function getStaticPaths() {
   return generatePaths();
 }
 
-const homepage = await getEntryCTM("homepage", "-index", Astro.currentLocale);
+// Page-specific meta. (Previously spread the homepage entry here, so Company
+// inherited Home's title and description.)
+const meta = {
+  metaTitle: "About Javelina Works",
+  metaDescription:
+    "Built by Texans in Fort Davis. Meet the team, mission and values behind Javelina Works' drone brush surveys and precision mesquite and cedar treatment.",
+};
+
 const ourValues = await getEntryCTM(
   "sections",
   "our-values",
@@ -21,7 +28,7 @@ const ourValues = await getEntryCTM(
 );
 ---
 
-<Base {...homepage.data}>
+<Base {...meta}>
   <AboutUs />
   <BenefitsSection content={ourValues.data} />
   <Location />

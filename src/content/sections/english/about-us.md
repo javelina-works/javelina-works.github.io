@@ -18,28 +18,13 @@ about:
     - title: "Vision"
       description: "To offer ranchers cutting edge technology, next-generation insights, and Texas manners. We want to be the trusted technology partner for the ranching world."
 
-stats:
-  - value: 20
-    prependValue:
-    appendValue: "K+"
-    title: "Targets Identified"
-    description: "Unlocking insights never possible in previous generations"
-
-  - value: 20
-    prependValue: ""
-    appendValue: "+"
-    title: "Hours Saved"
-    description: "Saving busy teams countless productive hours every single day"
-
-  - value: 1000
-    prependValue:
-    appendValue: +
-    title: "Acres Served"
-    description: "A scalable platform built for every environment"
-
-  - value: 5
-    prependValue:
-    appendValue: x
-    title: "Annual Growth"
-    description: "A powerful toolkit designed to grow with your challenges"
+# Stats block removed until there are real numbers to put in it. To restore,
+# add a `stats:` list here; quote the values ("20") so the server-rendered
+# placeholder gets the right width before the counter animates. Example:
+#
+# stats:
+#   - value: "1200"
+#     appendValue: "+"
+#     title: "Acres Surveyed"
+#     description: "Individual plants counted from the air"
 ---
