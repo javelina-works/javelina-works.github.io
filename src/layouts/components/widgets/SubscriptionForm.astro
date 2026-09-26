@@ -2,6 +2,14 @@
 import { useTranslations } from "@/lib/utils/i18nUtils";
 import { markdownify } from "@/lib/utils/textConverter";
 const t = await useTranslations(Astro.currentLocale as string);
+
+// Heading above the form. Comes from config.toml [settings.subscription] title,
+// falling back to the i18n label. Submissions go to Netlify Forms via
+// netlify/functions/subscribe.mts (no mailing provider is wired up yet).
+interface Props {
+  title?: string;
+}
+const heading = Astro.props.title || t("subscription.label");
 ---
 
 <form name="subscription-form" data-netlify="true" data-netlify-honeypot="bot-field" hidden>
@@ -9,6 +17,8 @@ const t = await useTranslations(Astro.currentLocale as string);
   <input name="privacy-consent" />
   <input name="bot-field" />
 </form>
+
+{heading && <p class="text-dark mb-3 font-medium" set:html={markdownify(heading)} />}
 
 <form
   id="subscription-form"

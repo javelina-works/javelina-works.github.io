@@ -98,10 +98,7 @@ const copyrightText = (copyright.text || t("footer.copyright")).replace(/©\s*\d
                 {t("contactInfo.locationLabel") || "Location"}:
               </span>
               <span class="text-base-sm block md:text-base">
-                {
-                  t("contactInfo.location") ||
-                    "2627 Park Street, San Francisco, CA"
-                }
+                {t("contactInfo.location")}
               </span>
             </li>
             <li>
@@ -110,7 +107,7 @@ const copyrightText = (copyright.text || t("footer.copyright")).replace(/©\s*\d
                 {t("contactInfo.phoneLabel") || "Phone Number"}:
               </span>
               <span class="text-base-sm block md:text-base">
-                {t("contactInfo.phone") || "925-465-3762"}
+                {t("contactInfo.phone")}
               </span>
             </li>
             <li>
@@ -119,7 +116,7 @@ const copyrightText = (copyright.text || t("footer.copyright")).replace(/©\s*\d
                 {t("contactInfo.emailLabel") || "Email"}:
               </span>
               <span class="text-base-sm block md:text-base">
-                {t("contactInfo.email") || "info@javelinaworks.com"}
+                {t("contactInfo.email")}
               </span>
             </li>
           </ul>
@@ -142,15 +139,14 @@ const copyrightText = (copyright.text || t("footer.copyright")).replace(/©\s*\d
         linkType="follow"
         list={social.main.filter((social) => social.enable)}
       />
+      {/* Invisible Sentry tunnel smoke test: document.getElementById("__sentry_test").click() */}
       <button
         type="button"
         id="__sentry_test"
         aria-hidden="true"
         tabindex={-1}
         class="h-4 w-4 opacity-0"
-      >
-        Sentry test
-      </button>
+      ></button>
     </div>
   </div>
 

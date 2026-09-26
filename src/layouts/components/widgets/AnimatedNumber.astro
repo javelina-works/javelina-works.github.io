@@ -25,9 +25,11 @@ const {
   content,
 } = Astro.props;
 
-// Check number char length and give that number of zero
-const addZero = (content: string) => {
-  return "0".repeat(Number(content.length));
+// Server-render a same-width run of zeros as the placeholder the odometer
+// counts up from. Accepts numbers as well as strings (YAML values are
+// usually numbers; `(20).length` is undefined and produced an empty span).
+const addZero = (content: string | number) => {
+  return "0".repeat(String(content).length);
 };
 ---
 
@@ -54,7 +56,7 @@ const addZero = (content: string) => {
     }}
     class:list={[{ odometer: enable }, childClassName]}
     set:html={enable && content.value && animateOn !== "click"
-      ? addZero(content.value as string)
+      ? addZero(content.value)
       : content.value}
   />
 

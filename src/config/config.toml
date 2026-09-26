@@ -87,7 +87,7 @@
     enable = true
     text   = "" # Check src/i18n/en.json and src/i18n/fr.json for changing the copyright text in different languages or directly add value here if you are not using internationalization feature
 
-  # Mailchimp Subscription Form located in footer
+  # Newsletter form in the footer (Netlify Forms + Discord notification; see netlify/functions/subscribe.mts)
   [settings.subscription]
     enable     = true # Enables or disable the subscription form
     title      = "" # Check src/i18n/en.json and src/i18n/fr.json for changing the title in different languages or directly add value here if you are not using internationalization feature
@@ -120,7 +120,7 @@
 # Specific OpenGraph settings, using values from the [site] section where possible.
 # -----------------------------------------------------------------------------------------------------------------------------------
 [opengraph]
-  image       = "/src/assets/images/homepage/promo-video-poster.png" # Image used in OpenGraph previews
+  image       = "/images/og-image.jpg" # Image used in OpenGraph previews (must live in public/; the old /src/assets path 404s in production)
   ogLocale    = "en_US" # Locale setting for OpenGraph
   ogType      = "website" # Type of content for OpenGraph protocol
   twitter     = "" # Twitter handle for Twitter Card meta tags
