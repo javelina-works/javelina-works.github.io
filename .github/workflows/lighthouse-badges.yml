@@ -21,12 +21,16 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # lighthouserc.json appends "Chrome-Lighthouse" to the emulated user
+      # agent. posthog-js drops that UA as a bot, so audits of production do
+      # not show up as real visitors, pageviews, or exceptions in PostHog.
       - name: Run Lighthouse
         id: lhci
         uses: treosh/lighthouse-ci-action@v12
         with:
           urls: ${{ env.TARGET_URL }}
           runs: ${{ env.LHCI_RUNS }}
+          configPath: ./lighthouserc.json
           uploadArtifacts: false
 
       - name: Extract scores
