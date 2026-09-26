@@ -51,6 +51,12 @@
       "name": "FAQ",
       "url": "/faq/",
       "weight": 0
+    },
+    {
+      "enable": true,
+      "name": "For advisors",
+      "url": "/advisors/",
+      "weight": 0
     }
   ],
   "footerMenuTwo": [
@@ -62,7 +68,7 @@
     },
     {
       "enable": true,
-      "name":"Terms & Conditions",
+      "name": "Terms & Conditions",
       "url": "/terms-conditions/",
       "weight": 0
     }
