@@ -55,9 +55,9 @@ Brush decisions usually start with a windshield survey and an acreage estimate. 
 
 A survey replaces the estimate with a map: the woody plants marked individually, labeled by species, and the plants that should stay marked as such.
 
-![Two drawings of the same pasture side by side. In the first, only the brush near the road is drawn in and the rest of the pasture is faded out and labeled as estimated. In the second, every woody plant is marked individually, filled circles for mesquite and open circles for juniper, thick along the draw and thin on the open flat](/images/advisors/windshield-vs-flown.svg)
+![Two drawings of the same pasture, one above the other. In the top one, only the brush inside a wedge near the road is drawn in and the rest of the pasture is faded out and labeled as estimated. In the bottom one, every woody plant is marked individually, filled circles for mesquite and open circles for juniper, thick along the draw and thin on the open flat](/images/advisors/windshield-vs-flown.svg)
 
-_The same pasture, twice. From the fence line you see the near strip clearly and the rest becomes one number. Flown, every woody plant is marked where it stands and labeled by species — and the brush turns out to be piled up in the draw rather than spread evenly across the acreage. A drawing, not survey data._
+_The same pasture, twice. From the fence line you see the wedge the road gives you, and the rest becomes one number. Flown, every woody plant is marked where it stands and labeled by species — filled circles mesquite, open circles juniper — and the brush turns out to be piled up in the draw rather than spread evenly across the acreage. A drawing, not survey data._
 
 ## The trees that stay
 

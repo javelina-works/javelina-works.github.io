@@ -7,6 +7,13 @@
  *
  * Text inside the SVGs is kept short and large so it survives being scaled down
  * on a phone; the explanation lives in the page copy next to each image.
+ *
+ * "Large" is measured, not assumed. On /advisors/ the drawing sits inside
+ * `.container` and then the card's `p-8`, which leaves roughly a 294px column on
+ * a 390px phone. A label therefore renders at `fontSize * 294 / VIEW_W` CSS
+ * pixels, so the viewBox width below is deliberately small: it is the divisor
+ * that decides whether the legend is readable in a truck. Keep labels at or
+ * above FS.legend, and re-check by rasterising at 294px after any change.
  */
 import { writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -17,6 +24,22 @@ const OUT_DIR = resolve(
   "../public/images/advisors",
 );
 
+// Design canvas. Everything is laid out in these units; the width/height
+// attributes scale the finished drawing up so it still fills a desktop column.
+const VIEW_W = 640;
+const RENDER_SCALE = 1.5;
+
+// The narrowest column the page gives a drawing, and the smallest CSS pixel
+// size a label may land at there. FS below is derived from the pair.
+const PHONE_COLUMN = 294;
+const MIN_LABEL_PX = 11;
+
+const FS = {
+  heading: 32, // ~14.7px on a phone
+  panel: 28, // ~12.9px
+  legend: 24, // ~11.0px — the floor
+};
+
 const INK = "#322B2B";
 const MUTED = "#7A716E";
 const FAINT = "#E7E1DD";
@@ -24,6 +47,12 @@ const RANGE = "#F4F1EF";
 const EDGE = "#CFC6C1";
 const PRIMARY = "#C52C03";
 const KEEP = "#2E6B4F";
+// A protected tree is drawn as three rings: the crown, a solid ring at +RING,
+// and the dashed halo at +HALO that stands for the room left around it. The
+// legend swatch and the clear-space test both read these, so a mark on the map
+// cannot end up meaning something the legend does not show.
+const KEEPER_RING = 9;
+const KEEPER_HALO = 17;
 const WATER = "#8FAEC4";
 
 // mulberry32 — small deterministic PRNG, so the scatter never shifts between runs
@@ -98,12 +127,21 @@ function plants() {
 
 const PLANTS = plants();
 
+/**
+ * What you can see from the truck: a wedge with its apex at the road, opening
+ * into the near part of the pasture. One definition, used both to shade the
+ * wedge and to decide which plants are visible — if these ever drift apart the
+ * drawing shades one area and greys out a different one.
+ */
+const SIGHT_WEDGE = [
+  [0.42, 1.06],
+  [0.1, 0.46],
+  [0.76, 0.53],
+];
+
 /** Is this plant inside what you can see from the truck on the road? */
 function seenFromRoad(p) {
-  // Triangle: apex at the truck on the road, opening into the near third.
-  const apex = [0.42, 1.06];
-  const left = [-0.12, 0.55];
-  const right = [1.02, 0.62];
+  const [apex, left, right] = SIGHT_WEDGE;
   const sign = (a, b, c) =>
     (a[0] - c[0]) * (b[1] - c[1]) - (b[0] - c[0]) * (a[1] - c[1]);
   const pt = [p.x, p.y];
@@ -159,67 +197,80 @@ function truck(cx, cy) {
 /* Diagram 1: the windshield survey against the flown survey           */
 /* ------------------------------------------------------------------ */
 function windshieldVsFlown() {
-  const W = 960;
-  const H = 470;
-  const MW = 440;
-  const MH = 360;
-  const MY = 62;
-  const LX = 10;
-  const RX = 510;
+  // Stacked, not side by side: two half-width panels shrink to about 135px on a
+  // phone, at which point the individual plant marks — the entire point of the
+  // right-hand panel — turn to noise. Full width apiece is worth the height.
+  const W = VIEW_W;
+  const MX = 10;
+  const MW = W - 2 * MX;
+  const MH = 250;
+  const TOP_Y = 42;
+  const BOT_Y = 350;
+  const H = 654;
 
   const wedge = (mx, my) => {
-    const pt = (x, y) => `${esc(mx + x * MW)},${esc(my + y * MH)}`;
-    return `<polygon points="${pt(0.42, 1.06)} ${pt(-0.12, 0.55)} ${pt(1.02, 0.62)}" fill="#FFFFFF" opacity="0.75"/>`;
+    const pt = ([x, y]) => `${esc(mx + x * MW)},${esc(my + y * MH)}`;
+    return `<polygon points="${SIGHT_WEDGE.map(pt).join(" ")}" fill="#FFFFFF" opacity="0.75"/>`;
   };
 
-  const left = [
-    pastureFrame(LX, MY, MW, MH),
-    `<g clip-path="url(#pastureL)">`,
-    drawPath(LX, MY, MW, MH),
-    wedge(LX, MY),
-    PLANTS.map((p) =>
-      plantMark(p, LX, MY, MW, MH, {
+  // Marks are drawn larger, and the scatter thinned, so that individual plants
+  // stay individual once the drawing is scaled into a phone column. At the full
+  // 320 the panel reads as one dark smear, which argues the opposite of the
+  // point: that a survey resolves single plants.
+  const MARK = 1.5;
+  const SPARSE = PLANTS.filter((_, i) => i % 3 === 0);
+
+  const top = [
+    pastureFrame(MX, TOP_Y, MW, MH),
+    `<g clip-path="url(#pastureTop)">`,
+    drawPath(MX, TOP_Y, MW, MH),
+    wedge(MX, TOP_Y),
+    SPARSE.map((p) =>
+      plantMark(p, MX, TOP_Y, MW, MH, {
         color: INK,
         faint: !seenFromRoad(p),
+        scale: MARK,
       }),
     ).join(""),
     `</g>`,
-    road(LX, MY, MW, MH),
-    truck(LX + MW * 0.42, MY + MH - 20),
+    road(MX, TOP_Y, MW, MH),
+    truck(MX + MW * 0.42, TOP_Y + MH - 20),
     // sits on a pill so the label stays readable over the scatter
-    `<rect x="${LX + MW / 2 - 160}" y="${MY + 48}" width="320" height="40" rx="20" fill="#FFFFFF" opacity="0.92"/>`,
-    `<text x="${LX + MW / 2}" y="${MY + 76}" text-anchor="middle" font-size="27" fill="${MUTED}" font-style="italic">the rest is estimated</text>`,
+    `<rect x="${MX + MW / 2 - 150}" y="${TOP_Y + 40}" width="300" height="42" rx="21" fill="#FFFFFF" opacity="0.92"/>`,
+    `<text x="${MX + MW / 2}" y="${TOP_Y + 70}" text-anchor="middle" font-size="${FS.panel}" fill="${MUTED}" font-style="italic">the rest is estimated</text>`,
   ].join("");
 
-  const right = [
-    pastureFrame(RX, MY, MW, MH),
-    `<g clip-path="url(#pastureR)">`,
-    drawPath(RX, MY, MW, MH),
-    PLANTS.map((p) => plantMark(p, RX, MY, MW, MH, { color: INK })).join(""),
+  const bottom = [
+    pastureFrame(MX, BOT_Y, MW, MH),
+    `<g clip-path="url(#pastureBot)">`,
+    drawPath(MX, BOT_Y, MW, MH),
+    SPARSE.map((p) =>
+      plantMark(p, MX, BOT_Y, MW, MH, { color: INK, scale: MARK }),
+    ).join(""),
     `</g>`,
-    road(RX, MY, MW, MH),
+    road(MX, BOT_Y, MW, MH),
   ].join("");
 
   const legend = `
-    <g transform="translate(${RX} ${MY + MH + 34})">
-      <circle cx="9" cy="-6" r="6" fill="${INK}"/>
-      <text x="26" y="1" font-size="23" fill="${INK}">mesquite</text>
-      <circle cx="166" cy="-6" r="6" fill="none" stroke="${INK}" stroke-width="1.8"/>
-      <text x="183" y="1" font-size="23" fill="${INK}">juniper (cedar)</text>
+    <g transform="translate(${MX} 634)" font-size="${FS.legend}" fill="${INK}">
+      <circle cx="10" cy="-7" r="8" fill="${INK}"/>
+      <text x="28" y="0">mesquite</text>
+      <circle cx="210" cy="-7" r="8" fill="none" stroke="${INK}" stroke-width="2"/>
+      <text x="228" y="0">juniper (cedar)</text>
     </g>`;
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-labelledby="wvfTitle wvfDesc" font-family="system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${esc(W * RENDER_SCALE)}" height="${esc(H * RENDER_SCALE)}" role="img" aria-labelledby="wvfTitle wvfDesc" font-family="system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
   <title id="wvfTitle">The same pasture seen from the road and from the air</title>
-  <desc id="wvfDesc">Two panels of one pasture. On the left, only the brush near the road is visible and the far side of the pasture is greyed out and estimated. On the right, every woody plant is marked individually, filled circles for mesquite and open circles for juniper, showing the brush clumped along the draw and thin on the open flat.</desc>
+  <desc id="wvfDesc">One pasture drawn twice, one panel above the other. In the top panel, only the brush in a wedge near the road is visible and the rest of the pasture is greyed out and labelled as estimated. In the bottom panel, every woody plant is marked individually, filled circles for mesquite and open circles for juniper, showing the brush clumped along the draw and thin on the open flat.</desc>
   <defs>
-    <clipPath id="pastureL"><rect x="${LX}" y="${MY}" width="${MW}" height="${MH}" rx="10"/></clipPath>
-    <clipPath id="pastureR"><rect x="${RX}" y="${MY}" width="${MW}" height="${MH}" rx="10"/></clipPath>
+    <clipPath id="pastureTop"><rect x="${MX}" y="${TOP_Y}" width="${MW}" height="${MH}" rx="10"/></clipPath>
+    <clipPath id="pastureBot"><rect x="${MX}" y="${BOT_Y}" width="${MW}" height="${MH}" rx="10"/></clipPath>
   </defs>
   <rect width="${W}" height="${H}" fill="#FFFFFF"/>
-  <text x="${LX}" y="34" font-size="34" font-weight="600" fill="${INK}">From the fence line</text>
-  <text x="${RX}" y="34" font-size="34" font-weight="600" fill="${PRIMARY}">From the air</text>
-  ${left}
-  ${right}
+  <text x="${MX}" y="30" font-size="${FS.heading}" font-weight="600" fill="${INK}">From the fence line</text>
+  <text x="${MX}" y="338" font-size="${FS.heading}" font-weight="600" fill="${PRIMARY}">From the air</text>
+  ${top}
+  ${bottom}
   ${legend}
 </svg>
 `;
@@ -229,17 +280,17 @@ function windshieldVsFlown() {
 /* Diagram 2: what gets left alone                                     */
 /* ------------------------------------------------------------------ */
 function treesThatStay() {
-  const W = 960;
-  const H = 430;
+  const W = VIEW_W;
+  const H = 396;
   const MX = 10;
-  const MY = 58;
-  const MW = 940;
-  const MH = 288;
+  const MY = 44;
+  const MW = W - 2 * MX;
+  const MH = 250;
 
   // A closer look at one corner of the same country: fewer, larger plants.
   const rand = rng(31415);
   const targets = PLANTS.filter((p) => p.x > 0.35 && p.y > 0.25)
-    .slice(0, 96)
+    .slice(0, 64)
     .map((p) => ({
       x: (p.x - 0.35) / 0.65,
       y: (p.y - 0.25) / 0.69,
@@ -257,12 +308,18 @@ function treesThatStay() {
     [0.89, 0.36],
   ].map(([x, y]) => ({ x, y, r: 15 + rand() * 4 }));
 
-  // keep clear air around each protected tree so the ring reads at a glance
-  const near = (p) =>
-    keepers.some((k) => Math.hypot((p.x - k.x) * 3.2, p.y - k.y) < 0.14);
-
   const px = (x) => esc(MX + x * MW);
   const py = (y) => esc(MY + y * MH);
+
+  // The legend promises room around a protected tree, so no target may be drawn
+  // inside one. Measured in drawn pixels against the outer dashed halo, rather
+  // than as a fudge factor in unit space — a unit-space radius silently stops
+  // being a circle the moment the panel's aspect ratio changes.
+  const HALO = (k) => k.r + KEEPER_HALO;
+  const near = (p) =>
+    keepers.some(
+      (k) => Math.hypot((p.x - k.x) * MW, (p.y - k.y) * MH) < HALO(k) + p.r + 6,
+    );
 
   const creek = `<path d="M ${px(0.02)} ${py(0.86)} Q ${px(0.3)} ${py(0.7)} ${px(0.55)} ${py(0.92)} T ${px(0.98)} ${py(0.8)}" fill="none" stroke="${WATER}" stroke-width="9" stroke-linecap="round" opacity="0.7"/>`;
   const buffer = `<path d="M ${px(0.02)} ${py(0.86)} Q ${px(0.3)} ${py(0.7)} ${px(0.55)} ${py(0.92)} T ${px(0.98)} ${py(0.8)}" fill="none" stroke="${WATER}" stroke-width="44" stroke-linecap="round" opacity="0.16" stroke-dasharray="1 0"/>`;
@@ -280,34 +337,38 @@ function treesThatStay() {
     .map(
       (k) => `<g>
         <circle cx="${px(k.x)}" cy="${py(k.y)}" r="${esc(k.r)}" fill="${KEEP}" opacity="0.85"/>
-        <circle cx="${px(k.x)}" cy="${py(k.y)}" r="${esc(k.r + 9)}" fill="none" stroke="${KEEP}" stroke-width="3"/>
-        <circle cx="${px(k.x)}" cy="${py(k.y)}" r="${esc(k.r + 17)}" fill="none" stroke="${KEEP}" stroke-width="1.5" stroke-dasharray="5 6"/>
+        <circle cx="${px(k.x)}" cy="${py(k.y)}" r="${esc(k.r + KEEPER_RING)}" fill="none" stroke="${KEEP}" stroke-width="3"/>
+        <circle cx="${px(k.x)}" cy="${py(k.y)}" r="${esc(k.r + KEEPER_HALO)}" fill="none" stroke="${KEEP}" stroke-width="1.5" stroke-dasharray="5 6"/>
       </g>`,
     )
     .join("");
 
+  // Two rows, because one row of three at a legible size does not fit the
+  // phone column. The keeper swatch carries all three rings the map uses —
+  // fill, solid ring and dashed halo — so no mark on the map is unexplained.
   const legend = `
-    <g transform="translate(${MX} ${MY + MH + 42})" font-size="23" fill="${INK}">
-      <circle cx="10" cy="-7" r="7" fill="${INK}"/>
-      <circle cx="34" cy="-7" r="7" fill="none" stroke="${INK}" stroke-width="1.8"/>
-      <text x="54" y="0">to treat (mesquite, juniper)</text>
-      <g transform="translate(360 0)">
-        <circle cx="12" cy="-7" r="8" fill="${KEEP}" opacity="0.85"/>
-        <circle cx="12" cy="-7" r="13" fill="none" stroke="${KEEP}" stroke-width="2.5"/>
-        <text x="36" y="0">left standing</text>
+    <g transform="translate(${MX} ${MY + MH + 44})" font-size="${FS.legend}" fill="${INK}">
+      <circle cx="11" cy="-7" r="8" fill="${INK}"/>
+      <circle cx="37" cy="-7" r="8" fill="none" stroke="${INK}" stroke-width="2"/>
+      <text x="58" y="0">to treat (mesquite, juniper)</text>
+      <g transform="translate(0 42)">
+        <circle cx="20" cy="-7" r="8" fill="${KEEP}" opacity="0.85"/>
+        <circle cx="20" cy="-7" r="13" fill="none" stroke="${KEEP}" stroke-width="2.5"/>
+        <circle cx="20" cy="-7" r="18" fill="none" stroke="${KEEP}" stroke-width="1.5" stroke-dasharray="4 5"/>
+        <text x="58" y="0">left standing, with room around it</text>
       </g>
-      <g transform="translate(580 0)">
-        <rect x="0" y="-18" width="26" height="22" rx="4" fill="${WATER}" opacity="0.28"/>
-        <line x1="4" y1="-7" x2="22" y2="-7" stroke="${WATER}" stroke-width="5" stroke-linecap="round"/>
-        <text x="40" y="0">waterway, flagged for review</text>
+      <g transform="translate(400 42)">
+        <rect x="0" y="-19" width="28" height="24" rx="4" fill="${WATER}" opacity="0.28"/>
+        <line x1="4" y1="-7" x2="24" y2="-7" stroke="${WATER}" stroke-width="5" stroke-linecap="round"/>
+        <text x="40" y="0">waterway</text>
       </g>
     </g>`;
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-labelledby="ttsTitle ttsDesc" font-family="system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${esc(W * RENDER_SCALE)}" height="${esc(H * RENDER_SCALE)}" role="img" aria-labelledby="ttsTitle ttsDesc" font-family="system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
   <title id="ttsTitle">Protected trees marked on the same map as the targets</title>
   <desc id="ttsDesc">A close view of brush country. Most plants are marked as targets for treatment, filled circles for mesquite and open circles for juniper, the same marks used in the earlier drawing. Five larger trees are ringed and marked to be left standing, each with a clear space around it, and a waterway running through the scene is flagged for review before any treatment.</desc>
   <rect width="${W}" height="${H}" fill="#FFFFFF"/>
-  <text x="${MX}" y="34" font-size="34" font-weight="600" fill="${INK}">One map, two kinds of mark</text>
+  <text x="${MX}" y="30" font-size="${FS.heading}" font-weight="600" fill="${INK}">One map, two kinds of mark</text>
   <rect x="${MX}" y="${MY}" width="${MW}" height="${MH}" rx="10" fill="${RANGE}" stroke="${EDGE}" stroke-width="1.5"/>
   <g clip-path="url(#patch)">
     ${buffer}
@@ -323,7 +384,78 @@ function treesThatStay() {
 `;
 }
 
+/**
+ * Every label in the finished SVG has to survive the phone column. Run against
+ * the string that actually gets written, not against the FS table, so that a
+ * hand-written font-size somewhere in the markup cannot slip past.
+ *
+ * A <text> whose size we cannot resolve is a failure, not a skip: silently
+ * passing over the one label we can't measure is how an unreadable label ships.
+ */
+function checkLabelSizes(name, svg) {
+  const rootSize = svg.match(/<svg[^>]*\sfont-size="(\d+(?:\.\d+)?)"/);
+  const problems = [];
+  let inherited = rootSize ? Number(rootSize[1]) : null;
+  const stack = [];
+
+  const tokens = svg.match(/<\/?(?:g|text)\b[^>]*>|<\/text>/g) || [];
+  for (const tok of tokens) {
+    if (tok.startsWith("</g")) {
+      inherited = stack.pop() ?? null;
+      continue;
+    }
+    const own = tok.match(/\sfont-size="(\d+(?:\.\d+)?)"/);
+    if (tok.startsWith("<g")) {
+      stack.push(inherited);
+      if (own) inherited = Number(own[1]);
+      continue;
+    }
+    if (tok.startsWith("<text")) {
+      const size = own ? Number(own[1]) : inherited;
+      if (size == null) {
+        problems.push(`a <text> with no resolvable font-size: ${tok}`);
+        continue;
+      }
+      const px = (size * PHONE_COLUMN) / VIEW_W;
+      if (px < MIN_LABEL_PX) {
+        problems.push(
+          `font-size ${size} renders at ${px.toFixed(1)}px on a ${PHONE_COLUMN}px column (floor ${MIN_LABEL_PX}px)`,
+        );
+      }
+    }
+  }
+
+  const labels = (svg.match(/<text\b/g) || []).length;
+  if (problems.length) {
+    console.error(`${name}: ${problems.length} unreadable label(s)`);
+    for (const p of problems) console.error(`  - ${p}`);
+    return false;
+  }
+  const smallest = Math.min(FS.heading, FS.panel, FS.legend);
+  console.log(
+    `${name}: ${labels} labels checked, smallest renders at ` +
+      `${((smallest * PHONE_COLUMN) / VIEW_W).toFixed(1)}px on a ${PHONE_COLUMN}px column`,
+  );
+  return true;
+}
+
+const diagrams = [
+  ["windshield-vs-flown.svg", windshieldVsFlown()],
+  ["trees-that-stay.svg", treesThatStay()],
+];
+
+// Check every diagram before writing any of them, so a failure leaves the
+// committed SVGs alone instead of replacing them with unreadable ones.
+const ok = diagrams
+  .map(([file, svg]) => checkLabelSizes(file, svg))
+  .every(Boolean);
+if (!ok) {
+  console.error("no diagrams written");
+  process.exit(1);
+}
+
 mkdirSync(OUT_DIR, { recursive: true });
-writeFileSync(resolve(OUT_DIR, "windshield-vs-flown.svg"), windshieldVsFlown());
-writeFileSync(resolve(OUT_DIR, "trees-that-stay.svg"), treesThatStay());
-console.log("wrote 2 diagrams to", OUT_DIR);
+for (const [file, svg] of diagrams) {
+  writeFileSync(resolve(OUT_DIR, file), svg);
+}
+console.log(`wrote ${diagrams.length} diagrams to`, OUT_DIR);
