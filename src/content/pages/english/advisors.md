@@ -2,7 +2,7 @@
 title: "For the people ranchers **already trust**"
 description: "Consultants, brokers, biologists, county agents, lenders: if landowners come to you for advice, here's how a brush survey makes your work better, and what we'll do for your clients."
 metaTitle: "For advisors: consultants, brokers and agents | Javelina Works"
-metaDescription: "How ranch consultants, land brokers, extension agents, wildlife biologists and ag lenders use Javelina Works' free brush ballpark and drone surveys to serve Texas landowners."
+metaDescription: "What Javelina Works does, for consultants, brokers, extension agents, wildlife biologists and ag lenders deciding whether to mention us to a landowner."
 keywords:
   - brush management consultant Texas
   - wildlife management plan brush
@@ -14,17 +14,48 @@ keywords:
 draft: false
 ---
 
-Most of the ranches we work on came to us through someone the owner already listened to: the biologist who wrote the wildlife plan, the broker who sold the place, the county agent who ran the field day. This page is for you.
+Most of the ranches we work on came to us through someone the owner already listened to: the biologist who wrote the wildlife plan, the broker who sold the place, the county agent who ran the field day. This page is for you. It's written so you can decide whether we're worth mentioning, and so you can explain us accurately without having to call us first.
 
-### What we do, in one paragraph
+## If you remember one sentence
 
-We map first and treat second. A drone survey photographs a ranch down to the centimeter, our detection models find and count every mesquite and cedar on it, and treatment is targeted plant by plant from the air. No scraped pastures, no guessing at density from the truck window. The owner gets a plant count, a density map, a high-resolution picture of the whole place, and a firm per-plant quote.
+We map a ranch from the air down to the individual plant, sorted by species, and mark the trees that should be left alone. Everything below is detail you can reach for if someone asks a follow-up.
 
-### Start with the free ballpark
+## The thirty-second version
+
+Three lines you can actually say out loud:
+
+- "There's an outfit in Fort Davis that flies drones and maps brush."
+- "You get a count and a map of the mesquite and cedar on the place, plant by plant, not an acreage guess."
+- "They mark the trees you want kept, so the treatment works around them."
+
+## What we do, in one paragraph
+
+We map first and treat second. A drone survey photographs a ranch down to the centimeter, our detection models find and count the mesquite and cedar on it plant by plant, and treatment is targeted from the air one plant at a time. No scraped pastures, no guessing at density from the truck window. The owner gets a plant count, a density map, a high-resolution picture of the whole place, and a firm per-plant quote.
+
+## Start with the free ballpark
 
 Type a client's ranch address into the [instant ballpark](/ballpark/), or draw the fence line, and in about a minute you have the acreage, the brush coverage, a rough plant count and a budget range for clearing it, read from public lidar and infrared imagery. It's free, it doesn't ask for anyone's contact information, and it doesn't put anyone on a list. Use the number in your plan, your listing or your loan file. When the owner wants a real bid, we fly it.
 
-### Where it fits your work
+## What a drive down the fence line can't tell you
+
+Brush decisions usually start with a windshield survey and an acreage estimate. That's a real skill, and for plenty of decisions it's enough. Here's where it runs out:
+
+- **An acreage total hides the distribution.** A heavy draw and a clean flat average into one number, and the number is what the budget gets built on.
+- **You see what's near the road.** The back of the pasture gets estimated from the part you can reach.
+- **"Mesquite" from a truck window covers a lot of plants that aren't mesquite.** Species matters when the treatment and the paperwork differ by species.
+- **There's no before-picture.** Once the work is done, the comparison is memory.
+
+A survey replaces the estimate with a map: the woody plants marked individually, labeled by species, and the plants that should stay marked as such.
+
+## The trees that stay
+
+Finding what to treat is half the job. The other half is marking what has to stay.
+
+Before we fly, we settle with the owner which trees are off the table. Those get flagged on the same map the treatment works from, plant by plant, rather than described in a note at the bottom of a report. Waterways, sensitive ground and desired trees all get a risk review before anything is treated.
+
+If you've ever watched a treatment take something nobody meant to take, this is the part of the work aimed at that.
+
+## Where it fits your work
 
 **Wildlife and range consultants.** A brush density map and plant count for the wildlife management plan or habitat plan, with before-and-after imagery that documents the practice. You keep the relationship and the plan; we supply the map and the treatment.
 
@@ -36,7 +67,7 @@ Type a client's ranch address into the [instant ballpark](/ballpark/), or draw t
 
 **Burn managers and prescribed burn associations.** Canopy and fuel maps before a burn, and a way to knock back the woody regrowth that follows one.
 
-### What your client gets
+## What your client gets
 
 - A high-resolution map of the whole ranch, complimentary with every treatment
 - Every target plant counted and located
@@ -44,10 +75,20 @@ Type a client's ranch address into the [instant ballpark](/ballpark/), or draw t
 - A risk review before any treatment: waterways, desired trees, sensitive ground
 - Grass and soil left where they are
 
-### How we work with you
+## When it's worth mentioning us, and when it isn't
+
+Worth a mention when someone is planning brush control and wants to know where the money should go before it goes, when a plan needs vegetation detail instead of an estimate, or when somebody has to document what was on the ground before and after.
+
+Probably not worth it if a walk-through already answers the question, if the job is urgent — a flight has to be planned, flown and processed — or if the question isn't about woody brush at all. Grass and forb composition is a different survey. We'd rather you send us three landowners it fits than ten it doesn't.
+
+## How we work with you
 
 You brought the relationship; it stays yours. We report to you and the owner together, we don't sell around you, and we'll tell you straight when a place isn't a fit. Solid-canopy cedar is still dozer country, and we'll say so.
 
-### Talk to us
+## Talk to us
 
-Call 432-203-5975, email [info@javelinaworks.com](mailto:info@javelinaworks.com), or use the [contact page](/contact/). Based in Fort Davis, working across Texas.
+If you'd like to see what one of these maps looks like before you put our name in front of a landowner, call and we'll walk you through one. That's the normal way to do this.
+
+**[432-203-5975](tel:+14322035975)** — or email [info@javelinaworks.com](mailto:info@javelinaworks.com) if that's easier.
+
+Based in Fort Davis, working across Texas. If it's simpler, hand a landowner our number and tell them to mention you sent them. That works too.
