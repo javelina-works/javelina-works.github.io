@@ -65,7 +65,7 @@ Finding what to treat is half the job. The other half is marking what has to sta
 
 Before we fly, we settle with the owner which trees are off the table. Those get flagged on the same map the treatment works from, plant by plant, rather than described in a note at the bottom of a report. Waterways, sensitive ground and desired trees all get a risk review before anything is treated.
 
-![A drawing of one patch of brush country. Most plants are small dark marks set down for treatment. Five larger trees are ringed and marked to be left standing, each with clear space around it, and a creek running through the patch is flagged](/images/advisors/trees-that-stay.svg)
+![A drawing of one patch of brush country. Most plants are small marks set down for treatment, filled circles for mesquite and open circles for juniper. Five larger trees are ringed and marked to be left standing, each with clear space around it, and a creek running through the patch is flagged](/images/advisors/trees-that-stay.svg)
 
 _Both kinds of mark live on one map: the plants to treat, the trees the owner wants kept — ringed, with room left around them — and the waterway flagged before anything is treated. A drawing, not survey data._
 

@@ -289,13 +289,14 @@ function treesThatStay() {
   const legend = `
     <g transform="translate(${MX} ${MY + MH + 42})" font-size="23" fill="${INK}">
       <circle cx="10" cy="-7" r="7" fill="${INK}"/>
-      <text x="30" y="0">to treat</text>
-      <g transform="translate(180 0)">
+      <circle cx="34" cy="-7" r="7" fill="none" stroke="${INK}" stroke-width="1.8"/>
+      <text x="54" y="0">to treat (mesquite, juniper)</text>
+      <g transform="translate(360 0)">
         <circle cx="12" cy="-7" r="8" fill="${KEEP}" opacity="0.85"/>
         <circle cx="12" cy="-7" r="13" fill="none" stroke="${KEEP}" stroke-width="2.5"/>
         <text x="36" y="0">left standing</text>
       </g>
-      <g transform="translate(430 0)">
+      <g transform="translate(580 0)">
         <rect x="0" y="-18" width="26" height="22" rx="4" fill="${WATER}" opacity="0.28"/>
         <line x1="4" y1="-7" x2="22" y2="-7" stroke="${WATER}" stroke-width="5" stroke-linecap="round"/>
         <text x="40" y="0">waterway, flagged for review</text>
@@ -304,7 +305,7 @@ function treesThatStay() {
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-labelledby="ttsTitle ttsDesc" font-family="system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
   <title id="ttsTitle">Protected trees marked on the same map as the targets</title>
-  <desc id="ttsDesc">A close view of brush country. Most plants are marked as targets for treatment. Five larger trees are ringed and marked to be left standing, each with a clear space around it, and a waterway running through the scene is flagged for review before any treatment.</desc>
+  <desc id="ttsDesc">A close view of brush country. Most plants are marked as targets for treatment, filled circles for mesquite and open circles for juniper, the same marks used in the earlier drawing. Five larger trees are ringed and marked to be left standing, each with a clear space around it, and a waterway running through the scene is flagged for review before any treatment.</desc>
   <rect width="${W}" height="${H}" fill="#FFFFFF"/>
   <text x="${MX}" y="34" font-size="34" font-weight="600" fill="${INK}">One map, two kinds of mark</text>
   <rect x="${MX}" y="${MY}" width="${MW}" height="${MH}" rx="10" fill="${RANGE}" stroke="${EDGE}" stroke-width="1.5"/>
