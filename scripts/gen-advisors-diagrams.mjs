@@ -10,10 +10,12 @@
  *
  * "Large" is measured, not assumed. On /advisors/ the drawing sits inside
  * `.container` and then the card's `p-8`, which leaves roughly a 294px column on
- * a 390px phone. A label therefore renders at `fontSize * 294 / VIEW_W` CSS
- * pixels, so the viewBox width below is deliberately small: it is the divisor
- * that decides whether the legend is readable in a truck. Keep labels at or
- * above FS.legend, and re-check by rasterising at 294px after any change.
+ * a 390px phone. Anything in the drawing therefore renders at
+ * `units * 294 / viewBoxWidth` CSS pixels, so the viewBox width is deliberately
+ * small: it is the divisor that decides whether the legend is readable in a
+ * truck. checkDiagram() below enforces that on the finished SVG — for labels and
+ * for the marks that carry the grammar — and refuses to write anything that
+ * fails, so this is a build-time guarantee rather than a note to be remembered.
  */
 import { writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -33,6 +35,10 @@ const RENDER_SCALE = 1.5;
 // size a label may land at there. FS below is derived from the pair.
 const PHONE_COLUMN = 294;
 const MIN_LABEL_PX = 11;
+// A hollow mark needs a full pixel of stroke to read as an outline instead of a
+// faded blob, and a dash needs a few pixels of "on" run to read as a dash.
+const MIN_MARK_PX = 1;
+const MIN_DASH_PX = 3;
 
 const FS = {
   heading: 32, // ~14.7px on a phone
@@ -54,6 +60,19 @@ const KEEP = "#2E6B4F";
 const KEEPER_RING = 9;
 const KEEPER_HALO = 17;
 const WATER = "#8FAEC4";
+
+// Stroke weights for the marks that carry the grammar (filled = mesquite, open
+// = juniper, dashed halo = the room left around a protected tree). These are
+// measured, not chosen by eye: rasterised at PHONE_COLUMN, a 1.8 stroke lands
+// at 0.83px and the open ring's darkest ink reads 77/255 against a 244
+// background, so an open mark looks like a *faded* dot rather than an outlined
+// one. At 2.4 the ring reaches 49/255 — the same ink weight as the filled mark
+// — and the hole in the middle gets wider, not narrower. The dashed halo needs
+// both a thicker stroke and a longer "on" dash, or it subsamples into specks.
+const SW_OPEN = 2.4;
+const SW_KEEPER_RING = 3;
+const SW_HALO = 2.2;
+const DASH_HALO = "7 6";
 
 // mulberry32 — small deterministic PRNG, so the scatter never shifts between runs
 function rng(seed) {
@@ -163,7 +182,7 @@ function plantMark(p, mx, my, mw, mh, { color, faint = false, scale = 1 }) {
     return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${FAINT}"/>`;
   }
   return p.juniper
-    ? `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="1.6"/>`
+    ? `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="${SW_OPEN}"/>`
     : `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}"/>`;
 }
 
@@ -255,7 +274,7 @@ function windshieldVsFlown() {
     <g transform="translate(${MX} 634)" font-size="${FS.legend}" fill="${INK}">
       <circle cx="10" cy="-7" r="8" fill="${INK}"/>
       <text x="28" y="0">mesquite</text>
-      <circle cx="210" cy="-7" r="8" fill="none" stroke="${INK}" stroke-width="2"/>
+      <circle cx="210" cy="-7" r="8" fill="none" stroke="${INK}" stroke-width="${SW_OPEN}"/>
       <text x="228" y="0">juniper (cedar)</text>
     </g>`;
 
@@ -328,7 +347,7 @@ function treesThatStay() {
     .filter((p) => !near(p))
     .map((p) =>
       p.juniper
-        ? `<circle cx="${px(p.x)}" cy="${py(p.y)}" r="${esc(p.r)}" fill="none" stroke="${INK}" stroke-width="1.8"/>`
+        ? `<circle cx="${px(p.x)}" cy="${py(p.y)}" r="${esc(p.r)}" fill="none" stroke="${INK}" stroke-width="${SW_OPEN}"/>`
         : `<circle cx="${px(p.x)}" cy="${py(p.y)}" r="${esc(p.r)}" fill="${INK}"/>`,
     )
     .join("");
@@ -337,8 +356,8 @@ function treesThatStay() {
     .map(
       (k) => `<g>
         <circle cx="${px(k.x)}" cy="${py(k.y)}" r="${esc(k.r)}" fill="${KEEP}" opacity="0.85"/>
-        <circle cx="${px(k.x)}" cy="${py(k.y)}" r="${esc(k.r + KEEPER_RING)}" fill="none" stroke="${KEEP}" stroke-width="3"/>
-        <circle cx="${px(k.x)}" cy="${py(k.y)}" r="${esc(k.r + KEEPER_HALO)}" fill="none" stroke="${KEEP}" stroke-width="1.5" stroke-dasharray="5 6"/>
+        <circle cx="${px(k.x)}" cy="${py(k.y)}" r="${esc(k.r + KEEPER_RING)}" fill="none" stroke="${KEEP}" stroke-width="${SW_KEEPER_RING}"/>
+        <circle cx="${px(k.x)}" cy="${py(k.y)}" r="${esc(k.r + KEEPER_HALO)}" fill="none" stroke="${KEEP}" stroke-width="${SW_HALO}" stroke-dasharray="${DASH_HALO}"/>
       </g>`,
     )
     .join("");
@@ -349,12 +368,12 @@ function treesThatStay() {
   const legend = `
     <g transform="translate(${MX} ${MY + MH + 44})" font-size="${FS.legend}" fill="${INK}">
       <circle cx="11" cy="-7" r="8" fill="${INK}"/>
-      <circle cx="37" cy="-7" r="8" fill="none" stroke="${INK}" stroke-width="2"/>
+      <circle cx="37" cy="-7" r="8" fill="none" stroke="${INK}" stroke-width="${SW_OPEN}"/>
       <text x="58" y="0">to treat (mesquite, juniper)</text>
       <g transform="translate(0 42)">
         <circle cx="20" cy="-7" r="8" fill="${KEEP}" opacity="0.85"/>
-        <circle cx="20" cy="-7" r="13" fill="none" stroke="${KEEP}" stroke-width="2.5"/>
-        <circle cx="20" cy="-7" r="18" fill="none" stroke="${KEEP}" stroke-width="1.5" stroke-dasharray="4 5"/>
+        <circle cx="20" cy="-7" r="13" fill="none" stroke="${KEEP}" stroke-width="${SW_KEEPER_RING}"/>
+        <circle cx="20" cy="-7" r="18" fill="none" stroke="${KEEP}" stroke-width="${SW_HALO}" stroke-dasharray="${DASH_HALO}"/>
         <text x="58" y="0">left standing, with room around it</text>
       </g>
       <g transform="translate(400 42)">
@@ -385,18 +404,41 @@ function treesThatStay() {
 }
 
 /**
- * Every label in the finished SVG has to survive the phone column. Run against
- * the string that actually gets written, not against the FS table, so that a
- * hand-written font-size somewhere in the markup cannot slip past.
+ * Everything in the finished SVG that carries meaning has to survive the phone
+ * column. Run against the string that actually gets written, not against the FS
+ * table, so that a hand-written value somewhere in the markup cannot slip past.
  *
- * A <text> whose size we cannot resolve is a failure, not a skip: silently
- * passing over the one label we can't measure is how an unreadable label ships.
+ * Two things are checked, because the drawings say things two ways:
+ *
+ *   - Labels. A <text> whose size we cannot resolve is a failure, not a skip:
+ *     silently passing over the one label we can't measure is how an unreadable
+ *     label ships.
+ *   - Marks. Every hollow circle (`fill="none"`) is grammar in these drawings —
+ *     an open plant mark, a keeper ring, a dashed halo, or the legend swatch
+ *     that explains one of those. A hollow circle whose stroke lands below a
+ *     pixel reads as a faded blob rather than an outline, which quietly breaks
+ *     the filled-vs-open distinction the whole page leans on. Dashes get their
+ *     own floor: an "on" run shorter than a few pixels subsamples into specks.
+ *
+ * The divisor is the viewBox width parsed out of this SVG, not the VIEW_W
+ * constant — otherwise a diagram drawn on a different canvas would be measured
+ * against the wrong column and pass too generously.
  */
-function checkLabelSizes(name, svg) {
-  const rootSize = svg.match(/<svg[^>]*\sfont-size="(\d+(?:\.\d+)?)"/);
+function checkDiagram(name, svg) {
+  const viewBox = svg.match(/viewBox="0 0 (\d+(?:\.\d+)?) /);
+  if (!viewBox) {
+    console.error(`${name}: no parseable viewBox, cannot measure anything`);
+    return false;
+  }
+  const vbWidth = Number(viewBox[1]);
+  const toPhonePx = (units) => (units * PHONE_COLUMN) / vbWidth;
+
   const problems = [];
+  const rootSize = svg.match(/<svg[^>]*\sfont-size="(\d+(?:\.\d+)?)"/);
   let inherited = rootSize ? Number(rootSize[1]) : null;
   const stack = [];
+  let labels = 0;
+  let smallestLabel = Infinity;
 
   const tokens = svg.match(/<\/?(?:g|text)\b[^>]*>|<\/text>/g) || [];
   for (const tok of tokens) {
@@ -411,12 +453,14 @@ function checkLabelSizes(name, svg) {
       continue;
     }
     if (tok.startsWith("<text")) {
+      labels++;
       const size = own ? Number(own[1]) : inherited;
       if (size == null) {
         problems.push(`a <text> with no resolvable font-size: ${tok}`);
         continue;
       }
-      const px = (size * PHONE_COLUMN) / VIEW_W;
+      const px = toPhonePx(size);
+      if (px < smallestLabel) smallestLabel = px;
       if (px < MIN_LABEL_PX) {
         problems.push(
           `font-size ${size} renders at ${px.toFixed(1)}px on a ${PHONE_COLUMN}px column (floor ${MIN_LABEL_PX}px)`,
@@ -425,16 +469,52 @@ function checkLabelSizes(name, svg) {
     }
   }
 
-  const labels = (svg.match(/<text\b/g) || []).length;
+  let marks = 0;
+  let thinnestMark = Infinity;
+  let shortestDash = Infinity;
+  for (const tok of svg.match(/<circle\b[^>]*>/g) || []) {
+    if (!/\sfill="none"/.test(tok)) continue;
+    marks++;
+    const sw = tok.match(/\sstroke-width="(\d+(?:\.\d+)?)"/);
+    if (!sw) {
+      problems.push(`a hollow <circle> with no stroke-width: ${tok}`);
+      continue;
+    }
+    const px = toPhonePx(Number(sw[1]));
+    if (px < thinnestMark) thinnestMark = px;
+    if (px < MIN_MARK_PX) {
+      problems.push(
+        `hollow circle stroke ${sw[1]} renders at ${px.toFixed(2)}px on a ${PHONE_COLUMN}px column (floor ${MIN_MARK_PX}px)`,
+      );
+    }
+    const dash = tok.match(/\sstroke-dasharray="(\d+(?:\.\d+)?)[ ,]/);
+    if (dash) {
+      const onPx = toPhonePx(Number(dash[1]));
+      if (onPx < shortestDash) shortestDash = onPx;
+      if (onPx < MIN_DASH_PX) {
+        problems.push(
+          `dash run ${dash[1]} renders at ${onPx.toFixed(2)}px on a ${PHONE_COLUMN}px column (floor ${MIN_DASH_PX}px)`,
+        );
+      }
+    }
+  }
+
   if (problems.length) {
-    console.error(`${name}: ${problems.length} unreadable label(s)`);
+    console.error(
+      `${name}: ${problems.length} problem(s) at ${PHONE_COLUMN}px`,
+    );
     for (const p of problems) console.error(`  - ${p}`);
     return false;
   }
-  const smallest = Math.min(FS.heading, FS.panel, FS.legend);
+  // Report what was actually measured, not what the constants say it should be.
   console.log(
-    `${name}: ${labels} labels checked, smallest renders at ` +
-      `${((smallest * PHONE_COLUMN) / VIEW_W).toFixed(1)}px on a ${PHONE_COLUMN}px column`,
+    `${name}: viewBox ${vbWidth} wide; ${labels} labels (smallest ` +
+      `${smallestLabel.toFixed(1)}px, floor ${MIN_LABEL_PX}px), ${marks} hollow marks ` +
+      `(thinnest stroke ${thinnestMark.toFixed(2)}px, floor ${MIN_MARK_PX}px` +
+      (shortestDash === Infinity
+        ? ""
+        : `; shortest dash ${shortestDash.toFixed(2)}px, floor ${MIN_DASH_PX}px`) +
+      `) on a ${PHONE_COLUMN}px column`,
   );
   return true;
 }
@@ -447,7 +527,7 @@ const diagrams = [
 // Check every diagram before writing any of them, so a failure leaves the
 // committed SVGs alone instead of replacing them with unreadable ones.
 const ok = diagrams
-  .map(([file, svg]) => checkLabelSizes(file, svg))
+  .map(([file, svg]) => checkDiagram(file, svg))
   .every(Boolean);
 if (!ok) {
   console.error("no diagrams written");
