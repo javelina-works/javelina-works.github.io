@@ -32,9 +32,17 @@ Three lines you can actually say out loud:
 
 We map first and treat second. A drone survey photographs a ranch down to the centimeter, our detection models find and count the mesquite and cedar on it plant by plant, and treatment is targeted from the air one plant at a time. No scraped pastures, no guessing at density from the truck window. The owner gets a plant count, a density map, a high-resolution picture of the whole place, and a firm per-plant quote.
 
+![A survey crew working from a shade canopy and pickup on West Texas rangeland while a survey aircraft flies overhead](../../../assets/images/about/depot-setup.png)
+
+_A survey under way. The aircraft flies the pasture on a grid; the crew and the ground equipment stay put until it's done._
+
 ## Start with the free ballpark
 
 Type a client's ranch address into the [instant ballpark](/ballpark/), or draw the fence line, and in about a minute you have the acreage, the brush coverage, a rough plant count and a budget range for clearing it, read from public lidar and infrared imagery. It's free, it doesn't ask for anyone's contact information, and it doesn't put anyone on a list. Use the number in your plan, your listing or your loan file. When the owner wants a real bid, we fly it.
+
+![A map of one West Texas ranch with every patch of likely brush picked out in green on a blank background, thick along the draws and thin on the open ground](../../../assets/images/advisors/ballpark-brush-read.png)
+
+_The ballpark's read of one West Texas ranch: the brush it can pick out of public lidar and infrared, before anybody flies anything. Thick in the draws, thin on the flat. [Watch it run](/ballpark/) on the demo ranch, then try it on a client's place. A flown survey is the sharper version of this — individual plants, sorted by species._
 
 ## What a drive down the fence line can't tell you
 
@@ -47,11 +55,19 @@ Brush decisions usually start with a windshield survey and an acreage estimate. 
 
 A survey replaces the estimate with a map: the woody plants marked individually, labeled by species, and the plants that should stay marked as such.
 
+![Two drawings of the same pasture side by side. In the first, only the brush near the road is drawn in and the rest of the pasture is faded out and labeled as estimated. In the second, every woody plant is marked individually, filled circles for mesquite and open circles for juniper, thick along the draw and thin on the open flat](/images/advisors/windshield-vs-flown.svg)
+
+_The same pasture, twice. From the fence line you see the near strip clearly and the rest becomes one number. Flown, every woody plant is marked where it stands and labeled by species — and the brush turns out to be piled up in the draw rather than spread evenly across the acreage. A drawing, not survey data._
+
 ## The trees that stay
 
 Finding what to treat is half the job. The other half is marking what has to stay.
 
 Before we fly, we settle with the owner which trees are off the table. Those get flagged on the same map the treatment works from, plant by plant, rather than described in a note at the bottom of a report. Waterways, sensitive ground and desired trees all get a risk review before anything is treated.
+
+![A drawing of one patch of brush country. Most plants are small dark marks set down for treatment. Five larger trees are ringed and marked to be left standing, each with clear space around it, and a creek running through the patch is flagged](/images/advisors/trees-that-stay.svg)
+
+_Both kinds of mark live on one map: the plants to treat, the trees the owner wants kept — ringed, with room left around them — and the waterway flagged before anything is treated. A drawing, not survey data._
 
 If you've ever watched a treatment take something nobody meant to take, this is the part of the work aimed at that.
 
@@ -74,6 +90,10 @@ If you've ever watched a treatment take something nobody meant to take, this is 
 - Plant-by-plant treatment, to within about 25 cm of each plant
 - A risk review before any treatment: waterways, desired trees, sensitive ground
 - Grass and soil left where they are
+
+![Two crew members kneeling on open rangeland to load a treatment aircraft, with pickups and a shade canopy behind them and mountains on the horizon](../../../assets/images/about/loading-drone.jpeg)
+
+_Loading out before a treatment flight. The work goes on one plant at a time, from the air, off the map — which is why the map has to be right first._
 
 ## When it's worth mentioning us, and when it isn't
 
