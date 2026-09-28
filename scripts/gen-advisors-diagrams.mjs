@@ -39,6 +39,12 @@ const MIN_LABEL_PX = 11;
 // faded blob, and a dash needs a few pixels of "on" run to read as a dash.
 const MIN_MARK_PX = 1;
 const MIN_DASH_PX = 3;
+// Thickening a ring only helps up to the point where it eats the hole. An open
+// mark says "juniper" because you can see through the middle of it, so the hole
+// gets its own floor: below about 3px the centre greys over on a phone and the
+// mark reads as a filled one, which is the exact inversion a thicker stroke was
+// meant to prevent.
+const MIN_HOLE_PX = 3;
 
 const FS = {
   heading: 32, // ~14.7px on a phone
@@ -70,6 +76,12 @@ const WATER = "#8FAEC4";
 // — and the hole in the middle gets wider, not narrower. The dashed halo needs
 // both a thicker stroke and a longer "on" dash, or it subsamples into specks.
 const SW_OPEN = 2.4;
+// The smallest an open mark may be drawn, so MIN_HOLE_PX of hole survives the
+// phone column. Derived from the floor rather than picked: a canopy smaller
+// than this is drawn at the floor instead, which costs a little size variation
+// and buys the species distinction the legend promises. Nothing on the page
+// claims mark size is canopy size.
+const MIN_OPEN_R = (MIN_HOLE_PX * VIEW_W) / PHONE_COLUMN / 2 + SW_OPEN / 2;
 const SW_KEEPER_RING = 3;
 const SW_HALO = 2.2;
 const DASH_HALO = "7 6";
@@ -177,13 +189,12 @@ const esc = (n) => Number(n.toFixed(1));
 function plantMark(p, mx, my, mw, mh, { color, faint = false, scale = 1 }) {
   const cx = esc(mx + p.x * mw);
   const cy = esc(my + p.y * mh);
-  const r = esc(p.r * scale);
   if (faint) {
-    return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${FAINT}"/>`;
+    return `<circle cx="${cx}" cy="${cy}" r="${esc(p.r * scale)}" fill="${FAINT}"/>`;
   }
   return p.juniper
-    ? `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="${SW_OPEN}"/>`
-    : `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}"/>`;
+    ? `<circle cx="${cx}" cy="${cy}" r="${esc(Math.max(p.r * scale, MIN_OPEN_R))}" fill="none" stroke="${color}" stroke-width="${SW_OPEN}"/>`
+    : `<circle cx="${cx}" cy="${cy}" r="${esc(p.r * scale)}" fill="${color}"/>`;
 }
 
 function drawPath(mx, my, mw, mh) {
@@ -347,7 +358,7 @@ function treesThatStay() {
     .filter((p) => !near(p))
     .map((p) =>
       p.juniper
-        ? `<circle cx="${px(p.x)}" cy="${py(p.y)}" r="${esc(p.r)}" fill="none" stroke="${INK}" stroke-width="${SW_OPEN}"/>`
+        ? `<circle cx="${px(p.x)}" cy="${py(p.y)}" r="${esc(Math.max(p.r, MIN_OPEN_R))}" fill="none" stroke="${INK}" stroke-width="${SW_OPEN}"/>`
         : `<circle cx="${px(p.x)}" cy="${py(p.y)}" r="${esc(p.r)}" fill="${INK}"/>`,
     )
     .join("");
@@ -417,8 +428,11 @@ function treesThatStay() {
  *     an open plant mark, a keeper ring, a dashed halo, or the legend swatch
  *     that explains one of those. A hollow circle whose stroke lands below a
  *     pixel reads as a faded blob rather than an outline, which quietly breaks
- *     the filled-vs-open distinction the whole page leans on. Dashes get their
- *     own floor: an "on" run shorter than a few pixels subsamples into specks.
+ *     the filled-vs-open distinction the whole page leans on. The hole gets a
+ *     floor of its own, because a stroke thick enough to pass the first test
+ *     can close the middle of a small mark and break the same distinction from
+ *     the other side. Dashes get their own floor too: an "on" run shorter than
+ *     a few pixels subsamples into specks.
  *
  * The divisor is the viewBox width parsed out of this SVG, not the VIEW_W
  * constant — otherwise a diagram drawn on a different canvas would be measured
@@ -472,6 +486,7 @@ function checkDiagram(name, svg) {
   let marks = 0;
   let thinnestMark = Infinity;
   let shortestDash = Infinity;
+  let smallestHole = Infinity;
   for (const tok of svg.match(/<circle\b[^>]*>/g) || []) {
     if (!/\sfill="none"/.test(tok)) continue;
     marks++;
@@ -485,6 +500,23 @@ function checkDiagram(name, svg) {
     if (px < MIN_MARK_PX) {
       problems.push(
         `hollow circle stroke ${sw[1]} renders at ${px.toFixed(2)}px on a ${PHONE_COLUMN}px column (floor ${MIN_MARK_PX}px)`,
+      );
+    }
+    // A ring thick enough to see is not the same as a ring you can see
+    // *through*. Measure the hole the stroke leaves, or a fat stroke on a
+    // small mark passes the check above while rendering as a filled dot.
+    const rAttr = tok.match(/\sr="(\d+(?:\.\d+)?)"/);
+    if (!rAttr) {
+      problems.push(`a hollow <circle> with no radius: ${tok}`);
+      continue;
+    }
+    const holePx = toPhonePx(
+      Math.max(0, Number(rAttr[1]) - Number(sw[1]) / 2) * 2,
+    );
+    if (holePx < smallestHole) smallestHole = holePx;
+    if (holePx < MIN_HOLE_PX) {
+      problems.push(
+        `hollow circle r=${rAttr[1]} stroke ${sw[1]} leaves a ${holePx.toFixed(2)}px hole on a ${PHONE_COLUMN}px column (floor ${MIN_HOLE_PX}px) — reads as filled`,
       );
     }
     const dash = tok.match(/\sstroke-dasharray="(\d+(?:\.\d+)?)[ ,]/);
@@ -506,15 +538,29 @@ function checkDiagram(name, svg) {
     for (const p of problems) console.error(`  - ${p}`);
     return false;
   }
+  // What this check does NOT look at, printed next to the pass so the blind
+  // spot shrinks or grows in the open: stroked elements that are not hollow
+  // circles. Today those are the panel border and the road's centre line —
+  // decoration, not grammar. If that count starts climbing, something
+  // meaningful has been drawn in a shape this check cannot see.
+  const unchecked = (
+    svg.match(
+      /<(?:line|path|rect|polygon|polyline)\b[^>]*\sstroke="(?!none)[^"]+"[^>]*>/g,
+    ) || []
+  ).length;
+
   // Report what was actually measured, not what the constants say it should be.
   console.log(
     `${name}: viewBox ${vbWidth} wide; ${labels} labels (smallest ` +
       `${smallestLabel.toFixed(1)}px, floor ${MIN_LABEL_PX}px), ${marks} hollow marks ` +
       `(thinnest stroke ${thinnestMark.toFixed(2)}px, floor ${MIN_MARK_PX}px` +
+      (smallestHole === Infinity
+        ? ""
+        : `; smallest hole ${smallestHole.toFixed(2)}px, floor ${MIN_HOLE_PX}px`) +
       (shortestDash === Infinity
         ? ""
         : `; shortest dash ${shortestDash.toFixed(2)}px, floor ${MIN_DASH_PX}px`) +
-      `) on a ${PHONE_COLUMN}px column`,
+      `) on a ${PHONE_COLUMN}px column; ${unchecked} stroked non-circle element(s) not checked`,
   );
   return true;
 }
