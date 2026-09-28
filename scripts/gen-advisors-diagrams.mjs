@@ -93,6 +93,27 @@ const DASH_HALO = "7 6";
 // road. Anything a caption, a legend or the alt text points at is not trim.
 const DECOR = 'data-decorative="true"';
 
+// The lower panel of windshield-vs-flown is the one drawing on the page that
+// makes a claim about *arrangement* rather than about what a reader can make
+// out: the brush is piled up in the draw and thin on the open flat. Every rule
+// below this line asks whether a mark can be seen. None of them asks whether
+// the marks are where the page says they are, so a reseeded scatter could go
+// uniform while three copies of the sentence — the SVG's own <desc>, the alt
+// text and the caption in src/content/pages/english/advisors.md — went on
+// claiming a pattern that is no longer in the picture.
+//
+// So the claim gets measured, in bands of unit distance from the draw:
+const CLUMP_NEAR = 0.1; // ...this close counts as "in the draw"
+const CLUMP_FAR = 0.3; // ...this far out counts as "the open flat"
+// ...and held to a relation between the two densities, each expressed as a
+// multiple of the panel's own average. One threshold alone is not the claim:
+// "piled up in the draw" and "rather than spread evenly" are two statements,
+// and a scatter can satisfy either one while failing the other.
+const MIN_NEAR_DENSITY = 1.8;
+const MAX_FAR_DENSITY = 0.5;
+// Which diagrams the rule above actually reached, asserted after the run.
+const MEASURED_CLAIMS = [];
+
 // mulberry32 — small deterministic PRNG, so the scatter never shifts between runs
 function rng(seed) {
   return function () {
@@ -422,6 +443,93 @@ function treesThatStay() {
 }
 
 /**
+ * Does the lower panel actually show the distribution the page says it shows?
+ *
+ * Everything here is read back out of the finished SVG — the panel rectangle
+ * from its clipPath, the draw from the <path> the panel paints, the plants from
+ * the circles inside it. Nothing is taken from PLANTS or from the layout
+ * constants above. Measuring the model would only prove the model agrees with
+ * itself; the claim is about the picture, so the picture is what gets measured,
+ * and moving the draw without moving the plants has to fail.
+ *
+ * Returns null for a diagram that makes no such claim, and throws for one that
+ * looks like it does but cannot be measured — an empty slice quietly averaging
+ * to nothing is the failure mode this is written against.
+ */
+function measureClumping(svg) {
+  const panel = svg.match(
+    /<clipPath id="pastureBot"><rect x="([-\d.]+)" y="([-\d.]+)" width="([\d.]+)" height="([\d.]+)"/,
+  );
+  if (!panel) return null;
+  const [mx, my, mw, mh] = panel.slice(1, 5).map(Number);
+
+  const open = svg.indexOf('<g clip-path="url(#pastureBot)">');
+  const close = svg.indexOf("</g>", open);
+  if (open < 0 || !(close > open)) {
+    throw new Error("pastureBot panel has a clipPath but no drawn region");
+  }
+  const region = svg.slice(open, close);
+
+  // The draw, in the same unit space the plants get converted into.
+  const curve = region.match(
+    /<path d="M ([-\d.]+) ([-\d.]+) Q ([-\d.]+) ([-\d.]+) ([-\d.]+) ([-\d.]+)"/,
+  );
+  if (!curve) throw new Error("no draw painted in the pastureBot panel");
+  const [p0, c, p1] = [
+    [curve[1], curve[2]],
+    [curve[3], curve[4]],
+    [curve[5], curve[6]],
+  ].map(([x, y]) => [(Number(x) - mx) / mw, (Number(y) - my) / mh]);
+  const distance = (x, y) => {
+    let best = Infinity;
+    for (let t = 0; t <= 1.0001; t += 0.005) {
+      const mt = 1 - t;
+      const cx = mt * mt * p0[0] + 2 * mt * t * c[0] + t * t * p1[0];
+      const cy = mt * mt * p0[1] + 2 * mt * t * c[1] + t * t * p1[1];
+      best = Math.min(best, Math.hypot(x - cx, y - cy));
+    }
+    return best;
+  };
+
+  const plants = [
+    ...region.matchAll(/<circle cx="([-\d.]+)" cy="([-\d.]+)"/g),
+  ].map((m) => [(Number(m[1]) - mx) / mw, (Number(m[2]) - my) / mh]);
+  // A region that parsed but holds no pasture is a broken measurement, not a
+  // pasture with no brush in it.
+  if (plants.length < 50) {
+    throw new Error(
+      `only ${plants.length} plants found in the pastureBot panel — the slice is wrong`,
+    );
+  }
+
+  // Share of the panel each band covers, so a band is scored on plants per unit
+  // area rather than on a raw count. The near band is the smaller of the two;
+  // counting heads alone would flatter it.
+  const N = 400;
+  let nearArea = 0;
+  let farArea = 0;
+  for (let i = 0; i < N; i++) {
+    for (let j = 0; j < N; j++) {
+      const d = distance((i + 0.5) / N, (j + 0.5) / N);
+      if (d < CLUMP_NEAR) nearArea++;
+      else if (d >= CLUMP_FAR) farArea++;
+    }
+  }
+  const nearCount = plants.filter(
+    ([x, y]) => distance(x, y) < CLUMP_NEAR,
+  ).length;
+  const farCount = plants.filter(
+    ([x, y]) => distance(x, y) >= CLUMP_FAR,
+  ).length;
+
+  return {
+    plants: plants.length,
+    near: nearCount / (nearArea / (N * N)) / plants.length,
+    far: farCount / (farArea / (N * N)) / plants.length,
+  };
+}
+
+/**
  * Everything in the finished SVG that carries meaning has to survive the phone
  * column. Run against the string that actually gets written, not against the FS
  * table, so that a hand-written value somewhere in the markup cannot slip past.
@@ -591,6 +699,38 @@ function checkDiagram(name, svg) {
     }
   }
 
+  // Does the picture show what it says it shows?
+  let clump = null;
+  try {
+    clump = measureClumping(svg);
+  } catch (err) {
+    problems.push(`distribution not measurable: ${err.message}`);
+  }
+  if (clump) {
+    MEASURED_CLAIMS.push(name);
+    // The drawing's own description is the copy nearest the geometry, so it is
+    // the copy held to it. If the scatter is ever deliberately made even, this
+    // fails until the sentence is rewritten too.
+    const desc = svg.match(/<desc[^>]*>([\s\S]*?)<\/desc>/);
+    if (!desc) {
+      problems.push("a panel claims a distribution but the SVG has no <desc>");
+    } else if (!/clumped along the draw/.test(desc[1])) {
+      problems.push(
+        "the <desc> no longer says the brush is clumped along the draw, but the geometry is still being held to it",
+      );
+    }
+    if (clump.near < MIN_NEAR_DENSITY) {
+      problems.push(
+        `brush in the draw runs ${clump.near.toFixed(2)}x the panel average (floor ${MIN_NEAR_DENSITY}x) — the drawing does not show the pile-up its caption, alt text and <desc> all claim`,
+      );
+    }
+    if (clump.far > MAX_FAR_DENSITY) {
+      problems.push(
+        `brush on the open flat runs ${clump.far.toFixed(2)}x the panel average (ceiling ${MAX_FAR_DENSITY}x) — the scatter reads as spread evenly, which is the thing the panel is drawn to argue against`,
+      );
+    }
+  }
+
   if (problems.length) {
     console.error(
       `${name}: ${problems.length} problem(s) at ${PHONE_COLUMN}px`,
@@ -615,7 +755,12 @@ function checkDiagram(name, svg) {
       `on a ${PHONE_COLUMN}px column; ` +
       (excused.length
         ? `excused as trim: ${excused.sort().join(", ")}`
-        : "nothing excused"),
+        : "nothing excused") +
+      // Printed as the measured numbers, not as the word "ok", so the margin
+      // above the floors is visible on a passing run.
+      (clump
+        ? `; ${clump.plants} plants in the lower panel, ${clump.near.toFixed(2)}x the panel average within ${CLUMP_NEAR} of the draw (floor ${MIN_NEAR_DENSITY}x) and ${clump.far.toFixed(2)}x beyond ${CLUMP_FAR} (ceiling ${MAX_FAR_DENSITY}x)`
+        : "; no distribution claimed"),
   );
   return true;
 }
@@ -630,6 +775,17 @@ const diagrams = [
 const ok = diagrams
   .map(([file, svg]) => checkDiagram(file, svg))
   .every(Boolean);
+
+// A rule that matches nothing passes everything. The distribution rule keys off
+// markup it has to find, so say out loud how many diagrams it actually reached
+// — one — rather than trusting that it did.
+if (MEASURED_CLAIMS.length !== 1) {
+  console.error(
+    `the distribution rule measured ${MEASURED_CLAIMS.length} diagram(s) (${MEASURED_CLAIMS.join(", ") || "none"}), expected exactly 1 — it is keyed off markup that has moved`,
+  );
+  process.exit(1);
+}
+
 if (!ok) {
   console.error("no diagrams written");
   process.exit(1);
