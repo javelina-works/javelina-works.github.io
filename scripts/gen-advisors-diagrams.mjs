@@ -86,6 +86,13 @@ const SW_KEEPER_RING = 3;
 const SW_HALO = 2.2;
 const DASH_HALO = "7 6";
 
+// The one way out of the stroke floor below, and it has to be said in the
+// markup rather than assumed in a comment. Trim only: a stroke this is put on
+// must be one the drawing still reads correctly without — a panel edge that is
+// already separated by its fill, a stripe painted on a road that is already a
+// road. Anything a caption, a legend or the alt text points at is not trim.
+const DECOR = 'data-decorative="true"';
+
 // mulberry32 — small deterministic PRNG, so the scatter never shifts between runs
 function rng(seed) {
   return function () {
@@ -203,14 +210,14 @@ function drawPath(mx, my, mw, mh) {
 }
 
 function pastureFrame(mx, my, mw, mh) {
-  return `<rect x="${mx}" y="${my}" width="${mw}" height="${mh}" rx="10" fill="${RANGE}" stroke="${EDGE}" stroke-width="1.5"/>`;
+  return `<rect x="${mx}" y="${my}" width="${mw}" height="${mh}" rx="10" fill="${RANGE}" stroke="${EDGE}" stroke-width="1.5" ${DECOR}/>`;
 }
 
 function road(mx, my, mw, mh) {
   const y = esc(my + mh - 20);
   return [
     `<line x1="${mx + 14}" y1="${y}" x2="${mx + mw - 14}" y2="${y}" stroke="${EDGE}" stroke-width="10" stroke-linecap="round"/>`,
-    `<line x1="${mx + 14}" y1="${y}" x2="${mx + mw - 14}" y2="${y}" stroke="#FFFFFF" stroke-width="2" stroke-dasharray="10 12" stroke-linecap="round"/>`,
+    `<line x1="${mx + 14}" y1="${y}" x2="${mx + mw - 14}" y2="${y}" stroke="#FFFFFF" stroke-width="2" stroke-dasharray="10 12" stroke-linecap="round" ${DECOR}/>`,
   ].join("");
 }
 
@@ -352,7 +359,7 @@ function treesThatStay() {
     );
 
   const creek = `<path d="M ${px(0.02)} ${py(0.86)} Q ${px(0.3)} ${py(0.7)} ${px(0.55)} ${py(0.92)} T ${px(0.98)} ${py(0.8)}" fill="none" stroke="${WATER}" stroke-width="9" stroke-linecap="round" opacity="0.7"/>`;
-  const buffer = `<path d="M ${px(0.02)} ${py(0.86)} Q ${px(0.3)} ${py(0.7)} ${px(0.55)} ${py(0.92)} T ${px(0.98)} ${py(0.8)}" fill="none" stroke="${WATER}" stroke-width="44" stroke-linecap="round" opacity="0.16" stroke-dasharray="1 0"/>`;
+  const buffer = `<path d="M ${px(0.02)} ${py(0.86)} Q ${px(0.3)} ${py(0.7)} ${px(0.55)} ${py(0.92)} T ${px(0.98)} ${py(0.8)}" fill="none" stroke="${WATER}" stroke-width="44" stroke-linecap="round" opacity="0.16"/>`;
 
   const marks = targets
     .filter((p) => !near(p))
@@ -399,7 +406,7 @@ function treesThatStay() {
   <desc id="ttsDesc">A close view of brush country. Most plants are marked as targets for treatment, filled circles for mesquite and open circles for juniper, the same marks used in the earlier drawing. Five larger trees are ringed and marked to be left standing, each with a clear space around it, and a waterway running through the scene is flagged for review before any treatment.</desc>
   <rect width="${W}" height="${H}" fill="#FFFFFF"/>
   <text x="${MX}" y="30" font-size="${FS.heading}" font-weight="600" fill="${INK}">One map, two kinds of mark</text>
-  <rect x="${MX}" y="${MY}" width="${MW}" height="${MH}" rx="10" fill="${RANGE}" stroke="${EDGE}" stroke-width="1.5"/>
+  <rect x="${MX}" y="${MY}" width="${MW}" height="${MH}" rx="10" fill="${RANGE}" stroke="${EDGE}" stroke-width="1.5" ${DECOR}/>
   <g clip-path="url(#patch)">
     ${buffer}
     ${creek}
@@ -419,7 +426,7 @@ function treesThatStay() {
  * column. Run against the string that actually gets written, not against the FS
  * table, so that a hand-written value somewhere in the markup cannot slip past.
  *
- * Two things are checked, because the drawings say things two ways:
+ * Three things are checked, because the drawings say things three ways:
  *
  *   - Labels. A <text> whose size we cannot resolve is a failure, not a skip:
  *     silently passing over the one label we can't measure is how an unreadable
@@ -433,6 +440,12 @@ function treesThatStay() {
  *     can close the middle of a small mark and break the same distinction from
  *     the other side. Dashes get their own floor too: an "on" run shorter than
  *     a few pixels subsamples into specks.
+ *   - Every other stroke. Whether a stroke carries meaning has nothing to do
+ *     with whether it was drawn as a circle: the waterway is a <path> and it
+ *     has a legend entry. So every stroked element is measured, and the only
+ *     way out is DECOR — written on the element, counted by tag name next to
+ *     the PASS line, so an excuse has to be made in the markup where the next
+ *     person editing the drawing will see it.
  *
  * The divisor is the viewBox width parsed out of this SVG, not the VIEW_W
  * constant — otherwise a diagram drawn on a different canvas would be measured
@@ -531,6 +544,53 @@ function checkDiagram(name, svg) {
     }
   }
 
+  // Everything else that is drawn as a stroke. This used to be waved through
+  // with a sentence calling it decoration, and the sentence was wrong: the
+  // waterway on trees-that-stay is a stroked <path> with its own legend entry,
+  // and it was never measured. Grammar is not a property of the tag name, so
+  // measure every stroke and make the exception something the markup has to
+  // declare — see DECOR above.
+  let strokes = 0;
+  let thinnestStroke = Infinity;
+  const excused = [];
+  for (const tok of svg.match(
+    /<(?:line|path|rect|polygon|polyline)\b[^>]*>/g,
+  ) || []) {
+    if (!/\sstroke="(?!none")/.test(tok)) continue;
+    const what = tok.match(/^<([a-z]+)/)[1];
+    if (tok.includes(DECOR)) {
+      excused.push(what);
+      continue;
+    }
+    strokes++;
+    const sw = tok.match(/\sstroke-width="(\d+(?:\.\d+)?)"/);
+    if (!sw) {
+      problems.push(`a stroked <${what}> with no stroke-width: ${tok}`);
+      continue;
+    }
+    const px = toPhonePx(Number(sw[1]));
+    if (px < thinnestStroke) thinnestStroke = px;
+    if (px < MIN_MARK_PX) {
+      problems.push(
+        `<${what}> stroke ${sw[1]} renders at ${px.toFixed(2)}px on a ${PHONE_COLUMN}px column (floor ${MIN_MARK_PX}px)`,
+      );
+    }
+    const dash = tok.match(
+      /\sstroke-dasharray="(\d+(?:\.\d+)?)[ ,]+(\d+(?:\.\d+)?)/,
+    );
+    // A zero gap is a solid line wearing a dash attribute; measuring its "on"
+    // run would fail a line that has no dashes in it.
+    if (dash && Number(dash[2]) > 0) {
+      const onPx = toPhonePx(Number(dash[1]));
+      if (onPx < shortestDash) shortestDash = onPx;
+      if (onPx < MIN_DASH_PX) {
+        problems.push(
+          `<${what}> dash run ${dash[1]} renders at ${onPx.toFixed(2)}px on a ${PHONE_COLUMN}px column (floor ${MIN_DASH_PX}px)`,
+        );
+      }
+    }
+  }
+
   if (problems.length) {
     console.error(
       `${name}: ${problems.length} problem(s) at ${PHONE_COLUMN}px`,
@@ -538,16 +598,6 @@ function checkDiagram(name, svg) {
     for (const p of problems) console.error(`  - ${p}`);
     return false;
   }
-  // What this check does NOT look at, printed next to the pass so the blind
-  // spot shrinks or grows in the open: stroked elements that are not hollow
-  // circles. Today those are the panel border and the road's centre line —
-  // decoration, not grammar. If that count starts climbing, something
-  // meaningful has been drawn in a shape this check cannot see.
-  const unchecked = (
-    svg.match(
-      /<(?:line|path|rect|polygon|polyline)\b[^>]*\sstroke="(?!none)[^"]+"[^>]*>/g,
-    ) || []
-  ).length;
 
   // Report what was actually measured, not what the constants say it should be.
   console.log(
@@ -560,7 +610,12 @@ function checkDiagram(name, svg) {
       (shortestDash === Infinity
         ? ""
         : `; shortest dash ${shortestDash.toFixed(2)}px, floor ${MIN_DASH_PX}px`) +
-      `) on a ${PHONE_COLUMN}px column; ${unchecked} stroked non-circle element(s) not checked`,
+      `), ${strokes} other stroked element(s) (thinnest ` +
+      `${thinnestStroke === Infinity ? "n/a" : thinnestStroke.toFixed(2) + "px"}) ` +
+      `on a ${PHONE_COLUMN}px column; ` +
+      (excused.length
+        ? `excused as trim: ${excused.sort().join(", ")}`
+        : "nothing excused"),
   );
   return true;
 }
