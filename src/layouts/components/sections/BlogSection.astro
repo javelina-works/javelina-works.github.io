@@ -43,7 +43,10 @@ let actualContent = overrideObjects(
 let { enable = true, limit, title } = actualContent as blogSectionType;
 let { listPage = false } = Astro.props as Props;
 
-let posts = await getCollectionCTM(blogFolder as "blog", Astro.currentLocale);
+let posts = await getCollectionCTM(
+  blogFolder as "articles",
+  Astro.currentLocale,
+);
 
 // Sort posts by date
 posts = sortByDate(posts);
@@ -73,62 +76,52 @@ if (limit && !Astro.props.pagination) {
 if (!enable) return;
 ---
 
-{
-  listPage && featuredPost && Astro.props.pagination?.currentPage === 1 && (
-    <section>
-      <div class="container">
-        <BlogCard
-          layout="horizontal"
-          content={{ ...featuredPost.data, ...featuredPost }}
-        />
-      </div>
-    </section>
-  )
-}
+{listPage && featuredPost && Astro.props.pagination?.currentPage === 1 && (
+  <section>
+    <div class="container">
+      <BlogCard
+        layout="horizontal"
+        content={{ ...featuredPost.data, ...featuredPost }}
+      />
+    </div>
+  </section>
+)}
 
 <section>
   <div class="container space-y-10 md:space-y-16">
-    {
-      !listPage && title && (
-        <div class="mx-auto max-w-2xl text-center">
-          <h2 class="has-italic-text capitalize">
-            <AnimatedText
-              delay={0.2}
-              stagger={0.09}
-              content={markdownify(title)}
-            />
-          </h2>
-        </div>
-      )
-    }
+    {!listPage && title && (
+      <div class="mx-auto max-w-2xl text-center">
+        <h2 class="has-italic-text capitalize">
+          <AnimatedText
+            delay={0.2}
+            stagger={0.09}
+            content={markdownify(title)}
+          />
+        </h2>
+      </div>
+    )}
 
     <div class="grid gap-x-6 gap-y-10 md:grid-cols-2 xl:grid-cols-3">
-      {
-        posts &&
-          posts.map((post, index) => (
-            <BlogCard
-              content={{ ...post.data, ...post }}
-              data-aos-delay={
-                !Astro.props.pagination && ((index % 3) + 1) * 100
-              }
-              data-aos={
-                !Astro.props.pagination &&
-                (Math.floor(index / 3) % 2 === 0
-                  ? "fade-right-sm"
-                  : "fade-left-sm")
-              }
-            />
-          ))
-      }
+      {posts &&
+        posts.map((post, index) => (
+          <BlogCard
+            content={{ ...post.data, ...post }}
+            data-aos-delay={!Astro.props.pagination && ((index % 3) + 1) * 100}
+            data-aos={
+              !Astro.props.pagination &&
+              (Math.floor(index / 3) % 2 === 0
+                ? "fade-right-sm"
+                : "fade-left-sm")
+            }
+          />
+        ))}
     </div>
-    {
-      listPage && (
-        <Pagination
-          collection={blogFolder}
-          currentPage={Astro.props.pagination?.currentPage || 1}
-          totalPages={totalPages}
-        />
-      )
-    }
+    {listPage && (
+      <Pagination
+        collection={blogFolder}
+        currentPage={Astro.props.pagination?.currentPage || 1}
+        totalPages={totalPages}
+      />
+    )}
   </div>
 </section>

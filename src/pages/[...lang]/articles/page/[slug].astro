@@ -16,13 +16,13 @@ export async function getStaticPaths() {
         config.settings.multilingual;
 
       const postIndex = await getEntryCTM(
-        blogFolder as "blog",
+        blogFolder as "articles",
         "-index",
         lang.languageCode,
       );
 
       const posts = await getCollectionCTM(
-        blogFolder as "blog",
+        blogFolder as "articles",
         lang.languageCode,
       );
       const totalPages = Math.ceil(posts.length / config.settings.pagination);

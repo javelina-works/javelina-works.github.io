@@ -52,7 +52,6 @@
   [seo.sitemap]
     enable = true # Enables or disables sitemap generation on site build
     exclude = [
-      "blog",
       "career",
       "changelog",
     ] # exclude all pages that include these folder names (e.g., "blog", "services")
@@ -66,7 +65,7 @@
   # - "src/content" folder
   # - "src/[...lang]/pages" folder
   # - "src/content.config.ts" collections object
-  blogFolder        = "blog" # Folder where blog posts are stored
+  blogFolder        = "articles" # Folder where articles are stored (URL is /articles/)
   careerFolder      = "career" # Folder where job posts are stored
 
   pagination   = 6 # Number of posts displayed on each page blog list page

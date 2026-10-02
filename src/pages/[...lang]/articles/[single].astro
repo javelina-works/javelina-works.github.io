@@ -17,13 +17,13 @@ export async function getStaticPaths() {
         config.settings.multilingual;
 
       const postIndex = await getEntryCTM(
-        blogFolder as "blog",
+        blogFolder as "articles",
         "-index",
         lang.languageCode,
       );
 
       let posts = await getCollectionCTM(
-        blogFolder as "blog",
+        blogFolder as "articles",
         lang.languageCode,
       );
 
@@ -102,8 +102,7 @@ if (headings) {
         .replace(/\.mdx?|\.md/g, "")
         .split("/")
         .pop(),
-  }}
->
+  }}>
   document.addEventListener("DOMContentLoaded", () => {
     window.posthog?.capture("blog_post_viewed", {
       post_title: postTitle,
