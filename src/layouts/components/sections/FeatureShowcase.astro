@@ -204,7 +204,9 @@ const uid = uniqueIdGenerator("showcase " + title);
     };
 
     tabs.forEach((t, i) => {
-      t.addEventListener("click", () => {
+      t.addEventListener("click", (e) => {
+        // Links inside the description navigate; don't treat them as a pin.
+        if (e.target instanceof Element && e.target.closest("a")) return;
         pinned = true;
         pause();
         show(i);

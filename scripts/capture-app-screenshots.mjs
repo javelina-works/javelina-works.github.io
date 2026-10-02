@@ -57,6 +57,11 @@ for (const path of paths) {
   const r = await page
     .goto(base + path, { waitUntil: "load", timeout: 90000 })
     .catch(() => null);
+  if (!r?.ok()) {
+    throw new Error(
+      `navigation failed for ${base + path}: ${r ? r.status() : "ERR"}`,
+    );
+  }
   await page.waitForTimeout(6000);
   const name =
     path

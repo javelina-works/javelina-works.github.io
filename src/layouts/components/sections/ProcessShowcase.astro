@@ -88,17 +88,10 @@ if (!enable) return;
             {item.video ? (
               <video
                 class="h-full w-full object-cover object-center"
-
-                autoplay
-
                 muted
-
                 loop
-
                 playsinline
-
                 preload="metadata"
-
                 aria-label={item.title}>
                 {item.videoWebm && (
                   <source src={item.videoWebm} type="video/webm" />
@@ -220,6 +213,16 @@ if (!enable) return;
       );
     };
 
+    // Only the active, visible panel's video plays; everything else is paused.
+    const syncVideos = () => {
+      panels.forEach((p, j) => {
+        const v = p.querySelector<HTMLVideoElement>("video");
+        if (!v) return;
+        if (j === active && visible && !reduced) v.play().catch(() => {});
+        else v.pause();
+      });
+    };
+
     const show = (i: number) => {
       active = i;
       tabs.forEach((t, j) => {
@@ -233,6 +236,7 @@ if (!enable) return;
         p.classList.toggle("opacity-0", !on);
         p.setAttribute("aria-hidden", on ? "false" : "true");
       });
+      syncVideos();
       runBar();
     };
 
@@ -290,6 +294,7 @@ if (!enable) return;
     new IntersectionObserver(
       ([entry]) => {
         visible = entry.isIntersecting;
+        syncVideos();
         if (visible) resume();
         else pause();
       },
