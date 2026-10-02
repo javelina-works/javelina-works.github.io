@@ -1,90 +1,104 @@
 ---
 title: "Brush targeting"
-description: "The brush on your place takes a little more water and grass every year. We find every plant from the air and treat only the ones you choose, so the country comes back without losing the trees you want."
+metaTitle: "Drone Brush Targeting in West Texas | Javelina Works"
+metaDescription: "Targeted drone treatment of mesquite, cedar and juniper on West Texas ranches. Every woody plant mapped, the trees you keep protected, a measured hexazinone dose per plant."
+disableTagline: true
+keywords:
+  - brush management West Texas
+  - West Texas brush control
+  - mesquite control Texas
+  - cedar control Texas
+  - juniper control Texas
+  - drone brush control
+  - aerial brush treatment
+  - individual plant treatment
+  - brush clearing Fort Davis
+  - Trans-Pecos brush management
+  - Big Bend brush control
+  - Davis Mountains ranch
+  - targeted brush treatment Texas
+  - hexazinone pellets juniper
+  - mesquite and cedar control West Texas
+  - protect oaks brush clearing
+description: "The brush on your place takes a little more water and grass every year. We find every woody plant from the air and treat only the ones you choose, so the country comes back without losing the trees you want."
 excerpt: "Plant-by-plant treatment from the air. The brush gets the dose; your grass, your soil and the trees you want stay put."
+hideHeader: true
 icon: "Crosshair"
 image: "/images/services/brush-targeting/targets-and-protected-trees.png"
 weight: 1
-metaTitle: "Brush targeting: plant-by-plant aerial treatment | Javelina Works"
-metaDescription: "Targeted drone treatment of woody brush on Texas ranches. Every plant is mapped, the oaks and piñons stay, the pasture's composition survives, and you decide what is treated. Here is what to expect."
-keywords:
-  - targeted brush treatment Texas
-  - drone brush control mesquite cedar
-  - precision brush management
-  - individual plant treatment
-  - protect oaks brush clearing
 draft: false
 
 bento:
-  title: "One plant **at a time**"
+  title: "**The future** of brush management"
   list:
-    - image: "/images/services/brush-targeting/targets-and-protected-trees.png"
+    - image: "/images/services/brush-targeting/plants-found-boxes.png"
       halfWidth: true
-      title: "Every plant on the place, found"
+      title: "Every woody plant, found"
       description: "A survey flight at 2.5 to 5 cm per pixel, and every woody plant marked where it stands."
     - image: "/images/services/brush-targeting/bento-protected-tree.png"
       halfWidth: true
-      title: "The trees you keep, kept"
-      description: "Oaks and piñons are protected by default, each with a buffer the plan stays out of."
+      title: "The trees you want kept, kept"
+      description: "Mark oaks, piñons or any other tree as protected and it gets a buffer the plan stays out of."
     - image: "/images/services/brush-targeting/bento-review-tiles.png"
       title: "Checked by a person"
       description: "Nothing is treated because a model said so."
-    - image: "/images/services/brush-targeting/bento-counts.png"
-      title: "Found 1,032. Treated 843."
-      description: "Every one of the 189 carries a reason."
-    - image: "/images/services/brush-targeting/bento-dose.png"
+    - image: "/images/services/brush-targeting/plan-map-routes.png"
+      title: "Flown plant to plant"
+      description: "The approved map becomes flight routes, and the aircraft follows them and nothing else."
+    - image: "/images/services/brush-targeting/one-plant-dose.png"
       title: "A measured dose for each plant"
       description: "Scaled to the plant, nothing on the ground between."
 
 showcases:
-  - title: "Map first: **every plant, found**"
-    description: "A survey flight and detection models turn your ranch into a map of individual plants. The map is what everything else runs on."
+  - title: "Stewardship: **the right plants, the right dose, the right place**"
+    description: "Treatment that goes to the plant instead of the pasture. Only the targets on the approved map, each with a dose scaled to it, placed to within about 25 cm."
     imagePosition: right
     items:
-      - title: "Every woody plant, marked where it stands"
-        description: "A survey at 2.5 to 5 cm per pixel. Each detection is a picture of that plant, not a pixel in a density estimate."
-        image: "/images/services/brush-targeting/review-grid.png"
-      - title: "Sorted by species"
-        description: "Juniper and cedar are told apart from the oaks, piñons and yucca that stay, and the counts come by species."
-        image: "/images/services/brush-targeting/dashboard-charts.png"
-      - title: "Scored, not assumed"
-        description: "Every detection carries a confidence. Above the threshold it moves on; below it, it waits for a person."
-        image: "/images/services/brush-targeting/confidence-threshold.png"
-      - title: "A map you can budget with"
-        description: "See where the brush is thick in the draws and thin on the flats, so the money goes where the work is."
+      - title: "Only the right targets"
+        description: "Every orange mark on this map is a plant we will treat, and nothing else is. No blanket spray across the pasture, no scraping. The grass, the forbs and the ground between plants are left alone."
         image: "/images/services/brush-targeting/targets-and-protected-trees.png"
-  - title: "Then decide: **what stays, what goes**"
-    description: "Nothing is treated because a model said so. The trees you keep are marked first, a person checks every target, and you sign the plan."
+      - title: "The right dose"
+        description: "The survey measures each target's crown width, height and canopy area, and the dose is set from that, plant by plant. A small juniper gets less than a big one."
+        image: "/images/services/brush-targeting/one-plant-dose.png"
+        imageFit: contain
+      - title: "The right place"
+        description: "RTK positioning and terrain-following flight about 10 m above the ground put the treatment within about 25 cm of each plant. Nothing is sprayed across a draw."
+        image: "/images/services/brush-targeting/plan-map-routes.png"
+  - title: "Control: **your land, your call**"
+    description: "Nothing flies until you have seen the plan and signed it, and the work is triple-checked along the way."
     imagePosition: left
     items:
-      - title: "Protected by default"
-        description: "Oaks and piñons are guarded before a single target is approved. You uncheck a species to allow treatment near it, not the other way around."
-        image: "/images/services/brush-targeting/protected-species.png"
-      - title: "A buffer around each one"
-        description: "Treatable brush inside the buffer is pulled from the plan before a route is drawn."
-        image: "/images/services/brush-targeting/bento-protected-tree.png"
-      - title: "A person confirms it is brush"
-        description: "Each target is reviewed by a person: confirmed, rejected, or marked uncertain. A person's call overrides the model's."
-        image: "/images/services/brush-targeting/target-review.png"
-      - title: "You sign the plan, with the reasons"
-        description: "On this zone the model found 1,032 plants; 843 were approved and 189 rejected, each with a reason. Nothing flies before you approve it."
+      - title: "You sign the plan"
+        description: "Targets, exclusions, dose and days come to you before anything flies. You approve the plan or change it, and the plants we found but will not treat come back as a list, with a reason beside each."
         image: "/images/services/brush-targeting/target-audit-map.png"
-  - title: "Treat second: **one plant at a time**"
-    description: "The aircraft flies the approved map and nothing else."
+      - title: "Your exclusion areas"
+        description: "Draw any area you want left alone, a draw, a tank, a sensitive slope, a pasture you are not ready to treat, and every target inside it leaves the plan."
+        image: "/images/services/brush-targeting/exclusion-area.png"
+      - title: "Buffers around the trees you protect"
+        description: "Mark the oaks, piñons or any other trees you want kept as protected, and each one gets a buffer. Set the distance, and any treatable plant inside it is pulled from the plan before a route is drawn."
+        image: "/images/services/brush-targeting/protected-species.png"
+      - title: "Triple-checked"
+        description: "First our target audit, where a person confirms every detection is brush. Then your review of the plan. Then the field operator, who checks each target in real time as it is treated."
+        image: "/images/services/brush-targeting/target-review.png"
+  - title: "Efficacy: **it works, and we show you**"
+    description: "Chemistry chosen for the species, applied where it counts, and checked afterward from the air."
     imagePosition: right
     items:
-      - title: "Within about 25 cm of each plant"
-        description: "RTK positioning and terrain-following flight, about 10 m above the ground."
-        image: "/images/about/loading-drone.jpeg"
-      - title: "A measured dose for each plant"
-        description: "Crown width, height and canopy area set the dose, plant by plant."
-        image: "/images/services/brush-targeting/one-plant-dose.png"
-      - title: "Nothing on the ground between"
-        description: "Chemistry lands on the plant. Grass, soil and the water that runs across the draw are left alone."
+      - title: "Chemistry that matches the plant"
+        description: "Herbicide and rate follow the species, using the same tables Texas ranchers already trust: the Texas A&M AgriLife Extension [chemical weed and brush control suggestions for rangeland](https://agrilifeextension.tamu.edu/asset-external/chemical-weed-and-brush-control-suggestions-for-rangeland/), updated every year."
+        image: "/images/services/brush-targeting/pellets-in-flight.jpg"
+      - title: "Before and after"
+        description: "The same pasture, the same map, twice. The survey is the before-picture, and the follow-up flight is the after, so the change is measured where it happened rather than remembered."
+        image: "/images/services/brush-targeting/before-after-sentinel.png"
+      - title: "We keep watching"
+        description: "Every job ends with a follow-up flight compared plant by plant against the survey: what is gone, what was missed, and what is coming back. [How monitoring works.](/services/monitoring/)"
         image: "/images/homepage/promo-video-poster.png"
+      - title: "What we stand behind"
+        description: "Every treated plant is recorded on the map, and the follow-up flight checks every one of them. A plant on the approved plan that we missed is on us, not you."
+        image: "/images/services/brush-targeting/review-grid.png"
 
 steps:
-  title: "What to **expect**"
+  title: "Our **workflow**"
   id: "how-a-job-runs"
   layout: "timeline"
   list:
@@ -92,8 +106,8 @@ steps:
       title: "The remote estimate"
       description: "Run the free ballpark from an address, your phone on the fence line, or a drawn boundary. In about a minute you have a budget range."
       button:
-        label: "Remote tools"
-        url: "/services/remote-tools/"
+        label: "Get your ballpark"
+        url: "/tools/ballpark/"
     - step: "Step *02*"
       title: "We send a person"
       description: "A call, then a visit. Boundaries, access, where the depot goes, and what is off the table: the trees that stay, water, sensitive ground."

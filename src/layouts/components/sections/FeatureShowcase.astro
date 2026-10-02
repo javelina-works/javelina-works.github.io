@@ -8,12 +8,15 @@
 import OptimizedImage from "../utilities/OptimizedImage.astro";
 import { markdownify } from "@/lib/utils/textConverter";
 import uniqueIdGenerator from "@/lib/utils/uniqueIdGenerator";
+import Icons from "@/helpers/Icons.astro";
 
 export interface ShowcaseItem {
   title: string;
   description: string;
-  image: string;
+  image?: string; // omit to show a placeholder panel
   imageHeight?: number;
+  imageFit?: "cover" | "contain";
+  placeholder?: string; // label for the placeholder panel
 }
 
 export interface ShowcaseContent {
@@ -29,10 +32,10 @@ const {
   title,
   description,
   imagePosition = "right",
-  interval = 5000,
+  interval = 2000,
   items,
 } = content;
-const uid = uniqueIdGenerator("showcase");
+const uid = uniqueIdGenerator("showcase " + title);
 ---
 
 <section>
@@ -52,15 +55,14 @@ const uid = uniqueIdGenerator("showcase");
           />
           {description && <p set:html={markdownify(description)} />}
         </div>
-        <div role="tablist" aria-orientation="vertical" class="space-y-1">
+        <div role="group" aria-label={title} class="space-y-1">
           {items.map((item, i) => (
-            <button
-              type="button"
-              role="tab"
+            <div
+              role="button"
               data-showcase-tab
               id={`${uid}-tab-${i}`}
               aria-controls={`${uid}-panel-${i}`}
-              aria-selected={i === 0 ? "true" : "false"}
+              aria-pressed={i === 0 ? "true" : "false"}
               tabindex={i === 0 ? 0 : -1}
               class="group relative block w-full cursor-pointer border-l-2 border-black/10 py-4 pl-6 text-left transition-colors duration-300 [&.is-active]:border-black/20">
               <span
@@ -75,19 +77,18 @@ const uid = uniqueIdGenerator("showcase");
               <span class="grid grid-rows-[0fr] transition-[grid-template-rows] duration-500 ease-out group-[.is-active]:grid-rows-[1fr]">
                 <span class="block min-h-0 overflow-hidden opacity-0 transition-opacity duration-500 group-[.is-active]:opacity-100">
                   <span
-                    class="block pt-2 opacity-80"
+                    class="[&_a]:text-primary block pt-2 opacity-80 [&_a]:underline [&_a]:underline-offset-4"
                     set:html={markdownify(item.description)}
                   />
                 </span>
               </span>
-            </button>
+            </div>
           ))}
         </div>
       </div>
       <div class="bg-theme-light relative aspect-[16/11] overflow-hidden rounded-2xl">
         {items.map((item, i) => (
           <div
-            role="tabpanel"
             data-showcase-panel
             id={`${uid}-panel-${i}`}
             aria-labelledby={`${uid}-tab-${i}`}
@@ -96,12 +97,27 @@ const uid = uniqueIdGenerator("showcase");
               "absolute inset-0 transition-opacity duration-700 ease-out",
               i !== 0 && "opacity-0",
             ]}>
-            <OptimizedImage
-              src={item.image}
-              height={item.imageHeight || 720}
-              alt={item.title}
-              class="h-full w-full object-cover object-left-top"
-            />
+            {item.image ? (
+              <OptimizedImage
+                src={item.image}
+                height={item.imageHeight || 720}
+                alt={item.title}
+                class:list={[
+                  "h-full w-full",
+                  item.imageFit === "contain"
+                    ? "object-contain p-3"
+                    : "object-cover object-left-top",
+                ]}
+              />
+            ) : (
+              <div class="flex h-full w-full flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-black/15 p-8 text-center">
+                <Icons icon="Camera" class="text-3xl opacity-50" />
+                <p
+                  class="max-w-xs text-sm opacity-70"
+                  set:html={markdownify(item.placeholder || "Imagery coming")}
+                />
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -114,12 +130,12 @@ const uid = uniqueIdGenerator("showcase");
 
   document.querySelectorAll<HTMLElement>("[data-showcase]").forEach((root) => {
     const tabs = Array.from(
-      root.querySelectorAll<HTMLButtonElement>("[data-showcase-tab]"),
+      root.querySelectorAll<HTMLElement>("[data-showcase-tab]"),
     );
     const panels = Array.from(
       root.querySelectorAll<HTMLElement>("[data-showcase-panel]"),
     );
-    const interval = Number(root.dataset.interval || 5000);
+    const interval = Number(root.dataset.interval || 2000);
     let active = 0;
     let pinned = false;
     let hovering = false;
@@ -157,7 +173,7 @@ const uid = uniqueIdGenerator("showcase");
       tabs.forEach((t, j) => {
         const on = j === i;
         t.classList.toggle("is-active", on);
-        t.setAttribute("aria-selected", on ? "true" : "false");
+        t.setAttribute("aria-pressed", on ? "true" : "false");
         t.tabIndex = on ? 0 : -1;
       });
       panels.forEach((p, j) => {
@@ -204,7 +220,11 @@ const uid = uniqueIdGenerator("showcase");
       });
       t.addEventListener("keydown", (e) => {
         const n = tabs.length;
-        if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+        if (e.key === "Enter" || e.key === " ") {
+          if ((e.target as HTMLElement).tagName === "A") return;
+          e.preventDefault();
+          t.click();
+        } else if (e.key === "ArrowDown" || e.key === "ArrowRight") {
           e.preventDefault();
           tabs[(i + 1) % n].focus();
           tabs[(i + 1) % n].click();

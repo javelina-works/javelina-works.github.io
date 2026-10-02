@@ -24,7 +24,7 @@ test("articles index renders posts without errors", async ({ page }) => {
   expect(response?.status(), "articles index returned non-2xx").toBeLessThan(
     400,
   );
-  await expect(page.locator('a[href*="/articles/"]').first()).toBeVisible();
+  await expect(page.locator('main a[href*="/articles/"]').first()).toBeVisible();
   expect(errors, errors.join("\n")).toEqual([]);
 });
 

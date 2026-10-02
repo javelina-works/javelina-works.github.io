@@ -143,6 +143,7 @@ collections:
       - { name: title, label: Title, widget: string }
       - { name: description, label: Page intro, widget: text, required: false }
       - { name: excerpt, label: Card excerpt, widget: text, required: false }
+      - { name: hideHeader, label: Hide the title band (first section carries the heading), widget: boolean, default: false, required: false }
       - { name: icon, label: Lucide icon name, widget: string, required: false, hint: "https://lucide.dev/icons/ (PascalCase, e.g. Crosshair)" }
       - { name: image, label: Hero image, widget: image, required: false }
       - { name: imagePosition, label: Image position, widget: select, options: [left, right], default: left, required: false }
@@ -203,7 +204,8 @@ collections:
             fields:
               - { name: title, label: Title, widget: string }
               - { name: description, label: Description, widget: text }
-              - { name: image, label: Image, widget: image }
+              - { name: image, label: Image, widget: image, required: false }
+              - { name: placeholder, label: Placeholder label (when no image yet), widget: string, required: false }
       - name: exhibits
         label: Proof blocks (screenshot + points)
         widget: list
@@ -274,6 +276,30 @@ collections:
       - { name: keywords, label: SEO keywords, widget: list, required: false }
       - { name: customSlug, label: Custom slug, widget: string, required: false }
       - { name: body, label: Body, widget: markdown }
+
+  # ---------------------------------------------------------------------------
+  # Tools (listed on /services/remote-tools/)
+  # ---------------------------------------------------------------------------
+  - name: tools
+    label: "Tools"
+    label_singular: "Tool"
+    folder: src/content/tools/english
+    create: true
+    slug: "{{slug}}"
+    extension: md
+    format: frontmatter
+    identifier_field: title
+    fields:
+      - { name: title, label: Title, widget: string }
+      - { name: excerpt, label: One-line summary, widget: text, required: false }
+      - { name: image, label: Screenshot, widget: image }
+      - { name: url, label: URL of the tool, widget: string }
+      - { name: buttonLabel, label: Button label, widget: string, required: false }
+      - { name: badge, label: Badge (e.g. Free), widget: string, required: false }
+      - { name: weight, label: Order, widget: number, required: false }
+      - { name: gives, label: What it does for you, widget: list, required: false, field: { name: item, label: Item, widget: string } }
+      - { name: draft, label: Draft, widget: boolean, default: false, required: false }
+      - { name: body, label: Body, widget: markdown, required: false }
 
   # ---------------------------------------------------------------------------
   # Authors (used by blog posts via the `author` relation)

@@ -10,6 +10,7 @@ import BenefitsSection from "./sections/BenefitsSection.astro";
 import HowItWorks from "./sections/HowItWorks.astro";
 import FaqSection from "./sections/FaqSection.astro";
 import ServicesList from "./sections/ServicesList.astro";
+import ToolsList from "./sections/ToolsList.astro";
 
 type Props = {
   content: CollectionEntry<"services">;
@@ -23,6 +24,8 @@ const {
   imagePosition,
   imageHeight,
   highlights,
+  hideHeader,
+  toolsList,
   bento,
   pillars,
   showcases,
@@ -40,10 +43,15 @@ const hasBody = Boolean(content.body && content.body.trim().length > 0);
 // how it goes → standalone uses → the detail (prose) → FAQ → other services
 ---
 
-<PageHeader hasBgShape={true} title={title} description={description} />
+{!hideHeader && (
+  <PageHeader hasBgShape={true} title={title} description={description} />
+)}
+
+{toolsList && <ToolsList />}
 
 {bento && (
   <FeaturesSection
+    titleTag={hideHeader ? "h1" : "h2"}
     content={
       {
         enable: true,

@@ -1,5 +1,25 @@
 ---
 title: "Survey work"
+metaTitle: "Drone Brush Survey for West Texas Ranches | Javelina Works"
+metaDescription: "A drone survey at 2.5 to 5 cm per pixel that counts and maps every mesquite, cedar and juniper on a West Texas ranch, with a density map and a firm quote."
+disableTagline: true
+keywords:
+  - brush management West Texas
+  - West Texas brush control
+  - mesquite control Texas
+  - cedar control Texas
+  - juniper control Texas
+  - drone brush control
+  - aerial brush treatment
+  - individual plant treatment
+  - brush clearing Fort Davis
+  - Trans-Pecos brush management
+  - Big Bend brush control
+  - Davis Mountains ranch
+  - drone brush survey Texas
+  - mesquite cedar mapping
+  - brush density map
+  - ranch vegetation survey
 description: "A drone survey of your ranch sharp enough to count every woody plant, sorted by species, with a density map and a firm quote built from it. Sold on its own, or as the first half of a treatment job."
 excerpt: "A drone survey of your ranch sharp enough to count every mesquite and cedar, sorted by species."
 icon: "ScanSearch"
@@ -7,20 +27,13 @@ image: "/images/about/depot-setup.png"
 imagePosition: right
 imageHeight: 560
 weight: 2
-metaTitle: "Drone brush survey: count and map every plant | Javelina Works"
-metaDescription: "Drone survey flights that photograph a Texas ranch to the centimeter, count and locate woody brush plant by plant, and produce a density map and firm quote. Sold on its own or ahead of treatment."
-keywords:
-  - drone brush survey Texas
-  - mesquite cedar mapping
-  - ranch vegetation survey
-  - brush density map
 draft: false
 
 highlights:
   title: "Map first, **treat second**"
   description: "A survey flight photographs your ranch on a grid, and our detection models find every stand of woody brush in the imagery. The map is what everything else runs on."
   list:
-    - title: "Every plant, counted and located"
+    - title: "Every woody plant, counted and located"
       description: "A count of the woody brush on the place, plant by plant, sorted by species. A number you can plan from, not an acreage guess from the truck window."
     - title: "A density map you can budget with"
       description: "See where the brush is thick in the draws and thin on the flats, so the money goes where the work is."
@@ -84,4 +97,4 @@ faq:
 
 ## Where the ballpark fits
 
-The free [instant ballpark](/ballpark/) reads your ranch from public lidar and infrared imagery and hands you a budget range in about a minute. The survey flight replaces those readings with a plant-by-plant count of your actual brush. Same shape, better data.
+The free [instant ballpark](/tools/ballpark/) reads your ranch from public lidar and infrared imagery and hands you a budget range in about a minute. The survey flight replaces those readings with a plant-by-plant count of your actual brush. Same shape, better data.

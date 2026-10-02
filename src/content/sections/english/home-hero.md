@@ -13,7 +13,7 @@ buttons:
   - enable: true
     label: "Get an estimate"
     variant: "fill" # "fill", "outline", "text"
-    url: "/ballpark/"
+    url: "/tools/ballpark/"
     rel: ""
     target: ""
     hoverEffect: "text-flip" # "text-flip", "creative-fill", "magnetic", "magnetic-text-flip"

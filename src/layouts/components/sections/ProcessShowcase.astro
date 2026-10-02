@@ -1,0 +1,301 @@
+---
+/**
+ * ProcessShowcase: the horizontal cousin of FeatureShowcase. One wide picture
+ * on top, the steps in a row underneath. Steps advance on a timer with a
+ * progress bar; the picture cross-fades to match. Hovering a step selects it
+ * and pauses; clicking pins it. Respects prefers-reduced-motion.
+ */
+import type { Section } from "@/types";
+import { getEntryCTM } from "@/lib/contentParser.astro";
+import overrideObjects from "@/lib/utils/overrideObjects.ts";
+import OptimizedImage from "../utilities/OptimizedImage.astro";
+import AnimatedText from "../widgets/AnimatedText.astro";
+import { markdownify } from "@/lib/utils/textConverter";
+import uniqueIdGenerator from "@/lib/utils/uniqueIdGenerator";
+import CustomButton from "../CustomButton.astro";
+
+export interface ProcessStep {
+  step?: string; // e.g. "01"
+  title: string;
+  description: string;
+  image: string; // also the poster when `video` is set
+  imageHeight?: number;
+  video?: string; // /videos/*.mp4 — muted, looping, autoplay
+  videoWebm?: string;
+}
+
+type ProcessShowcaseType = Section & {
+  enable?: boolean;
+  title?: string;
+  description?: string;
+  interval?: number; // ms per step
+  button?: { enable?: boolean; label: string; url: string };
+  list: ProcessStep[];
+};
+
+type Props = { content?: ProcessShowcaseType; id?: string };
+
+const defaultContent = (
+  await getEntryCTM("sections", "process-showcase", Astro.currentLocale)
+)?.data as ProcessShowcaseType;
+
+const actualContent = overrideObjects(
+  { ...defaultContent },
+  Astro.props.content,
+) as ProcessShowcaseType;
+
+const {
+  enable = true,
+  title,
+  description,
+  interval = 2000,
+  button,
+  list,
+} = actualContent;
+const uid = uniqueIdGenerator("process " + (title || ""));
+
+if (!enable) return;
+---
+
+<section id={Astro.props.id}>
+  <div class="container space-y-10 md:space-y-14">
+    {title && (
+      <div class="mx-auto max-w-2xl space-y-4 text-center">
+        <h2 class="has-italic-text capitalize">
+          <AnimatedText
+            delay={0.2}
+            stagger={0.09}
+            content={markdownify(title)}
+          />
+        </h2>
+        {description && (
+          <p class="opacity-80" set:html={markdownify(description)} />
+        )}
+      </div>
+    )}
+
+    <div data-process data-interval={interval} class="space-y-8">
+      <div class="bg-theme-light relative aspect-[16/9] overflow-hidden rounded-4xl">
+        {list.map((item, i) => (
+          <div
+            data-process-panel
+            id={`${uid}-panel-${i}`}
+            aria-hidden={i !== 0 ? "true" : "false"}
+            class:list={[
+              "absolute inset-0 transition-opacity duration-700 ease-out",
+              i !== 0 && "opacity-0",
+            ]}>
+            {item.video ? (
+              <video
+                class="h-full w-full object-cover object-center"
+
+                autoplay
+
+                muted
+
+                loop
+
+                playsinline
+
+                preload="metadata"
+
+                aria-label={item.title}>
+                {item.videoWebm && (
+                  <source src={item.videoWebm} type="video/webm" />
+                )}
+
+                <source src={item.video} type="video/mp4" />
+              </video>
+            ) : (
+              <OptimizedImage
+                src={item.image}
+                height={item.imageHeight || 900}
+                alt={item.title}
+                class="h-full w-full object-cover object-center"
+              />
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div
+        role="group"
+        aria-label={title}
+        class:list={[
+          "grid gap-x-6 gap-y-2",
+          list.length <= 4
+            ? "md:grid-cols-2 lg:grid-cols-4"
+            : list.length === 5
+              ? "md:grid-cols-3 lg:grid-cols-5"
+              : "md:grid-cols-3 lg:grid-cols-6",
+        ]}>
+        {list.map((item, i) => (
+          <div
+            role="button"
+            data-process-tab
+            id={`${uid}-tab-${i}`}
+            aria-pressed={i === 0 ? "true" : "false"}
+            tabindex={i === 0 ? 0 : -1}
+            class="group relative cursor-pointer border-t-2 border-black/10 pt-4 pb-2 text-left transition-colors duration-300 [&.is-active]:border-black/20">
+            <span
+              data-process-progress
+              aria-hidden="true"
+              class="bg-primary absolute -top-0.5 left-0 h-0.5 w-0"
+            />
+            {item.step && (
+              <span class="text-primary block text-xs font-medium tracking-wider uppercase">
+                {item.step}
+              </span>
+            )}
+            <span
+              class="mt-1 block text-lg font-medium text-black/60 transition-colors duration-300 group-[.is-active]:text-black"
+              set:html={markdownify(item.title)}
+            />
+            <span class="grid grid-rows-[0fr] transition-[grid-template-rows] duration-500 ease-out group-[.is-active]:grid-rows-[1fr]">
+              <span class="block min-h-0 overflow-hidden opacity-0 transition-opacity duration-500 group-[.is-active]:opacity-100">
+                <span
+                  class="block pt-2 text-sm opacity-80 md:text-base"
+                  set:html={markdownify(item.description)}
+                />
+              </span>
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {button && button.enable !== false && button.label && (
+        <div class="text-center">
+          <CustomButton
+            variant="fill"
+            hoverEffect="text-flip"
+            class="btn-black"
+            label={button.label}
+            url={button.url}
+          />
+        </div>
+      )}
+    </div>
+  </div>
+</section>
+
+<script>
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  document.querySelectorAll<HTMLElement>("[data-process]").forEach((root) => {
+    const tabs = Array.from(
+      root.querySelectorAll<HTMLElement>("[data-process-tab]"),
+    );
+    const panels = Array.from(
+      root.querySelectorAll<HTMLElement>("[data-process-panel]"),
+    );
+    const interval = Number(root.dataset.interval || 2000);
+    let active = 0;
+    let pinned = false;
+    let hovering = false;
+    let visible = false;
+    let timer: number | undefined;
+
+    const paused = () => pinned || hovering || reduced || !visible;
+    const bar = (i: number) =>
+      tabs[i]?.querySelector<HTMLElement>("[data-process-progress]");
+
+    const resetBars = () =>
+      tabs.forEach((_, i) => {
+        const b = bar(i);
+        if (!b) return;
+        b.style.transition = "none";
+        b.style.width = "0";
+      });
+
+    const runBar = () => {
+      resetBars();
+      if (paused()) return;
+      const b = bar(active);
+      if (!b) return;
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          b.style.transition = `width ${interval}ms linear`;
+          b.style.width = "100%";
+        }),
+      );
+    };
+
+    const show = (i: number) => {
+      active = i;
+      tabs.forEach((t, j) => {
+        const on = j === i;
+        t.classList.toggle("is-active", on);
+        t.setAttribute("aria-pressed", on ? "true" : "false");
+        t.tabIndex = on ? 0 : -1;
+      });
+      panels.forEach((p, j) => {
+        const on = j === i;
+        p.classList.toggle("opacity-0", !on);
+        p.setAttribute("aria-hidden", on ? "false" : "true");
+      });
+      runBar();
+    };
+
+    const schedule = () => {
+      window.clearTimeout(timer);
+      if (paused()) return;
+      timer = window.setTimeout(() => {
+        show((active + 1) % tabs.length);
+        schedule();
+      }, interval);
+    };
+
+    const pause = () => {
+      window.clearTimeout(timer);
+      resetBars();
+    };
+    const resume = () => {
+      runBar();
+      schedule();
+    };
+
+    tabs.forEach((t, i) => {
+      t.addEventListener("click", () => {
+        pinned = true;
+        pause();
+        show(i);
+      });
+      t.addEventListener("mouseenter", () => {
+        hovering = true;
+        pause();
+        if (active !== i) show(i);
+      });
+      t.addEventListener("mouseleave", () => {
+        hovering = false;
+        resume();
+      });
+      t.addEventListener("keydown", (e) => {
+        const n = tabs.length;
+        if (e.key === "Enter" || e.key === " ") {
+          if ((e.target as HTMLElement).tagName === "A") return;
+          e.preventDefault();
+          t.click();
+        } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+          e.preventDefault();
+          tabs[(i + 1) % n].focus();
+          tabs[(i + 1) % n].click();
+        } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+          e.preventDefault();
+          tabs[(i - 1 + n) % n].focus();
+          tabs[(i - 1 + n) % n].click();
+        }
+      });
+    });
+
+    new IntersectionObserver(
+      ([entry]) => {
+        visible = entry.isIntersecting;
+        if (visible) resume();
+        else pause();
+      },
+      { threshold: 0.3 },
+    ).observe(root);
+
+    show(0);
+  });
+</script>

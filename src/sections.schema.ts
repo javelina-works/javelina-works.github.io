@@ -318,6 +318,7 @@ export const featuresSectionSchema = z
         alternativeDirection: z.boolean(),
         imageHeight: z.number(),
         imageFit: z.enum(["contain", "cover"]).optional(), // cover = edge-to-edge screenshot
+        url: z.string().optional(), // makes the whole card a link
       }),
     ),
   })

@@ -20,7 +20,7 @@
           "enable": true,
           "hoverEffect": "text-flip",
           "label": "Get an estimate",
-          "url": "/ballpark/",
+          "url": "/tools/ballpark/",
           "rel": "",
           "target": ""
         }
@@ -85,6 +85,12 @@
           "name": "FAQ",
           "url": "/faq/",
           "weight": 1
+        },
+        {
+          "enable": true,
+          "name": "Articles",
+          "url": "/articles/",
+          "weight": 2
         }
       ]
     },

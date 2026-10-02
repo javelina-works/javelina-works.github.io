@@ -30,6 +30,8 @@
   @apply prose-tr:border-border-light;
   @apply prose-td:relative prose-td:z-10 prose-td:px-3 prose-td:py-[1.125rem];
   @apply prose-th:relative prose-th:z-10 prose-th:px-4 prose-th:py-[1.125rem] prose-th:text-black;
+  /* Wide tables scroll sideways on narrow screens instead of widening the page */
+  @apply prose-table:block prose-table:max-w-full prose-table:overflow-x-auto;
   @apply prose-table:relative prose-table:overflow-hidden prose-table:before:absolute prose-table:before:left-0 prose-table:before:top-0 prose-table:before:h-full prose-table:before:w-full prose-table:before:border-border-light prose-table:before:rounded-[inherit] prose-table:before:border prose-table:before:content-[""];
 
   /* Blockquote */

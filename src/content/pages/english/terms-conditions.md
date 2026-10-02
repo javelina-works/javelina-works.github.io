@@ -1,69 +1,83 @@
 ---
 title: "Terms & Conditions"
-description: We are living in the future of writing! Take a look at what our users have to say about it.
+metaDescription: "The terms for using the Javelina Works website and its free estimate tools, governed by the laws of the State of Texas."
 draft: false
 ---
 
-Effective Date: January, 2026
+Effective Date: October 2, 2026
 
-Welcome to Javelina Works ("we," "our," or "us"). By accessing or using our website, <https://www.javelinaworks.com> ("Website"), you agree to comply with and be bound by the following Terms and Conditions ("Terms"). If you do not agree with these Terms, please do not use our Website.
+These Terms and Conditions ("Terms") govern your use of the website of Javelina Works, Inc. ("Javelina Works," "we," "our," or "us"), <https://www.javelinaworks.com>, and the tools on it, including the instant ballpark estimate (together, the "Website"). By using the Website, you agree to these Terms. If you do not agree, please do not use the Website.
 
-### Acceptance of Terms
+### Who May Use the Website
 
-By accessing or using the Website, you confirm that you are at least 18 years old or have the legal consent of a parent or guardian. Your continued use of the Website constitutes your agreement to these Terms.
+You must be at least 18 years old to use the Website.
 
-### Use of the Website
+### What These Terms Cover
 
-You agree to use the Website only for lawful purposes and in a manner that does not infringe on the rights of others or restrict their use of the Website. Prohibited uses include but are not limited to:
+These Terms cover the Website only. Survey flights, treatment work, monitoring and any other services we perform are governed by a separate written agreement signed by you and Javelina Works. If that agreement and these Terms conflict, the agreement controls.
 
-- Engaging in any unlawful activity.
-- Attempting to gain unauthorized access to the Website or its servers.
-- Introducing harmful software or code, such as viruses or malware.
-- Misrepresenting your identity or affiliations.
+### Estimates and Tools
 
-### User Accounts
+The ballpark estimate is a planning range built from public data. It is not a bid, a quote or an offer, and neither you nor Javelina Works is obligated by it. A firm quote comes only in writing, after a survey flight.
 
-If you create an account on our Website, you are responsible for maintaining the confidentiality of your login credentials. You agree to notify us immediately of any unauthorized use of your account. We reserve the right to terminate accounts that violate these Terms.
+Property lines shown in the tool come from public parcel records. They are not a land survey, they can be out of date, and they should not be used to establish a legal boundary.
+
+### Information on the Website
+
+The Website describes our services and offers general information about brush management. It is not agronomic, legal, tax or financial advice for your property. Any herbicide use is governed by the product label and applicable law. Eligibility for cost-share or other programs is decided by the agency that runs them.
+
+### Acceptable Use
+
+You agree to use the Website only for lawful purposes. You may not:
+
+- Attempt to gain unauthorized access to the Website, its servers or the systems behind its tools.
+- Introduce viruses, malware or other harmful code.
+- Scrape the Website, run its tools by automated means, or bypass the measures that protect them from automated traffic.
+- Submit information you know to be false, or another person's contact details without their permission.
+- Misrepresent your identity or affiliation.
 
 ### Intellectual Property
 
-All content on the Website, including but not limited to text, images, logos, and software, is the property of Javelina Works or its licensors and is protected by copyright, trademark, and other intellectual property laws. You may not reproduce, distribute, or modify any content without prior written consent from Javelina Works.
+The content of the Website, including text, images, video, logos and software, belongs to Javelina Works or its licensors and is protected by copyright, trademark and other laws. You may view the Website, share links to it, and use the results of an estimate for your own planning. You may not otherwise reproduce, distribute or modify Website content without our prior written consent. Map imagery and data supplied by third parties remain the property of their providers.
 
-### Purchases and Payments
+### Third-Party Services and Links
 
-All purchases made on the Website are subject to our pricing and payment terms. You agree to provide accurate payment information and authorize us to charge your payment method for the agreed-upon amounts. Refunds, if applicable, will be processed according to our Refund Policy.
+The Website uses maps, imagery, video and other services provided by third parties, and it may link to third-party websites. We do not control them and are not responsible for their content or practices. Your use of them is at your own risk and subject to their terms.
+
+### Privacy
+
+Our [Privacy Policy](/privacy-policy/) explains what information the Website collects and how we use it.
 
 ### Disclaimer of Warranties
 
-The Website and its content are provided "as is" without warranties of any kind, either express or implied. We do not guarantee that the Website will be error-free, secure, or available at all times.
+**THE WEBSITE, ITS TOOLS AND ITS CONTENT ARE PROVIDED "AS IS" AND "AS AVAILABLE," WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. WE DO NOT WARRANT THAT THE WEBSITE WILL BE ERROR-FREE, SECURE OR AVAILABLE AT ALL TIMES, OR THAT ANY ESTIMATE, MAP OR MEASUREMENT IT PRODUCES IS ACCURATE OR COMPLETE.**
 
 ### Limitation of Liability
 
-To the fullest extent permitted by law, Javelina Works shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Website or inability to access it. Our total liability for any claims related to the Website shall not exceed the amount paid by you, if any, to Javelina Works.
+**TO THE FULLEST EXTENT PERMITTED BY LAW, JAVELINA WORKS WILL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL OR PUNITIVE DAMAGES ARISING FROM YOUR USE OF THE WEBSITE OR YOUR INABILITY TO USE IT. OUR TOTAL LIABILITY FOR ANY CLAIM RELATED TO THE WEBSITE WILL NOT EXCEED THE GREATER OF THE AMOUNT YOU PAID US TO USE THE WEBSITE, IF ANY, OR ONE HUNDRED U.S. DOLLARS (US $100).**
+
+Nothing in these Terms limits liability that cannot be limited under applicable law. Liability for services we perform is addressed in the written agreement for those services, not in these Terms.
 
 ### Termination
 
-We reserve the right to suspend or terminate your access to the Website at our sole discretion, without notice, if we believe you have violated these Terms or any applicable law.
+We may suspend or end your access to the Website at any time, without notice, if we believe you have violated these Terms or applicable law.
 
-### Third-Party Links
+### Governing Law and Venue
 
-Our Website may contain links to third-party websites. We are not responsible for the content or practices of these websites. Your use of third-party sites is at your own risk.
+These Terms are governed by the laws of the State of Texas, without regard to its conflict of law rules. Any dispute arising under these Terms or from your use of the Website will be brought exclusively in the state or federal courts located in the State of Texas, and you consent to the personal jurisdiction of those courts.
 
-### Governing Law
+### Changes to These Terms
 
-These Terms are governed by and construed in accordance with the laws of the State of Imaginary, USA, without regard to its conflict of law principles. Any disputes arising under these Terms shall be resolved in the courts located in Imaginary City, USA.
+We may update these Terms from time to time. Changes take effect when they are posted on this page with a new Effective Date. Your continued use of the Website after that date means you accept the revised Terms.
 
-### Changes to Terms
+### General
 
-We reserve the right to update or modify these Terms at any time without prior notice. Any changes will be effective immediately upon posting on this page. Your continued use of the Website constitutes acceptance of the revised Terms.
+If any part of these Terms is found unenforceable, the rest remains in effect. Our failure to enforce a provision is not a waiver of it. These Terms, together with the Privacy Policy, are the entire agreement between you and Javelina Works about your use of the Website.
 
 ### Contact Us
 
-If you have any questions or concerns about these Terms, please contact us at:
+If you have questions about these Terms, contact us at:
 
-Javelina Works
-
+Javelina Works, Inc.  
 Email: <support@javelinaworks.com>  
-Address: 03 Ranch Road Fort Davis, Texas, 79734, USA
-
-Thank you for using Javelina Works!
+Address: 03 Ranch Road, Fort Davis, Texas 79734, USA

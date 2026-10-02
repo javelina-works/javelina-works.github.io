@@ -80,6 +80,12 @@ let {
 
 // https://astro.build/config
 export default defineConfig({
+  // The ballpark moved under /tools/ when the site grew a tools section. Keep
+  // the old address working for anything that linked it (Netlify emits a 301).
+  redirects: {
+    "/ballpark/": "/tools/ballpark/",
+    "/tools/": "/services/remote-tools/",
+  },
   site: config.site.baseUrl ? config.site.baseUrl : "http://javelinaworks.com",
   trailingSlash: config.site.trailingSlash ? "always" : "never",
 
@@ -135,6 +141,50 @@ export default defineConfig({
         {
           rel: "noopener noreferrer nofollow",
           target: "_blank",
+          // Arrow icon + screen-reader note, matching markdownify() in textConverter.ts
+          content: [
+            {
+              type: "element",
+              tagName: "svg",
+              properties: {
+                className: [
+                  "external-link-icon",
+                  "ml-1",
+                  "inline-block",
+                  "h-[0.8em]",
+                  "w-[0.8em]",
+                  "align-[-0.05em]",
+                ],
+                ariaHidden: "true",
+                viewBox: "0 0 24 24",
+                fill: "none",
+                stroke: "currentColor",
+                strokeWidth: "2.25",
+                strokeLinecap: "round",
+                strokeLinejoin: "round",
+              },
+              children: [
+                {
+                  type: "element",
+                  tagName: "path",
+                  properties: { d: "M7 17 17 7" },
+                  children: [],
+                },
+                {
+                  type: "element",
+                  tagName: "path",
+                  properties: { d: "M7 7h10v10" },
+                  children: [],
+                },
+              ],
+            },
+            {
+              type: "element",
+              tagName: "span",
+              properties: { className: ["sr-only"] },
+              children: [{ type: "text", value: " (opens in a new tab)" }],
+            },
+          ],
         },
       ],
     ],

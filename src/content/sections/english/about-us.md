@@ -8,38 +8,38 @@ officeImages:
   - /images/about/thomas-testflight.jpeg
 
 about:
-  title: "Leading the next generation of Texas land management."
+  title: "Brush management, built and flown in Texas."
   description: |
-    Innovative. Precise. Reliable. We build our solutions for Texans in Texas; from our very own drone production to custom software solutions, we do it all right here for the people in our communities.
+    We build our own aircraft and our own software here in Texas, and we fly them over Texas ranches. Every plant is mapped, and the brush is treated one plant at a time.
   image: "/images/about/depot-setup.png"
   list:
     - title: "Mission"
-      description: "We strive to equip our neighbors with the very best tools and insights to manage their land. We want to deliver simple promises and exceptional results."
+      description: "To give our neighbors a true count of the brush on their place and a way to treat it one plant at a time. Simple promises, kept."
     - title: "Vision"
-      description: "To offer ranchers cutting edge technology, next-generation insights, and Texas manners. We want to be the trusted technology partner for the ranching world."
+      description: "To be the outfit a rancher calls first about brush: good equipment, straight numbers and Texas manners."
 
 stats:
-  - value: 20
+  - value: 10
     prependValue:
     appendValue: "K+"
     title: "Targets Identified"
-    description: "Unlocking insights never possible in previous generations"
+    description: "Woody plants found and located, one at a time"
 
   - value: 20
     prependValue: ""
     appendValue: "+"
-    title: "Hours Saved"
-    description: "Saving busy teams countless productive hours every single day"
+    title: "Hours Reclaimed"
+    description: "Reclaiming time once spent scouting brush from the truck window"
 
   - value: 1000
     prependValue:
     appendValue: +
     title: "Acres Served"
-    description: "A scalable platform built for every environment"
+    description: "Across West Texas ranch country"
 
   - value: 5
     prependValue:
     appendValue: x
     title: "Annual Growth"
-    description: "A powerful toolkit designed to grow with your challenges"
+    description: "More country covered every year"
 ---

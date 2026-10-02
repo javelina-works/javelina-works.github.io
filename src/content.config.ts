@@ -59,6 +59,8 @@ const servicesCollection = defineCollection({
   loader: contentLoader("./src/content/services"),
   schema: page.extend({
     excerpt: z.string().optional(), // short line used on cards
+    hideHeader: z.boolean().optional(), // skip the title band; the first section carries the h1
+    toolsList: z.boolean().optional(), // render the tools collection as a list under the header
     icon: z.string().optional(), // Lucide icon name, e.g. "Crosshair"
     weight: z.number().optional(), // display order (lower first)
     imagePosition: z.enum(["left", "right"]).optional(),
@@ -102,8 +104,10 @@ const servicesCollection = defineCollection({
             z.object({
               title: z.string(),
               description: z.string(),
-              image: z.string(),
+              image: z.string().optional(), // omit to show a placeholder panel
               imageHeight: z.number().optional(),
+              imageFit: z.enum(["cover", "contain"]).optional(), // contain for charts and screenshots that must not crop
+              placeholder: z.string().optional(), // label for the panel when there is no image yet
             }),
           ),
         }),
@@ -152,6 +156,19 @@ const servicesCollection = defineCollection({
         ),
       })
       .optional(),
+  }),
+});
+
+// Tools collection: one entry per remote tool, listed on /services/remote-tools/
+const toolsCollection = defineCollection({
+  loader: contentLoader("./src/content/tools"),
+  schema: page.extend({
+    excerpt: z.string().optional(),
+    url: z.string(),
+    buttonLabel: z.string().optional(),
+    badge: z.string().optional(),
+    weight: z.number().optional(),
+    gives: z.array(z.string()).optional(), // what it does for you
   }),
 });
 
@@ -214,6 +231,7 @@ export const collections = {
   articles: blogCollection,
   pages: pagesCollection,
   services: servicesCollection,
+  tools: toolsCollection,
   changelog: changelogCollection,
   career: defineCollection({ loader: contentLoader("./src/content/career") }),
   sections: defineCollection({
