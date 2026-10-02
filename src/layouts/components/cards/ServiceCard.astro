@@ -1,0 +1,62 @@
+---
+import type { CollectionEntry } from "astro:content";
+import Icons from "@/helpers/Icons.astro";
+import OptimizedImage from "../utilities/OptimizedImage.astro";
+import { getLocaleUrlCTM } from "@/lib/utils/i18nUtils";
+import { markdownify, plainify } from "@/lib/utils/textConverter";
+
+interface Props {
+  content: CollectionEntry<"services">;
+  class?: string;
+  compact?: boolean;
+}
+
+type LucideIconName = keyof typeof import("lucide");
+
+const { content, class: className, compact = false } = Astro.props;
+const { title, excerpt, icon, image, customSlug } = content.data;
+
+const href = getLocaleUrlCTM(
+  customSlug || content.id,
+  Astro.currentLocale,
+  content.collection,
+);
+---
+
+<a
+  href={href}
+  class:list={[
+    "group bg-theme-light flex flex-col overflow-hidden rounded-4xl text-inherit transition-colors duration-300 hover:bg-slate-100",
+    className,
+  ]}>
+  {image && !compact && (
+    <div class="overflow-hidden">
+      <OptimizedImage
+        src={image}
+        width={960}
+        height={560}
+        alt={plainify(title)}
+        class="h-56 w-full object-cover transition duration-500 group-hover:scale-105 md:h-64"
+      />
+    </div>
+  )}
+  <div
+    class:list={[
+      "flex flex-1 flex-col gap-4",
+      compact ? "p-6 lg:p-8" : "p-6 lg:p-9",
+    ]}>
+    {icon && <Icons icon={icon as LucideIconName} class="text-3xl" />}
+    <h3
+      class:list={[compact ? "h6" : "h5", "text-black"]}
+      set:html={markdownify(title)}
+    />
+    {excerpt && <p class="opacity-80" set:html={markdownify(excerpt)} />}
+    <span class="group-hover:text-primary mt-auto inline-flex items-center gap-2 pt-2 font-medium text-black transition-colors">
+      Learn more
+      <Icons
+        icon="ArrowUpRight"
+        class="text-lg transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+      />
+    </span>
+  </div>
+</a>

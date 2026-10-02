@@ -8,21 +8,91 @@
     },
     {
       "enable": true,
-      "name": "Company",
-      "weight": 0,
-      "url": "/company/"
+      "name": "Services",
+      "weight": 1,
+      "hasMegaMenu": true,
+      "cta": {
+        "enable": true,
+        "image": "/images/homepage/hero-background-poster.png",
+        "title": "Start with the free ballpark",
+        "description": "Type in the ranch address and get a measured budget range for clearing the brush in about a minute.",
+        "button": {
+          "enable": true,
+          "hoverEffect": "text-flip",
+          "label": "Get an estimate",
+          "url": "/ballpark/",
+          "rel": "",
+          "target": ""
+        }
+      },
+      "menus": [
+        {
+          "enable": true,
+          "children": [
+            {
+              "enable": true,
+              "icon": "Crosshair",
+              "name": "Brush targeting",
+              "description": "Plant-by-plant treatment from the air.",
+              "url": "/services/brush-targeting/"
+            },
+            {
+              "enable": true,
+              "icon": "ScanSearch",
+              "name": "Survey work",
+              "description": "Count and map every mesquite and cedar.",
+              "url": "/services/survey-work/"
+            },
+            {
+              "enable": true,
+              "icon": "Binoculars",
+              "name": "Monitoring",
+              "description": "See what the treatment did and what's coming back.",
+              "url": "/services/monitoring/"
+            },
+            {
+              "enable": true,
+              "icon": "MonitorSmartphone",
+              "name": "Remote tools",
+              "description": "The instant ballpark and your dashboard.",
+              "url": "/services/remote-tools/"
+            },
+            {
+              "enable": true,
+              "icon": "Route",
+              "name": "How a job runs",
+              "description": "Eight steps, from estimate to monitoring.",
+              "url": "/services/brush-targeting/#how-a-job-runs"
+            }
+          ]
+        }
+      ]
     },
     {
       "enable": true,
-      "name": "FAQ",
-      "url": "/faq/",
-      "weight": 0
+      "name": "More",
+      "weight": 2,
+      "hasChildren": true,
+      "children": [
+        {
+          "enable": true,
+          "name": "Company",
+          "url": "/company/",
+          "weight": 0
+        },
+        {
+          "enable": true,
+          "name": "FAQ",
+          "url": "/faq/",
+          "weight": 1
+        }
+      ]
     },
     {
       "enable": true,
       "name": "Contact",
       "url": "/contact/",
-      "weight": 0
+      "weight": 3
     }
   ],
   "footerMenu": [
@@ -42,6 +112,12 @@
   "footerMenuOne": [
     {
       "enable": true,
+      "name": "Services",
+      "url": "/services/",
+      "weight": 0
+    },
+    {
+      "enable": true,
       "name": "Contact",
       "url": "/contact/",
       "weight": 0
@@ -56,13 +132,19 @@
   "footerMenuTwo": [
     {
       "enable": true,
+      "name": "Articles",
+      "url": "/articles/",
+      "weight": 0
+    },
+    {
+      "enable": true,
       "name": "Privacy Policy",
       "url": "/privacy-policy/",
       "weight": 0
     },
     {
       "enable": true,
-      "name":"Terms & Conditions",
+      "name": "Terms & Conditions",
       "url": "/terms-conditions/",
       "weight": 0
     }

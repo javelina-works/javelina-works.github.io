@@ -7,7 +7,7 @@ list:
     description: We perform a survey and comprehensive analysis of the treatment area.
     button:
       label: "Explore"
-      url: "/features/"
+      url: "/services/survey-work/"
       target: ""
       rel: ""
   - step: "Phase *02*"
@@ -15,7 +15,7 @@ list:
     description: We present our findings, including dense target locations and high risk areas. You get to make an informed choice on your treatment plan.
     button:
       label: "Explore"
-      url: "/features/"
+      url: "/services/brush-targeting/#how-a-job-runs"
       target: ""
       rel: ""
   - step: "Phase *03*"
@@ -23,7 +23,7 @@ list:
     description: Using our smart drones, we execute the plan exactly to your specification.
     button:
       label: "Explore"
-      url: "/features/"
+      url: "/services/brush-targeting/"
       target: ""
       rel: ""
 ---

@@ -1,0 +1,174 @@
+---
+import { render } from "astro:content";
+import type { CollectionEntry } from "astro:content";
+import PageHeader from "./PageHeader.astro";
+import FeaturesSection from "./sections/FeaturesSection.astro";
+import FeaturesSectionTwo from "./sections/FeaturesSectionTwo.astro";
+import FeatureShowcase from "./sections/FeatureShowcase.astro";
+import StepTimeline from "./sections/StepTimeline.astro";
+import BenefitsSection from "./sections/BenefitsSection.astro";
+import HowItWorks from "./sections/HowItWorks.astro";
+import FaqSection from "./sections/FaqSection.astro";
+import ServicesList from "./sections/ServicesList.astro";
+
+type Props = {
+  content: CollectionEntry<"services">;
+};
+
+const { content } = Astro.props;
+const {
+  title,
+  description,
+  image,
+  imagePosition,
+  imageHeight,
+  highlights,
+  bento,
+  pillars,
+  showcases,
+  exhibitsTitle,
+  exhibits,
+  steps,
+  uses,
+  faq,
+} = content.data;
+
+const { Content } = await render(content);
+const hasBody = Boolean(content.body && content.body.trim().length > 0);
+
+// Section order: the hook (pillars) → what it is (highlights) → the proof (exhibits) →
+// how it goes → standalone uses → the detail (prose) → FAQ → other services
+---
+
+<PageHeader hasBgShape={true} title={title} description={description} />
+
+{bento && (
+  <FeaturesSection
+    content={
+      {
+        enable: true,
+        title: bento.title,
+        featureListLimit: 0,
+        list: bento.list.map((item) => ({
+          halfWidth: false,
+          alternativeDirection: false,
+          imageFit: "cover",
+          imageHeight: 640,
+          ...item,
+        })),
+      } as any
+    }
+  />
+)}
+
+{pillars && (
+  <BenefitsSection
+    content={
+      {
+        enable: true,
+        title: pillars.title,
+        benefits: pillars.list,
+        button: pillars.button,
+      } as any
+    }
+  />
+)}
+
+{highlights && image && (
+  <FeaturesSectionTwo
+    content={{
+      enable: true,
+      items: [
+        {
+          image,
+          imagePosition: imagePosition || "left",
+          imageHeight,
+          title: highlights.title,
+          description: highlights.description || "",
+          features: highlights.list,
+        },
+      ],
+    }}
+  />
+)}
+
+{showcases &&
+  showcases.map((showcase) => <FeatureShowcase content={showcase} />)}
+
+{exhibits && exhibits.length > 0 && (
+  <FeaturesSectionTwo
+    content={{
+      enable: true,
+      title: exhibitsTitle,
+      items: exhibits.map((item) => ({
+        ...item,
+        imagePosition: item.imagePosition || "left",
+      })),
+    }}
+  />
+)}
+
+{steps && steps.layout === "timeline" && (
+  <StepTimeline
+    id={steps.id || "how-it-goes"}
+    content={{ title: steps.title, list: steps.list }}
+  />
+)}
+
+{steps && steps.layout !== "timeline" && (
+  <HowItWorks
+    id={steps.id || "how-it-goes"}
+    content={{ enable: true, title: steps.title, list: steps.list } as any}
+  />
+)}
+
+{uses && (
+  <BenefitsSection
+    content={
+      {
+        enable: true,
+        title: uses.title,
+        benefits: uses.list,
+        button: uses.button,
+      } as any
+    }
+  />
+)}
+
+{hasBody && (
+  <section>
+    <div class="container">
+      <div class="prose-styles content mx-auto max-w-3xl">
+        <Content />
+      </div>
+    </div>
+  </section>
+)}
+
+{faq && (
+  <FaqSection
+    content={
+      {
+        enable: true,
+        title: faq.title || "Questions",
+        description: "",
+        button: { enable: false },
+        list: [
+          {
+            label: "",
+            list: faq.list.map((item, index) => ({
+              ...item,
+              active: item.active ?? index === 0,
+            })),
+          },
+        ],
+      } as any
+    }
+  />
+)}
+
+<ServicesList
+  title="More of **what we do**"
+  exclude={content.id}
+  compact={true}
+/>
