@@ -1,12 +1,31 @@
 ---
 title: "**Frequently** asked questions"
+metaTitle: "Brush Clearing FAQ for West Texas Ranches | Javelina Works"
+metaDescription: "How brush clearing works in West Texas: the free ballpark estimate, drone surveys, plant-by-plant treatment of mesquite and cedar, what it costs and how long it takes."
+disableTagline: true
+keywords:
+  - brush management West Texas
+  - West Texas brush control
+  - mesquite control Texas
+  - cedar control Texas
+  - juniper control Texas
+  - drone brush control
+  - aerial brush treatment
+  - individual plant treatment
+  - brush clearing Fort Davis
+  - Trans-Pecos brush management
+  - Big Bend brush control
+  - Davis Mountains ranch
+  - brush clearing cost Texas
+  - how long does brush clearing take
+  - cedar vs mesquite treatment
 description: What the instant ballpark is, how we read your ranch from the air, and what it takes to go from estimate to cleared country.
 draft: false
 
 button:
   enable: true
   label: Get your ballpark
-  url: /ballpark/
+  url: /tools/ballpark/
   rel:
   target:
   hoverEffect: "text-flip" # "text-flip", "creative-fill", "magnetic", "magnetic-text-flip"
@@ -36,7 +55,7 @@ list:
       - active: false
         title: "What happens to my information?"
         content: |
-          Your boundary and contact details are used to prepare your quote and nothing else. The analysis imagery we render for the map show is automatically deleted after about thirty days.
+          Your boundary and contact details are used to prepare your quote and nothing else. We keep the estimate and its map imagery so a firm quote can build on it, and we will delete them if you ask.
       - active: false
         title: "The map found the wrong property — now what?"
         content: |

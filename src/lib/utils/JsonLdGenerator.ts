@@ -8,6 +8,7 @@ import { absoluteUrl } from "./absoluteUrl";
 import { getLocaleUrlCTM } from "@/lib/utils/i18nUtils";
 import trailingSlashChecker from "./trailingSlashChecker";
 import social from "@/config/social.json";
+import en from "@/i18n/en.json";
 
 // This component dynamically generates appropriate JSON-LD data based on the page type
 export type JSONLDProps = {
@@ -82,9 +83,39 @@ export default function JsonLdGenerator(content: JSONLDProps, Astro: any) {
 
   // Add `publisher` to jsonLdData
   jsonLdData.publisher = {
-    "@type": "Organization",
+    "@type": ["Organization", "LocalBusiness"],
     name: config.seo.author,
+    alternateName: config.site.title,
+    description: config.site.description,
     url: trailingSlashChecker(Astro.url.origin),
+    telephone: en.contactInfo.phone,
+    email: en.contactInfo.email,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "03 Ranch Road",
+      addressLocality: "Fort Davis",
+      addressRegion: "TX",
+      postalCode: "79734",
+      addressCountry: "US",
+    },
+    areaServed: [
+      "West Texas",
+      "Trans-Pecos",
+      "Big Bend",
+      "Davis Mountains",
+      "Jeff Davis County, TX",
+      "Brewster County, TX",
+      "Presidio County, TX",
+      "Texas",
+    ],
+    knowsAbout: [
+      "brush management",
+      "mesquite control",
+      "cedar and juniper control",
+      "drone brush surveys",
+      "individual plant treatment",
+      "rangeland restoration",
+    ],
     sameAs: social.main.filter((item) => item.enable).map((item) => item.url),
     logo: {
       "@type": "ImageObject",

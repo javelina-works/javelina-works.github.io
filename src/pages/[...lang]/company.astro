@@ -21,7 +21,11 @@ const ourValues = await getEntryCTM(
 );
 ---
 
-<Base {...homepage.data}>
+<Base
+  {...homepage.data}
+  metaTitle="About Javelina Works: Brush Management from Fort Davis, Texas"
+  metaDescription="Javelina Works builds drones and software in Fort Davis to manage brush on West Texas ranches: mesquite, cedar and juniper mapped from the air and treated one plant at a time."
+  disableTagline={true}>
   <AboutUs />
   <BenefitsSection content={ourValues.data} />
   <Location />
