@@ -3,6 +3,7 @@ title: "For the people ranchers **already trust**"
 description: "Consultants, brokers, biologists, county agents, lenders: if landowners come to you for advice, here's how a brush survey makes your work better, and what we'll do for your clients."
 metaTitle: "For advisors: consultants, brokers and agents | Javelina Works"
 metaDescription: "What Javelina Works does, for consultants, brokers, extension agents, wildlife biologists and ag lenders deciding whether to mention us to a landowner."
+disableTagline: true
 keywords:
   - brush management consultant Texas
   - wildlife management plan brush
