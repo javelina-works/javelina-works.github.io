@@ -74,6 +74,44 @@
     }
   }
 
+  /* Footnotes (GFM citations in articles). Overrides the counter styling the
+     theme gives ordered lists so sources read as a plain numbered list. */
+  .footnotes {
+    @apply border-border-light mt-14 border-t pt-8 text-sm;
+
+    .footnote-label {
+      @apply text-h4-sm mt-0 mb-4;
+    }
+
+    ol {
+      @apply list-decimal ps-5;
+      counter-reset: none;
+
+      > li {
+        @apply text-text-default ps-1;
+        counter-increment: none;
+
+        &::before {
+          content: none;
+        }
+      }
+    }
+
+    p {
+      @apply my-1;
+    }
+
+    .data-footnote-backref {
+      @apply ms-1 no-underline;
+    }
+
+    /* A source cited many times gets one back-arrow per citation; keep the
+       first so the list stays readable. */
+    .data-footnote-backref ~ .data-footnote-backref {
+      @apply hidden;
+    }
+  }
+
   /* Horizontal Space Between Buttons */
   > .btn {
     @apply no-underline;
