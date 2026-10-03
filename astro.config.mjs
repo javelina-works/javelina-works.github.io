@@ -135,6 +135,13 @@ export default defineConfig({
   ],
 
   markdown: {
+    // GFM footnotes are the citation format for articles. A visible "Sources"
+    // heading replaces the default screen-reader-only "Footnotes" label.
+    remarkRehype: {
+      footnoteLabel: "Sources",
+      footnoteLabelProperties: { className: ["footnote-label"] },
+      footnoteBackLabel: "Back to the text",
+    },
     rehypePlugins: [
       [
         rehypeExternalLinks,
