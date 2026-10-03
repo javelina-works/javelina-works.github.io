@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 396" width="960" height="594" role="img" aria-labelledby="ttsTitle ttsDesc" font-family="system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <title id="ttsTitle">Protected trees marked on the same map as the targets</title>
+  <desc id="ttsDesc">A close view of brush country. Most plants are marked as targets for treatment, filled circles for mesquite and open circles for juniper, the same marks used in the earlier drawing. Five larger trees are ringed and marked to be left standing, each with a clear space around it, and a waterway running through the scene is flagged for review before any treatment.</desc>
+  <rect width="640" height="396" fill="#FFFFFF"/>
+  <text x="10" y="30" font-size="32" font-weight="600" fill="#322B2B">One map, two kinds of mark</text>
+  <rect x="10" y="44" width="620" height="250" rx="10" fill="#F4F1EF" stroke="#CFC6C1" stroke-width="1.5" data-decorative="true"/>
+  <g clip-path="url(#patch)">
+    <path d="M 22.4 259 Q 196 219 351 274 T 617.6 244" fill="none" stroke="#8FAEC4" stroke-width="44" stroke-linecap="round" opacity="0.16"/>
+    <path d="M 22.4 259 Q 196 219 351 274 T 617.6 244" fill="none" stroke="#8FAEC4" stroke-width="9" stroke-linecap="round" opacity="0.7"/>
+    <circle cx="84.2" cy="159.8" r="4.8" fill="none" stroke="#322B2B" stroke-width="2.4"/><circle cx="514" cy="93.6" r="4.5" fill="none" stroke="#322B2B" stroke-width="2.4"/><circle cx="555.8" cy="238.9" r="8.6" fill="#322B2B"/><circle cx="268.1" cy="253.3" r="4.5" fill="#322B2B"/><circle cx="282.7" cy="109.2" r="5.6" fill="none" stroke="#322B2B" stroke-width="2.4"/><circle cx="315.8" cy="119.4" r="3.9" fill="#322B2B"/><circle cx="572.1" cy="83.3" r="4.9" fill="#322B2B"/><circle cx="70.7" cy="112.3" r="4.4" fill="#322B2B"/><circle cx="183.6" cy="138.5" r="11" fill="#322B2B"/><circle cx="224.2" cy="111.2" r="5.4" fill="none" stroke="#322B2B" stroke-width="2.4"/><circle cx="186.6" cy="125.3" r="6.3" fill="#322B2B"/><circle cx="200.1" cy="143.1" r="10.9" fill="#322B2B"/><circle cx="488.1" cy="75.8" r="5.1" fill="none" stroke="#322B2B" stroke-width="2.4"/><circle cx="190.8" cy="98.5" r="5.7" fill="none" stroke="#322B2B" stroke-width="2.4"/><circle cx="85.9" cy="66" r="8.3" fill="#322B2B"/><circle cx="436.4" cy="86.4" r="5.3" fill="#322B2B"/><circle cx="23.5" cy="143.1" r="10.7" fill="#322B2B"/><circle cx="293.8" cy="179.9" r="6.5" fill="#322B2B"/><circle cx="73.4" cy="177" r="4.5" fill="none" stroke="#322B2B" stroke-width="2.4"/><circle cx="507.2" cy="103.5" r="9.1" fill="none" stroke="#322B2B" stroke-width="2.4"/><circle cx="313.5" cy="113.3" r="5" fill="#322B2B"/><circle cx="202.2" cy="162.6" r="5.1" fill="#322B2B"/><circle cx="315.1" cy="192.4" r="5.4" fill="#322B2B"/><circle cx="480.9" cy="118" r="6.3" fill="#322B2B"/><circle cx="271.5" cy="158.7" r="5.3" fill="none" stroke="#322B2B" stroke-width="2.4"/><circle cx="225.3" cy="147.3" r="5.7" fill="#322B2B"/><circle cx="202.8" cy="157.4" r="5.1" fill="#322B2B"/><circle cx="290.9" cy="93.6" r="6.6" fill="none" stroke="#322B2B" stroke-width="2.4"/><circle cx="162.4" cy="144.4" r="4.1" fill="#322B2B"/><circle cx="447.2" cy="67.4" r="4" fill="#322B2B"/><circle cx="177.8" cy="116.4" r="5.2" fill="none" stroke="#322B2B" stroke-width="2.4"/><circle cx="510.4" cy="103.3" r="6.1" fill="none" stroke="#322B2B" stroke-width="2.4"/><circle cx="321.5" cy="146.9" r="6.2" fill="#322B2B"/><circle cx="164.5" cy="161.3" r="6.2" fill="#322B2B"/><circle cx="43.4" cy="154.6" r="5.6" fill="none" stroke="#322B2B" stroke-width="2.4"/><circle cx="406.6" cy="82.1" r="4.5" fill="none" stroke="#322B2B" stroke-width="2.4"/><circle cx="432.4" cy="93.9" r="4.7" fill="#322B2B"/><circle cx="281.1" cy="223.5" r="5.3" fill="none" stroke="#322B2B" stroke-width="2.4"/><circle cx="222.8" cy="114.9" r="6.1" fill="none" stroke="#322B2B" stroke-width="2.4"/><circle cx="63.4" cy="151.6" r="6.1" fill="#322B2B"/><circle cx="298.7" cy="134.3" r="5.4" fill="#322B2B"/><circle cx="260.1" cy="166.8" r="6.1" fill="#322B2B"/><circle cx="293.1" cy="118.4" r="6" fill="none" stroke="#322B2B" stroke-width="2.4"/>
+    <g>
+        <circle cx="115.4" cy="119" r="15.9" fill="#2E6B4F" opacity="0.85"/>
+        <circle cx="115.4" cy="119" r="24.9" fill="none" stroke="#2E6B4F" stroke-width="3"/>
+        <circle cx="115.4" cy="119" r="32.9" fill="none" stroke="#2E6B4F" stroke-width="2.2" stroke-dasharray="7 6"/>
+      </g><g>
+        <circle cx="227" cy="214" r="17.6" fill="#2E6B4F" opacity="0.85"/>
+        <circle cx="227" cy="214" r="26.6" fill="none" stroke="#2E6B4F" stroke-width="3"/>
+        <circle cx="227" cy="214" r="34.6" fill="none" stroke="#2E6B4F" stroke-width="2.2" stroke-dasharray="7 6"/>
+      </g><g>
+        <circle cx="369.6" cy="109" r="17.8" fill="#2E6B4F" opacity="0.85"/>
+        <circle cx="369.6" cy="109" r="26.8" fill="none" stroke="#2E6B4F" stroke-width="3"/>
+        <circle cx="369.6" cy="109" r="34.8" fill="none" stroke="#2E6B4F" stroke-width="2.2" stroke-dasharray="7 6"/>
+      </g><g>
+        <circle cx="468.8" cy="199" r="15.8" fill="#2E6B4F" opacity="0.85"/>
+        <circle cx="468.8" cy="199" r="24.8" fill="none" stroke="#2E6B4F" stroke-width="3"/>
+        <circle cx="468.8" cy="199" r="32.8" fill="none" stroke="#2E6B4F" stroke-width="2.2" stroke-dasharray="7 6"/>
+      </g><g>
+        <circle cx="561.8" cy="134" r="17.1" fill="#2E6B4F" opacity="0.85"/>
+        <circle cx="561.8" cy="134" r="26.1" fill="none" stroke="#2E6B4F" stroke-width="3"/>
+        <circle cx="561.8" cy="134" r="34.1" fill="none" stroke="#2E6B4F" stroke-width="2.2" stroke-dasharray="7 6"/>
+      </g>
+  </g>
+  <defs>
+    <clipPath id="patch"><rect x="10" y="44" width="620" height="250" rx="10"/></clipPath>
+  </defs>
+  
+    <g transform="translate(10 338)" font-size="24" fill="#322B2B">
+      <circle cx="11" cy="-7" r="8" fill="#322B2B"/>
+      <circle cx="37" cy="-7" r="8" fill="none" stroke="#322B2B" stroke-width="2.4"/>
+      <text x="58" y="0">to treat (mesquite, juniper)</text>
+      <g transform="translate(0 42)">
+        <circle cx="20" cy="-7" r="8" fill="#2E6B4F" opacity="0.85"/>
+        <circle cx="20" cy="-7" r="13" fill="none" stroke="#2E6B4F" stroke-width="3"/>
+        <circle cx="20" cy="-7" r="18" fill="none" stroke="#2E6B4F" stroke-width="2.2" stroke-dasharray="7 6"/>
+        <text x="58" y="0">left standing, with room around it</text>
+      </g>
+      <g transform="translate(400 42)">
+        <rect x="0" y="-19" width="28" height="24" rx="4" fill="#8FAEC4" opacity="0.28"/>
+        <line x1="4" y1="-7" x2="24" y2="-7" stroke="#8FAEC4" stroke-width="5" stroke-linecap="round"/>
+        <text x="40" y="0">waterway</text>
+      </g>
+    </g>
+</svg>
