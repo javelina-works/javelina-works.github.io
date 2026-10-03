@@ -28,6 +28,8 @@ jobs:
         with:
           urls: ${{ github.event.deployment_status.target_url }}
           runs: 1
+          # Tags the UA as Chrome-Lighthouse so PostHog drops audit traffic.
+          configPath: ./lighthouserc.json
           uploadArtifacts: false
 
       - name: Summarize Lighthouse run
