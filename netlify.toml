@@ -32,21 +32,6 @@
     Cache-Control = "no-cache, no-store, must-revalidate"
     X-Robots-Tag  = "noindex, nofollow"
 
-# PostHog reverse proxy — routes /ingest/* through our own origin so ad
-# blockers targeting *.posthog.com don't drop events or block the JS bundle.
-# Order matters: the /static/* rule must come before the catch-all.
-[[redirects]]
-  from   = "/ingest/static/*"
-  to     = "https://us-assets.i.posthog.com/static/:splat"
-  status = 200
-  force  = true
-
-[[redirects]]
-  from   = "/ingest/*"
-  to     = "https://us.i.posthog.com/:splat"
-  status = 200
-  force  = true
-
 # Build-time env: PUBLIC_MAPBOX_BALLPARK_TOKEN (synced from Infisical) bakes
 # the public Mapbox token into the prerendered ballpark page for the address
 # typeahead. Empty/missing = typeahead silently disabled, submit lookup works.
