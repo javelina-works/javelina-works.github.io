@@ -240,7 +240,8 @@ const uid = uniqueIdGenerator("showcase " + title);
 
     new IntersectionObserver(
       ([entry]) => {
-        visible = entry.isIntersecting;
+        // isIntersecting is true for any overlap; honour the threshold itself.
+        visible = entry.isIntersecting && entry.intersectionRatio >= 0.35;
         if (visible) resume();
         else pause();
       },

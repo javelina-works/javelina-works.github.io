@@ -80,6 +80,7 @@ if (!enable) return;
           <div
             data-process-panel
             id={`${uid}-panel-${i}`}
+            aria-labelledby={`${uid}-tab-${i}`}
             aria-hidden={i !== 0 ? "true" : "false"}
             class:list={[
               "absolute inset-0 transition-opacity duration-700 ease-out",
@@ -127,6 +128,7 @@ if (!enable) return;
             role="button"
             data-process-tab
             id={`${uid}-tab-${i}`}
+            aria-controls={`${uid}-panel-${i}`}
             aria-pressed={i === 0 ? "true" : "false"}
             tabindex={i === 0 ? 0 : -1}
             class="group relative cursor-pointer border-t-2 border-black/10 pt-4 pb-2 text-left transition-colors duration-300 [&.is-active]:border-black/20">
@@ -293,7 +295,8 @@ if (!enable) return;
 
     new IntersectionObserver(
       ([entry]) => {
-        visible = entry.isIntersecting;
+        // isIntersecting is true for any overlap; honour the threshold itself.
+        visible = entry.isIntersecting && entry.intersectionRatio >= 0.3;
         syncVideos();
         if (visible) resume();
         else pause();
