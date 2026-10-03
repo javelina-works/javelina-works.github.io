@@ -2,13 +2,12 @@
 // PostHog analytics snippet for client-side tracking. Head.astro renders it
 // only in production builds, so `pnpm dev` does not send events or exceptions
 // to the production project.
-// In production we proxy through /ingest (see netlify.toml rewrites) so ad
-// blockers can't drop events or block the JS bundle. If you remove the gate to
-// test locally, dev hits PostHog directly because Netlify rewrites don't apply
-// to `pnpm dev`.
-const apiHost = import.meta.env.PROD
-  ? "/ingest"
-  : import.meta.env.PUBLIC_POSTHOG_HOST;
+// Events go through Bristle, our PostHog managed reverse proxy, so ad blockers
+// targeting *.posthog.com do not drop them or block the JS bundle. The host
+// comes from PUBLIC_POSTHOG_HOST (set per Netlify context); the fallback keeps
+// a build on the proxy if the variable is missing.
+const apiHost =
+  import.meta.env.PUBLIC_POSTHOG_HOST || "https://bristle.javelinaworks.com";
 ---
 
 <script
@@ -17,8 +16,7 @@ const apiHost = import.meta.env.PROD
     apiKey: import.meta.env.PUBLIC_POSTHOG_PROJECT_TOKEN,
     apiHost,
     uiHost: "https://us.posthog.com",
-  }}
->
+  }}>
   !(function (t, e) {
     var o, n, p, r;
     e.__SV ||
