@@ -10,7 +10,9 @@
  * Seeded logins live in supabase/seeds/01_users_seed.sql (dev password there).
  *
  * Usage:
- *   SCREENSHOT_PASSWORD=... node scripts/capture-app-screenshots.mjs <outDir> <email> <path> [<path> ...]
+ *   read -rsp "Screenshot password: " SCREENSHOT_PASSWORD; echo
+ *   export SCREENSHOT_PASSWORD
+ *   node scripts/capture-app-screenshots.mjs <outDir> <email> <path> [<path> ...]
  *
  * The password comes from the environment so it never sits in `ps` output or
  * shell history.
@@ -28,7 +30,7 @@ const [, , out, email, ...paths] = process.argv;
 const password = process.env.SCREENSHOT_PASSWORD;
 if (!out || !email || !password || paths.length === 0) {
   console.error(
-    "usage: SCREENSHOT_PASSWORD=... capture-app-screenshots.mjs <outDir> <email> <path> [...]",
+    "usage: capture-app-screenshots.mjs <outDir> <email> <path> [...] (export SCREENSHOT_PASSWORD first)",
   );
   process.exit(1);
 }
