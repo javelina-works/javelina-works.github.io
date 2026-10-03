@@ -30,56 +30,59 @@ let actualContent = overrideObjects(
 ) as FeatureSectionType;
 
 // Extracting required values from 'content' object
-let { enable = true, items } = actualContent as FeatureSectionType;
+let { enable = true, title, items } = actualContent as FeatureSectionType;
 
 if (!enable) return;
 ---
 
 <section>
   <div class="container space-y-20">
-    {
-      items.map((item, index) => (
+    {title && (
+      <div class="mx-auto max-w-lg text-center">
+        <h2 class="has-italic-text capitalize" set:html={markdownify(title)} />
+      </div>
+    )}
+    {items.map((item, index) => (
+      <div
+        class:list={[
+          "grid grid-cols-1 items-center gap-16 lg:grid-cols-2 lg:gap-32",
+          item.imagePosition === "right" && "lg:*:first:order-2",
+        ]}>
         <div
-          class:list={[
-            "grid grid-cols-1 items-center gap-16 lg:grid-cols-2 lg:gap-32",
-            item.imagePosition === "right" && "lg:*:first:order-2",
-          ]}>
-          <div
-            data-aos={index % 2 === 0 ? "fade-left-sm" : "fade-right-sm"}
-            data-aos-delay={index % 2 === 0 ? 200 : 250}
-            class="to-primary/5 flex items-center justify-center rounded-2xl bg-linear-to-b from-transparent py-8">
-            <OptimizedImage
-              src={item.image}
-              alt={item.title}
-              height={item.imageHeight || 600}
-              class="rounded-xl"
-            />
-          </div>
+          data-aos={index % 2 === 0 ? "fade-left-sm" : "fade-right-sm"}
+          data-aos-delay={index % 2 === 0 ? 200 : 250}
+          class="to-primary/5 flex items-center justify-center rounded-2xl bg-linear-to-b from-transparent py-8">
+          <OptimizedImage
+            src={item.image}
+            alt={item.title}
+            height={item.imageHeight || 600}
+            class="rounded-xl"
+          />
+        </div>
 
-          <div class="space-y-16">
-            {item.title && (
-              <div class="space-y-4">
-                <h2
-                  class="has-italic-text capitalize"
-                  set:html={markdownify(item.title)}
-                />
-                {item.description && (
-                  <p set:html={markdownify(item.description)} />
-                )}
-              </div>
-            )}
-
-            <div class="space-y-8 divide-y divide-dashed">
-              {item.features.map((feature) => (
-                <div class="space-y-2.5 odd:pb-8">
-                  <h3 class="text-xl font-medium">{feature.title}</h3>
-                  <p>{feature.description}</p>
-                </div>
-              ))}
+        <div class="space-y-16">
+          {item.title && (
+            <div class="space-y-4">
+              <h2
+                class="has-italic-text capitalize"
+                set:html={markdownify(item.title)}
+              />
+              {item.description && (
+                <p set:html={markdownify(item.description)} />
+              )}
             </div>
+          )}
+
+          <div class="space-y-8 divide-y divide-dashed">
+            {item.features.map((feature) => (
+              <div class="space-y-2.5 odd:pb-8">
+                <h3 class="text-xl font-medium">{feature.title}</h3>
+                <p>{feature.description}</p>
+              </div>
+            ))}
           </div>
         </div>
-      ))
-    }
+      </div>
+    ))}
   </div>
 </section>

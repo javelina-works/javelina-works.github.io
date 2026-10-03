@@ -1,35 +1,35 @@
 ---
 enable: true
-title: "Our Core **Values**"
+title: "How we **work**"
 
 benefits:
-  - title: "Innovation"
-    description: "We embrace creativity and constantly seek new ways to solve problems and deliver value."
+  - title: "We build our own"
+    description: "Our aircraft and our software are built here in Texas, for this country and this work."
     # Reference: [Lucide Icons](https://lucide.dev/icons/?search=) (remember to capitalize the icon name)
     icon: "CircleFadingArrowUp"
 
-  - title: "Collaboration"
-    description: "We believe the best results come from working together and supporting one another."
+  - title: "Straight answers"
+    description: "If your country is not a fit, we will tell you. Some places want a dozer, and some want to be left alone."
     # Reference: [Lucide Icons](https://lucide.dev/icons/?search=) (remember to capitalize the icon name)
     icon: "HeartHandshake"
 
-  - title: "Customer Focus"
-    description: "Our customers are at the heart of everything we do — we build with their needs in mind."
+  - title: "A person checks the work"
+    description: "Models find the plants. A person confirms them before anything is treated."
     # Reference: [Lucide Icons](https://lucide.dev/icons/?search=) (remember to capitalize the icon name)
     icon: "Focus"
 
-  - title: "Integrity"
-    description: "We act with honesty, transparency, and accountability in all our decisions and actions."
+  - title: "Your land, your call"
+    description: "Nothing flies until you have seen the plan and signed it."
     # Reference: [Lucide Icons](https://lucide.dev/icons/?search=) (remember to capitalize the icon name)
     icon: "Fingerprint"
 
-  - title: "Growth"
-    description: "We encourage continuous learning, both as individuals to achieve long-term success."
+  - title: "Leave the rest alone"
+    description: "The grass, the soil and the trees you want stay put."
     # Reference: [Lucide Icons](https://lucide.dev/icons/?search=) (remember to capitalize the icon name)
     icon: "Sprout"
 
-  - title: "Excellence"
-    description: "We are committed to delivering high-quality products, services, and experiences every time."
+  - title: "Show the result"
+    description: "Every job ends with a follow-up flight, so the work is measured, not remembered."
     # Reference: [Lucide Icons](https://lucide.dev/icons/?search=) (remember to capitalize the icon name)
     icon: "ShieldCheck"
 ---

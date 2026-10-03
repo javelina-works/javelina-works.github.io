@@ -18,11 +18,13 @@ test("home page renders without errors", async ({ page }) => {
   expect(errors, errors.join("\n")).toEqual([]);
 });
 
-test("blog index renders posts without errors", async ({ page }) => {
+test("articles index renders posts without errors", async ({ page }) => {
   const errors = trackBrowserErrors(page);
-  const response = await page.goto("/blog/");
-  expect(response?.status(), "blog index returned non-2xx").toBeLessThan(400);
-  await expect(page.locator('a[href*="/blog/"]').first()).toBeVisible();
+  const response = await page.goto("/articles/");
+  expect(response?.status(), "articles index returned non-2xx").toBeLessThan(
+    400,
+  );
+  await expect(page.locator('main a[href*="/articles/"]').first()).toBeVisible();
   expect(errors, errors.join("\n")).toEqual([]);
 });
 

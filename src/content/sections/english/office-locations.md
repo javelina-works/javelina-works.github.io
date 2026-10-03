@@ -12,5 +12,4 @@ list:
       Fort Davis, Texas, 79734
 
       Email: info@javelinaworks.com
-
 ---

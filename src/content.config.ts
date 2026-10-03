@@ -31,12 +31,144 @@ const pagesCollection = defineCollection({
 
 // Post collection schema
 const blogCollection = defineCollection({
-  loader: contentLoader("./src/content/blog"),
+  loader: contentLoader("./src/content/articles"),
   schema: page.extend({
     categories: z.array(z.string()).default(["others"]),
     author: z.string().optional(),
     excerpt: z.string().optional(),
     featured: z.boolean().optional(),
+  }),
+});
+
+// Services collection schema (one entry per service, rendered at /services/<slug>/)
+const serviceIconCards = z
+  .object({
+    title: z.string().optional(),
+    button: z.object({ label: z.string(), url: z.string() }).optional(),
+    list: z.array(
+      z.object({
+        icon: z.string(), // Lucide icon name
+        title: z.string(),
+        description: z.string(),
+      }),
+    ),
+  })
+  .optional();
+
+const servicesCollection = defineCollection({
+  loader: contentLoader("./src/content/services"),
+  schema: page.extend({
+    excerpt: z.string().optional(), // short line used on cards
+    hideHeader: z.boolean().optional(), // skip the title band; the first section carries the h1
+    toolsList: z.boolean().optional(), // render the tools collection as a list under the header
+    icon: z.string().optional(), // Lucide icon name, e.g. "Crosshair"
+    weight: z.number().optional(), // display order (lower first)
+    imagePosition: z.enum(["left", "right"]).optional(),
+    imageHeight: z.number().optional(),
+    highlights: z
+      .object({
+        title: z.string(),
+        description: z.string().optional(),
+        list: z.array(
+          z.object({
+            title: z.string(),
+            description: z.string(),
+          }),
+        ),
+      })
+      .optional(),
+    bento: z
+      .object({
+        title: z.string().optional(),
+        list: z.array(
+          z.object({
+            image: z.string(),
+            imageHeight: z.number().optional(),
+            imageFit: z.enum(["contain", "cover"]).optional(),
+            halfWidth: z.boolean().optional(),
+            title: z.string(),
+            description: z.string(),
+          }),
+        ),
+      })
+      .optional(), // image-led card grid right under the header (FeaturesSection)
+    pillars: serviceIconCards, // icon cards rendered first (BenefitsSection)
+    showcases: z
+      .array(
+        z.object({
+          title: z.string(),
+          description: z.string().optional(),
+          imagePosition: z.enum(["left", "right"]).optional(),
+          interval: z.number().optional(), // ms per point
+          items: z.array(
+            z.object({
+              title: z.string(),
+              description: z.string(),
+              image: z.string().optional(), // omit to show a placeholder panel
+              imageHeight: z.number().optional(),
+              imageFit: z.enum(["cover", "contain"]).optional(), // contain for charts and screenshots that must not crop
+              placeholder: z.string().optional(), // label for the panel when there is no image yet
+            }),
+          ),
+        }),
+      )
+      .optional(), // cycling points beside one image (FeatureShowcase)
+    exhibitsTitle: z.string().optional(),
+    exhibits: z
+      .array(
+        z.object({
+          image: z.string(),
+          imagePosition: z.enum(["left", "right"]).optional(),
+          imageHeight: z.number().optional(),
+          title: z.string(),
+          description: z.string(),
+          features: z.array(
+            z.object({ title: z.string(), description: z.string() }),
+          ),
+        }),
+      )
+      .optional(), // proof blocks with product screenshots (FeaturesSectionTwo)
+    steps: z
+      .object({
+        title: z.string().optional(),
+        id: z.string().optional(), // anchor, e.g. "how-a-job-runs"
+        layout: z.enum(["cards", "timeline"]).optional(),
+        list: z.array(
+          z.object({
+            step: z.string(), // e.g. "Step *01*"
+            title: z.string(),
+            description: z.string(),
+            button: z.object({ label: z.string(), url: z.string() }).optional(),
+          }),
+        ),
+      })
+      .optional(), // HowItWorks
+    uses: serviceIconCards, // standalone uses (BenefitsSection)
+    faq: z
+      .object({
+        title: z.string().optional(),
+        list: z.array(
+          z.object({
+            title: z.string(),
+            content: z.string(),
+            active: z.boolean().optional(),
+          }),
+        ),
+      })
+      .optional(),
+  }),
+});
+
+// Tools collection: one entry per remote tool, listed on /services/remote-tools/
+const toolsCollection = defineCollection({
+  loader: contentLoader("./src/content/tools"),
+  schema: page.extend({
+    excerpt: z.string().optional(),
+    url: z.string(),
+    buttonLabel: z.string().optional(),
+    badge: z.string().optional(),
+    weight: z.number().optional(),
+    gives: z.array(z.string()).optional(), // what it does for you
   }),
 });
 
@@ -96,8 +228,10 @@ export const changelogCollection = defineCollection({
 
 // Export collections
 export const collections = {
-  blog: blogCollection,
+  articles: blogCollection,
   pages: pagesCollection,
+  services: servicesCollection,
+  tools: toolsCollection,
   changelog: changelogCollection,
   career: defineCollection({ loader: contentLoader("./src/content/career") }),
   sections: defineCollection({

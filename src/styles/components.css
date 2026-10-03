@@ -31,6 +31,10 @@
   @apply prose-td:relative prose-td:z-10 prose-td:px-3 prose-td:py-[1.125rem];
   @apply prose-th:relative prose-th:z-10 prose-th:px-4 prose-th:py-[1.125rem] prose-th:text-black;
   @apply prose-table:relative prose-table:overflow-hidden prose-table:before:absolute prose-table:before:left-0 prose-table:before:top-0 prose-table:before:h-full prose-table:before:w-full prose-table:before:border-border-light prose-table:before:rounded-[inherit] prose-table:before:border prose-table:before:content-[""];
+  /* After the rule above: its overflow-hidden shorthand would otherwise reset
+     overflow-x. Wide tables scroll sideways on narrow screens instead of
+     widening the page. */
+  @apply prose-table:block prose-table:max-w-full prose-table:overflow-x-auto;
 
   /* Blockquote */
   @apply prose-blockquote:prose-p:first-of-type:before:hidden prose-blockquote:prose-p:last-of-type:after:hidden prose-blockquote:!space-y-4 prose-blockquote:font-normal prose-blockquote:border-l prose-blockquote:bg-primary/5 prose-blockquote:!border-primary prose-blockquote:px-8 prose-blockquote:py-4 prose-blockquote:not-italic;

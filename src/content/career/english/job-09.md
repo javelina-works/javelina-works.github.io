@@ -2,7 +2,7 @@
 title: Treatment Drone Operator
 draft: true
 excerpt: We are looking a good suitable professional person for this very important role. Anyone can apply for...
-customSlug: ''
+customSlug: ""
 fields:
   - name: type
     content: Full-time
@@ -16,8 +16,8 @@ button:
   enable: true
   label: Apply Now
   url: https://astro.build
-  rel: ''
-  target: ''
+  rel: ""
+  target: ""
   hoverEffect: text-flip
 ---
 

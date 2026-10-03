@@ -1,5 +1,5 @@
 ---
-title: The Intelligent Platform for Land Management
+title: "Brush management for **West Texas** ranches"
 # preTitle:
 #   enable: false
 #   label: Preview Our Fall Release
@@ -7,7 +7,7 @@ title: The Intelligent Platform for Land Management
 #   badge:
 #     enable: true
 #     label: "New"
-description: Get environmental insights, boost efficiency, and improve outcomes for your brush management needs.
+description: "We map every mesquite, cedar and juniper on your place from the air and treat them one plant at a time. Based in Fort Davis, working across the Trans-Pecos and the Big Bend."
 backgroundVideo:
   src: "/videos/hero-background.mp4"
   type: "video/mp4"
@@ -17,7 +17,7 @@ buttons:
   - enable: true
     label: "Get an estimate"
     variant: "fill"
-    url: "/ballpark/"
+    url: "/tools/ballpark/"
     rel: ""
     target: ""
     hoverEffect: "magnetic" # "text-flip", "creative-fill", "magnetic", "magnetic-text-flip"

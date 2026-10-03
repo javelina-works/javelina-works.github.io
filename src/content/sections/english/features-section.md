@@ -1,52 +1,50 @@
 ---
 enable: true
-title: Powerful Features To Grow **Your Business**
+title: "**The future** of brush management"
 
-# Limit how much features to be displayed in the other page then feature list page
-featureListLimit: 5 # false / number
+# Limit how many cards show on pages other than the feature list page
+featureListLimit: 5
 
-# Feature list
+# Image-led cards. Each one is one claim and one picture of it; a url makes the card a link.
 list:
-  - image: "/images/features/realtime-report.png"
-    imageHeight: 400
-    title: Real-Time Reporting
-    description: Monitor live data streams and respond instantly to important changes.
+  - image: "/images/services/brush-targeting/plants-found-boxes.png"
+    imageHeight: 640
+    imageFit: cover
+    title: Every woody plant, found
+    description: A survey flight at 2.5 to 5 cm per pixel, and every woody plant marked where it stands.
     halfWidth: true
     alternativeDirection: false
-  - image: "/images/features/collaboration.png"
-    imageHeight: 326
-    title: Seamless Collaboration
-    description: Keep your team aligned and move projects forward with ease.
+    url: /services/brush-targeting/
+  - image: "/images/services/brush-targeting/bento-protected-tree.png"
+    imageHeight: 640
+    imageFit: cover
+    title: The trees you want kept, kept
+    description: Mark oaks, piñons or any other tree as protected and it gets a buffer the plan stays out of.
     halfWidth: true
-    alternativeDirection: true
-  - image: "/images/features/metrics.png"
-    imageHeight: 242
-    title: Satisfaction Metrics
-    description: Track how often, unhappy, or unsatisfied your users are in real time.
+    alternativeDirection: false
+    url: /services/brush-targeting/
+  - image: "/images/services/brush-targeting/bento-review-tiles.png"
+    imageHeight: 640
+    imageFit: cover
+    title: Checked by a person
+    description: Nothing is treated because a model said so.
     halfWidth: false
     alternativeDirection: false
-  - image: "/images/features/ai-automation.png"
-    imageHeight: 235
-    title: Smart Automation Hub
-    description: From planning to coding, get everything done faster without a hitch.
-    halfWidth: false
-    alternativeDirection: true
-  - image: "/images/features/security.png"
-    imageHeight: 237
-    title: Instant Protection Alerts
-    description: Stay informed the moment something unusual happens and take action fast.
+    url: /services/brush-targeting/
+  - image: "/images/services/brush-targeting/plan-map-routes.png"
+    imageHeight: 640
+    imageFit: cover
+    title: Flown plant to plant
+    description: The approved map becomes flight routes, and the aircraft follows them and nothing else.
     halfWidth: false
     alternativeDirection: false
-  - image: "/images/features/update.png"
-    imageHeight: 400
-    title: Real-Time Updates, Zero Delays
-    description: Know what’s happening across your platform the moment it happens — no refresh needed.
-    halfWidth: true
+    url: /services/brush-targeting/
+  - image: "/images/services/brush-targeting/one-plant-dose.png"
+    imageHeight: 640
+    imageFit: cover
+    title: A measured dose for each plant
+    description: Scaled to the plant, nothing on the ground between.
+    halfWidth: false
     alternativeDirection: false
-  - image: "/images/features/growth.png"
-    imageHeight: 326
-    title: Track What Matters Most
-    description: Monitor key metrics and spot opportunities with effortless visual reporting.
-    halfWidth: true
-    alternativeDirection: true
+    url: /services/brush-targeting/
 ---

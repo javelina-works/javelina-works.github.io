@@ -317,6 +317,8 @@ export const featuresSectionSchema = z
         halfWidth: z.boolean(),
         alternativeDirection: z.boolean(),
         imageHeight: z.number(),
+        imageFit: z.enum(["contain", "cover"]).optional(), // cover = edge-to-edge screenshot
+        url: z.string().optional(), // makes the whole card a link
       }),
     ),
   })
@@ -324,6 +326,7 @@ export const featuresSectionSchema = z
 
 export const featuresSectionTwoSchema = z.object({
   enable: z.boolean().default(true),
+  title: z.string().optional(), // optional centered heading above the items
   items: z.array(
     z.object({
       image: z.url(), // path to image
@@ -364,6 +367,7 @@ export const benefitsSectionSchema = z
   .object({
     enable: z.boolean().default(false).optional(),
     title: z.string().optional(),
+    button: sharedButton.optional(), // optional centered button under the grid
     benefits: z.array(
       z.object({
         title: z.string(),

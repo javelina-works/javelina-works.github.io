@@ -1,29 +1,29 @@
 ---
 enable: true
-title: Our Simple Brush Treatment Process
+title: How a job runs
 list:
-  - step: "Phase *01*"
-    title: Survey & Analysis
-    description: We perform a survey and comprehensive analysis of the treatment area.
+  - step: "Step *01*"
+    title: The survey
+    description: We fly your ranch and count every woody plant on it, sorted by species.
     button:
-      label: "Explore"
-      url: "/features/"
+      label: "Survey work"
+      url: "/services/survey-work/"
       target: ""
       rel: ""
-  - step: "Phase *02*"
-    title: Plan & Discuss
-    description: We present our findings, including dense target locations and high risk areas. You get to make an informed choice on your treatment plan.
+  - step: "Step *02*"
+    title: The plan
+    description: The targets, the trees that stay, the dose and a firm quote come to you. You approve the plan or change it.
     button:
-      label: "Explore"
-      url: "/features/"
+      label: "The full job"
+      url: "/services/brush-targeting/#how-a-job-runs"
       target: ""
       rel: ""
-  - step: "Phase *03*"
-    title: Automated Treatment
-    description: Using our smart drones, we execute the plan exactly to your specification.
+  - step: "Step *03*"
+    title: The treatment
+    description: The aircraft flies the approved plan plant by plant, and every plant treated is recorded on the map.
     button:
-      label: "Explore"
-      url: "/features/"
+      label: "Brush targeting"
+      url: "/services/brush-targeting/"
       target: ""
       rel: ""
 ---

@@ -8,6 +8,10 @@ export const slugifyyy = (content: string) => {
   return slug_maker(content, { lower: true });
 };
 
+// Appended to external links: an arrow icon plus a screen-reader note.
+const EXTERNAL_LINK_MARK =
+  '<svg class="external-link-icon ml-1 inline-block h-[0.8em] w-[0.8em] align-[-0.05em]" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg><span class="sr-only"> (opens in a new tab)</span>';
+
 // markdownify
 export const markdownify = (content: string, container?: boolean) => {
   if (!content) return "";
@@ -23,7 +27,8 @@ export const markdownify = (content: string, container?: boolean) => {
         ? `target="_blank" rel="noopener noreferrer nofollow"`
         : "";
 
-    return `<a href="${link.href}" ${targetAttrs}>${link.text}</a>`;
+    const externalMark = isExternal ? EXTERNAL_LINK_MARK : "";
+    return `<a href="${link.href}" ${targetAttrs}>${link.text}${externalMark}</a>`;
   };
 
   // Set the custom renderer

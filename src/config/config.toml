@@ -1,8 +1,8 @@
 # Site Configuration
 [site]
   title            = "Javelina Works" # Shared title for SEO and OpenGraph
-  description      = "The intelligent platform for Texas land management. Get environmental insights, boost efficiency, and improve outcomes for your brush management needs." # Shared description for SEO and OpenGraph
-  tagline          = "Brush Management and Ranch Intelligence Platform"
+  description      = "Drone brush management for West Texas ranches. Javelina Works maps every mesquite, cedar and juniper from the air and treats them one plant at a time, from Fort Davis, Texas." # Shared description for SEO and OpenGraph
+  tagline          = "Brush Management in West Texas"
   taglineSeparator = "" # default is " - "
   baseUrl          = "https://javelinaworks.com" # Base URL for the site and used in OpenGraph meta tags.
   logo             = "/images/logo.svg" # Path to the site's logo
@@ -26,20 +26,34 @@
 [seo]
   author = "Javelina Works, Inc."
   keywords = [
-    "land management",
-    "brush management",
-    "Alpine brush management",
-    "Marfa brush management",
-    "Fort Davis brush management",
-    "West Texas brush management",
-    "Texas land management",
-    "ranch management",
-    "environmental insights",
-    "land clearing",
-    "vegetation management",
-    "Texas ranching",
-    "land management platform",
-    "Fort Davis Texas",
+    "brush management West Texas",
+    "West Texas brush control",
+    "brush control Fort Davis Texas",
+    "brush management Alpine Texas",
+    "brush management Marfa Texas",
+    "brush control Big Bend",
+    "Trans-Pecos brush management",
+    "Davis Mountains brush control",
+    "Jeff Davis County brush control",
+    "Brewster County brush control",
+    "Presidio County brush control",
+    "mesquite control Texas",
+    "cedar control Texas",
+    "juniper control Texas",
+    "redberry juniper control",
+    "drone brush control",
+    "aerial brush treatment",
+    "individual plant treatment",
+    "hexazinone pellets juniper",
+    "brush clearing cost per acre Texas",
+    "drone ranch brush survey",
+    "brush density map",
+    "woody plant encroachment rangeland",
+    "rangeland restoration West Texas",
+    "NRCS EQIP brush management Texas",
+    "Texas ranch land management",
+    "brush control company Texas",
+    "Javelina Works",
   ] # SEO keywords
   robots = "index, follow" # Instructs search engines on how to crawl and index the pages.
 
@@ -52,7 +66,6 @@
   [seo.sitemap]
     enable = true # Enables or disables sitemap generation on site build
     exclude = [
-      "blog",
       "career",
       "changelog",
     ] # exclude all pages that include these folder names (e.g., "blog", "services")
@@ -66,7 +79,7 @@
   # - "src/content" folder
   # - "src/[...lang]/pages" folder
   # - "src/content.config.ts" collections object
-  blogFolder        = "blog" # Folder where blog posts are stored
+  blogFolder        = "articles" # Folder where articles are stored (URL is /articles/)
   careerFolder      = "career" # Folder where job posts are stored
 
   pagination   = 6 # Number of posts displayed on each page blog list page
@@ -106,7 +119,7 @@
   [settings.navigationButton]
     enable = true
     label  = "" # Check src/i18n/en.json and src/i18n/fr.json for changing the navigation button label in different languages or directly add value here if you are not using internationalization feature
-    url    = "/ballpark/"
+    url    = "/tools/ballpark/"
 
   [settings.markup.tableOfContents]
     enable     = true

@@ -1,0 +1,253 @@
+---
+/**
+ * FeatureShowcase: a list of points beside one image. Points cycle on a timer
+ * (progress bar on the active one) and the image cross-fades to match.
+ * Hovering a point selects it and pauses the cycle; leaving resumes from it.
+ * Clicking a point pins it. Respects prefers-reduced-motion (no auto-cycle).
+ */
+import OptimizedImage from "../utilities/OptimizedImage.astro";
+import { markdownify } from "@/lib/utils/textConverter";
+import uniqueIdGenerator from "@/lib/utils/uniqueIdGenerator";
+import Icons from "@/helpers/Icons.astro";
+
+export interface ShowcaseItem {
+  title: string;
+  description: string;
+  image?: string; // omit to show a placeholder panel
+  imageHeight?: number;
+  imageFit?: "cover" | "contain";
+  placeholder?: string; // label for the placeholder panel
+}
+
+export interface ShowcaseContent {
+  title: string;
+  description?: string;
+  imagePosition?: "left" | "right";
+  interval?: number; // ms per point
+  items: ShowcaseItem[];
+}
+
+const { content } = Astro.props as { content: ShowcaseContent };
+const {
+  title,
+  description,
+  imagePosition = "right",
+  interval = 2000,
+  items,
+} = content;
+const uid = uniqueIdGenerator("showcase " + title);
+---
+
+<section>
+  <div class="container">
+    <div
+      data-showcase
+      data-interval={interval}
+      class:list={[
+        "grid grid-cols-1 items-start gap-12 lg:grid-cols-2 lg:gap-24",
+        imagePosition === "left" && "lg:*:first:order-2",
+      ]}>
+      <div class="space-y-8">
+        <div class="space-y-4">
+          <h2
+            class="has-italic-text capitalize"
+            set:html={markdownify(title)}
+          />
+          {description && <p set:html={markdownify(description)} />}
+        </div>
+        <div role="group" aria-label={title} class="space-y-1">
+          {items.map((item, i) => (
+            <div
+              role="button"
+              data-showcase-tab
+              id={`${uid}-tab-${i}`}
+              aria-controls={`${uid}-panel-${i}`}
+              aria-pressed={i === 0 ? "true" : "false"}
+              tabindex={i === 0 ? 0 : -1}
+              class="group relative block w-full cursor-pointer border-l-2 border-black/10 py-4 pl-6 text-left transition-colors duration-300 [&.is-active]:border-black/20">
+              <span
+                data-showcase-progress
+                aria-hidden="true"
+                class="bg-primary absolute top-0 -left-0.5 h-0 w-0.5"
+              />
+              <span
+                class="block text-xl font-medium text-black/60 transition-colors duration-300 group-[.is-active]:text-black"
+                set:html={markdownify(item.title)}
+              />
+              <span class="grid grid-rows-[0fr] transition-[grid-template-rows] duration-500 ease-out group-[.is-active]:grid-rows-[1fr]">
+                <span class="block min-h-0 overflow-hidden opacity-0 transition-opacity duration-500 group-[.is-active]:opacity-100">
+                  <span
+                    class="[&_a]:text-primary block pt-2 opacity-80 [&_a]:underline [&_a]:underline-offset-4"
+                    set:html={markdownify(item.description)}
+                  />
+                </span>
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div class="bg-theme-light relative aspect-[16/11] overflow-hidden rounded-2xl">
+        {items.map((item, i) => (
+          <div
+            data-showcase-panel
+            id={`${uid}-panel-${i}`}
+            aria-labelledby={`${uid}-tab-${i}`}
+            aria-hidden={i !== 0 ? "true" : "false"}
+            class:list={[
+              "absolute inset-0 transition-opacity duration-700 ease-out",
+              i !== 0 && "opacity-0",
+            ]}>
+            {item.image ? (
+              <OptimizedImage
+                src={item.image}
+                height={item.imageHeight || 720}
+                alt={item.title}
+                class:list={[
+                  "h-full w-full",
+                  item.imageFit === "contain"
+                    ? "object-contain p-3"
+                    : "object-cover object-left-top",
+                ]}
+              />
+            ) : (
+              <div class="flex h-full w-full flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-black/15 p-8 text-center">
+                <Icons icon="Camera" class="text-3xl opacity-50" />
+                <p
+                  class="max-w-xs text-sm opacity-70"
+                  set:html={markdownify(item.placeholder || "Imagery coming")}
+                />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  document.querySelectorAll<HTMLElement>("[data-showcase]").forEach((root) => {
+    const tabs = Array.from(
+      root.querySelectorAll<HTMLElement>("[data-showcase-tab]"),
+    );
+    const panels = Array.from(
+      root.querySelectorAll<HTMLElement>("[data-showcase-panel]"),
+    );
+    const interval = Number(root.dataset.interval || 2000);
+    let active = 0;
+    let pinned = false;
+    let hovering = false;
+    let visible = false;
+    let timer: number | undefined;
+
+    const paused = () => pinned || hovering || reduced || !visible;
+
+    const bar = (i: number) =>
+      tabs[i]?.querySelector<HTMLElement>("[data-showcase-progress]");
+
+    const resetBars = () =>
+      tabs.forEach((_, i) => {
+        const b = bar(i);
+        if (!b) return;
+        b.style.transition = "none";
+        b.style.height = "0";
+      });
+
+    const runBar = () => {
+      resetBars();
+      if (paused()) return;
+      const b = bar(active);
+      if (!b) return;
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          b.style.transition = `height ${interval}ms linear`;
+          b.style.height = "100%";
+        }),
+      );
+    };
+
+    const show = (i: number) => {
+      active = i;
+      tabs.forEach((t, j) => {
+        const on = j === i;
+        t.classList.toggle("is-active", on);
+        t.setAttribute("aria-pressed", on ? "true" : "false");
+        t.tabIndex = on ? 0 : -1;
+      });
+      panels.forEach((p, j) => {
+        const on = j === i;
+        p.classList.toggle("opacity-0", !on);
+        p.setAttribute("aria-hidden", on ? "false" : "true");
+      });
+      runBar();
+    };
+
+    const schedule = () => {
+      window.clearTimeout(timer);
+      if (paused()) return;
+      timer = window.setTimeout(() => {
+        show((active + 1) % tabs.length);
+        schedule();
+      }, interval);
+    };
+
+    const pause = () => {
+      window.clearTimeout(timer);
+      resetBars();
+    };
+
+    const resume = () => {
+      runBar();
+      schedule();
+    };
+
+    tabs.forEach((t, i) => {
+      t.addEventListener("click", (e) => {
+        // Links inside the description navigate; don't treat them as a pin.
+        if (e.target instanceof Element && e.target.closest("a")) return;
+        pinned = true;
+        pause();
+        show(i);
+      });
+      t.addEventListener("mouseenter", () => {
+        hovering = true;
+        pause();
+        if (active !== i) show(i);
+      });
+      t.addEventListener("mouseleave", () => {
+        hovering = false;
+        resume();
+      });
+      t.addEventListener("keydown", (e) => {
+        const n = tabs.length;
+        if (e.key === "Enter" || e.key === " ") {
+          if ((e.target as HTMLElement).tagName === "A") return;
+          e.preventDefault();
+          t.click();
+        } else if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+          e.preventDefault();
+          tabs[(i + 1) % n].focus();
+          tabs[(i + 1) % n].click();
+        } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+          e.preventDefault();
+          tabs[(i - 1 + n) % n].focus();
+          tabs[(i - 1 + n) % n].click();
+        }
+      });
+    });
+
+    new IntersectionObserver(
+      ([entry]) => {
+        // isIntersecting is true for any overlap; honour the threshold itself.
+        visible = entry.isIntersecting && entry.intersectionRatio >= 0.35;
+        if (visible) resume();
+        else pause();
+      },
+      { threshold: 0.35 },
+    ).observe(root);
+
+    show(0);
+  });
+</script>

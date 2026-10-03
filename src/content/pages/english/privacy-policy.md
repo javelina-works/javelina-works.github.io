@@ -1,94 +1,99 @@
 ---
 title: "Privacy Policy"
-metaDescription: This is a example description
+metaDescription: "What Javelina Works collects through this website and the instant ballpark tool, how it is used, who it is shared with, and the choices you have."
 draft: false
 ---
 
-Effective Date: January, 2026
+Effective Date: October 2, 2026
 
-Welcome to Javelina Works ("we," "our," or "us"). Your privacy is important to us, and we are committed to protecting the personal information you share with us. This Privacy Policy explains how we collect, use, and safeguard your information when you visit our website, https://www.javelinaworks.com ("Website").
+Javelina Works, Inc. ("Javelina Works," "we," "our," or "us") is a Texas company. This Privacy Policy explains what information we collect through our website, https://www.javelinaworks.com, and the tools on it, including the instant ballpark estimate (together, the "Website"), how we use it, and the choices you have.
 
-### Information We Collect
+This policy covers the Website. Survey flights, treatment work and other services we perform for customers are covered by the written agreement for that work.
 
-We collect two types of information from you:
+## Information You Give Us
 
-- **Personal Information:**
-  - Name
-  - Email address
-  - Billing information (e.g., credit card details)
-  - Any information you provide voluntarily through forms, surveys, or account creation
-  - Searches and inputs you submit to our on-site tools, which may include personal information such as an address or location you look up in our estimate tool
+- **Contact form:** your name, email address, the reason you are reaching out, your message, and how you heard about us.
+- **Ballpark estimate tool:** the address or location you search, the property boundary you select, draw or upload, and any details you add about the brush on it. If you choose "I'm standing on it," your device shares its location with the tool for that lookup.
+- **Firm quote request:** your name, phone number, email address, and any notes you leave with an estimate.
+- **Newsletter:** your email address, if you subscribe.
 
-- **Non-Personal Information:**
-  - IP address
-  - Browser type
-  - Operating system
-  - Pages visited and time spent on our site
-  - Referring website
+We do not ask for payment card details on the Website, and the Website has no customer accounts.
 
-### How We Use Your Information
+## Information Collected Automatically
 
-We use the information we collect for the following purposes:
+- IP address, browser type, device type and operating system
+- Pages visited, links clicked and time spent on the Website
+- Referring website
+- Error reports when something on the Website fails to load or run
 
-- To provide and improve our services
-- To process transactions and send receipts
-- To send you updates, promotions, and service-related communications
-- To personalize your experience on our Website
+## How We Use Your Information
+
+- To answer your questions and requests
+- To run the ballpark estimate you ask for and show you the result
+- To prepare a firm quote and schedule a survey flight when you request one
+- To send our newsletter if you subscribed
+- To understand how the Website is used and to fix problems with it
+- To protect the Website and its tools from abuse and automated traffic
 - To comply with legal obligations
-- To detect and prevent fraudulent activity
 
-### Cookies and Tracking Technologies
+The boundary and contact details you give us with an estimate are used to prepare and follow up on your quote, and for nothing else. We do not sell your personal information, including location information, and we do not use it for targeted advertising.
 
-We use cookies and similar tracking technologies to enhance your experience on our Website. These include:
+## Cookies and Analytics
 
-- **Essential Cookies:** Required for the operation of our Website.
-- **Performance Cookies:** Help us understand how you use our site.
-- **Marketing Cookies:** Track your browsing behavior for targeted advertising.
+We use an analytics service to understand how visitors use the Website. It stores a cookie or similar identifier in your browser. The banner shown on your first visit lets you accept or reject this. Your choice is saved in your browser, and if you reject, analytics collection is turned off for that browser. You can also clear or block cookies in your browser settings.
 
-You can control cookies through your browser settings.
+We do not use advertising or marketing cookies.
 
-### Sharing of Information
+Videos and maps on the Website are provided by third parties. When you play a video or load a map, that provider receives your IP address and may set its own cookies.
 
-We do not sell, rent, or trade your personal information. However, we may share your information with:
+## How Information Is Shared
 
-- **Service Providers:** Third-party companies that help us operate our Website and provide services.
-- **Legal Authorities:** When required by law or to protect our rights and property.
-- **Business Transfers:** In case of a merger, acquisition, or sale of assets.
+We do not sell, rent, or trade your personal information. We share it only with:
 
-### Data Security
+- **Service providers** that operate the Website for us: website and application hosting, form handling, analytics, error monitoring, protection against automated abuse, and the internal messaging tool that tells our team a new inquiry has arrived. They may use the information only to provide those services to us.
+- **Mapping and address lookup services.** When you search an address or pick a location in the ballpark tool, that address or location is sent to mapping and geocoding services, including public services run by government agencies, to find the property and draw the map. Your name, phone number and email address are not sent to them.
+- **Legal authorities,** when required by law or needed to protect our rights, property or safety.
+- **A successor business,** if Javelina Works is involved in a merger, acquisition or sale of assets.
 
-We implement industry-standard security measures to protect your data. However, no method of transmission over the Internet or electronic storage is 100% secure. While we strive to use commercially acceptable means to protect your personal information, we cannot guarantee absolute security.
+## How Long We Keep It
 
-### Your Rights
+We keep your ballpark estimate, including the boundary and the analysis imagery rendered for the map, so a firm quote can build on it. Contact details and messages are kept for as long as we are working with you or need them to respond, and afterward only as long as our business records or the law require. You can ask us to delete any of it.
 
-Depending on your location, you may have the following rights regarding your personal information:
+## Your Choices and Rights
 
-- Access your data
-- Correct or update your data
-- Request deletion of your data
-- Restrict processing of your data
-- Withdraw consent for data usage
+You can ask us to:
 
-To exercise your rights, please contact us at privacy@javelinaworks.com.
+- Tell you what personal information we hold about you
+- Correct it
+- Delete it
+- Stop sending you our newsletter
 
-### Third-Party Links
+Email privacy@javelinaworks.com and we will aim to respond within 45 days. We honor these requests wherever you live. Depending on where you live, state law, including the Texas Data Privacy and Security Act, may give you additional rights, such as the right to appeal our response. To appeal, reply to our response and tell us why you disagree.
 
-Our Website may contain links to third-party websites. We are not responsible for the privacy practices of these websites. We encourage you to review their privacy policies before providing any personal information.
+## Data Security
 
-### Children's Privacy
+We use reasonable technical and organizational measures to protect your information. No method of transmission over the Internet or of electronic storage is completely secure, so we cannot guarantee absolute security.
 
-Our Website is not intended for individuals under the age of 13. We do not knowingly collect personal information from children under 13. If you believe we have collected such information, please contact us immediately.
+## Where Information Is Processed
 
-### Changes to This Privacy Policy
+Javelina Works is based in Texas, and the information described here is processed in the United States.
 
-We may update this Privacy Policy from time to time. Any changes will be posted on this page with an updated "Effective Date." We encourage you to review this Privacy Policy periodically.
+## Children's Privacy
 
-### Contact Us
+The Website is not intended for children under 13, and we do not knowingly collect personal information from them. If you believe a child has given us personal information, contact us and we will delete it.
 
-If you have any questions or concerns about this Privacy Policy, please contact us at:
+## Third-Party Links
 
-Javelina Works
-Email: privacy@javelinaworks.com
-Address: 03 Ranch Road Fort Davis, Texas, 79734, USA
+The Website may link to third-party websites. We are not responsible for their privacy practices, and we encourage you to read their privacy policies.
 
-Thank you for trusting Javelina Works with your personal information!
+## Changes to This Privacy Policy
+
+We may update this Privacy Policy from time to time. Changes will be posted on this page with a new Effective Date.
+
+## Contact Us
+
+If you have questions about this Privacy Policy, contact us at:
+
+Javelina Works, Inc.  
+Email: privacy@javelinaworks.com  
+Address: 03 Ranch Road, Fort Davis, Texas 79734, USA

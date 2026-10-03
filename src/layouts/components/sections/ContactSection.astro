@@ -1,6 +1,8 @@
 ---
 import type { Section } from "@/types";
 import ContactForm from "../widgets/ContactForm.astro";
+import { useTranslations } from "@/lib/utils/i18nUtils";
+import Icons from "@/helpers/Icons.astro";
 import { getEntryCTM } from "@/lib/contentParser.astro";
 import { markdownify } from "@/lib/utils/textConverter";
 import overrideObjects from "@/lib/utils/overrideObjects.ts";
@@ -26,6 +28,16 @@ let actualContent = overrideObjects(
 
 let { enable = true, testimonial, title, description, form } = actualContent;
 
+// Direct contact box: phone and email as real links (mobile-first)
+const direct = (actualContent as any).directContact as
+  { enable?: boolean; title?: string } | undefined;
+const tx = await useTranslations(Astro.currentLocale as string);
+const phone = tx("contactInfo.phone") as string;
+const email = tx("contactInfo.email") as string;
+const phoneDigits = (phone || "").replace(/[^\d+]/g, "");
+const telHref =
+  "tel:" + (phoneDigits.length === 10 ? "+1" + phoneDigits : phoneDigits);
+
 if (!enable) return null;
 ---
 
@@ -34,70 +46,94 @@ if (!enable) return null;
     <div class="grid grid-cols-1 grid-rows-1 gap-10 lg:grid-cols-2">
       <div class="flex flex-col lg:sticky lg:top-32 lg:max-w-md">
         <div class="mb-10">
-          {
-            title && (
-              <h2
-                class="has-italic-text capitalize"
-                set:html={markdownify(title)}
+          {title && (
+            <h1
+              class="has-italic-text text-h2 capitalize"
+              set:html={markdownify(title)}
+            />
+          )}
+          {description && (
+            <p class="mt-6" set:html={markdownify(description)} />
+          )}
+          {direct?.enable !== false && (phone || email) && (
+            <div class="bg-theme-light mt-8 space-y-4 rounded-2xl p-6">
+              <p
+                class="font-medium text-black"
+                set:html={markdownify(
+                  direct?.title || "Or call or email us directly",
+                )}
               />
-            )
-          }
-          {
-            description && (
-              <p class="mt-6" set:html={markdownify(description)} />
-            )
-          }
+              <ul class="space-y-3">
+                {phone && (
+                  <li>
+                    <a
+                      href={telHref}
+                      class="hover:text-primary flex items-center gap-3 text-lg transition-colors">
+                      <Icons icon="Phone" class="text-primary text-xl" />
+                      <span>{phone}</span>
+                    </a>
+                  </li>
+                )}
+                {email && (
+                  <li>
+                    <a
+                      href={"mailto:" + email}
+                      class="hover:text-primary flex items-center gap-3 text-lg transition-colors">
+                      <Icons icon="Mail" class="text-primary text-xl" />
+                      <span class="break-all">{email}</span>
+                    </a>
+                  </li>
+                )}
+              </ul>
+            </div>
+          )}
         </div>
-        {
-          testimonial && (
-            <div class="mt-auto">
-              <div class="flex flex-col items-start space-y-4">
-                <div class="mb-6 inline-flex gap-2">
-                  {generateStars(5).map((_) => (
-                    <svg
-                      class="h-6 w-6 fill-current text-yellow-500"
-                      viewBox="0 0 20 20"
-                      fill="currentColor">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-                {testimonial.content && (
-                  <blockquote
-                    class="text-lg leading-relaxed"
-                    set:html={markdownify(testimonial.content)}
-                  />
-                )}
+        {testimonial && (
+          <div class="mt-auto">
+            <div class="flex flex-col items-start space-y-4">
+              <div class="mb-6 inline-flex gap-2">
+                {generateStars(5).map((_) => (
+                  <svg
+                    class="h-6 w-6 fill-current text-yellow-500"
+                    viewBox="0 0 20 20"
+                    fill="currentColor">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
               </div>
+              {testimonial.content && (
+                <blockquote
+                  class="text-lg leading-relaxed"
+                  set:html={markdownify(testimonial.content)}
+                />
+              )}
+            </div>
 
-              <div class="mt-8 flex items-center gap-4">
-                {testimonial.customer.avatar && (
-                  <OptimizedImage
-                    src={testimonial.customer.avatar}
-                    alt={testimonial.customer.name}
-                    class="h-12 w-12 rounded-full object-cover"
-                  />
+            <div class="mt-8 flex items-center gap-4">
+              {testimonial.customer.avatar && (
+                <OptimizedImage
+                  src={testimonial.customer.avatar}
+                  alt={testimonial.customer.name}
+                  class="h-12 w-12 rounded-full object-cover"
+                />
+              )}
+              <div class="min-w-0 flex-1 space-y-1">
+                {testimonial.customer.name && (
+                  <div class="text-black">{testimonial.customer.name}</div>
                 )}
-                <div class="min-w-0 flex-1 space-y-1">
-                  {testimonial.customer.name && (
-                    <div class="text-black">{testimonial.customer.name}</div>
-                  )}
-                  {testimonial.customer.role && (
-                    <p class="text-sm">{testimonial.customer.role}</p>
-                  )}
-                </div>
+                {testimonial.customer.role && (
+                  <p class="text-sm">{testimonial.customer.role}</p>
+                )}
               </div>
             </div>
-          )
-        }
-      </div>
-      {
-        form && (
-          <div class="lg:ms-auto">
-            <ContactForm class="w-full max-w-full lg:w-lg" form={form} />
           </div>
-        )
-      }
+        )}
+      </div>
+      {form && (
+        <div class="lg:ms-auto">
+          <ContactForm class="w-full max-w-full lg:w-lg" form={form} />
+        </div>
+      )}
     </div>
   </div>
 </section>
