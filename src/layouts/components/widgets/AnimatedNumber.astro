@@ -25,9 +25,11 @@ const {
   content,
 } = Astro.props;
 
-// Check number char length and give that number of zero
-const addZero = (content: string) => {
-  return "0".repeat(Number(content.length));
+// Server-render a same-width run of zeros as the placeholder the odometer
+// counts up from. Accepts numbers as well as strings (YAML values are
+// usually numbers; `(20).length` is undefined and produced an empty span).
+const addZero = (content: string | number) => {
+  return "0".repeat(String(content).length);
 };
 ---
 
@@ -37,14 +39,12 @@ const addZero = (content: string) => {
     { "has-animated-number": enable },
     className,
   ]}>
-  {
-    content.prependValue && (
-      <span
-        class:list={["prepend", childClassName]}
-        set:html={markdownify(content.prependValue)}
-      />
-    )
-  }
+  {content.prependValue && (
+    <span
+      class:list={["prepend", childClassName]}
+      set:html={markdownify(content.prependValue)}
+    />
+  )}
 
   <span
     {...{
@@ -53,19 +53,19 @@ const addZero = (content: string) => {
       style: { "--odometer-duration": transitionTime },
     }}
     class:list={[{ odometer: enable }, childClassName]}
-    set:html={enable && content.value && animateOn !== "click"
-      ? addZero(content.value as string)
-      : content.value}
+    set:html={
+      enable && content.value && animateOn !== "click"
+        ? addZero(content.value)
+        : content.value
+    }
   />
 
-  {
-    content.appendValue && (
-      <span
-        class:list={["append", childClassName]}
-        set:html={markdownify(content.appendValue)}
-      />
-    )
-  }
+  {content.appendValue && (
+    <span
+      class:list={["append", childClassName]}
+      set:html={markdownify(content.appendValue)}
+    />
+  )}
 </div>
 <script>
   import "@/plugins/odometer/odometer.min.js";
