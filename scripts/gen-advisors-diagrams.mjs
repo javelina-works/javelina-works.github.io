@@ -402,8 +402,11 @@ function treesThatStay() {
     .join("");
 
   // Two rows, because one row of three at a legible size does not fit the
-  // phone column. The keeper swatch carries all three rings the map uses —
-  // fill, solid ring and dashed halo — so no mark on the map is unexplained.
+  // phone column. The short target label shares row 1 with the waterway
+  // entry; the long keeper label gets row 2 to itself so the two never
+  // collide on wide system fonts. The keeper swatch carries all three rings
+  // the map uses — fill, solid ring and dashed halo — so no mark on the map
+  // is unexplained.
   const legend = `
     <g transform="translate(${MX} ${MY + MH + 44})" font-size="${FS.legend}" fill="${INK}">
       <circle cx="11" cy="-7" r="8" fill="${INK}"/>
@@ -415,7 +418,7 @@ function treesThatStay() {
         <circle cx="20" cy="-7" r="18" fill="none" stroke="${KEEP}" stroke-width="${SW_HALO}" stroke-dasharray="${DASH_HALO}"/>
         <text x="58" y="0">left standing, with room around it</text>
       </g>
-      <g transform="translate(400 42)">
+      <g transform="translate(400 0)">
         <rect x="0" y="-19" width="28" height="24" rx="4" fill="${WATER}" opacity="0.28"/>
         <line x1="4" y1="-7" x2="24" y2="-7" stroke="${WATER}" stroke-width="5" stroke-linecap="round"/>
         <text x="40" y="0">waterway</text>
