@@ -73,7 +73,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Update Performance badge
-        uses: schneegans/dynamic-badges-action@v1
+        uses: schneegans/dynamic-badges-action@v1.9.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
           gistID: ${{ vars.GIST_ID }}
@@ -85,7 +85,7 @@ jobs:
           logoColor: white
 
       - name: Update Accessibility badge
-        uses: schneegans/dynamic-badges-action@v1
+        uses: schneegans/dynamic-badges-action@v1.9.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
           gistID: ${{ vars.GIST_ID }}
@@ -97,7 +97,7 @@ jobs:
           logoColor: white
 
       - name: Update Best Practices badge
-        uses: schneegans/dynamic-badges-action@v1
+        uses: schneegans/dynamic-badges-action@v1.9.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
           gistID: ${{ vars.GIST_ID }}
@@ -109,7 +109,7 @@ jobs:
           logoColor: white
 
       - name: Update SEO badge
-        uses: schneegans/dynamic-badges-action@v1
+        uses: schneegans/dynamic-badges-action@v1.9.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
           gistID: ${{ vars.GIST_ID }}
