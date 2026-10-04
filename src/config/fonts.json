@@ -11,12 +11,12 @@
         "weight": "500"
       }
     ],
-    "preload": false,
+    "preload": true,
     "display": "swap",
     "cssVariable": "--font-primary",
     "provider": "google",
     "subsets": ["latin"],
-    "fallback": "sans-serif"
+    "fallback": ["Arial", "sans-serif"]
   },
   {
     "name": "Instrument Serif",
@@ -26,11 +26,11 @@
         "weight": "400"
       }
     ],
-    "preload": false,
+    "preload": true,
     "display": "swap",
     "cssVariable": "--font-secondary",
     "provider": "google",
     "subsets": ["latin"],
-    "fallback": "sans-serif"
+    "fallback": ["Georgia", "Times New Roman", "serif"]
   }
 ]

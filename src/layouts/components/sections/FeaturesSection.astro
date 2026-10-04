@@ -82,6 +82,12 @@ if (!enable) return;
               <OptimizedImage
                 src={item.image}
                 height={item.imageHeight}
+                widths={[400, 640, 800, 1000, 1240]}
+                sizes={
+                  item.halfWidth
+                    ? "(min-width: 1320px) 620px, (min-width: 768px) 50vw, 100vw"
+                    : "(min-width: 1320px) 400px, (min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                }
                 class:list={[
                   item.imageFit === "cover"
                     ? [

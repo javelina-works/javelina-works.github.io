@@ -13,6 +13,7 @@ import AnimatedText from "../widgets/AnimatedText.astro";
 import { markdownify } from "@/lib/utils/textConverter";
 import uniqueIdGenerator from "@/lib/utils/uniqueIdGenerator";
 import CustomButton from "../CustomButton.astro";
+import { getImage } from "astro:assets";
 
 export interface ProcessStep {
   step?: string; // e.g. "01"
@@ -55,6 +56,22 @@ const {
 const uid = uniqueIdGenerator("process " + (title || ""));
 
 if (!enable) return;
+
+// Video steps use their image as the poster. Resolve it to an optimised URL
+// here because <video poster> takes a plain string, not an <Image>.
+const posterSources = import.meta.glob<{ default: ImageMetadata }>(
+  "/src/assets/images/**/*.{jpeg,jpg,png,avif,webp}",
+);
+const posterFor = async (path?: string) => {
+  if (!path) return undefined;
+  const key = Object.keys(posterSources).find((k) => k.includes(path));
+  if (!key) return undefined;
+  const { default: src } = await posterSources[key]();
+  return (await getImage({ src, format: "webp", width: 1280 })).src;
+};
+const posters = await Promise.all(
+  list.map((item) => (item.video ? posterFor(item.image) : undefined)),
+);
 ---
 
 <section id={Astro.props.id}>
@@ -92,7 +109,8 @@ if (!enable) return;
                 muted
                 loop
                 playsinline
-                preload="metadata"
+                preload="none"
+                poster={posters[i]}
                 aria-label={item.title}>
                 {item.videoWebm && (
                   <source src={item.videoWebm} type="video/webm" />
@@ -104,6 +122,8 @@ if (!enable) return;
               <OptimizedImage
                 src={item.image}
                 height={item.imageHeight || 900}
+                widths={[640, 960, 1280, 1600, 1920, 2560]}
+                sizes="(min-width: 1320px) 1280px, 100vw"
                 alt={item.title}
                 class="h-full w-full object-cover object-center"
               />

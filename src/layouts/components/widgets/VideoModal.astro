@@ -46,6 +46,7 @@ const isLocalHostedVideo = src?.includes("/videos/") && provider === "html5";
               class="video-player"
               playsinline
               controls
+              preload="none"
               {...{
                 "data-id": `${id}`,
                 "data-autoplay": `${autoplay === true ? "true" : "false"}`,
