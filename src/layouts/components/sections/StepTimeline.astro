@@ -1,0 +1,154 @@
+---
+/**
+ * StepTimeline: a vertical, scroll-driven timeline. A sticky rail on the left
+ * lists the numbered steps on a line that fills as you scroll; the step cards
+ * on the right light up one at a time as they reach the middle of the screen.
+ * Clicking a rail node scrolls to that step.
+ */
+import { markdownify } from "@/lib/utils/textConverter";
+import AnimatedText from "../widgets/AnimatedText.astro";
+
+export interface TimelineStep {
+  step: string;
+  title: string;
+  description: string;
+  button?: { label: string; url: string };
+}
+
+const { content, id } = Astro.props as {
+  id?: string;
+  content: { title?: string; list: TimelineStep[] };
+};
+const { title, list } = content;
+---
+
+<section id={id}>
+  <div class="bg-theme-light py-20 md:py-32">
+    <div class="container" data-timeline>
+      <div class="grid gap-12 lg:grid-cols-[minmax(0,22rem)_1fr] lg:gap-24">
+        <aside class="space-y-10 lg:sticky lg:top-32 lg:self-start">
+          {title && (
+            <h2 class="has-italic-text capitalize">
+              <AnimatedText
+                delay={0.2}
+                stagger={0.09}
+                content={markdownify(title)}
+              />
+            </h2>
+          )}
+          <ol class="relative hidden lg:block" data-timeline-rail>
+            <span
+              aria-hidden="true"
+              class="absolute top-7 bottom-7 left-[27px] w-px bg-black/15"
+            />
+            <span
+              aria-hidden="true"
+              data-timeline-fill
+              class="bg-primary absolute top-7 left-[27px] h-0 w-px transition-[height] duration-500 ease-out"
+            />
+            {list.map((item, index) => (
+              <li>
+                <button
+                  type="button"
+                  data-timeline-node
+                  class="group flex w-full cursor-pointer items-center gap-5 py-2.5 text-left">
+                  <span class="relative z-10 flex h-14 w-14 shrink-0 items-center justify-center rounded-full border bg-white text-lg font-medium transition-colors duration-300 group-[.is-active]:border-primary group-[.is-active]:bg-primary group-[.is-active]:text-white group-[.is-done]:border-primary group-[.is-done]:text-primary">
+                    {index + 1}
+                  </span>
+                  <span
+                    class="text-lg text-black/50 transition-colors duration-300 group-[.is-active]:font-medium group-[.is-active]:text-black group-[.is-done]:text-black/80"
+                    set:html={markdownify(item.title)}
+                  />
+                </button>
+              </li>
+            ))}
+          </ol>
+        </aside>
+
+        <ol class="space-y-8 lg:space-y-0">
+          {list.map((item, index) => (
+            <li
+              data-timeline-step
+              class="group lg:flex lg:min-h-[60vh] lg:items-center">
+              <div class="w-full space-y-5 rounded-4xl bg-white p-8 transition-opacity duration-500 md:p-12 lg:opacity-40 group-[.is-active]:opacity-100">
+                <div class="flex items-center gap-4">
+                  <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border text-lg font-medium lg:hidden">
+                    {index + 1}
+                  </span>
+                  <div
+                    class="prose-em:not-italic prose-em:text-dark/80 text-sm font-medium tracking-wide text-black uppercase"
+                    set:html={markdownify(item.step)}
+                  />
+                </div>
+                <h3
+                  class="md:text-h4 text-h4-sm text-black"
+                  set:html={markdownify(item.title)}
+                />
+                <p
+                  class="text-lg text-gray-600"
+                  set:html={markdownify(item.description)}
+                />
+                {item.button && (
+                  <a
+                    class="text-text-default inline-block rounded-full border px-6 py-1.5 text-sm! capitalize transition-colors duration-300 hover:border-black/50"
+                    href={item.button.url}
+                    set:html={markdownify(item.button.label)}
+                  />
+                )}
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-timeline]").forEach((root) => {
+    const steps = Array.from(
+      root.querySelectorAll<HTMLElement>("[data-timeline-step]"),
+    );
+    const nodes = Array.from(
+      root.querySelectorAll<HTMLButtonElement>("[data-timeline-node]"),
+    );
+    const fill = root.querySelector<HTMLElement>("[data-timeline-fill]");
+    let active = -1;
+
+    const setActive = (i: number) => {
+      if (i === active) return;
+      active = i;
+      steps.forEach((s, j) => s.classList.toggle("is-active", j === i));
+      nodes.forEach((n, j) => {
+        n.classList.toggle("is-active", j === i);
+        n.classList.toggle("is-done", j < i);
+        n.setAttribute("aria-current", j === i ? "step" : "false");
+      });
+      const node = nodes[i];
+      if (fill && node) {
+        fill.style.height = `${node.offsetTop + node.offsetHeight / 2 - 28}px`;
+      }
+    };
+
+    nodes.forEach((n, i) =>
+      n.addEventListener("click", () =>
+        steps[i].scrollIntoView({ behavior: "smooth", block: "center" }),
+      ),
+    );
+
+    // The step crossing the middle band of the viewport is the active one.
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const i = steps.indexOf(entry.target as HTMLElement);
+          if (i > -1) setActive(i);
+        });
+      },
+      { rootMargin: "-40% 0px -40% 0px", threshold: 0 },
+    );
+    steps.forEach((s) => io.observe(s));
+
+    setActive(0);
+  });
+</script>

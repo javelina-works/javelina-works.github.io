@@ -45,24 +45,24 @@ public_folder: /images/uploads
 
 collections:
   # ---------------------------------------------------------------------------
-  # Blog posts
+  # Articles
   # ---------------------------------------------------------------------------
-  - name: blog
-    label: "Blog"
-    label_singular: "Blog post"
-    folder: src/content/blog/english
+  - name: articles
+    label: "Articles"
+    label_singular: "Article"
+    folder: src/content/articles/english
     create: true
     slug: "{{slug}}"
     extension: mdx
     format: frontmatter
     identifier_field: title
     summary: "{{title}} — {{date | date('YYYY-MM-DD')}}"
-    preview_path: "blog/{{slug}}"
-    # Images for blog live under src/assets/images/blog so Astro optimizes
+    preview_path: "articles/{{slug}}"
+    # Images for articles live under src/assets/images/articles so Astro optimizes
     # them on build. Sveltia indexes that tree (for thumbnails) and new
-    # uploads from blog entries land there too.
-    media_folder: /src/assets/images/blog
-    public_folder: /src/assets/images/blog
+    # uploads from article entries land there too.
+    media_folder: /src/assets/images/articles
+    public_folder: /src/assets/images/articles
     # No filter: editors see drafts and published posts alike. The build step
     # (remove-draft-from-sitemap) strips drafts from the sitemap automatically.
     fields:
@@ -124,6 +124,182 @@ collections:
       - { name: keywords, label: SEO keywords, widget: list, required: false }
       - { name: disableTagline, label: Disable tagline, widget: boolean, default: false, required: false }
       - { name: body, label: Body, widget: markdown }
+
+  # ---------------------------------------------------------------------------
+  # Services (rendered at /services/ and /services/<slug>/)
+  # ---------------------------------------------------------------------------
+  - name: services
+    label: "Services"
+    label_singular: "Service"
+    folder: src/content/services/english
+    create: true
+    slug: "{{slug}}"
+    extension: md
+    format: frontmatter
+    identifier_field: title
+    preview_path: "services/{{slug}}"
+    filter: { field: title, pattern: "^(?!What we do).*" }
+    fields:
+      - { name: title, label: Title, widget: string }
+      - { name: description, label: Page intro, widget: text, required: false }
+      - { name: excerpt, label: Card excerpt, widget: text, required: false }
+      - { name: hideHeader, label: Hide the title band (first section carries the heading), widget: boolean, default: false, required: false }
+      - { name: icon, label: Lucide icon name, widget: string, required: false, hint: "https://lucide.dev/icons/ (PascalCase, e.g. Crosshair)" }
+      - { name: image, label: Hero image, widget: image, required: false }
+      - { name: imagePosition, label: Image position, widget: select, options: [left, right], default: left, required: false }
+      - { name: imageHeight, label: Image height (px), widget: number, required: false }
+      - { name: weight, label: Order, widget: number, required: false }
+      - name: highlights
+        label: Highlights
+        widget: object
+        required: false
+        fields:
+          - { name: title, label: Title, widget: string }
+          - { name: description, label: Description, widget: text, required: false }
+          - name: list
+            label: Items
+            widget: list
+            fields:
+              - { name: title, label: Title, widget: string }
+              - { name: description, label: Description, widget: text }
+      - name: bento
+        label: Image grid under the header
+        widget: object
+        required: false
+        fields:
+          - { name: title, label: Title, widget: string, required: false }
+          - name: list
+            label: Cards
+            widget: list
+            fields:
+              - { name: image, label: Image, widget: image }
+              - { name: halfWidth, label: Half width (big card), widget: boolean, default: false, required: false }
+              - { name: title, label: Title, widget: string }
+              - { name: description, label: One line, widget: text }
+      - name: pillars
+        label: Why we are different (icon cards)
+        widget: object
+        required: false
+        fields:
+          - { name: title, label: Title, widget: string, required: false }
+          - name: list
+            label: Cards
+            widget: list
+            fields:
+              - { name: icon, label: Lucide icon name, widget: string }
+              - { name: title, label: Title, widget: string }
+              - { name: description, label: Description, widget: text }
+      - name: showcases
+        label: Cycling showcases (points beside one image)
+        widget: list
+        required: false
+        fields:
+          - { name: title, label: Title, widget: string }
+          - { name: description, label: Description, widget: text, required: false }
+          - { name: imagePosition, label: Image position, widget: select, options: [left, right], default: right, required: false }
+          - { name: interval, label: Seconds per point (ms), widget: number, required: false }
+          - name: items
+            label: Points
+            widget: list
+            fields:
+              - { name: title, label: Title, widget: string }
+              - { name: description, label: Description, widget: text }
+              - { name: image, label: Image, widget: image, required: false }
+              - { name: placeholder, label: Placeholder label (when no image yet), widget: string, required: false }
+      - name: exhibits
+        label: Proof blocks (screenshot + points)
+        widget: list
+        required: false
+        fields:
+          - { name: image, label: Image, widget: image }
+          - { name: imagePosition, label: Image position, widget: select, options: [left, right], default: left, required: false }
+          - { name: imageHeight, label: Image height (px), widget: number, required: false }
+          - { name: title, label: Title, widget: string }
+          - { name: description, label: Description, widget: text }
+          - name: features
+            label: Points
+            widget: list
+            fields:
+              - { name: title, label: Title, widget: string }
+              - { name: description, label: Description, widget: text }
+      - name: steps
+        label: Steps (how it goes)
+        widget: object
+        required: false
+        fields:
+          - { name: title, label: Title, widget: string, required: false }
+          - { name: id, label: Anchor id, widget: string, required: false, hint: "e.g. how-a-job-runs" }
+          - { name: layout, label: Layout, widget: select, options: [cards, timeline], default: cards, required: false }
+          - name: list
+            label: Steps
+            widget: list
+            fields:
+              - { name: step, label: Step label, widget: string, hint: "e.g. Step *01*" }
+              - { name: title, label: Title, widget: string }
+              - { name: description, label: Description, widget: text }
+              - name: button
+                label: Link
+                widget: object
+                required: false
+                fields:
+                  - { name: label, label: Label, widget: string }
+                  - { name: url, label: URL, widget: string }
+      - name: uses
+        label: Standalone uses (icon cards)
+        widget: object
+        required: false
+        fields:
+          - { name: title, label: Title, widget: string, required: false }
+          - name: list
+            label: Cards
+            widget: list
+            fields:
+              - { name: icon, label: Lucide icon name, widget: string }
+              - { name: title, label: Title, widget: string }
+              - { name: description, label: Description, widget: text }
+      - name: faq
+        label: FAQ
+        widget: object
+        required: false
+        fields:
+          - { name: title, label: Title, widget: string, required: false }
+          - name: list
+            label: Questions
+            widget: list
+            fields:
+              - { name: title, label: Question, widget: string }
+              - { name: content, label: Answer, widget: markdown }
+              - { name: active, label: Open by default, widget: boolean, default: false, required: false }
+      - { name: draft, label: Draft, widget: boolean, default: false, required: false }
+      - { name: metaTitle, label: Meta title, widget: string, required: false }
+      - { name: metaDescription, label: Meta description, widget: text, required: false }
+      - { name: keywords, label: SEO keywords, widget: list, required: false }
+      - { name: customSlug, label: Custom slug, widget: string, required: false }
+      - { name: body, label: Body, widget: markdown }
+
+  # ---------------------------------------------------------------------------
+  # Tools (listed on /services/remote-tools/)
+  # ---------------------------------------------------------------------------
+  - name: tools
+    label: "Tools"
+    label_singular: "Tool"
+    folder: src/content/tools/english
+    create: true
+    slug: "{{slug}}"
+    extension: md
+    format: frontmatter
+    identifier_field: title
+    fields:
+      - { name: title, label: Title, widget: string }
+      - { name: excerpt, label: One-line summary, widget: text, required: false }
+      - { name: image, label: Screenshot, widget: image }
+      - { name: url, label: URL of the tool, widget: string }
+      - { name: buttonLabel, label: Button label, widget: string, required: false }
+      - { name: badge, label: Badge (e.g. Free), widget: string, required: false }
+      - { name: weight, label: Order, widget: number, required: false }
+      - { name: gives, label: What it does for you, widget: list, required: false, field: { name: item, label: Item, widget: string } }
+      - { name: draft, label: Draft, widget: boolean, default: false, required: false }
+      - { name: body, label: Body, widget: markdown, required: false }
 
   # ---------------------------------------------------------------------------
   # Authors (used by blog posts via the `author` relation)

@@ -1,10 +1,10 @@
 ---
 enable: true
-title: Get Started and Streamline Your Land Management Today
+title: Tell us about your place
 description: |
-  No credit card required. No obligations.
+  A call costs nothing, and nothing is owed until you have seen the plan and signed it.
 
-  See how our platform can fit your land managment needs. 
+  Or start with the free ballpark and have a budget range in about a minute.
 
 button:
   enable: true

@@ -10,7 +10,7 @@ list:
     role: "Software Engineering"
   - image: "/images/team/gray-hancock.jpeg"
     name: "Gray Hancock"
-    role: "Photogrametry, Lead Operator"
+    role: "Photogrammetry, Lead Operator"
   # - image: "/images/team/4.jpg"
   #   name: "Cade Woodward"
   #   role: "Customer Support"

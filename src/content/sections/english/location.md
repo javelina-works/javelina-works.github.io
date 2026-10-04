@@ -1,6 +1,6 @@
 ---
 enable: true
-title: "We’re right here in Texas."
-subtitle: "Based in Fort Davis — working across the Lone Star State to keep Texas land healthy and thriving."
+title: "We’re right here in West Texas."
+subtitle: "Based in Fort Davis — working across the Trans-Pecos, the Big Bend and the rest of Texas to keep ranch country in grass instead of brush."
 image: "/src/assets/images/texas-effect.jpeg"
 ---

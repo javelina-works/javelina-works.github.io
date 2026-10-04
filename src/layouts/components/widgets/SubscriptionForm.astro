@@ -2,20 +2,35 @@
 import { useTranslations } from "@/lib/utils/i18nUtils";
 import { markdownify } from "@/lib/utils/textConverter";
 const t = await useTranslations(Astro.currentLocale as string);
+
+// Heading above the form. Comes from config.toml [settings.subscription] title,
+// falling back to the i18n label. Submissions go to Netlify Forms via
+// netlify/functions/subscribe.mts (no mailing provider is wired up yet).
+interface Props {
+  title?: string;
+}
+const heading = Astro.props.title || t("subscription.label");
 ---
 
-<form name="subscription-form" data-netlify="true" data-netlify-honeypot="bot-field" hidden>
+<form
+  name="subscription-form"
+  data-netlify="true"
+  data-netlify-honeypot="bot-field"
+  hidden>
   <input name="email" />
   <input name="privacy-consent" />
   <input name="bot-field" />
 </form>
 
-<form
-  id="subscription-form"
-  method="post"
-  class="relative mb-0">
+{heading && (
+  <h3 class="text-dark mb-3 text-xl" set:html={markdownify(heading)} />
+)}
+
+<form id="subscription-form" method="post" class="relative mb-0">
   <div class="relative">
-    <label for="sub-email" class="sr-only">Email</label>
+    <label for="sub-email" class="sr-only">
+      Email
+    </label>
     <input
       required
       type="email"
@@ -39,14 +54,15 @@ const t = await useTranslations(Astro.currentLocale as string);
         height="1em"
         width="1em"
         xmlns="http://www.w3.org/2000/svg">
-        <path
-          d="M446.7 98.6l-67.6 318.8c-5.1 22.5-18.4 28.1-37.3 17.5l-103-75.9-49.7 47.8c-5.5 5.5-10.1 10.1-20.7 10.1l7.4-104.9 190.9-172.5c8.3-7.4-1.8-11.5-12.9-4.1L117.8 284 16.2 252.2c-22.1-6.9-22.5-22.1 4.6-32.7L418.2 66.4c18.4-6.9 34.5 4.1 28.5 32.2z">
-        </path>
+        <path d="M446.7 98.6l-67.6 318.8c-5.1 22.5-18.4 28.1-37.3 17.5l-103-75.9-49.7 47.8c-5.5 5.5-10.1 10.1-20.7 10.1l7.4-104.9 190.9-172.5c8.3-7.4-1.8-11.5-12.9-4.1L117.8 284 16.2 252.2c-22.1-6.9-22.5-22.1 4.6-32.7L418.2 66.4c18.4-6.9 34.5 4.1 28.5 32.2z"></path>
       </svg>
     </button>
   </div>
   <p style="position: absolute; left: -312.5rem;" aria-hidden="true">
-    <label>Don't fill this out: <input name="bot-field" tabindex="-1" /></label>
+    <label>
+      Don't fill this out:
+      <input name="bot-field" tabindex="-1" />
+    </label>
   </p>
   <div class="form-check mt-4">
     <input
@@ -56,7 +72,10 @@ const t = await useTranslations(Astro.currentLocale as string);
       name="privacy-consent"
       id="privacy-consent"
     />
-    <label for="privacy-consent" set:html={markdownify(t("subscription.term"))} />
+    <label
+      for="privacy-consent"
+      set:html={markdownify(t("subscription.term"))}
+    />
   </div>
   <div
     id="sub-responses"
@@ -64,13 +83,11 @@ const t = await useTranslations(Astro.currentLocale as string);
     <div
       class="message message-error"
       id="sub-error-response"
-      style="display: none">
-    </div>
+      style="display: none"></div>
     <div
       class="message message-success"
       id="sub-success-response"
-      style="display: none">
-    </div>
+      style="display: none"></div>
   </div>
 </form>
 <script>

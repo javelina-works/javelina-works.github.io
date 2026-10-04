@@ -1,0 +1,33 @@
+---
+import Base from "@/layouts/Base.astro";
+import { getEntryCTM } from "@/lib/contentParser.astro";
+import handleDraftPage from "@/lib/utils/handleDraftPage";
+import { generatePaths } from "@/lib/utils/i18nUtils";
+import PageHeader from "@/components/PageHeader.astro";
+import ServicesList from "@/components/sections/ServicesList.astro";
+import HowItWorks from "@/components/sections/HowItWorks.astro";
+import BenefitsSection from "@/components/sections/BenefitsSection.astro";
+import CallToAction from "@/components/sections/CallToAction.astro";
+
+export function getStaticPaths() {
+  return generatePaths();
+}
+
+const entry = await getEntryCTM("services", "-index", Astro.currentLocale);
+
+// Remove drafts pages in production
+const response = handleDraftPage(entry?.data);
+if (response) return response;
+---
+
+<Base {...entry?.data}>
+  <PageHeader
+    hasBgShape={true}
+    title={entry?.data.title}
+    description={entry?.data.description}
+  />
+  <ServicesList />
+  <HowItWorks />
+  <BenefitsSection />
+  <CallToAction />
+</Base>
