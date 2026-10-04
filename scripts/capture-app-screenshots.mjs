@@ -17,7 +17,7 @@
  * The password comes from the environment so it never sits in `ps` output or
  * shell history.
  * Example:
- *   node scripts/capture-app-screenshots.mjs /tmp/shots a@e.com <pw> \
+ *   node scripts/capture-app-screenshots.mjs /tmp/shots a@e.com \
  *     /region/<jobRegionId>/zone/<zoneId>/plan /region/<jobRegionId>/zone/<zoneId>/target-check
  *
  * Notes: Nuxt dev never reaches "networkidle" (HMR socket), so waits are on
@@ -59,7 +59,7 @@ if (page.url().includes("/auth/")) {
   process.exit(2);
 }
 
-for (const path of paths) {
+for (const [i, path] of paths.entries()) {
   const r = await page
     .goto(base + path, { waitUntil: "load", timeout: 90000 })
     .catch(() => null);
@@ -68,12 +68,20 @@ for (const path of paths) {
       `navigation failed for ${base + path}: ${r ? r.status() : "ERR"}`,
     );
   }
+  // A lapsed session answers 200 with the login page; don't save that as the route.
+  if (page.url().includes("/auth/")) {
+    throw new Error(
+      `session expired: ${base + path} redirected to ${page.url()}`,
+    );
+  }
   await page.waitForTimeout(6000);
-  const name =
+  // Index prefix keeps names unique when two routes slug to the same string.
+  const slug =
     path
       .replace(/^\//, "")
       .replace(/[^a-z0-9]+/gi, "-")
       .replace(/-$/, "") || "home";
+  const name = `${String(i + 1).padStart(2, "0")}-${slug}`;
   await page.screenshot({ path: `${out}/${name}.png` });
   const map = page.locator(".leaflet-container").first();
   if (await map.count())

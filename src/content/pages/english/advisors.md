@@ -39,11 +39,11 @@ _A survey under way. The aircraft flies the pasture on a grid; the crew and the 
 
 ## Start with the free ballpark
 
-Type a client's ranch address into the [instant ballpark](/ballpark/), or draw the fence line, and in about a minute you have the acreage, the brush coverage, a rough plant count and a budget range for clearing it, read from public lidar and infrared imagery. It's free, it doesn't ask for anyone's contact information, and it doesn't put anyone on a list. Use the number in your plan, your listing or your loan file. When the owner wants a real bid, we fly it.
+Type a client's ranch address into the [instant ballpark](/tools/ballpark/), or draw the fence line, and in about a minute you have the acreage, the brush coverage, a rough plant count and a budget range for clearing it, read from public lidar and infrared imagery. It's free, it doesn't ask for anyone's contact information, and it doesn't put anyone on a list. Use the number in your plan, your listing or your loan file. When the owner wants a real bid, we fly it.
 
 ![A map of one West Texas ranch with every patch of likely brush picked out in green on a blank background, thick along the draws and thin on the open ground](../../../assets/images/advisors/ballpark-brush-read.png)
 
-_The ballpark's read of one West Texas ranch: the brush it can pick out of public lidar and infrared, before anybody flies anything. Thick in the draws, thin on the flat. [Watch it run](/ballpark/) on the demo ranch, then try it on a client's place. A flown survey is the sharper version of this — individual plants, sorted by species._
+_The ballpark's read of one West Texas ranch: the brush it can pick out of public lidar and infrared, before anybody flies anything. Thick in the draws, thin on the flat. [Watch it run](/tools/ballpark/) on the demo ranch, then try it on a client's place. A flown survey is the sharper version of this — individual plants, sorted by species._
 
 ## What a drive down the fence line can't tell you
 

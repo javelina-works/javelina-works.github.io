@@ -40,7 +40,7 @@ The boundary and contact details you give us with an estimate are used to prepar
 
 ## Cookies and Analytics
 
-We use an analytics service to understand how visitors use the Website. It stores a cookie or similar identifier in your browser. The banner shown on your first visit lets you accept or reject this. Your choice is saved in your browser, and if you reject, analytics collection is turned off for that browser. You can also clear or block cookies in your browser settings.
+We use an analytics service to understand how visitors use the Website. It stores a cookie or similar identifier in your browser. The banner shown on your first visit lets you accept or reject this. Analytics stays off until you accept. Your choice is saved in your browser, and if you reject, it stays off for that browser. You can also clear or block cookies in your browser settings.
 
 We do not use advertising or marketing cookies.
 
