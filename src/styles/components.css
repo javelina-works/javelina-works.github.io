@@ -101,14 +101,10 @@
       @apply my-1;
     }
 
+    /* One back-arrow per citation, kept so a reader can return to any of
+       them; shown small so a source cited twenty times stays readable. */
     .data-footnote-backref {
-      @apply ms-1 no-underline;
-    }
-
-    /* A source cited many times gets one back-arrow per citation; keep the
-       first so the list stays readable. */
-    .data-footnote-backref ~ .data-footnote-backref {
-      @apply hidden;
+      @apply ms-1 text-xs no-underline opacity-60;
     }
   }
 

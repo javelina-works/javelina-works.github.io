@@ -70,11 +70,15 @@ const apiHost =
     api_host: apiHost || "",
     ui_host: uiHost,
     defaults: "2026-01-30",
+    // Nothing is captured until the visitor accepts the cookie banner.
+    opt_out_capturing_by_default: true,
   });
 
+  // A saved acceptance opts in on later visits; a saved rejection, or no
+  // choice yet, leaves capture off.
   try {
-    if (localStorage.getItem("cookie-consent") === "rejected") {
-      posthog.opt_out_capturing();
+    if (localStorage.getItem("cookie-consent") === "accepted") {
+      posthog.opt_in_capturing();
     }
   } catch (e) {}
 </script>
