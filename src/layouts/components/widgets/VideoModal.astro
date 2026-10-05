@@ -132,7 +132,14 @@ const isLocalHostedVideo = src?.includes("/videos/") && provider === "html5";
         const { default: Plyr } = await import("plyr");
         await import("plyr/dist/plyr.css");
 
-        const players = Plyr.setup(".video-player") as Plyr[];
+        // Only build the player inside the modal this button opens, so a
+        // page with several video modals never loads an embed nobody chose.
+        const overlaySelector = button.getAttribute("data-hs-overlay");
+        if (!overlaySelector) return;
+
+        const players = Plyr.setup(
+          `${overlaySelector} .video-player`,
+        ) as Plyr[];
 
         players?.forEach((player) => {
           let videoElem = player.elements.original as HTMLVideoElement;
