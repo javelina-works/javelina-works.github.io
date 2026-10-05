@@ -132,13 +132,33 @@ const isLocalHostedVideo = src?.includes("/videos/") && provider === "html5";
         const { default: Plyr } = await import("plyr");
         await import("plyr/dist/plyr.css");
 
-        const players = Plyr.setup(".video-player") as Plyr[];
+        // Only build the player inside the modal this button opens, so a
+        // page with several video modals never loads an embed nobody chose.
+        const overlaySelector = button.getAttribute("data-hs-overlay");
+        if (!overlaySelector) return;
+
+        const players = Plyr.setup(
+          `${overlaySelector} .video-player`,
+        ) as Plyr[];
 
         players?.forEach((player) => {
           let videoElem = player.elements.original as HTMLVideoElement;
           const autoplayAttr = videoElem?.getAttribute("data-autoplay");
           const id = videoElem?.getAttribute("data-id");
           const isAutoplay = autoplayAttr === "true" ? true : false;
+
+          // Plyr is set up on the same click that opens the modal, so the
+          // first "open.hs.overlay" event has already fired by now. Start
+          // playback once the player is ready if its modal is already open.
+          const overlay = id ? document.getElementById(id) : null;
+          if (isAutoplay && overlay && !overlay.classList.contains("hidden")) {
+            player.ready
+              ? player.play()
+              : player.once("ready", () => {
+                  // The modal may have been closed again while Plyr loaded.
+                  if (!overlay.classList.contains("hidden")) player.play();
+                });
+          }
 
           // Play Video when Modal Open
           document.addEventListener("open.hs.overlay", function (event: any) {
