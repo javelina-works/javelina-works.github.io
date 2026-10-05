@@ -58,12 +58,11 @@ const uid = uniqueIdGenerator("process " + (title || ""));
 if (!enable) return;
 
 // Video steps use their image as the poster. Resolve it to an optimised URL
-// here because <video poster> takes a plain string, not an <Image>. The
-// lookup covers the same folders OptimizedImage does; anything it cannot
-// find (a remote URL, say) is passed through untouched.
+// here because <video poster> takes a plain string, not an <Image>. Images
+// under src/assets and src/content are optimised; a public/ path or remote
+// URL is passed through untouched, since public files are served as-is.
 const posterSources = import.meta.glob<{ default: ImageMetadata }>([
   "/src/assets/images/**/*.{jpeg,jpg,png,avif,webp}",
-  "/public/images/**/*.{jpeg,jpg,png,avif,webp}",
   "/src/content/**/*.{jpeg,jpg,png,avif,webp}",
 ]);
 const posterFor = async (path?: string) => {
