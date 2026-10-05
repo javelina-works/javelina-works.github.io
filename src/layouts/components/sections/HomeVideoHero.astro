@@ -10,7 +10,6 @@ import overrideObjects from "@/lib/utils/overrideObjects";
 import type { videoHeroSectionSchema } from "@/sections.schema";
 import CustomButton from "@/components/CustomButton.astro";
 import OptimizedImage from "@/components/utilities/OptimizedImage.astro";
-import { getImage } from "astro:assets";
 
 type SectionType = Section & NonNullable<z.infer<typeof videoHeroSectionSchema>>;
 
@@ -32,23 +31,6 @@ let { title, preTitle, description, buttons, backgroundVideo } =
 
 const videoButton = buttons?.find((button: any) => button.type === "video");
 const posterImage = backgroundVideo?.mobileFallbackImage || backgroundVideo?.poster;
-
-let resolvedPosterSrc: string | undefined;
-if (backgroundVideo?.poster) {
-  const images = import.meta.glob<{ default: ImageMetadata }>(
-    "/src/assets/images/**/*.{jpeg,jpg,png,avif,tiff,gif,webp}",
-  );
-  const key = Object.keys(images).find((k) => k.includes(backgroundVideo.poster));
-  if (key) {
-    const resolved = await images[key]();
-    const optimized = await getImage({
-      src: resolved.default,
-      format: "webp",
-      width: 1920,
-    });
-    resolvedPosterSrc = optimized.src;
-  }
-}
 ---
 
 <section class="home-video-hero relative flex min-h-dvh flex-col justify-center overflow-hidden">
@@ -64,10 +46,12 @@ if (backgroundVideo?.poster) {
         fetchpriority="high"
         format="webp"
         width={1920}
-        widths={[640, 1024, 1600, 1920]}
+        widths={[640, 768, 1024, 1366, 1600, 1920]}
         sizes="(min-width: 1920px) 1920px, 100vw"
       />
     )}
+    {/* No poster attribute: the image above already fills that role, and a
+        poster would download a second full-size copy that is never seen. */}
     {backgroundVideo?.src && (
       <video
         class="hero-video absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-1000"
@@ -75,7 +59,6 @@ if (backgroundVideo?.poster) {
         muted
         loop
         preload="none"
-        poster={resolvedPosterSrc || backgroundVideo.poster}
         data-src={backgroundVideo.src}
         data-video-type={backgroundVideo.type || "video/mp4"}
         aria-hidden="true"
@@ -136,6 +119,7 @@ if (backgroundVideo?.poster) {
             title && (
               <h1>
                 <AnimatedText
+                  eager
                   delay={0.1}
                   class="has-italic-text lg:text-display-1 text-display-3 md:text-display-2 mb-8 text-center leading-[1.15] font-normal capitalize text-white md:mb-10"
                   content={markdownify(title)}
@@ -146,6 +130,7 @@ if (backgroundVideo?.poster) {
           {
             description && (
               <AnimatedText
+                eager
                 delay={0.9}
                 stagger={0.03}
                 content={markdownify(description)}
@@ -167,7 +152,7 @@ if (backgroundVideo?.poster) {
                   <CustomButton class="btn-md" {...button} />
                 ) : (
                   <CustomButton
-                    class="btn-md"
+                    class="video-modal-toggle btn-md"
                     {...button}
                     title="Play Video"
                     aria-haspopup="dialog"

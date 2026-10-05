@@ -93,7 +93,7 @@ const videoButton = buttons?.find((button: any) => button.type === "video");
             title && (
               <h1>
                 <AnimatedText
-                  delay={200}
+                  eager
                   delay={0.1}
                   class="has-italic-text lg:text-display-1 text-display-3 md:text-display-2 mb-8 text-center leading-[1.15] font-normal capitalize md:mb-10"
                   content={markdownify(title)}
@@ -104,6 +104,7 @@ const videoButton = buttons?.find((button: any) => button.type === "video");
           {
             description && (
               <AnimatedText
+                eager
                 delay={0.9}
                 stagger={0.03}
                 content={markdownify(description)}
@@ -125,7 +126,7 @@ const videoButton = buttons?.find((button: any) => button.type === "video");
                   <CustomButton class="btn-md" {...button} />
                 ) : (
                   <CustomButton
-                    class="btn-md"
+                    class="video-modal-toggle btn-md"
                     {...button}
                     title="Play Video"
                     aria-haspopup="dialog"

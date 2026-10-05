@@ -4,7 +4,7 @@ metaDescription: "What Javelina Works collects through this website and the inst
 draft: false
 ---
 
-Effective Date: October 2, 2026
+Effective Date: October 5, 2026
 
 Javelina Works, Inc. ("Javelina Works," "we," "our," or "us") is a Texas company. This Privacy Policy explains what information we collect through our website, https://www.javelinaworks.com, and the tools on it, including the instant ballpark estimate (together, the "Website"), how we use it, and the choices you have.
 
@@ -44,13 +44,14 @@ We use an analytics service to understand how visitors use the Website. It store
 
 We do not use advertising or marketing cookies.
 
-Videos and maps on the Website are provided by third parties. When you play a video or load a map, that provider receives your IP address and may set its own cookies.
+Videos and maps on the Website are provided by third parties. Our demonstration videos are hosted by YouTube, a Google service, and are embedded in YouTube's privacy-enhanced mode. Nothing loads from YouTube until you choose to watch a video. When you play a video or load a map, that provider receives your IP address and information about your browser, and may set its own cookies under its own privacy policy.
 
 ## How Information Is Shared
 
 We do not sell, rent, or trade your personal information. We share it only with:
 
 - **Service providers** that operate the Website for us: website and application hosting, form handling, analytics, error monitoring, protection against automated abuse, and the internal messaging tool that tells our team a new inquiry has arrived. They may use the information only to provide those services to us.
+- **Video hosting.** Videos you choose to play on the Website stream from YouTube, which is operated by Google. That playback is covered by [Google's Privacy Policy](https://policies.google.com/privacy).
 - **Mapping and address lookup services.** When you search an address or pick a location in the ballpark tool, that address or location is sent to mapping and geocoding services, including public services run by government agencies, to find the property and draw the map. Your name, phone number and email address are not sent to them.
 - **Legal authorities,** when required by law or needed to protect our rights, property or safety.
 - **A successor business,** if Javelina Works is involved in a merger, acquisition or sale of assets.

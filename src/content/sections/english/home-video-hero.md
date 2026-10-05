@@ -28,10 +28,8 @@ buttons:
     hoverEffect: "creative-fill" # "text-flip", "creative-fill", "magnetic", "magnetic-text-flip"
     variant: "outline" # "fill", "outline", "text"
     video:
-      src: "/videos/quiver-product-promo_source.mp4"
-      type: mp4
-      provider: html5
-      poster: "/src/assets/images/homepage/promo-video-poster.png"
-      autoplay: false
+      src: "oBrUMVt6W5Q" # YouTube video ID: "Treat the Plant, Not the Pasture: Precision Brush Control"
+      provider: youtube
+      autoplay: true
       id: home-drone-promo-video
 ---
