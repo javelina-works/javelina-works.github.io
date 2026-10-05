@@ -147,7 +147,10 @@ const isLocalHostedVideo = src?.includes("/videos/") && provider === "html5";
           if (isAutoplay && overlay && !overlay.classList.contains("hidden")) {
             player.ready
               ? player.play()
-              : player.once("ready", () => player.play());
+              : player.once("ready", () => {
+                  // The modal may have been closed again while Plyr loaded.
+                  if (!overlay.classList.contains("hidden")) player.play();
+                });
           }
 
           // Play Video when Modal Open
