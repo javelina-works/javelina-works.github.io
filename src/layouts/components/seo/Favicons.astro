@@ -15,23 +15,8 @@ const favicons = [
     sizes: "96x96",
     href: `${faviconPath}/favicon-96x96.png`,
   },
-  {
-    rel: "icon",
-    type: "image/png",
-    sizes: "192x192",
-    href: `${faviconPath}/web-app-manifest-192x192.png`,
-  },
-  {
-    rel: "icon",
-    type: "image/png",
-    sizes: "512x512",
-    href: `${faviconPath}/web-app-manifest-512x512.png`,
-  },
-  {
-    rel: "icon",
-    type: "image/svg+xml",
-    href: `${faviconPath}/favicon.svg`,
-  },
+  // The 192 and 512 px icons are listed in site.webmanifest for installs; they
+  // are not linked here so the browser does not fetch 134 KB for a tab icon.
   {
     rel: "shortcut icon",
     href: `${faviconPath}/favicon.ico`,

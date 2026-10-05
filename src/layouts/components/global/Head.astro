@@ -8,7 +8,10 @@ import { Font } from "astro:assets";
 import fontsJson from "@/config/fonts.json";
 import PostHog from "@/components/posthog.astro";
 
-const fontVariables = fontsJson.map((font) => font.cssVariable) as any[];
+const fonts = fontsJson.map((font) => ({
+  cssVariable: font.cssVariable as any,
+  preload: font.preload === true,
+}));
 ---
 
 <head>
@@ -58,6 +61,6 @@ const fontVariables = fontsJson.map((font) => font.cssVariable) as any[];
   <!------------------
     Fonts
 -------------------->
-  {fontVariables.map((font) => <Font cssVariable={font} />)}
+  {fonts.map((font) => <Font cssVariable={font.cssVariable} preload={font.preload} />)}
   {import.meta.env.PROD && <PostHog />}
 </head>
