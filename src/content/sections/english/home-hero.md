@@ -24,10 +24,8 @@ buttons:
     hoverEffect: "creative-fill" # "text-flip", "creative-fill", "magnetic", "magnetic-text-flip"
     variant: "outline" # "fill", "outline", "text"
     video:
-      src: "/videos/quiver-product-promo_source.mp4" # video url or path eg: "/videos/test-video.mp4" or "https://example.com/test-video.mp4"
-      type: mp4 # video type eg: mp4, webm etc
-      provider: html5 # "youtube" | "vimeo" | "html5" (default is "youtube")
-      poster: "/src/assets/images/homepage/promo-video-poster.png" # Optional: URL or image path for video thumbnail
-      autoplay: false # Optional: true to autoplay, false to start manually (default is false)
+      src: "oBrUMVt6W5Q" # YouTube video ID, or a video url/path for html5 eg: "/videos/test-video.mp4"
+      provider: youtube # "youtube" | "vimeo" | "html5" (default is "youtube")
+      autoplay: true # Optional: true to autoplay, false to start manually (default is false)
       id: home-hero-video # required if same video is used on multiple time on same page
 ---

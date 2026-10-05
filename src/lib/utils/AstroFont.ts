@@ -52,7 +52,11 @@ export function generateAstroFontsConfig(fontsJson: Array<any>): Array<any> {
       provider: provider,
       name: font.name,
       cssVariable: cssVariable,
-      fallbacks: [font.fallback || "sans-serif"],
+      // A concrete local font first (Arial, Georgia) lets Astro generate a
+      // size-adjusted fallback face, which keeps layout steady during swap.
+      fallbacks: Array.isArray(font.fallback)
+        ? font.fallback
+        : [font.fallback || "sans-serif"],
     };
 
     // if styles are defined, add them

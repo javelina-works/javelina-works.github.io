@@ -5,6 +5,15 @@ interface Props {
   duration?: number;
   delay?: number;
   stagger?: number;
+  /**
+   * Reveal with a CSS animation that starts at first paint instead of waiting
+   * for JavaScript. Use it for text that is on screen when the page loads
+   * (hero titles and intros) so the browser can paint it, and count it as the
+   * largest contentful paint, before any script has run. Text further down
+   * the page keeps the default JavaScript reveal, which waits until the text
+   * scrolls into view.
+   */
+  eager?: boolean;
 }
 
 let {
@@ -12,6 +21,8 @@ let {
   duration = 0.6,
   delay = 0,
   stagger = 0.1,
+  eager = false,
+  class: className,
   ...rest
 } = Astro.props;
 
@@ -20,16 +31,17 @@ if (content) {
   // @ts-expect-error
   const words = content.split(" "); // Split text into words
   processedContent = words
-    .map(
-      (word: string) =>
-        `<span class="word" style="display: inline-block; will-change: transform; transform: translateY(10px); opacity: 0; filter: blur(10px);">${word}</span>`,
+    .map((word: string, index: number) =>
+      eager
+        ? `<span class="word" style="animation-delay: ${(delay + index * stagger).toFixed(2)}s; animation-duration: ${duration}s;">${word}</span>`
+        : `<span class="word" style="display: inline-block; will-change: transform; transform: translateY(10px); opacity: 0; filter: blur(10px);">${word}</span>`,
     )
     .join(" ");
 }
 ---
 
 <div
-  class:list={["animated-text", Astro.props.class]}
+  class:list={["animated-text", eager && "is-eager", className]}
   set:html={processedContent}
   data-duration={duration}
   data-delay={delay}
@@ -37,10 +49,40 @@ if (content) {
   {...rest}
 />
 
+<style is:global>
+  /* Eager reveal: pure CSS, so the words paint as soon as the page does. */
+  .animated-text.is-eager .word {
+    display: inline-block;
+    animation: animated-text-reveal 0.6s ease-out both;
+  }
+
+  @keyframes animated-text-reveal {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+      filter: blur(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animated-text.is-eager .word {
+      animation: none;
+    }
+  }
+</style>
+
 <script>
   import { animate, stagger, inView } from "motion";
 
-  const animatedTexts = document.querySelectorAll(".animated-text");
+  // Eager instances are animated by CSS above; only the rest wait for inView.
+  const animatedTexts = document.querySelectorAll(
+    ".animated-text:not(.is-eager)",
+  );
 
   animatedTexts.forEach((animatedText) => {
     const duration = parseFloat(

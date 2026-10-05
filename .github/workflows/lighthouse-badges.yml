@@ -37,10 +37,14 @@ jobs:
         id: scores
         run: |
           MANIFEST='${{ steps.lhci.outputs.manifest }}'
-          PERF=$(echo "$MANIFEST" | jq -r '.[0].summary.performance // empty')
-          A11Y=$(echo "$MANIFEST" | jq -r '.[0].summary.accessibility // empty')
-          BP=$(echo "$MANIFEST" | jq -r '.[0].summary."best-practices" // empty')
-          SEO=$(echo "$MANIFEST" | jq -r '.[0].summary.seo // empty')
+          # Lighthouse CI marks the median run of the batch as representative.
+          # Read scores from that run, not from whichever run happens to be
+          # listed first, so the badges match the summary in the job log.
+          RUN=$(echo "$MANIFEST" | jq -c '([.[] | select(.isRepresentativeRun == true)][0]) // .[0]')
+          PERF=$(echo "$RUN" | jq -r '.summary.performance // empty')
+          A11Y=$(echo "$RUN" | jq -r '.summary.accessibility // empty')
+          BP=$(echo "$RUN" | jq -r '.summary."best-practices" // empty')
+          SEO=$(echo "$RUN" | jq -r '.summary.seo // empty')
 
           score_and_color() {
             local raw="$1"
