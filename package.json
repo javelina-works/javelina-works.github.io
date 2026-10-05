@@ -64,7 +64,7 @@
     "prettier": "^3.9.6",
     "prettier-plugin-astro": "^1.0.0",
     "prettier-plugin-tailwindcss": "^0.8.1",
-    "prettier-plugin-toml": "^2.0.6",
+    "prettier-plugin-toml": "^3.0.2",
     "prop-types": "^15.8.1",
     "rehype-external-links": "^3.0.0",
     "remark-toc": "^9.0.0",
