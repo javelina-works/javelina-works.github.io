@@ -54,13 +54,28 @@
   status = 200
   force  = true
 
+# Ranch Map proxy: same pattern as the ballpark (exact path first, then the
+# splat for poll and bundle), so the tools/ranch-map page stays same-origin.
+[[redirects]]
+  from   = "/api/ranch-map"
+  to     = "https://brush-targeting-production.up.railway.app/api/v2/ranch-map"
+  status = 200
+  force  = true
+
+[[redirects]]
+  from   = "/api/ranch-map/*"
+  to     = "https://brush-targeting-production.up.railway.app/api/v2/ranch-map/:splat"
+  status = 200
+  force  = true
+
 # The STAGING proxy exists ONLY on deploy previews and branch deploys (the
 # staging branch at staging--javelina-works.netlify.app): the context
 # overrides below append it to dist/_redirects at build time (the _redirects
 # file is evaluated before these rules; exact path precedes the splat to avoid
-# the trailing-slash 307). Production never carries these routes.
+# the trailing-slash 307). Production never carries these routes. Both the
+# ballpark and the Ranch Map staging routes ride along.
 [context.deploy-preview]
-  command = "pnpm build && printf '/api/ballpark-staging https://fastapi-staging.up.railway.app/api/v2/ballpark 200!\n/api/ballpark-staging/* https://fastapi-staging.up.railway.app/api/v2/ballpark/:splat 200!\n' >> dist/_redirects"
+  command = "pnpm build && printf '/api/ballpark-staging https://fastapi-staging.up.railway.app/api/v2/ballpark 200!\n/api/ballpark-staging/* https://fastapi-staging.up.railway.app/api/v2/ballpark/:splat 200!\n/api/ranch-map-staging https://fastapi-staging.up.railway.app/api/v2/ranch-map 200!\n/api/ranch-map-staging/* https://fastapi-staging.up.railway.app/api/v2/ranch-map/:splat 200!\n' >> dist/_redirects"
 
 [context.branch-deploy]
-  command = "pnpm build && printf '/api/ballpark-staging https://fastapi-staging.up.railway.app/api/v2/ballpark 200!\n/api/ballpark-staging/* https://fastapi-staging.up.railway.app/api/v2/ballpark/:splat 200!\n' >> dist/_redirects"
+  command = "pnpm build && printf '/api/ballpark-staging https://fastapi-staging.up.railway.app/api/v2/ballpark 200!\n/api/ballpark-staging/* https://fastapi-staging.up.railway.app/api/v2/ballpark/:splat 200!\n/api/ranch-map-staging https://fastapi-staging.up.railway.app/api/v2/ranch-map 200!\n/api/ranch-map-staging/* https://fastapi-staging.up.railway.app/api/v2/ranch-map/:splat 200!\n' >> dist/_redirects"
