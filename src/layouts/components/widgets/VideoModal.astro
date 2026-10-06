@@ -77,6 +77,20 @@ const isLocalHostedVideo = src?.includes("/videos/") && provider === "html5";
 <script>
   // @ts-nocheck
   import AOS from "aos";
+  // Plyr's stylesheet as a URL, linked on first click. A dynamic
+  // `import("plyr/dist/plyr.css")` builds to a JS wrapper chunk that the
+  // Rolldown bundler doesn't emit, so the click died on a 404 before the
+  // player was set up.
+  import plyrCssUrl from "plyr/dist/plyr.css?url";
+
+  function loadPlyrCss() {
+    if (document.querySelector("link[data-plyr-css]")) return;
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = plyrCssUrl;
+    link.dataset.plyrCss = "";
+    document.head.appendChild(link);
+  }
 
   const videoButtons = document.querySelectorAll(
     "[data-hs-overlay].video-modal-toggle",
@@ -128,9 +142,8 @@ const isLocalHostedVideo = src?.includes("/videos/") && provider === "html5";
   videoButtons.forEach((button) => {
     button.addEventListener("click", async () => {
       try {
-        // Dynamically import Plyr and its css
+        loadPlyrCss();
         const { default: Plyr } = await import("plyr");
-        await import("plyr/dist/plyr.css");
 
         // Only build the player inside the modal this button opens, so a
         // page with several video modals never loads an embed nobody chose.
