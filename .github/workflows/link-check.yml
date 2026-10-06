@@ -42,16 +42,26 @@ jobs:
           key: cache-lychee-${{ github.sha }}
           restore-keys: cache-lychee-
 
+      # Same-site links resolve against the build output, not the live site.
+      # Fetching every /_astro image from production in one burst caused
+      # false "connection failed" / 520 errors.
+      # nrcs.usda.gov resets HTTP/2 streams for lychee's client, but the same
+      # URL returns 200 to curl.
       - name: Link check
         id: lychee
         uses: lycheeverse/lychee-action@v2
         with:
           args: >-
-            --base https://javelinaworks.com
+            --root-dir ${{ github.workspace }}/dist
+            --index-files index.html
             --cache
             --max-cache-age 1d
             --no-progress
+            --max-concurrency 16
+            --max-retries 5
+            --retry-wait-time 5
             --accept 200,204,206,301,302,308,403,429
+            --exclude '^https://www\.nrcs\.usda\.gov/'
             --exclude-path 'dist/_astro'
             './dist/**/*.html'
           fail: false
