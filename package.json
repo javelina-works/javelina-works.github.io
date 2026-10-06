@@ -29,7 +29,7 @@
     "@astrojs/netlify": "^8.2.6",
     "@floating-ui/dom": "^1.8.0",
     "@sentry/astro": "^10.74.0",
-    "@sentry/node": "^10.74.0",
+    "@sentry/node": "^11.4.0",
     "aos": "^2.3.4",
     "date-fns": "^4.4.0",
     "lucide": "^1.49.0",
