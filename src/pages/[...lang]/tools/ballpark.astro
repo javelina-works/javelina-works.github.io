@@ -3253,6 +3253,18 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
     function money50(x) {
       return "$" + (Math.round(x / 50) * 50).toLocaleString();
     }
+    // Days as a band, never an exact count: next to the plant count an
+    // exact figure exposes field throughput. The API sends days_band; this
+    // mirrors tasks_ballpark.pricing.DAY_BANDS for responses from before it.
+    function dayBand(d) {
+      if (d <= 2) return "1–2 days";
+      if (d <= 5) return "3–5 days";
+      if (d <= 14) return "1–2 weeks";
+      if (d <= 28) return "2–4 weeks";
+      if (d <= 60) return "1–2 months";
+      if (d <= 90) return "2–3 months";
+      return "3+ months";
+    }
     function showNumbers(resp) {
       var q = resp.quote;
       el("bpPriceBand").textContent = money50(q.low) + " – " + money50(q.high);
@@ -3272,8 +3284,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
           q.plants_low.toLocaleString() +
           " – " +
           q.plants_high.toLocaleString();
-      el("bpRDays").textContent =
-        "~" + q.days + (q.days === 1 ? " day" : " days");
+      el("bpRDays").textContent = q.days_band || dayBand(q.days);
       el("bpLeadMsg").hidden = true;
       el("bpLeadSend").disabled = false;
       var demo = !!st.demoBase;

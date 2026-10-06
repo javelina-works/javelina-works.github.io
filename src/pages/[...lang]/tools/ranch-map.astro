@@ -1,0 +1,2164 @@
+---
+import Base from "@/layouts/Base.astro";
+import "@/styles/leafletVendor.css";
+import { generatePaths } from "@/lib/utils/i18nUtils";
+
+export function getStaticPaths() {
+  return generatePaths();
+}
+
+const meta = {
+  metaTitle: "Free Ranch Map: Terrain, Creeks and Brush | Javelina Works",
+  metaDescription:
+    "Find your West Texas ranch and get a printable map of it: lidar terrain and contours, creeks and draws, brush cover from infrared imagery, and mapped roads, fences and tanks. Free.",
+  disableTagline: true,
+};
+---
+
+<Base {...meta} sectionSpacing="md">
+  <section class="rm-hero">
+    <div class="container">
+      <p class="rm-eyebrow">Free &middot; printable</p>
+      <h1>A map of your ranch, made from lidar</h1>
+      <p class="rm-sub">
+        Find your property and we&rsquo;ll draw it from public lidar and
+        infrared imagery: the terrain and contours, the creeks and draws the
+        water follows, where the brush is, and the roads, fences and tanks
+        people have mapped. Pick a style, then print it or save it as a PDF.
+      </p>
+    </div>
+  </section>
+
+  <section class="rm-toolwrap">
+    <div class="container">
+      <div class="rm-tool">
+        <div class="rm-mapcard">
+          <div id="rmLookupMap" aria-label="Map for finding your ranch"></div>
+        </div>
+        <div class="rm-panel">
+          <h2>Find your ranch</h2>
+          <form class="rm-find" id="rmFind">
+            <input
+              type="text"
+              id="rmAddr"
+              aria-label="Ranch address, town, or GPS coordinates"
+              placeholder="Address, town, or GPS (lat, long)"
+              autocomplete="street-address"
+            />
+            <button class="rm-cta rm-cta-slim" type="submit">
+              Find it
+            </button>
+          </form>
+          <p class="rm-hint">Or tap your ranch on the map.</p>
+          <button type="button" class="rm-ghost" id="rmHere">
+            Use my location
+          </button>
+          <p class="rm-acres" id="rmAcres" aria-live="polite"></p>
+          <label class="rm-field">
+            Name on the map (optional)
+            <input
+              type="text"
+              id="rmName"
+              placeholder="Your Ranch"
+              maxlength="60"
+            />
+          </label>
+          <button type="button" class="rm-cta" id="rmBuild" disabled>
+            Make my map
+          </button>
+          <div class="rm-progress" id="rmProgress" hidden>
+            <span class="rm-spinner" aria-hidden="true"></span>
+            <span id="rmProgressText"></span>
+          </div>
+          <p class="rm-msg" id="rmMsg" role="status" hidden></p>
+          <button type="button" class="rm-ghost rm-sample" id="rmSample">
+            See a sample: Fox Canyon
+            <small>180 acres in the Davis Mountains</small>
+          </button>
+          <p class="rm-fine">
+            Big ranches take a couple of minutes. Maps are kept for 30 days.
+            Texas parcels only for now.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="rm-studiowrap">
+    <div id="rmStudio" hidden>
+      <div class="app">
+        <aside class="rail">
+          <div class="rm-sec">
+            <h2>Map style</h2>
+            <div class="swatches" id="swatches">
+              <label class="swatch">
+                <input
+                  type="radio"
+                  name="style"
+                  id="st-survey"
+                  value="survey"
+                  checked
+                />
+                <span class="pv pv-survey"></span>
+                <span class="nm">
+                  Survey 1952<small>Old paper topo sheet</small>
+                </span>
+              </label>
+              <label class="swatch">
+                <input
+                  type="radio"
+                  name="style"
+                  id="st-modern"
+                  value="modern"
+                />
+                <span class="pv pv-modern"></span>
+                <span class="nm">
+                  Modern<small>Clean and light</small>
+                </span>
+              </label>
+              <label class="swatch">
+                <input
+                  type="radio"
+                  name="style"
+                  id="st-blueprint"
+                  value="blueprint"
+                />
+                <span class="pv pv-blueprint"></span>
+                <span class="nm">
+                  Blueprint<small>Cyanotype linework</small>
+                </span>
+              </label>
+              <label class="swatch">
+                <input type="radio" name="style" id="st-night" value="night" />
+                <span class="pv pv-night"></span>
+                <span class="nm">
+                  Night Relief<small>Dark, lit by lidar</small>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div class="rm-sec">
+            <h2>Layers</h2>
+            <div class="group">
+              <span>Land</span>
+              <label class="lyr">
+                <input type="checkbox" id="L-relief" checked />
+                <span>Shaded relief</span>
+                <em class="src lidar">Lidar</em>
+              </label>
+              <label class="lyr">
+                <input type="checkbox" id="L-tint" />
+                <span>Elevation color</span>
+                <em class="src lidar">Lidar</em>
+              </label>
+              <label class="lyr">
+                <input type="checkbox" id="L-contours" checked />
+                <span>Contour lines</span>
+                <em class="src lidar">Lidar</em>
+              </label>
+              <div class="sub">
+                <label for="ci">Every</label>
+                <select id="ci">
+                  <option value="10">10 ft</option>
+                  <option value="20" selected>
+                    20 ft
+                  </option>
+                  <option value="40">40 ft</option>
+                  <option value="100">100 ft</option>
+                </select>
+              </div>
+              <label class="lyr">
+                <input type="checkbox" id="L-brush" checked />
+                <span>Brush &amp; trees</span>
+                <em class="src lidar">Infrared</em>
+              </label>
+            </div>
+            <div class="group">
+              <span>Water</span>
+              <label class="lyr">
+                <input type="checkbox" id="L-creeks" checked />
+                <span>Creeks &amp; draws</span>
+                <em class="src calc">Computed</em>
+              </label>
+              <div class="sub">
+                <label for="detail">Fewer</label>
+                <input
+                  type="range"
+                  id="detail"
+                  min="0"
+                  max="100"
+                  value="35"
+                  aria-label="Drainage detail"
+                />
+                <span>More</span>
+              </div>
+              <label class="lyr">
+                <input type="checkbox" id="L-sheds" />
+                <span>Watersheds</span>
+                <em class="src calc">Computed</em>
+              </label>
+              <label class="lyr">
+                <input type="checkbox" id="L-tanks" checked />
+                <span>Stock tanks &amp; ponds</span>
+                <em class="src public">OSM · NHD</em>
+              </label>
+            </div>
+            <div class="group">
+              <span>Ranch</span>
+              <label class="lyr">
+                <input type="checkbox" id="L-roads" checked />
+                <span>Ranch roads</span>
+                <em class="src public">OSM</em>
+              </label>
+
+              <label class="lyr">
+                <input type="checkbox" id="L-trails" checked />
+                <span>Trails (dotted)</span>
+                <em class="src public">OSM</em>
+              </label>
+              <label class="lyr">
+                <input type="checkbox" id="L-fences" checked />
+                <span>Fences</span>
+                <em class="src public">OSM</em>
+              </label>
+              <label class="lyr">
+                <input type="checkbox" id="L-walls" checked />
+                <span>Rock walls</span>
+                <em class="src public">OSM</em>
+              </label>
+              <label class="lyr">
+                <input type="checkbox" id="L-bldg" checked />
+                <span>Buildings, wells &amp; silos</span>
+                <em class="src public">OSM</em>
+              </label>
+              <label class="lyr">
+                <input type="checkbox" id="L-pastures" checked />
+                <span>Pasture names</span>
+                <em class="src you">Example</em>
+              </label>
+              <label class="lyr">
+                <input type="checkbox" id="L-hq" checked />
+                <span>Gates, cliffs &amp; landmarks</span>
+                <em class="src public">OSM</em>
+              </label>
+            </div>
+            <div class="group">
+              <span>Sheet</span>
+              <label class="lyr">
+                <input type="checkbox" id="L-prop" />
+                <span>Property lines</span>
+                <em class="src public">County</em>
+              </label>
+              <label class="lyr">
+                <input type="checkbox" id="L-grid" />
+                <span>Lat / long grid</span>
+                <em class="src public">Grid</em>
+              </label>
+              <label class="lyr">
+                <input type="checkbox" id="L-fade" checked />
+                <span>Fade the neighbors</span>
+                <em class="src public">Parcel</em>
+              </label>
+            </div>
+          </div>
+
+          <div class="rm-sec">
+            <h2>Title block</h2>
+            <label class="field">
+              Map title
+              <input type="text" id="tTitle" value="Fox Canyon" />
+            </label>
+            <label class="field">
+              Subtitle
+              <input type="text" id="tSub" value="Jeff Davis County, Texas" />
+            </label>
+          </div>
+
+          <div class="rm-sec">
+            <h2>Print</h2>
+            <div class="printrow">
+              <select id="paper" aria-label="Paper size">
+                <option value="letter">Letter, 11 × 8.5 in</option>
+                <option value="tabloid" selected>
+                  Tabloid, 17 × 11 in
+                </option>
+                <option value="poster">Poster, 36 × 24 in</option>
+              </select>
+              <select id="orient" aria-label="Orientation">
+                <option value="auto" selected>
+                  Fit to ranch
+                </option>
+                <option value="portrait">Portrait</option>
+                <option value="landscape">Landscape</option>
+              </select>
+            </div>
+            <p class="plan" id="plan"></p>
+            <button
+              class="rm-btn"
+              type="button"
+              id="printBtn"
+              style="margin-top:8px">
+              Print or save as PDF
+            </button>
+          </div>
+
+          <div class="rm-sec how">
+            <p>
+              <b>Where this map comes from</b>
+            </p>
+            <ul>
+              <li>
+                <b>Lidar:</b>relief, contours and the high point, from the USGS
+                3DEP elevation model.
+              </li>
+              <li>
+                <b>Computed:</b>creeks, draws and watersheds traced from that
+                terrain.
+              </li>
+              <li>
+                <b>Infrared:</b>brush from 2022 NAIP imagery, using a vegetation
+                index threshold.
+              </li>
+              <li>
+                <b>OSM:</b>roads, trails, fences, walls, buildings and gates, as
+                volunteers have drawn them in OpenStreetMap. Coverage varies
+                ranch to ranch.
+              </li>
+              <li>
+                <b>County:</b>property lines from the TxGIO statewide parcel
+                layer, the same source Ballpark uses.
+              </li>
+            </ul>
+          </div>
+        </aside>
+
+        <main class="stage">
+          <div class="modes" role="tablist" aria-label="View">
+            <button type="button" role="tab" id="mExplore" aria-selected="true">
+              Explore
+            </button>
+            <button type="button" role="tab" id="mPrint" aria-selected="false">
+              Print preview
+            </button>
+          </div>
+          <div class="pgwrap" id="pgwrap" hidden>
+            <div class="page" id="page" data-style="survey">
+              <canvas id="pcanvas" aria-label="Print map"></canvas>
+              <div class="pfoot">
+                <div class="pbrand">
+                  <span class="mark" aria-hidden="true"></span>
+                  <b>Javelina Works</b>
+                  <small>javelinaworks.com</small>
+                </div>
+                <div class="ptitle">
+                  <h2 id="pTitle"></h2>
+                  <p id="pSub"></p>
+                  <p class="meta" id="pMeta"></p>
+                </div>
+                <div class="plegend" id="pLegend"></div>
+                <div class="pscale">
+                  <div id="pBar"></div>
+                  <p id="pScale"></p>
+                  <p class="pnotes" id="pNotes"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="sheet" id="sheet" data-style="survey">
+            <div class="mapwrap">
+              <canvas
+                id="map"
+                width="1688"
+                height="1288"
+                aria-label="Ranch map. Scroll or pinch to zoom, drag to pan."></canvas>
+              <div class="zoom" aria-label="Map zoom">
+                <button type="button" id="zIn" aria-label="Zoom in">
+                  +
+                </button>
+                <button type="button" id="zOut" aria-label="Zoom out">
+                  −
+                </button>
+                <button
+                  type="button"
+                  id="zReset"
+                  aria-label="Show the whole map">
+                  ⤢
+                </button>
+              </div>
+              <span class="zhint" id="zHint">
+                Scroll or pinch to zoom · drag to pan
+              </span>
+              <div class="loading" id="loading" hidden>
+                <ol id="steps"></ol>
+              </div>
+            </div>
+            <div class="foot">
+              <div class="sbrand">
+                <span class="mark" aria-hidden="true"></span>
+                <b>Javelina Works</b>
+                <small>javelinaworks.com</small>
+              </div>
+              <div class="stitle">
+                <h2 id="sTitle">Fox Canyon</h2>
+                <p id="sSub">Jeff Davis County, Texas</p>
+                <p class="meta" id="sMeta"></p>
+              </div>
+              <div class="legend" id="legend"></div>
+              <div class="snotes" id="sNotes"></div>
+            </div>
+          </div>
+          <p class="note" id="pageNote"></p>
+        </main>
+      </div>
+      <div class="toast" id="toast" hidden></div>
+    </div>
+  </section>
+</Base>
+
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<!-- The map styles' typefaces: Old Standard TT (Survey) and IBM Plex Mono
+     (Blueprint, Night). Figtree and Instrument Serif come from the site. -->
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap"
+/>
+
+<style is:global>
+  /* Ranch Map tool chrome. Namespaced .rm-*; colors from the site theme. */
+  .rm-hero h1 {
+    margin-top: 0.5rem;
+  }
+  .rm-eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-primary);
+    font-weight: 700;
+  }
+  .rm-sub {
+    color: var(--color-text-default);
+    max-width: 66ch;
+    margin-top: 1rem;
+  }
+  .rm-tool {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr);
+    gap: 20px;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    .rm-tool {
+      grid-template-columns: 1fr;
+    }
+  }
+  .rm-mapcard {
+    background: var(--color-light);
+    border: 1px solid var(--color-border-light);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  #rmLookupMap {
+    height: 460px;
+    width: 100%;
+  }
+  @media (max-width: 900px) {
+    #rmLookupMap {
+      height: 360px;
+    }
+  }
+  .rm-panel {
+    background: #fff;
+    border: 1px solid var(--color-border-light);
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .rm-panel h2 {
+    font-size: 1.4rem;
+    margin: 0;
+  }
+  .rm-find {
+    display: flex;
+    gap: 6px;
+  }
+  .rm-find input,
+  .rm-field input {
+    flex: 1;
+    min-width: 0;
+    border: 1px solid var(--color-border-light);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font: inherit;
+  }
+  .rm-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.85rem;
+    color: var(--color-text-default);
+  }
+  .rm-cta {
+    background: var(--color-primary);
+    color: #fff;
+    border: 0;
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .rm-cta:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .rm-cta-slim {
+    padding: 10px 14px;
+  }
+  .rm-ghost {
+    background: transparent;
+    border: 1px solid var(--color-border-light);
+    border-radius: 6px;
+    padding: 10px 14px;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+    color: var(--color-dark);
+  }
+  .rm-ghost small {
+    display: block;
+    color: var(--color-text-default);
+    font-size: 0.78rem;
+  }
+  .rm-ghost:hover {
+    border-color: var(--color-primary);
+  }
+  .rm-hint,
+  .rm-fine {
+    font-size: 0.85rem;
+    color: var(--color-text-default);
+    margin: 0;
+  }
+  .rm-fine {
+    font-size: 0.75rem;
+  }
+  .rm-acres {
+    font-weight: 600;
+    margin: 0;
+    min-height: 1.2em;
+  }
+  .rm-msg {
+    margin: 0;
+    font-size: 0.88rem;
+  }
+  .rm-msg[data-kind="warn"] {
+    color: #9a5b00;
+  }
+  .rm-progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+  }
+  .rm-spinner {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid var(--color-border-light);
+    border-top-color: var(--color-primary);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .rm-spinner {
+      animation: rm-spin 0.9s linear infinite;
+    }
+    @keyframes rm-spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  }
+  .rm-studiowrap {
+    padding-top: 24px;
+  }
+  #rmStudio {
+    scroll-margin-top: 90px;
+  }
+
+  /* Printing: only the real-size sheet. The @page size is set per plan. */
+  @media print {
+    html.rm-printing body * {
+      visibility: hidden !important;
+    }
+    html.rm-printing #page,
+    html.rm-printing #page * {
+      visibility: visible !important;
+    }
+    html.rm-printing #page {
+      position: fixed !important;
+      left: 0 !important;
+      top: 0 !important;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+    html.rm-printing,
+    html.rm-printing body {
+      overflow: hidden !important;
+      background: #fff !important;
+    }
+  }
+
+  /* ---- studio (ported from the Ranch Map Studio prototype, scoped to #rmStudio) ---- */
+  #rmStudio {
+    --bg: #f3ece9;
+    --table: #e7dcd6;
+    --panel: #fffaf8;
+    --fg: #2f2725;
+    --muted: #7a6b66;
+    --line: #e2d4cf;
+    --accent: #c52c03;
+    --accent-ink: #ffffff;
+    --chip: #f6e6e0;
+    --font-ui: "Figtree", "Segoe UI", system-ui, sans-serif;
+    --font-display: "Instrument Serif", Georgia, "Times New Roman", serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  }
+  #rmStudio * {
+    box-sizing: border-box;
+  }
+  #rmStudio [hidden] {
+    display: none !important;
+  }
+  #rmStudio {
+    min-height: 100%;
+  }
+  #rmStudio {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-ui);
+    font-size: 14px;
+    line-height: 1.45;
+  }
+  #rmStudio .top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--line);
+    flex-wrap: wrap;
+  }
+  #rmStudio .top .mark {
+    width: 34px;
+    height: 30px;
+    background: var(--accent);
+    -webkit-mask: var(--logo) center/contain no-repeat;
+    mask: var(--logo) center/contain no-repeat;
+    flex: none;
+  }
+  #rmStudio .top h1 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.75rem;
+    margin: 0;
+    line-height: 1;
+  }
+  #rmStudio .top h1 small {
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-left: 10px;
+    vertical-align: middle;
+  }
+  #rmStudio .top .badge {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: var(--muted);
+    border: 1px dashed var(--line);
+    padding: 4px 10px;
+    border-radius: 99px;
+  }
+  #rmStudio .app {
+    display: grid;
+    grid-template-columns: 340px minmax(0, 1fr);
+    min-height: calc(100vh - 60px);
+  }
+  @media (max-width: 900px) {
+    #rmStudio .app {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  #rmStudio .rail {
+    background: var(--panel);
+    border-right: 1px solid var(--line);
+    padding: 18px 18px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    min-width: 0;
+  }
+  @media (max-width: 900px) {
+    #rmStudio .rail {
+      border-right: 0;
+      border-bottom: 1px solid var(--line);
+    }
+  }
+  #rmStudio .rail h2 {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    margin: 0 0 10px;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  #rmStudio .rail .rm-sec {
+    min-width: 0;
+  }
+  #rmStudio .find {
+    display: flex;
+    gap: 6px;
+  }
+  #rmStudio .find input {
+    flex: 1;
+    min-width: 0;
+  }
+  #rmStudio input[type="text"],
+  #rmStudio select {
+    font: inherit;
+    color: var(--fg);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 9px 11px;
+  }
+  #rmStudio input[type="text"]:focus-visible,
+  #rmStudio select:focus-visible,
+  #rmStudio button:focus-visible,
+  #rmStudio .swatch:focus-within,
+  #rmStudio label.lyr:focus-within {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  #rmStudio .rm-btn {
+    font: inherit;
+    font-weight: 600;
+    border: 0;
+    border-radius: 8px;
+    padding: 9px 14px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    cursor: pointer;
+  }
+  #rmStudio .rm-btn:hover {
+    filter: brightness(1.06);
+  }
+  #rmStudio .rm-btn.ghost {
+    background: transparent;
+    color: var(--fg);
+    border: 1px solid var(--line);
+    font-weight: 500;
+  }
+  #rmStudio .samples {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  #rmStudio .samples button {
+    font: inherit;
+    font-size: 0.8rem;
+    background: var(--chip);
+    color: var(--fg);
+    border: 1px solid transparent;
+    border-radius: 99px;
+    padding: 4px 10px;
+    cursor: pointer;
+  }
+  #rmStudio .samples button[aria-pressed="true"] {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  #rmStudio .found {
+    margin-top: 10px;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  #rmStudio .found b {
+    color: var(--fg);
+    font-weight: 600;
+  }
+  #rmStudio .swatches {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  #rmStudio .swatch {
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    background: var(--bg);
+  }
+  #rmStudio .swatch input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  #rmStudio .swatch .pv {
+    height: 58px;
+    display: block;
+  }
+  #rmStudio .swatch .nm {
+    display: block;
+    padding: 6px 9px 7px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  #rmStudio .swatch .nm small {
+    display: block;
+    font-weight: 400;
+    color: var(--muted);
+    font-size: 0.72rem;
+  }
+  #rmStudio .swatch:has(input:checked) {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+  #rmStudio .pv-survey {
+    background:
+      repeating-radial-gradient(
+        circle at 70% 120%,
+        transparent 0 7px,
+        rgba(168, 100, 44, 0.55) 7px 8px
+      ),
+      radial-gradient(circle at 30% 30%, #c8d89e 0 18px, transparent 19px),
+      #eee5cb;
+  }
+  #rmStudio .pv-modern {
+    background:
+      repeating-radial-gradient(
+        circle at 70% 120%,
+        transparent 0 8px,
+        rgba(90, 80, 70, 0.22) 8px 9px
+      ),
+      linear-gradient(120deg, #dfe8d6, #f4f1e8 60%, #e6dccb);
+  }
+  #rmStudio .pv-blueprint {
+    background:
+      repeating-radial-gradient(
+        circle at 70% 120%,
+        transparent 0 7px,
+        rgba(255, 255, 255, 0.4) 7px 8px
+      ),
+      linear-gradient(0deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px) 0
+        0/12px 12px,
+      linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px) 0
+        0/12px 12px,
+      #1d4c8c;
+  }
+  #rmStudio .pv-night {
+    background:
+      repeating-radial-gradient(
+        circle at 70% 120%,
+        transparent 0 8px,
+        rgba(240, 200, 140, 0.28) 8px 9px
+      ),
+      radial-gradient(circle at 40% 30%, #5d5442, #23271f 70%);
+  }
+  #rmStudio .group {
+    border-top: 1px solid var(--line);
+    padding-top: 8px;
+    margin-top: 8px;
+  }
+  #rmStudio .group:first-of-type {
+    border-top: 0;
+    margin-top: 0;
+    padding-top: 0;
+  }
+  #rmStudio .group > span {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin: 2px 0 4px;
+  }
+  #rmStudio label.lyr {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 4px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  #rmStudio label.lyr:hover {
+    background: var(--chip);
+  }
+  #rmStudio label.lyr input {
+    accent-color: var(--accent);
+    width: 16px;
+    height: 16px;
+    margin: 0;
+  }
+  #rmStudio .src {
+    font-size: 0.66rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    font-weight: 600;
+  }
+  #rmStudio .src.lidar {
+    background: rgba(197, 44, 3, 0.12);
+    color: var(--accent);
+  }
+  #rmStudio .src.calc {
+    background: rgba(40, 110, 180, 0.14);
+    color: #3f7fc0;
+  }
+  #rmStudio .src.public {
+    background: rgba(110, 110, 110, 0.14);
+    color: var(--muted);
+  }
+  #rmStudio .src.you {
+    background: rgba(200, 150, 20, 0.16);
+    color: #b07d0a;
+  }
+  #rmStudio .sub {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 4px 6px 30px;
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+  #rmStudio .sub input[type="range"] {
+    flex: 1;
+    min-width: 0;
+    accent-color: var(--accent);
+  }
+  #rmStudio .sub select {
+    padding: 3px 6px;
+    font-size: 0.78rem;
+  }
+  #rmStudio .field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 8px;
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+  #rmStudio .field input {
+    font-size: 0.9rem;
+  }
+  #rmStudio .printrow {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  #rmStudio .printrow select {
+    flex: 1;
+    min-width: 0;
+  }
+  #rmStudio .how {
+    font-size: 0.8rem;
+    color: var(--muted);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  #rmStudio .how p {
+    margin: 0 0 6px;
+  }
+  #rmStudio .how ul {
+    margin: 0;
+    padding-left: 18px;
+  }
+  #rmStudio .how li {
+    margin-bottom: 3px;
+  }
+  #rmStudio .stage {
+    background: var(--table);
+    padding: 28px 24px 48px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    background-image:
+      linear-gradient(rgba(127, 100, 90, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(127, 100, 90, 0.08) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  @media (max-width: 600px) {
+    #rmStudio .stage {
+      padding: 16px 16px 32px;
+    }
+  }
+  #rmStudio .stage .note {
+    font-size: 0.78rem;
+    color: var(--muted);
+    max-width: 1040px;
+    width: 100%;
+  }
+  #rmStudio .sheet {
+    --s-paper: #eee5cb;
+    --s-ink: #2a2119;
+    --s-mute: #6d5c49;
+    --s-rule: #2a2119;
+    --s-brand: #8e2a12;
+    --s-title: "Old Standard TT", Georgia, serif;
+    --s-body: "Old Standard TT", Georgia, serif;
+    width: 100%;
+    max-width: 1040px;
+    background: var(--s-paper);
+    color: var(--s-ink);
+    padding: 2.2%;
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.18),
+      0 18px 40px -12px rgba(40, 20, 10, 0.35);
+    position: relative;
+  }
+  #rmStudio .sheet[data-style="survey"] {
+    background-image: radial-gradient(
+      ellipse at center,
+      transparent 55%,
+      rgba(120, 90, 40, 0.16)
+    );
+  }
+  #rmStudio .sheet[data-style="modern"] {
+    --s-paper: #fbfaf7;
+    --s-ink: #1f2326;
+    --s-mute: #6b7176;
+    --s-rule: #1f2326;
+    --s-brand: #c52c03;
+    --s-title: "Instrument Serif", Georgia, serif;
+    --s-body: "Figtree", system-ui, sans-serif;
+  }
+  #rmStudio .sheet[data-style="blueprint"] {
+    --s-paper: #1d4c8c;
+    --s-ink: #f2f7ff;
+    --s-mute: #a9c4e8;
+    --s-rule: #f2f7ff;
+    --s-brand: #f2f7ff;
+    --s-title: "IBM Plex Mono", Menlo, monospace;
+    --s-body: "IBM Plex Mono", Menlo, monospace;
+  }
+  #rmStudio .sheet[data-style="night"] {
+    --s-paper: #16181a;
+    --s-ink: #efe7da;
+    --s-mute: #9a907f;
+    --s-rule: #5b5446;
+    --s-brand: #ff7a4a;
+    --s-title: "Instrument Serif", Georgia, serif;
+    --s-body: "IBM Plex Mono", Menlo, monospace;
+  }
+  #rmStudio .mapwrap {
+    position: relative;
+  }
+  #rmStudio .mapwrap canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    cursor: grab;
+    touch-action: none;
+  }
+  #rmStudio .mapwrap canvas.dragging {
+    cursor: grabbing;
+  }
+  #rmStudio .zoom {
+    position: absolute;
+    top: 4.5%;
+    right: 4%;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  #rmStudio .zoom button {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.18);
+    background: rgba(255, 255, 255, 0.92);
+    color: #2a2119;
+    font: 600 18px/1 var(--font-ui);
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+  }
+  #rmStudio .zoom button:hover {
+    background: #fff;
+  }
+  #rmStudio .zhint {
+    position: absolute;
+    left: 50%;
+    top: 4.5%;
+    transform: translateX(-50%);
+    font: 500 0.72rem var(--font-ui);
+    background: rgba(20, 16, 14, 0.6);
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 99px;
+    pointer-events: none;
+    transition: opacity 0.6s;
+  }
+  #rmStudio .loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(20, 16, 14, 0.55);
+    color: #fff;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    backdrop-filter: blur(2px);
+  }
+  #rmStudio .loading ol {
+    list-style: none;
+    margin: 0;
+    padding: 18px 22px;
+    background: rgba(20, 16, 14, 0.75);
+    border-radius: 10px;
+    min-width: 260px;
+  }
+  #rmStudio .loading li {
+    opacity: 0.4;
+    padding: 2px 0;
+  }
+  #rmStudio .loading li.on {
+    opacity: 1;
+  }
+  #rmStudio .loading li.done {
+    opacity: 0.75;
+  }
+  #rmStudio .loading li.done::before {
+    content: "✓ ";
+    color: #7bd88f;
+  }
+  #rmStudio .loading li.on::before {
+    content: "› ";
+    color: #ffb27a;
+  }
+  #rmStudio .foot {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1.2fr) minmax(0, 1.5fr) minmax(
+        0,
+        1fr
+      );
+    gap: 3%;
+    align-items: start;
+    padding-top: 2%;
+    margin-top: 1.4%;
+    border-top: 2px solid var(--s-rule);
+    font-family: var(--s-body);
+  }
+  @media (max-width: 760px) {
+    #rmStudio .foot {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 16px;
+    }
+  }
+  #rmStudio .sbrand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-align: center;
+  }
+  #rmStudio .sbrand .mark {
+    width: 64px;
+    height: 57px;
+    background: var(--s-brand);
+    -webkit-mask: var(--logo) center/contain no-repeat;
+    mask: var(--logo) center/contain no-repeat;
+  }
+  #rmStudio .sbrand b {
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  #rmStudio .sbrand small {
+    font-size: 0.62rem;
+    color: var(--s-mute);
+    letter-spacing: 0.04em;
+  }
+  #rmStudio .stitle h2 {
+    font-family: var(--s-title);
+    font-weight: 400;
+    font-size: clamp(1.4rem, 3.2vw, 2.4rem);
+    line-height: 1.02;
+    margin: 0;
+    text-wrap: balance;
+  }
+  #rmStudio .sheet[data-style="survey"] .stitle h2 {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    font-size: clamp(1.1rem, 2.5vw, 1.9rem);
+  }
+  #rmStudio .sheet[data-style="blueprint"] .stitle h2 {
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+    font-size: clamp(1.05rem, 2.3vw, 1.7rem);
+  }
+  #rmStudio .stitle p {
+    margin: 6px 0 0;
+    font-size: 0.78rem;
+    color: var(--s-mute);
+  }
+  #rmStudio .sheet[data-style="survey"] .stitle p {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.7rem;
+  }
+  #rmStudio .stitle .meta {
+    font-variant-numeric: tabular-nums;
+  }
+  #rmStudio .legend {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3px 14px;
+    font-size: 0.7rem;
+  }
+  #rmStudio .legend .li {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+  }
+  #rmStudio .legend svg {
+    flex: none;
+  }
+  #rmStudio .legend .lh {
+    grid-column: 1 / -1;
+    font-size: 0.62rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--s-mute);
+    margin-bottom: 2px;
+  }
+  #rmStudio .snotes {
+    font-size: 0.62rem;
+    color: var(--s-mute);
+    line-height: 1.5;
+  }
+  #rmStudio .snotes b {
+    color: var(--s-ink);
+    font-weight: 600;
+  }
+  #rmStudio .modes {
+    display: flex;
+    gap: 4px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 3px;
+  }
+  #rmStudio .modes button {
+    font: inherit;
+    font-weight: 600;
+    font-size: 0.82rem;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    padding: 6px 14px;
+    border-radius: 7px;
+    cursor: pointer;
+  }
+  #rmStudio .modes button[aria-selected="true"] {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+  #rmStudio .plan {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin: 8px 0 0;
+    line-height: 1.5;
+  }
+  #rmStudio .plan b {
+    color: var(--fg);
+  }
+  #rmStudio .plan .warn {
+    display: block;
+    margin-top: 6px;
+    color: #b07d0a;
+  }
+  #rmStudio .pgwrap {
+    width: 100%;
+    max-width: 1100px;
+    position: relative;
+  }
+  #rmStudio .page {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: top left;
+    background: var(--s-paper);
+    color: var(--s-ink);
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.18),
+      0 18px 40px -12px rgba(40, 20, 10, 0.35);
+    --s-paper: #eee5cb;
+    --s-ink: #2a2119;
+    --s-mute: #6d5c49;
+    --s-rule: #2a2119;
+    --s-brand: #8e2a12;
+    --s-title: "Old Standard TT", Georgia, serif;
+    --s-body: "Old Standard TT", Georgia, serif;
+  }
+  #rmStudio .page[data-style="modern"] {
+    --s-paper: #fbfaf7;
+    --s-ink: #2a2e31;
+    --s-mute: #6b7176;
+    --s-rule: #2a2e31;
+    --s-brand: #c52c03;
+    --s-title: "Instrument Serif", Georgia, serif;
+    --s-body: "Figtree", system-ui, sans-serif;
+  }
+  #rmStudio .page[data-style="blueprint"] {
+    --s-paper: #1d4c8c;
+    --s-ink: #f2f7ff;
+    --s-mute: #a9c4e8;
+    --s-rule: #f2f7ff;
+    --s-brand: #f2f7ff;
+    --s-title: "IBM Plex Mono", Menlo, monospace;
+    --s-body: "IBM Plex Mono", Menlo, monospace;
+  }
+  #rmStudio .page[data-style="night"] {
+    --s-paper: #181a1c;
+    --s-ink: #d6cfc3;
+    --s-mute: #8f8677;
+    --s-rule: #4a453b;
+    --s-brand: #e0703f;
+    --s-title: "Instrument Serif", Georgia, serif;
+    --s-body: "IBM Plex Mono", Menlo, monospace;
+  }
+  #rmStudio .page canvas {
+    position: absolute;
+    display: block;
+  }
+  #rmStudio .pfoot {
+    position: absolute;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1.25fr) minmax(0, 1.6fr) minmax(
+        0,
+        1.25fr
+      );
+    gap: 0 0.35in;
+    align-items: start;
+    border-top: 1.5pt solid var(--s-rule);
+    font-family: var(--s-body);
+    font-size: var(--fs-body);
+  }
+  #rmStudio .pbrand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.04in;
+    text-align: center;
+  }
+  #rmStudio .pbrand .mark {
+    width: var(--logo);
+    height: calc(var(--logo) * 0.886);
+    background: var(--s-brand);
+    -webkit-mask: var(--logo-img) center/contain no-repeat;
+    mask: var(--logo-img) center/contain no-repeat;
+  }
+  #rmStudio .pbrand b {
+    font-size: var(--fs-small);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  #rmStudio .pbrand small {
+    font-size: var(--fs-tiny);
+    color: var(--s-mute);
+  }
+  #rmStudio .ptitle h2 {
+    font-family: var(--s-title);
+    font-weight: 400;
+    font-size: var(--fs-title);
+    line-height: 1.02;
+    margin: 0;
+  }
+  #rmStudio .page[data-style="survey"] .ptitle h2,
+  #rmStudio .page[data-style="blueprint"] .ptitle h2 {
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    font-size: calc(var(--fs-title) * 0.78);
+  }
+  #rmStudio .ptitle p {
+    margin: 0.05in 0 0;
+    color: var(--s-mute);
+    font-size: var(--fs-body);
+  }
+  #rmStudio .plegend {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.02in 0.18in;
+    font-size: var(--fs-small);
+  }
+  #rmStudio .plegend .li {
+    display: flex;
+    align-items: center;
+    gap: 0.06in;
+    min-width: 0;
+  }
+  #rmStudio .plegend svg {
+    width: calc(var(--fs-small) * 2.6);
+    height: calc(var(--fs-small) * 1.2);
+    flex: none;
+  }
+  #rmStudio .pscale p {
+    margin: 0.04in 0 0;
+    font-size: var(--fs-small);
+  }
+  #rmStudio .pscale .pnotes {
+    font-size: var(--fs-tiny);
+    color: var(--s-mute);
+    line-height: 1.45;
+  }
+  #rmStudio .pscale svg {
+    display: block;
+    overflow: visible;
+  }
+  #rmStudio .dialog {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 14, 12, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 10;
+  }
+  #rmStudio .dialog .card {
+    background: var(--panel);
+    color: var(--fg);
+    border-radius: 14px;
+    padding: 22px 24px;
+    max-width: 460px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  }
+  #rmStudio .dialog h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.6rem;
+    margin: 0 0 8px;
+  }
+  #rmStudio .dialog p,
+  #rmStudio .dialog li {
+    font-size: 0.88rem;
+    color: var(--muted);
+  }
+  #rmStudio .dialog ul {
+    padding-left: 18px;
+  }
+  #rmStudio .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 22px;
+    transform: translateX(-50%);
+    background: var(--fg);
+    color: var(--bg);
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    max-width: min(520px, calc(100% - 32px));
+    z-index: 11;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    #rmStudio .toast {
+      animation: rise 0.25s ease-out;
+    }
+    @keyframes rise {
+      from {
+        transform: translate(-50%, 10px);
+        opacity: 0;
+      }
+    }
+  }
+  #rmStudio b,
+  #rmStudio strong {
+    color: inherit;
+  }
+  #rmStudio .how b {
+    color: var(--fg);
+  }
+</style>
+
+<script
+  is:inline
+  src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
+  integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO"
+  crossorigin="anonymous"></script>
+<script
+  is:inline
+  src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/7.2.0/turf.min.js"
+  integrity="sha384-ll8qH0IE3im19Dtlr1jtv5fdy+gm+0bx8T4+OYxPeJpc6PO1XLNFnyvdzaKJ78bU"
+  crossorigin="anonymous"></script>
+<script>
+  import "@/scripts/ranch-map/engine.js";
+</script>
+<script is:inline>
+  (function () {
+    "use strict";
+
+    // Same-origin, like the ballpark: production proxies /api/ranch-map via
+    // Netlify; deploy previews and `astro dev` get /api/ranch-map-staging.
+    var API = location.hostname.endsWith("javelinaworks.com")
+      ? "/api/ranch-map"
+      : "/api/ranch-map-staging";
+    var SAMPLE_URL = "/tools/ranch-map/fox-canyon.json";
+    // TxGIO StratMap statewide parcels (identify-only public service), the
+    // same source and the same lookup flow as the ballpark page.
+    var PARCELS =
+      "https://feature.geographic.texas.gov/arcgis/rest/services/Parcels/stratmap_land_parcels_48_most_recent/MapServer/identify";
+    var ACRE_M2 = 4046.8564224;
+    var MAX_ACRES = 50000;
+    var POLL_MS = 3000;
+    var POLL_TIMEOUT_MS = 15 * 60 * 1000;
+
+    function el(id) {
+      return document.getElementById(id);
+    }
+    function track(name, props) {
+      try {
+        if (window.posthog) window.posthog.capture(name, props);
+      } catch (e) {
+        /* analytics must never break the page */
+      }
+    }
+    function say(msg, kind) {
+      var m = el("rmMsg");
+      m.textContent = msg || "";
+      m.hidden = !msg;
+      m.dataset.kind = kind || "";
+    }
+
+    var st = {
+      members: {},
+      others: {},
+      geometry: null,
+      county: null,
+      busy: false,
+    };
+
+    /* ---------------- map ---------------- */
+    var map = L.map("rmLookupMap", { preferCanvas: true }).setView(
+      [31.2, -99.8],
+      6,
+    );
+    L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      { maxZoom: 19, attribution: "&copy; Esri" },
+    ).addTo(map);
+    map.createPane("rmRef");
+    map.getPane("rmRef").style.zIndex = "350";
+    map.getPane("rmRef").style.pointerEvents = "none";
+    L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}",
+      { maxZoom: 19, pane: "rmRef" },
+    ).addTo(map);
+    L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+      { maxZoom: 19, pane: "rmRef" },
+    ).addTo(map);
+    L.control.scale({ imperial: true }).addTo(map);
+    var parcelLayer = L.layerGroup().addTo(map);
+    var boundaryLayer = L.layerGroup().addTo(map);
+
+    /* ---------------- geocoding (Census JSONP, then Nominatim) ---------------- */
+    function parseLatLng(s) {
+      var m = s.trim().match(/^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/);
+      if (!m) return null;
+      var a = parseFloat(m[1]),
+        b = parseFloat(m[2]);
+      if (a < 0 && b > 0) {
+        var t = a;
+        a = b;
+        b = t;
+      }
+      return { lat: a, lng: b };
+    }
+    function censusGeocode(address) {
+      return new Promise(function (resolve, reject) {
+        var cb = "rmCensus_" + Math.random().toString(36).slice(2);
+        var s = document.createElement("script");
+        var timer = setTimeout(function () {
+          cleanup();
+          reject(new Error("timeout"));
+        }, 12000);
+        function cleanup() {
+          clearTimeout(timer);
+          delete window[cb];
+          s.remove();
+        }
+        window[cb] = function (d) {
+          cleanup();
+          var m =
+            d &&
+            d.result &&
+            d.result.addressMatches &&
+            d.result.addressMatches[0];
+          if (!m) return reject(new Error("no match"));
+          resolve({ lat: m.coordinates.y, lng: m.coordinates.x });
+        };
+        s.onerror = function () {
+          cleanup();
+          reject(new Error("unreachable"));
+        };
+        s.src =
+          "https://geocoding.geo.census.gov/geocoder/locations/onelineaddress?" +
+          new URLSearchParams({
+            address: address,
+            benchmark: "Public_AR_Current",
+            format: "jsonp",
+            callback: cb,
+          });
+        document.head.appendChild(s);
+      });
+    }
+    function nominatim(address) {
+      return fetch(
+        "https://nominatim.openstreetmap.org/search?" +
+          new URLSearchParams({
+            q: address,
+            format: "json",
+            limit: "1",
+            countrycodes: "us",
+          }),
+      )
+        .then(function (r) {
+          return r.ok ? r.json() : [];
+        })
+        .then(function (d) {
+          if (!d || !d.length) throw new Error("no match");
+          return { lat: parseFloat(d[0].lat), lng: parseFloat(d[0].lon) };
+        });
+    }
+
+    /* ---------------- parcels (TxGIO identify; mirrors the ballpark) ---------------- */
+    function ringArea(r) {
+      var a = 0;
+      for (var i = 0; i < r.length - 1; i++)
+        a += r[i][0] * r[i + 1][1] - r[i + 1][0] * r[i][1];
+      return a / 2;
+    }
+    function ringsToGeoJSON(rings) {
+      var outers = [],
+        holes = [];
+      rings.forEach(function (r) {
+        if (r.length >= 4) (ringArea(r) < 0 ? outers : holes).push(r);
+      });
+      if (!outers.length) {
+        outers = holes;
+        holes = [];
+      }
+      var polys = outers.map(function (o) {
+        return [o];
+      });
+      holes.forEach(function (h) {
+        var pt = turf.point(h[0]);
+        var host = polys.find(function (p) {
+          return turf.booleanPointInPolygon(pt, turf.polygon([p[0]]));
+        });
+        if (host) host.push(h);
+        else polys.push([h]);
+      });
+      return polys.length === 1
+        ? { type: "Polygon", coordinates: polys[0] }
+        : { type: "MultiPolygon", coordinates: polys };
+    }
+    function toFeature(r) {
+      var a = r.attributes || {};
+      // Owner stays in memory only, to group a ranch's parcels; it is never
+      // sent to our API or printed on the map.
+      return turf.feature(ringsToGeoJSON(r.geometry.rings), {
+        objectid: a.objectid,
+        owner: a.OWNER_NAME,
+        county: a.COUNTY,
+      });
+    }
+    function identify(geometry, geometryType, extent, tolerance) {
+      var p = new URLSearchParams({
+        geometry: geometry,
+        geometryType: geometryType,
+        sr: "4326",
+        layers: "all:0",
+        tolerance: String(tolerance),
+        mapExtent: extent.join(","),
+        imageDisplay: "1000,1000,96",
+        returnGeometry: "true",
+        f: "json",
+      });
+      return fetch(PARCELS, { method: "POST", body: p })
+        .then(function (r) {
+          return r.json();
+        })
+        .then(function (d) {
+          if (d.error) throw new Error("parcel service error");
+          return (d.results || []).map(toFeature);
+        });
+    }
+    function normOwner(s) {
+      return (s || "")
+        .toUpperCase()
+        .replace(/&/g, " AND ")
+        .replace(/[^A-Z0-9 ]+/g, " ")
+        .replace(/\b(ET ?AL|ET ?UX|ET ?VIR|TRUSTEES?|TR)\b/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+    function esriPolygon(feature) {
+      var g = feature.geometry;
+      var polys = g.type === "Polygon" ? [g.coordinates] : g.coordinates;
+      var rings = [];
+      polys.forEach(function (p) {
+        p.forEach(function (ring) {
+          rings.push(
+            ring.map(function (c) {
+              return [+c[0].toFixed(6), +c[1].toFixed(6)];
+            }),
+          );
+        });
+      });
+      return JSON.stringify({ rings: rings, spatialReference: { wkid: 4326 } });
+    }
+    function findSeed(lng, lat) {
+      var ext = [lng - 0.005, lat - 0.005, lng + 0.005, lat + 0.005];
+      return identify(lng + "," + lat, "esriGeometryPoint", ext, 0).then(
+        function (exact) {
+          if (exact.length) return exact[0];
+          // Rural geocodes land on the road centerline; search ~300 m out.
+          return identify(lng + "," + lat, "esriGeometryPoint", ext, 270).then(
+            function (near) {
+              if (!near.length) return null;
+              var pt = turf.point([lng, lat]);
+              near.forEach(function (f) {
+                f.properties._d = turf.pointToPolygonDistance(pt, f, {
+                  units: "meters",
+                });
+              });
+              near.sort(function (a, b) {
+                return a.properties._d - b.properties._d;
+              });
+              return near[0];
+            },
+          );
+        },
+      );
+    }
+    // A big ranch is many parcels: same-owner parcels that touch the growing
+    // selection join round after round until nothing new touches it. Other
+    // neighbors are shown dashed so a rancher can tap to add or remove them.
+    var ASSEMBLE_MAX_ROUNDS = 10;
+    function assemble(seed) {
+      var owner = normOwner(seed.properties.owner);
+      var members = {},
+        others = {};
+      function key(f) {
+        return String(f.properties.objectid);
+      }
+      members[key(seed)] = seed;
+      var frontier = [seed];
+      function acres() {
+        return (
+          Object.keys(members).reduce(function (a, k) {
+            return a + turf.area(members[k]);
+          }, 0) / ACRE_M2
+        );
+      }
+      function round(n) {
+        if (
+          !owner ||
+          !frontier.length ||
+          n >= ASSEMBLE_MAX_ROUNDS ||
+          acres() > MAX_ACRES
+        )
+          return Promise.resolve();
+        var front =
+          frontier.length === 1
+            ? frontier[0]
+            : turf.union(turf.featureCollection(frontier));
+        var probe = turf.simplify(
+          turf.buffer(front, 400, { units: "meters", steps: 4 }),
+          { tolerance: 0.0002, highQuality: false },
+        );
+        return identify(
+          esriPolygon(probe),
+          "esriGeometryPolygon",
+          turf.bbox(probe),
+          0,
+        ).then(function (found) {
+          var frontBuf = turf.buffer(front, 15, { units: "meters", steps: 4 });
+          var added = [];
+          found.forEach(function (f) {
+            var k = key(f);
+            if (members[k]) return;
+            if (
+              normOwner(f.properties.owner) === owner &&
+              turf.booleanIntersects(frontBuf, f)
+            ) {
+              members[k] = f;
+              delete others[k];
+              added.push(f);
+            } else if (!others[k]) others[k] = f;
+          });
+          frontier = added;
+          return round(n + 1);
+        });
+      }
+      return round(0)
+        .catch(function () {
+          /* keep whatever joined before the parcel service hiccuped */
+        })
+        .then(function () {
+          return {
+            members: Object.keys(members).map(function (k) {
+              return members[k];
+            }),
+            others: Object.keys(others)
+              .filter(function (k) {
+                return !members[k];
+              })
+              .map(function (k) {
+                return others[k];
+              }),
+          };
+        });
+    }
+
+    /* ---------------- selection ---------------- */
+    var ON = {
+      color: "#f2b23a",
+      weight: 1.5,
+      fillColor: "#f2b23a",
+      fillOpacity: 0.16,
+    };
+    var OFF = {
+      color: "#f2efe6",
+      weight: 1.2,
+      dashArray: "5 4",
+      fillColor: "#6d685c",
+      fillOpacity: 0.12,
+    };
+    function membersUnion() {
+      var feats = Object.keys(st.members).map(function (k) {
+        return st.members[k].feature;
+      });
+      if (!feats.length) return null;
+      return feats.length === 1
+        ? feats[0]
+        : turf.union(turf.featureCollection(feats));
+    }
+    function refresh(fit) {
+      var u = membersUnion();
+      boundaryLayer.clearLayers();
+      st.geometry = u ? u.geometry : null;
+      var n = Object.keys(st.members).length;
+      if (!u) {
+        el("rmAcres").textContent = "";
+        el("rmBuild").disabled = true;
+        return;
+      }
+      var outline = L.geoJSON(u, {
+        style: { color: "#f2b23a", weight: 3, fill: false },
+      }).addTo(boundaryLayer);
+      if (fit) map.fitBounds(outline.getBounds().pad(0.3));
+      var acres = turf.area(u) / ACRE_M2;
+      st.acres = acres;
+      el("rmAcres").textContent =
+        Math.round(acres).toLocaleString() +
+        " acres · " +
+        n +
+        (n === 1 ? " parcel" : " parcels") +
+        (st.county ? " · " + st.county + " County" : "");
+      var tooBig = acres > MAX_ACRES;
+      el("rmBuild").disabled = tooBig || st.busy;
+      say(
+        tooBig
+          ? "That's over the 50,000-acre limit for one map. Tap parcels to remove some."
+          : "",
+        "warn",
+      );
+    }
+    function addParcel(f, isMember) {
+      var key = String(f.properties.objectid);
+      var lyr = L.geoJSON(f, { style: isMember ? ON : OFF }).addTo(parcelLayer);
+      lyr.feature = f;
+      (isMember ? st.members : st.others)[key] = lyr;
+      lyr.on("click", function (ev) {
+        L.DomEvent.stop(ev);
+        if (st.members[key]) {
+          if (Object.keys(st.members).length === 1) return;
+          delete st.members[key];
+          st.others[key] = lyr;
+          lyr.setStyle(OFF);
+        } else {
+          delete st.others[key];
+          st.members[key] = lyr;
+          lyr.setStyle(ON);
+        }
+        refresh(false);
+      });
+    }
+    function selectAt(lat, lng, source) {
+      say("Finding the property lines…");
+      parcelLayer.clearLayers();
+      st.members = {};
+      st.others = {};
+      return findSeed(lng, lat)
+        .then(function (seed) {
+          if (!seed) {
+            say(
+              "No county parcel there. Try a spot inside the ranch, or another address.",
+              "warn",
+            );
+            track("ranchmap_search", { source: source, outcome: "no_parcel" });
+            return;
+          }
+          st.county = seed.properties.county
+            ? String(seed.properties.county).replace(/\b\w+/g, function (w) {
+                return w.charAt(0) + w.slice(1).toLowerCase();
+              })
+            : null;
+          return assemble(seed).then(function (r) {
+            r.members.forEach(function (f) {
+              addParcel(f, true);
+            });
+            r.others.forEach(function (f) {
+              addParcel(f, false);
+            });
+            say(
+              "Gold is your ranch. Tap neighboring parcels to add or remove them.",
+            );
+            refresh(true);
+            track("ranchmap_search", {
+              source: source,
+              outcome: "parcel",
+              parcels: r.members.length,
+            });
+          });
+        })
+        .catch(function () {
+          say(
+            "The county parcel service didn't answer. Try again in a moment.",
+            "warn",
+          );
+          track("ranchmap_search", { source: source, outcome: "error" });
+        });
+    }
+    map.on("click", function (ev) {
+      if (st.busy) return;
+      selectAt(ev.latlng.lat, ev.latlng.lng, "tap");
+    });
+    el("rmFind").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var q = el("rmAddr").value.trim();
+      if (!q) return;
+      var ll = parseLatLng(q);
+      say("Looking that up…");
+      (ll
+        ? Promise.resolve(ll)
+        : censusGeocode(q).catch(function () {
+            return nominatim(q);
+          })
+      )
+        .then(function (p) {
+          map.setView([p.lat, p.lng], 15);
+          return selectAt(p.lat, p.lng, ll ? "coords" : "address");
+        })
+        .catch(function () {
+          say(
+            "We couldn't find that address. Try a nearby town, or tap the map.",
+            "warn",
+          );
+          track("ranchmap_search", { source: "address", outcome: "no_match" });
+        });
+    });
+    el("rmHere").addEventListener("click", function () {
+      if (!navigator.geolocation)
+        return say("This browser can't share your location.", "warn");
+      say("Getting your location…");
+      navigator.geolocation.getCurrentPosition(
+        function (p) {
+          map.setView([p.coords.latitude, p.coords.longitude], 15);
+          selectAt(p.coords.latitude, p.coords.longitude, "gps");
+        },
+        function () {
+          say(
+            "Location wasn't shared. Type an address or tap the map instead.",
+            "warn",
+          );
+        },
+        { enableHighAccuracy: true, timeout: 15000 },
+      );
+    });
+
+    /* ---------------- build the map ---------------- */
+    function engine() {
+      return window.RanchMapEngine;
+    }
+    function reveal() {
+      el("rmStudio").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    function setBusy(b) {
+      st.busy = b;
+      el("rmBuild").disabled = b || !st.geometry;
+      el("rmSample").disabled = b;
+      el("rmProgress").hidden = !b;
+    }
+    var PHASES = [
+      "Pulling lidar elevation",
+      "Reading infrared imagery for brush",
+      "Collecting mapped roads, fences and ponds",
+      "Packing up your map",
+    ];
+    function progress(t0) {
+      var s = Math.round((Date.now() - t0) / 1000);
+      var phase = PHASES[Math.min(PHASES.length - 1, Math.floor(s / 25))];
+      el("rmProgressText").textContent = phase + "… " + s + " s";
+    }
+    function fetchJSON(url, opts) {
+      return fetch(url, opts).then(function (r) {
+        return r
+          .json()
+          .catch(function () {
+            return {};
+          })
+          .then(function (body) {
+            if (!r.ok) {
+              var err = new Error(body.detail || "HTTP " + r.status);
+              err.status = r.status;
+              throw err;
+            }
+            return body;
+          });
+      });
+    }
+    el("rmBuild").addEventListener("click", function () {
+      if (!st.geometry || st.busy) return;
+      var t0 = Date.now();
+      setBusy(true);
+      say("");
+      progress(t0);
+      var tick = setInterval(function () {
+        progress(t0);
+      }, 1000);
+      track("ranchmap_submit", { acres: Math.round(st.acres || 0) });
+      fetchJSON(API, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ geometry: st.geometry }),
+      })
+        .then(function (r) {
+          var id = r.workflow_run_id;
+          return new Promise(function (resolve, reject) {
+            (function poll() {
+              if (Date.now() - t0 > POLL_TIMEOUT_MS)
+                return reject(
+                  new Error(
+                    "This is taking longer than it should. Try again in a few minutes.",
+                  ),
+                );
+              fetchJSON(API + "/" + encodeURIComponent(id))
+                .then(function (s) {
+                  if (s.status === "succeeded")
+                    resolve({ id: id, result: s.result });
+                  else if (s.status === "failed")
+                    reject(new Error(s.error || "The map failed."));
+                  else setTimeout(poll, POLL_MS);
+                })
+                .catch(function (e) {
+                  if (e.status === 404)
+                    reject(new Error("We lost track of that map. Try again."));
+                  else setTimeout(poll, POLL_MS * 2);
+                });
+            })();
+          });
+        })
+        .then(function (done) {
+          return fetchJSON(
+            API + "/" + encodeURIComponent(done.id) + "/bundle",
+          ).then(function (bundle) {
+            var n = Object.keys(st.members).length;
+            return engine()
+              .showRanch(bundle, {
+                id: done.id,
+                title: el("rmName").value.trim() || "Your Ranch",
+                county: st.county ? st.county + " County, Texas" : "",
+                boundaryLabel:
+                  n > 1 ? "Ranch parcels (" + n + ")" : "Ranch parcel",
+                note:
+                  bundle.osmOk === false
+                    ? "OpenStreetMap didn't answer, so roads and fences are missing. Try again later to add them."
+                    : "",
+              })
+              .then(function () {
+                track("ranchmap_built", {
+                  acres: Math.round(
+                    done.result ? done.result.acres : st.acres || 0,
+                  ),
+                  seconds: Math.round((Date.now() - t0) / 1000),
+                });
+                reveal();
+              });
+          });
+        })
+        .catch(function (e) {
+          var msg =
+            e.status === 429
+              ? "That's a lot of maps from one place. Try again in an hour."
+              : e.message;
+          say(msg, "warn");
+          track("ranchmap_failed", {
+            status: e.status || 0,
+            message: String(e.message).slice(0, 120),
+          });
+        })
+        .then(function () {
+          clearInterval(tick);
+          setBusy(false);
+        });
+    });
+    el("rmSample").addEventListener("click", function () {
+      if (st.busy) return;
+      setBusy(true);
+      el("rmProgressText").textContent = "Loading the Fox Canyon sample…";
+      fetchJSON(SAMPLE_URL)
+        .then(function (bundle) {
+          return engine().showRanch(bundle, {
+            id: "fox-canyon",
+            title: "Fox Canyon",
+            county: "Jeff Davis County, Texas",
+            boundaryLabel: "Fox Canyon sample",
+            note: "A 180-acre sample in the Davis Mountains, built by the same service your ranch would be.",
+          });
+        })
+        .then(function () {
+          track("ranchmap_sample", {});
+          reveal();
+        })
+        .catch(function () {
+          say("The sample didn't load. Refresh and try again.", "warn");
+        })
+        .then(function () {
+          setBusy(false);
+        });
+    });
+  })();
+</script>

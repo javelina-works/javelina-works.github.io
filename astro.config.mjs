@@ -23,11 +23,21 @@ const fonts = generateAstroFontsConfig(fontsJson);
 const ballparkDevProxy = () => ({
   name: "ballpark-dev-proxy",
   configureServer(server) {
-    const PREFIX = "/api/ballpark-staging";
-    const TARGET = "https://fastapi-staging.up.railway.app/api/v2/ballpark";
+    // Also serves the Ranch Map page's /api/ranch-map-staging the same way.
+    const ROUTES = [
+      [
+        "/api/ballpark-staging",
+        "https://fastapi-staging.up.railway.app/api/v2/ballpark",
+      ],
+      [
+        "/api/ranch-map-staging",
+        "https://fastapi-staging.up.railway.app/api/v2/ranch-map",
+      ],
+    ];
     const handle = (req, res, next) => {
-      if (!req.url || !req.url.startsWith(PREFIX)) return next();
-      const target = TARGET + req.url.slice(PREFIX.length);
+      const route = req.url && ROUTES.find(([p]) => req.url.startsWith(p));
+      if (!route) return next();
+      const target = route[1] + req.url.slice(route[0].length);
       const chunks = [];
       req.on("data", (c) => chunks.push(c));
       req.on("end", async () => {
