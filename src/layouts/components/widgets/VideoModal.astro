@@ -9,18 +9,16 @@ interface Props {
 const { video } = Astro.props;
 let { src, provider = "youtube", poster, autoplay = true, type, id } = video;
 
-// Default settings (https://github.com/sampotts/plyr?tab=readme-ov-file#options)
-const config = {
-  hideControls: false,
-  debug: false,
-  iconUrl: "/plyr/plyr.svg",
-  blankVideo: "/plyr/blank.mp4",
-  youtube: {
-    noCookie: true,
-  },
-};
+const isNativeVideo = provider === "html5";
 
-const isLocalHostedVideo = src?.includes("/videos/") && provider === "html5";
+// Embeds load only when someone opens the modal (the iframe is created on
+// click), in privacy-enhanced mode, so nothing reaches YouTube or Vimeo before
+// a visitor chooses to watch.
+const autoplayParam = autoplay === true ? "autoplay=1&" : "";
+const embedSrc =
+  provider === "vimeo"
+    ? `https://player.vimeo.com/video/${src}?${autoplayParam}dnt=1`
+    : `https://www.youtube-nocookie.com/embed/${src}?${autoplayParam}rel=0&playsinline=1`;
 ---
 
 {
@@ -41,31 +39,20 @@ const isLocalHostedVideo = src?.includes("/videos/") && provider === "html5";
             <span class="sr-only">Close</span>
             <Icons icon="X" class="text-dark/80 h-6 w-6" />
           </button>
-          {isLocalHostedVideo ? (
+          {isNativeVideo ? (
             <video
-              class="video-player"
-              playsinline
+              class="video-player w-full rounded-lg bg-black"
               controls
+              playsinline
               preload="none"
-              {...{
-                "data-id": `${id}`,
-                "data-autoplay": `${autoplay === true ? "true" : "false"}`,
-                "data-poster": poster || undefined,
-                "data-plyr-config": `${JSON.stringify(config)}`,
-              }}>
+              poster={poster || undefined}
+              data-autoplay={autoplay === true ? "true" : "false"}>
               <source src={src} type={type} />
             </video>
           ) : (
             <div
-              class="video-player"
-              {...{
-                "data-autoplay": `${autoplay === true ? "true" : "false"}`,
-                "data-id": `${id}`,
-                "data-plyr-provider": provider || undefined,
-                "data-plyr-embed-id": src || undefined,
-                "data-plyr-poster": poster || undefined,
-                "data-plyr-config": `${JSON.stringify(config)}`,
-              }}
+              class="video-frame aspect-video w-full overflow-hidden rounded-lg bg-black"
+              data-embed-src={embedSrc}
             />
           )}
         </div>
@@ -77,20 +64,6 @@ const isLocalHostedVideo = src?.includes("/videos/") && provider === "html5";
 <script>
   // @ts-nocheck
   import AOS from "aos";
-  // Plyr's stylesheet as a URL, linked on first click. A dynamic
-  // `import("plyr/dist/plyr.css")` builds to a JS wrapper chunk that the
-  // Rolldown bundler doesn't emit, so the click died on a 404 before the
-  // player was set up.
-  import plyrCssUrl from "plyr/dist/plyr.css?url";
-
-  function loadPlyrCss() {
-    if (document.querySelector("link[data-plyr-css]")) return;
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = plyrCssUrl;
-    link.dataset.plyrCss = "";
-    document.head.appendChild(link);
-  }
 
   const videoButtons = document.querySelectorAll(
     "[data-hs-overlay].video-modal-toggle",
@@ -139,65 +112,37 @@ const isLocalHostedVideo = src?.includes("/videos/") && provider === "html5";
   // Call the function when you need to monitor the element with the "content" class.
   removeAosAttributesAfterAnimation();
 
+  // Open: create the embed iframe on the click (a user gesture, so autoplay
+  // is allowed) or start the native video. Close: remove the iframe, which
+  // stops playback and frees the player, or pause the video.
   videoButtons.forEach((button) => {
-    button.addEventListener("click", async () => {
-      try {
-        loadPlyrCss();
-        const { default: Plyr } = await import("plyr");
+    button.addEventListener("click", () => {
+      const overlaySelector = button.getAttribute("data-hs-overlay");
+      const modal = overlaySelector && document.querySelector(overlaySelector);
+      if (!modal) return;
 
-        // Only build the player inside the modal this button opens, so a
-        // page with several video modals never loads an embed nobody chose.
-        const overlaySelector = button.getAttribute("data-hs-overlay");
-        if (!overlaySelector) return;
-
-        const players = Plyr.setup(
-          `${overlaySelector} .video-player`,
-        ) as Plyr[];
-
-        players?.forEach((player) => {
-          let videoElem = player.elements.original as HTMLVideoElement;
-          const autoplayAttr = videoElem?.getAttribute("data-autoplay");
-          const id = videoElem?.getAttribute("data-id");
-          const isAutoplay = autoplayAttr === "true" ? true : false;
-
-          // Plyr is set up on the same click that opens the modal, so the
-          // first "open.hs.overlay" event has already fired by now. Start
-          // playback once the player is ready if its modal is already open.
-          const overlay = id ? document.getElementById(id) : null;
-          if (isAutoplay && overlay && !overlay.classList.contains("hidden")) {
-            player.ready
-              ? player.play()
-              : player.once("ready", () => {
-                  // The modal may have been closed again while Plyr loaded.
-                  if (!overlay.classList.contains("hidden")) player.play();
-                });
-          }
-
-          // Play Video when Modal Open
-          document.addEventListener("open.hs.overlay", function (event: any) {
-            const overlayElement = event.detail;
-
-            // Check if the opened modal is the video modal
-            const isVideoModal =
-              overlayElement.payload.getAttribute("id") === id;
-
-            if (isVideoModal && isAutoplay) player.ready && player.play();
-          });
-
-          // Pause Video when Modal Close
-          document.addEventListener("close.hs.overlay", function (event: any) {
-            const overlayElement = event.detail;
-
-            // Check if the opened modal is the video modal
-            const isVideoModal =
-              overlayElement.payload.getAttribute("id") === id;
-
-            if (isVideoModal && !player.pip) player.ready && player.pause();
-          });
-        });
-      } catch (error) {
-        console.error("Failed to load Plyr", error);
+      const frame = modal.querySelector(".video-frame");
+      if (frame && !frame.querySelector("iframe")) {
+        const iframe = document.createElement("iframe");
+        iframe.src = frame.dataset.embedSrc;
+        iframe.title = button.textContent?.trim() || "Video";
+        iframe.allow =
+          "autoplay; encrypted-media; picture-in-picture; fullscreen";
+        iframe.allowFullscreen = true;
+        iframe.referrerPolicy = "strict-origin-when-cross-origin";
+        iframe.className = "size-full";
+        frame.replaceChildren(iframe);
       }
+
+      const video = modal.querySelector("video.video-player");
+      if (video?.dataset.autoplay === "true") video.play().catch(() => {});
     });
+  });
+
+  document.addEventListener("close.hs.overlay", (event) => {
+    const modal = event.detail?.payload;
+    if (!(modal instanceof HTMLElement)) return;
+    modal.querySelector(".video-frame")?.replaceChildren();
+    modal.querySelector("video.video-player")?.pause();
   });
 </script>
