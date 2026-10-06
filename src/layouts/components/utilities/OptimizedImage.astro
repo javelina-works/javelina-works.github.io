@@ -104,13 +104,12 @@ if (!isRemoteImage) {
   inlineSvg && SVG && src.includes(".svg") ? (
     <Fragment set:html={SVG} />
   ) : image ? (
-    // @ts-expect-error
     <Image
       style={style}
       alt={alt || ""}
       width={width}
       height={height}
-      formats={formats}
+      format={formats}
       loading={loading}
       decoding={decoding}
       src={image}
