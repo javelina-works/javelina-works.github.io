@@ -1966,7 +1966,10 @@ function planPrint(paperKey, orient) {
     };
   };
   const c = (
-    orient === "auto" ? [lay("portrait"), lay("landscape")] : [lay(orient)]
+    orient === "auto"
+      ? [lay("portrait"), lay("landscape")]
+      : // Allowlist: plan.o ends up in the #plan line's innerHTML (CodeQL).
+        [lay(orient === "landscape" ? "landscape" : "portrait")]
   ).sort((a, b) => a.need - b.need)[0];
   const d = c.denom;
   c.P = P;
