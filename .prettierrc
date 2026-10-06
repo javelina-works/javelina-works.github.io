@@ -17,11 +17,11 @@
     {
       "files": ["*.toml"],
       "options": {
-        "alignEntries": true,
-        "alignComments": false,
-        "indentTables": true,
-        "allowedBlankLines": 4,
-        "indentEntries": true
+        "keyValueEqualsSignAlignment": true,
+        "trailingCommentAlignment": false,
+        "indentSubTables": true,
+        "groupBlankLinesLimit": 4,
+        "indentTableKeyValuePairs": true
       }
     }
   ]

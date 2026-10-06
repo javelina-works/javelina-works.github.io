@@ -8,8 +8,7 @@ Sentry.init({
     // send console.log, console.warn, and console.error calls as logs to Sentry
     Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] }),
   ],
-  // Logs can get sent to sentry
-  enableLogs: true,
+  // Logs are sent via consoleLoggingIntegration (Sentry v11 removed enableLogs; logs are on by default)
   tracesSampleRate: 0,
   replaysSessionSampleRate: 0,
   replaysOnErrorSampleRate: 0,
