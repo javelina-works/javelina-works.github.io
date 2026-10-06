@@ -1,10 +1,11 @@
 name: Playwright Smoke (preview)
 
-# Runs when Netlify finishes deploying a preview. Mirrors lighthouse-preview:
-# uses deployment_status so there's no polling — Netlify emits one when the
-# preview goes live.
+# Runs when Netlify finishes deploying a preview. Netlify reports previews as
+# a commit status (context netlify/javelina-works/deploy-preview), not as a
+# GitHub deployment, so this listens for that status. Note: GitHub runs
+# status-triggered workflows from the default branch's copy of this file.
 on:
-  deployment_status:
+  status:
 
 permissions:
   contents: read
@@ -16,12 +17,15 @@ jobs:
     runs-on: ubuntu-latest
     # Preview URLs only — skip production and any failed/in-progress states.
     if: |
-      github.event.deployment_status.state == 'success' &&
-      startsWith(github.event.deployment_status.target_url, 'https://deploy-preview-')
+      github.event.context == 'netlify/javelina-works/deploy-preview' &&
+      github.event.state == 'success' &&
+      startsWith(github.event.target_url, 'https://deploy-preview-')
     env:
-      PREVIEW_URL: ${{ github.event.deployment_status.target_url }}
+      PREVIEW_URL: ${{ github.event.target_url }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.sha }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
@@ -57,7 +61,7 @@ jobs:
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
-          SHA: ${{ github.event.deployment.sha }}
+          SHA: ${{ github.event.sha }}
         run: |
           set -euo pipefail
           NUMBER=$(gh api "repos/${{ github.repository }}/commits/${SHA}/pulls" \
