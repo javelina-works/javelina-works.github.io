@@ -10,52 +10,39 @@ let {
   type,
 } = Astro.props as VideoConfig;
 
-// Default settings (https://github.com/sampotts/plyr?tab=readme-ov-file#options)
-const config = {
-  hideControls: true,
-  debug: false,
-  iconUrl: "/plyr/plyr.svg",
-  blankVideo: "/plyr/blank.mp4",
-  youtube: {
-    noCookie: true,
-  },
-  ...Astro.props,
-};
-
-const isLocalHostedVideo = src?.includes("/videos/") && provider === "html5";
+const isNativeVideo = provider === "html5";
 poster = poster && (await bgOptimizedImage(poster));
+
+// Browsers only autoplay muted video, so an autoplaying inline embed starts
+// muted. The iframe is created when it scrolls near the viewport.
+const autoplayParam = autoplay === true ? "autoplay=1&mute=1&" : "";
+const embedSrc =
+  provider === "vimeo"
+    ? `https://player.vimeo.com/video/${src}?${autoplay === true ? "autoplay=1&muted=1&" : ""}dnt=1`
+    : `https://www.youtube-nocookie.com/embed/${src}?${autoplayParam}rel=0&playsinline=1`;
 ---
 
-{
-  src && (
-    <div class="not-prose video-inline">
-      {isLocalHostedVideo ? (
-        <video
-          controls
-          playsinline
-          class="video-inline-player"
-          {...{
-            "data-autoplay": `${autoplay === true ? "true" : "false"}`,
-            "data-poster": poster || undefined,
-            "data-plyr-config": `${JSON.stringify(config)}`,
-          }}>
-          <source src={src} type={type} />
-        </video>
-      ) : (
-        <div
-          class="video-inline-player"
-          {...{
-            "data-autoplay": `${autoplay === true ? "true" : "false"}`,
-            "data-plyr-provider": provider || undefined,
-            "data-plyr-embed-id": src || undefined,
-            "data-plyr-poster": poster || undefined,
-            "data-plyr-config": `${JSON.stringify(config)}`,
-          }}
-        />
-      )}
-    </div>
-  )
-}
+{src && (
+  <div class="not-prose video-inline">
+    {isNativeVideo ? (
+      <video
+        class="video-inline-player w-full rounded-lg bg-black"
+        controls
+        playsinline
+        preload="metadata"
+        poster={poster || undefined}
+        autoplay={autoplay === true}
+        muted={autoplay === true}>
+        <source src={src} type={type} />
+      </video>
+    ) : (
+      <div
+        class="video-inline-frame aspect-video w-full overflow-hidden rounded-lg bg-black"
+        data-embed-src={embedSrc}
+      />
+    )}
+  </div>
+)}
 
 <script>
   // @ts-nocheck
@@ -89,43 +76,30 @@ poster = poster && (await bgOptimizedImage(poster));
     }
   }
 
-  // Initialize ScrollTrigger for lazy loading
-  function initializeScrollTrigger() {
-    const targetElement = document.querySelector(".video-inline");
-
-    if (!targetElement) return;
-
-    const checkViewportAndLoadScript = () => {
-      const rect = targetElement.getBoundingClientRect();
-      const isInViewport = rect.top < window.innerHeight - 100;
-
-      if (isInViewport) {
-        // Load script and initialize features
-        removeAosAttributesAfterAnimation();
-
-        (async () => {
-          try {
-            const { default: Plyr } = await import("plyr");
-            await import("plyr/dist/plyr.css");
-
-            Plyr.setup(".video-inline-player");
-          } catch (error) {
-            console.error("Failed to load Plyr", error);
-          }
-        })();
-
-        // Clean up event listener after loading
-        window.removeEventListener("scroll", checkViewportAndLoadScript);
-      }
-    };
-
-    // Listen for scroll events
-    window.addEventListener("scroll", checkViewportAndLoadScript);
-
-    // Check immediately in case the element is already in the viewport
-    checkViewportAndLoadScript();
+  // Create each embed's iframe when it comes near the viewport.
+  const frames = document.querySelectorAll(".video-inline-frame");
+  if (frames.length) {
+    removeAosAttributesAfterAnimation();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const frame = entry.target;
+          const iframe = document.createElement("iframe");
+          iframe.src = frame.dataset.embedSrc;
+          iframe.title = "Video";
+          iframe.loading = "lazy";
+          iframe.allow =
+            "autoplay; encrypted-media; picture-in-picture; fullscreen";
+          iframe.allowFullscreen = true;
+          iframe.referrerPolicy = "strict-origin-when-cross-origin";
+          iframe.className = "size-full";
+          frame.replaceChildren(iframe);
+          observer.unobserve(frame);
+        });
+      },
+      { rootMargin: "0px 0px -100px 0px" },
+    );
+    frames.forEach((frame) => observer.observe(frame));
   }
-
-  // Initialize the scroll-based trigger
-  initializeScrollTrigger();
 </script>
