@@ -1534,7 +1534,11 @@ const pad = (n: number) => String(n).padStart(2, "0");
   const countedInput = $<HTMLInputElement>("prExCounted");
   function update() {
     acresInput.max = String(grid.acres.length - 1);
-    const a = grid.acres[Number(acresInput.value)];
+    // A live grid can have fewer acre steps than the snapshot; clamp before
+    // indexing rather than trusting the browser to re-clamp value.
+    const idx = Math.min(Number(acresInput.value), grid.acres.length - 1);
+    acresInput.value = String(idx);
+    const a = grid.acres[idx];
     const pct = Number(coverInput.value);
     const r = cell(a, pct);
     $("prAcresOut").textContent =
@@ -1720,15 +1724,31 @@ const pad = (n: number) => String(n).padStart(2, "0");
   fetch(API + "/pricing-grid", { headers: { Accept: "application/json" } })
     .then((res) => (res.ok ? res.json() : null))
     .then((live: Grid | null) => {
+      // Take the live grid only if every row and cell lines up; otherwise
+      // keep the snapshot rather than render undefined cells.
       if (
         !live ||
+        !live.acres?.length ||
+        !live.cover?.length ||
+        !live.day_bands?.length ||
         !Array.isArray(live.rows) ||
-        !live.rows.length ||
-        !live.acres?.length
+        live.rows.length !== live.acres.length ||
+        live.rows.some(
+          (r) =>
+            !Array.isArray(r) ||
+            r.length !== live.cover.length ||
+            r.some((c) => !Array.isArray(c) || c.length < 8),
+        )
       )
         return;
+      const prev = grid;
       grid = live;
-      renderAll();
+      try {
+        renderAll();
+      } catch {
+        grid = prev;
+        renderAll();
+      }
     })
     .catch(() => {
       /* keep the snapshot */

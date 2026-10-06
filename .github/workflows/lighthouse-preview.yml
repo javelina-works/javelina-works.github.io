@@ -21,9 +21,12 @@ jobs:
       github.event.state == 'success' &&
       startsWith(github.event.target_url, 'https://deploy-preview-')
     steps:
+      # Only lighthouserc.json is needed, and an LHCI config can run scripts,
+      # so read it from the trusted default branch, not the preview commit,
+      # and keep the write-capable token out of git config.
       - uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.sha }}
+          persist-credentials: false
 
       - name: Run Lighthouse
         id: lhci
