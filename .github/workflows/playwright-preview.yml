@@ -7,14 +7,19 @@ name: Playwright Smoke (preview)
 on:
   status:
 
+# Default to read-only; only the comment job, which never checks out or runs
+# preview code, can write to pull requests.
 permissions:
   contents: read
-  pull-requests: write
 
 jobs:
   smoke:
     name: Playwright smoke (preview)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      outcome: ${{ steps.smoke.outcome }}
     # Preview URLs only — skip production and any failed/in-progress states.
     if: |
       github.event.context == 'netlify/javelina-works/deploy-preview' &&
@@ -23,9 +28,12 @@ jobs:
     env:
       PREVIEW_URL: ${{ github.event.target_url }}
     steps:
+      # The preview commit's code runs below (install, tests), so the token
+      # must not be left in its git config.
       - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.sha }}
+          persist-credentials: false
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
@@ -56,6 +64,17 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
+  comment:
+    name: Report smoke result on the PR
+    needs: smoke
+    if: always() && needs.smoke.result != 'skipped'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      PREVIEW_URL: ${{ github.event.target_url }}
+    steps:
       - name: Find PR for this deployment
         id: find-pr
         if: always()
@@ -76,7 +95,7 @@ jobs:
       - name: Build PR comment
         if: always() && steps.find-pr.outputs.number != ''
         env:
-          OUTCOME: ${{ steps.smoke.outcome }}
+          OUTCOME: ${{ needs.smoke.outputs.outcome }}
           TARGET_URL: ${{ env.PREVIEW_URL }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
@@ -103,5 +122,5 @@ jobs:
           path: comment.md
 
       - name: Fail job if smoke failed
-        if: steps.smoke.outcome != 'success'
+        if: needs.smoke.outputs.outcome != 'success'
         run: exit 1

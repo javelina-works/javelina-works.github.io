@@ -34,7 +34,10 @@ def main() -> None:
         sys.exit(f"{url} returned a grid without {', '.join(missing)}")
     grid["source"] = "snapshot"
     path = pathlib.Path(__file__).resolve().parent.parent / "src/data/pricing-grid.json"
-    path.write_text(json.dumps(grid, ensure_ascii=False, separators=(",", ":")) + "\n")
+    path.write_text(
+        json.dumps(grid, ensure_ascii=False, separators=(",", ":")) + "\n",
+        encoding="utf-8",
+    )
     print(f"wrote {path} (engine {grid.get('engine_version', '?')}, as of {grid['as_of']})")
 
 
