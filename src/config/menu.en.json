@@ -70,8 +70,14 @@
     },
     {
       "enable": true,
+      "name": "Pricing",
+      "url": "/pricing/",
+      "weight": 2
+    },
+    {
+      "enable": true,
       "name": "More",
-      "weight": 2,
+      "weight": 3,
       "hasChildren": true,
       "children": [
         {
@@ -98,7 +104,7 @@
       "enable": true,
       "name": "Contact",
       "url": "/contact/",
-      "weight": 3
+      "weight": 4
     }
   ],
   "footerMenu": [
@@ -120,6 +126,12 @@
       "enable": true,
       "name": "Services",
       "url": "/services/",
+      "weight": 0
+    },
+    {
+      "enable": true,
+      "name": "Pricing",
+      "url": "/pricing/",
       "weight": 0
     },
     {
