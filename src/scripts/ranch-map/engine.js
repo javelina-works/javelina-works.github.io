@@ -812,24 +812,52 @@ function rampAt(ramp, t) {
   return ramp[ramp.length - 1][1];
 }
 
+// Bilinear upsample of a W x H grid by an integer factor.
+function upsample(a, w, h, u) {
+  if (u === 1) return a;
+  const out = new Float32Array(w * u * h * u);
+  for (let y = 0; y < h * u; y++) {
+    const fy = Math.min(h - 1, Math.max(0, (y + 0.5) / u - 0.5)),
+      y0 = Math.floor(fy),
+      y1 = Math.min(h - 1, y0 + 1),
+      ty = fy - y0;
+    for (let x = 0; x < w * u; x++) {
+      const fx = Math.min(w - 1, Math.max(0, (x + 0.5) / u - 0.5)),
+        x0 = Math.floor(fx),
+        x1 = Math.min(w - 1, x0 + 1),
+        tx = fx - x0;
+      out[y * w * u + x] =
+        (a[y0 * w + x0] * (1 - tx) + a[y0 * w + x1] * tx) * (1 - ty) +
+        (a[y1 * w + x0] * (1 - tx) + a[y1 * w + x1] * tx) * ty;
+    }
+  }
+  return out;
+}
+
 function baseRaster(st, sKey) {
   const key = sKey + st.L.relief + st.L.tint + st.L.brush;
   if (baseCache[key]) return baseCache[key];
+  // Coarse grids (big ranches) shade from an interpolated surface at twice
+  // the resolution, so relief reads smooth instead of stair-stepped.
+  const U = CELL >= 6 ? 2 : 1,
+    RW = W * U,
+    RH = H * U,
+    RC = CELL / U;
   const T = STYLES[sKey],
     oc = document.createElement("canvas");
-  oc.width = W;
-  oc.height = H;
+  oc.width = RW;
+  oc.height = RH;
   const oct = oc.getContext("2d"),
-    img = oct.createImageData(W, H),
+    img = oct.createImageData(RW, RH),
     d = img.data,
-    h = world.h;
+    h = upsample(world.h, W, H, U);
   const az = (315 * Math.PI) / 180,
     alt = (45 * Math.PI) / 180,
     z = 1.3,
-    bw = world.brushSoft;
-  for (let y = 0; y < H; y++)
-    for (let x = 0; x < W; x++) {
-      const i = y * W + x;
+    bw = upsample(world.brushSoft, W, H, U);
+  for (let y = 0; y < RH; y++)
+    for (let x = 0; x < RW; x++) {
+      const i = y * RW + x;
       let c = T.paper.slice();
       if (st.L.tint) {
         const r = rampAt(
@@ -844,11 +872,11 @@ function baseRaster(st, sKey) {
       }
       if (st.L.relief) {
         const xl = Math.max(0, x - 1),
-          xr = Math.min(W - 1, x + 1),
+          xr = Math.min(RW - 1, x + 1),
           yu = Math.max(0, y - 1),
-          yd = Math.min(H - 1, y + 1);
-        const gx = (z * (h[y * W + xr] - h[y * W + xl])) / ((xr - xl) * CELL),
-          gy = (z * (h[yd * W + x] - h[yu * W + x])) / ((yd - yu) * CELL);
+          yd = Math.min(RH - 1, y + 1);
+        const gx = (z * (h[y * RW + xr] - h[y * RW + xl])) / ((xr - xl) * RC),
+          gy = (z * (h[yd * RW + x] - h[yu * RW + x])) / ((yd - yu) * RC);
         const sl = Math.atan(Math.hypot(gx, gy)),
           asp = Math.atan2(gy, -gx);
         let s =

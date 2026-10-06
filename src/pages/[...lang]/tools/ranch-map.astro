@@ -1762,41 +1762,83 @@ const meta = {
         },
       );
     }
-    // Same-owner parcels touching the seed join automatically; neighbors are
-    // shown dashed so a rancher can tap to add or remove them.
+    // A big ranch is many parcels: same-owner parcels that touch the growing
+    // selection join round after round until nothing new touches it. Other
+    // neighbors are shown dashed so a rancher can tap to add or remove them.
+    var ASSEMBLE_MAX_ROUNDS = 10;
     function assemble(seed) {
       var owner = normOwner(seed.properties.owner);
-      var probe = turf.simplify(
-        turf.buffer(seed, 400, { units: "meters", steps: 4 }),
-        {
-          tolerance: 0.0001,
-          highQuality: false,
-        },
-      );
-      return identify(
-        esriPolygon(probe),
-        "esriGeometryPolygon",
-        turf.bbox(probe),
-        0,
-      )
-        .then(function (found) {
-          var members = [seed],
-            others = [];
-          var seedBuf = turf.buffer(seed, 15, { units: "meters", steps: 4 });
+      var members = {},
+        others = {};
+      function key(f) {
+        return String(f.properties.objectid);
+      }
+      members[key(seed)] = seed;
+      var frontier = [seed];
+      function acres() {
+        return (
+          Object.keys(members).reduce(function (a, k) {
+            return a + turf.area(members[k]);
+          }, 0) / ACRE_M2
+        );
+      }
+      function round(n) {
+        if (
+          !owner ||
+          !frontier.length ||
+          n >= ASSEMBLE_MAX_ROUNDS ||
+          acres() > MAX_ACRES
+        )
+          return Promise.resolve();
+        var front =
+          frontier.length === 1
+            ? frontier[0]
+            : turf.union(turf.featureCollection(frontier));
+        var probe = turf.simplify(
+          turf.buffer(front, 400, { units: "meters", steps: 4 }),
+          { tolerance: 0.0002, highQuality: false },
+        );
+        return identify(
+          esriPolygon(probe),
+          "esriGeometryPolygon",
+          turf.bbox(probe),
+          0,
+        ).then(function (found) {
+          var frontBuf = turf.buffer(front, 15, { units: "meters", steps: 4 });
+          var added = [];
           found.forEach(function (f) {
-            if (f.properties.objectid === seed.properties.objectid) return;
+            var k = key(f);
+            if (members[k]) return;
             if (
-              owner &&
               normOwner(f.properties.owner) === owner &&
-              turf.booleanIntersects(seedBuf, f)
-            )
-              members.push(f);
-            else others.push(f);
+              turf.booleanIntersects(frontBuf, f)
+            ) {
+              members[k] = f;
+              delete others[k];
+              added.push(f);
+            } else if (!others[k]) others[k] = f;
           });
-          return { members: members, others: others };
-        })
+          frontier = added;
+          return round(n + 1);
+        });
+      }
+      return round(0)
         .catch(function () {
-          return { members: [seed], others: [] };
+          /* keep whatever joined before the parcel service hiccuped */
+        })
+        .then(function () {
+          return {
+            members: Object.keys(members).map(function (k) {
+              return members[k];
+            }),
+            others: Object.keys(others)
+              .filter(function (k) {
+                return !members[k];
+              })
+              .map(function (k) {
+                return others[k];
+              }),
+          };
         });
     }
 
