@@ -47,6 +47,12 @@ function trackErrors(page: Page) {
 // The consent banner sits over the bottom of the page; a visitor would
 // answer it first, so the tests do too.
 async function open(page: Page) {
+  // Netlify deploy previews inject a feedback drawer over the bottom of the
+  // page (it covers the consent banner); it never ships to production, so
+  // block its loader.
+  await page.route(/\/\.netlify\/scripts\/cdp|app\.netlify\.com\/cdp/, (r) =>
+    r.abort(),
+  );
   const res = await page.goto("/tools/ranch-map/");
   const reject = page.getByRole("button", { name: "Reject" });
   if (await reject.isVisible().catch(() => false)) await reject.click();
