@@ -1,10 +1,11 @@
 name: Lighthouse Preview
 
-# Runs when Netlify finishes deploying a preview. We rely on GitHub's
-# deployment_status event so there's no polling — Netlify emits one when
-# the preview goes live.
+# Runs when Netlify finishes deploying a preview. Netlify reports previews as
+# a commit status (context netlify/javelina-works/deploy-preview), not as a
+# GitHub deployment, so this listens for that status. Note: GitHub runs
+# status-triggered workflows from the default branch's copy of this file.
 on:
-  deployment_status:
+  status:
 
 permissions:
   contents: read
@@ -16,17 +17,20 @@ jobs:
     runs-on: ubuntu-latest
     # Preview URLs only — skip production and any failed/in-progress states.
     if: |
-      github.event.deployment_status.state == 'success' &&
-      startsWith(github.event.deployment_status.target_url, 'https://deploy-preview-')
+      github.event.context == 'netlify/javelina-works/deploy-preview' &&
+      github.event.state == 'success' &&
+      startsWith(github.event.target_url, 'https://deploy-preview-')
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.sha }}
 
       - name: Run Lighthouse
         id: lhci
         continue-on-error: true
         uses: treosh/lighthouse-ci-action@v12
         with:
-          urls: ${{ github.event.deployment_status.target_url }}
+          urls: ${{ github.event.target_url }}
           runs: 1
           # Tags the UA as Chrome-Lighthouse so PostHog drops audit traffic.
           configPath: ./lighthouserc.json
@@ -35,7 +39,7 @@ jobs:
       - name: Summarize Lighthouse run
         if: always()
         env:
-          TARGET_URL: ${{ github.event.deployment_status.target_url }}
+          TARGET_URL: ${{ github.event.target_url }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
@@ -171,7 +175,7 @@ jobs:
             ' "$REPORT"
           } >> "$GITHUB_STEP_SUMMARY"
 
-      # The deployment_status event doesn't carry a PR number, so look it
+      # The status event doesn't carry a PR number, so look it
       # up from the commit SHA. Skips the comment cleanly if the preview
       # isn't tied to a PR (e.g. branch-only deploys).
       - name: Find PR for this deployment
@@ -179,7 +183,7 @@ jobs:
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
-          SHA: ${{ github.event.deployment.sha }}
+          SHA: ${{ github.event.sha }}
         run: |
           set -euo pipefail
           NUMBER=$(gh api "repos/${{ github.repository }}/commits/${SHA}/pulls" \
