@@ -372,9 +372,11 @@ export function run(i: Inputs): Result {
       : t <= life
         ? after
         : Math.min(100, after + i.spreadPerYear * (t - life));
+    // The cap is on recovery from today's grass, not on the gap to an
+    // untreated pasture that keeps declining.
     const grassTreated = Math.min(
       grassAt(y0, i.brush, treatedCover, g),
-      grassUntreated + MAX_GAIN_LB,
+      grassNow + MAX_GAIN_LB,
     );
     const gain = Math.max(0, grassTreated - grassUntreated) * phaseIn(t);
     const gainNoSpread = !treating
