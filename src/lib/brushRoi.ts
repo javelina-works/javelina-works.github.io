@@ -530,3 +530,40 @@ export const SCENARIOS: Scenario[] = [
     },
   },
 ];
+
+// The quick-start flow asks three things (acres, brush and how thick, what
+// matters most) and fills in the rest from Jeff Davis County defaults.
+export type Priority = "grass" | "water" | "wildlife" | "fire" | "valuation";
+
+// Cover to keep for each goal. Grass, water and fire want most of it gone;
+// wildlife and the tax valuation want TPWD's bands kept (mule deer 15–40%,
+// scaled quail 10–35%), so we leave about 20% on heavy country.
+export function keepFor(priority: Priority, cover: number): number {
+  if (priority === "wildlife" || priority === "valuation") {
+    return Math.min(cover, Math.round(clamp(cover * 0.6, 10, 20)));
+  }
+  return cover <= 5 ? 1 : 5;
+}
+
+const SITE_FOR_BRUSH: Record<Brush, string> = {
+  mesquite: "loamy-dg",
+  juniper: "igneous-mp",
+  mixed: "gravelly-mp",
+};
+
+export function quickInputs(
+  acres: number,
+  brush: Brush,
+  cover: number,
+  priority: Priority,
+): Inputs {
+  return {
+    ...DEFAULTS,
+    acres,
+    brush,
+    coverNow: cover,
+    coverAfter: keepFor(priority, cover),
+    siteId: SITE_FOR_BRUSH[brush],
+    rainfall: brush === "juniper" ? 18 : 16,
+  };
+}

@@ -1,5 +1,6 @@
 ---
 import Base from "@/layouts/Base.astro";
+import Icons from "@/helpers/Icons.astro";
 import { generatePaths } from "@/lib/utils/i18nUtils";
 import { SCENARIOS, SITES } from "@/lib/brushRoi";
 
@@ -10,200 +11,298 @@ export function getStaticPaths() {
 const meta = {
   metaTitle: "Brush Control Return Calculator, West Texas | Javelina Works",
   metaDescription:
-    "What clearing mesquite and cedar could give back on a West Texas ranch: grass, stocking rate, water, fire risk and wildlife cover, from NRCS, TPWD and Texas A&M research.",
+    "What clearing mesquite and cedar could give back on a West Texas ranch: grass, cattle, water, fire risk and wildlife cover, from NRCS, TPWD and Texas A&M research.",
   disableTagline: true,
 };
 
-const coverSteps = [
-  { name: "Scattered", pct: 3 },
-  { name: "Light", pct: 8 },
-  { name: "Medium", pct: 18 },
-  { name: "Heavy", pct: 30 },
-  { name: "Thicket", pct: 40 },
+// The same five reference acres the pricing page shows: real NAIP windows
+// measured at each cover step.
+const densities = [
+  { name: "Scattered", pct: 3, line: "A tree here and there" },
+  { name: "Light", pct: 8, line: "Easy to see between them" },
+  { name: "Medium", pct: 18, line: "Patchy and spreading" },
+  { name: "Heavy", pct: 30, line: "Crowding the grass" },
+  { name: "Thicket", pct: 40, line: "Hard to ride through" },
 ];
+const pad = (n: number) => String(n).padStart(2, "0");
+
+const brushes = [
+  { id: "mesquite", name: "Mesquite", icon: "TreeDeciduous" },
+  { id: "juniper", name: "Cedar / juniper", icon: "TreePine" },
+  { id: "mixed", name: "Some of both", icon: "Trees" },
+] as const;
+
+const priorities = [
+  {
+    id: "grass",
+    name: "More grass and cattle",
+    line: "Carry more head on the same country",
+    icon: "Beef",
+  },
+  {
+    id: "water",
+    name: "Water",
+    line: "Stop the brush drinking what the grass needs",
+    icon: "Droplets",
+  },
+  {
+    id: "wildlife",
+    name: "Wildlife and hunting",
+    line: "The right cover for deer and quail",
+    icon: "Bird",
+  },
+  {
+    id: "fire",
+    name: "Fire safety",
+    line: "Fuel near the house, roads and lines",
+    icon: "Flame",
+  },
+  {
+    id: "valuation",
+    name: "Wildlife tax valuation",
+    line: "Brush work that counts every year",
+    icon: "Landmark",
+  },
+] as const;
 ---
 
 <Base {...meta} sectionSpacing="md">
-  <section class="roi-hero">
+  <section class="wz-hero">
     <div class="container">
-      <p class="roi-eyebrow">Free &middot; no contact details</p>
-      <h1>What would clearing the brush give back?</h1>
-      <p class="roi-sub">
-        Grass, cattle, water, fire and wildlife, worked out from published NRCS,
-        Texas Parks and Wildlife and Texas A&amp;M research. Every number below
-        says where it came from, and where the research says the benefit is
-        small, so does this.
+      <p class="wz-eyebrow">Free &middot; three questions</p>
+      <h1>
+        What would clearing your brush<em>give back?</em>
+      </h1>
+      <p class="wz-sub">
+        Tell us how big the place is, how thick the brush is and what you care
+        about most. We&rsquo;ll show what treating it could return, from
+        published NRCS, Texas Parks and Wildlife and Texas A&amp;M research.
       </p>
     </div>
   </section>
 
   <section>
-    <div class="container">
-      <div class="roi-scenarios" role="group" aria-label="Example ranches">
-        {SCENARIOS.map((s, i) => (
-          <button
-            type="button"
-            class:list={["roi-scn", { "is-on": i === 0 }]}
-            data-scenario={s.id}>
-            <strong>{s.label}</strong>
-            <span>{s.blurb}</span>
+    <div class="container wz" id="wz">
+      <div class="wz-progress" aria-hidden="true">
+        <i data-seg="1"></i>
+        <i data-seg="2"></i>
+        <i data-seg="3"></i>
+      </div>
+      <p class="wz-stepno" id="wzStepNo">
+        Step 1 of 3
+      </p>
+
+      <!-- Step 1: acres -->
+      <div class="wz-step" data-step="1">
+        <h2>How many acres?</h2>
+        <p class="wz-hint">The pasture or the whole place.</p>
+        <div class="wz-acres">
+          <input
+            id="wzAcres"
+            type="number"
+            min="1"
+            max="100000"
+            value="640"
+            inputmode="numeric"
+            aria-label="Acres"
+          />
+          <span>acres</span>
+        </div>
+        <input
+          id="wzAcreSlider"
+          class="wz-slider"
+          type="range"
+          min="0"
+          max="1000"
+          step="1"
+          aria-label="Drag to set acres"
+        />
+        <div class="wz-slider-ends">
+          <span>10</span>
+          <span>Drag to set acres</span>
+          <span>20,000</span>
+        </div>
+        <div class="wz-bumps">
+          <button type="button" data-bump="-100">
+            &minus;100
           </button>
-        ))}
+          <button type="button" data-bump="-10">
+            &minus;10
+          </button>
+          <button type="button" data-bump="10">
+            +10
+          </button>
+          <button type="button" data-bump="100">
+            +100
+          </button>
+        </div>
+        <button type="button" class="wz-next" data-go="2">
+          Next
+          <Icons icon="ArrowRight" class="wz-ico" />
+        </button>
+        <p class="wz-examples">
+          Or start from an example ranch:
+          {SCENARIOS.map((s) => (
+            <button type="button" data-scenario={s.id}>
+              {s.label}
+            </button>
+          ))}
+        </p>
       </div>
 
-      <div class="roi-tool">
-        <form class="roi-panel roi-form" id="roiForm" autocomplete="off">
-          <h2>Your place</h2>
-
-          <label class="roi-field">
-            <span>Acres to treat</span>
-            <input
-              type="number"
-              name="acres"
-              min="1"
-              step="1"
-              inputmode="numeric"
-            />
-          </label>
-
-          <fieldset class="roi-field">
-            <legend>Main brush</legend>
-            <div class="roi-seg">
-              <label>
-                <input type="radio" name="brush" value="mesquite" />
-                <span>Mesquite</span>
-              </label>
-              <label>
-                <input type="radio" name="brush" value="juniper" />
-                <span>Cedar / juniper</span>
-              </label>
-              <label>
-                <input type="radio" name="brush" value="mixed" />
-                <span>Mixed</span>
-              </label>
-            </div>
-          </fieldset>
-
-          <label class="roi-field">
-            <span>
-              Brush cover today<output id="outCoverNow"></output>
-            </span>
-            <input type="range" name="coverNow" min="1" max="60" step="1" />
-            <span class="roi-ticks">
-              {coverSteps.map((c) => (
-                <button type="button" data-cover={c.pct}>
-                  {c.name}
-                </button>
-              ))}
-            </span>
-          </label>
-
-          <label class="roi-field">
-            <span>
-              Cover you'd keep<output id="outCoverAfter"></output>
-            </span>
-            <input type="range" name="coverAfter" min="0" max="60" step="1" />
-            <small>
-              The mottes, draws and shade trees you want left standing.
-            </small>
-          </label>
-
-          <label class="roi-field">
-            <span>Range site</span>
-            <select name="siteId">
-              {SITES.map((s) => (
-                <option value={s.id}>
-                  {s.label} &middot; {s.normal.toLocaleString("en-US")} lb
-                </option>
-              ))}
-            </select>
-            <small>
-              NRCS normal-year grass production with no brush. Your county's
-              soil survey has yours.
-            </small>
-          </label>
-
-          <fieldset class="roi-field">
-            <legend>This kind of year</legend>
-            <div class="roi-seg">
-              <label>
-                <input type="radio" name="yearType" value="low" />
-                <span>Dry</span>
-              </label>
-              <label>
-                <input type="radio" name="yearType" value="normal" />
-                <span>Normal</span>
-              </label>
-              <label>
-                <input type="radio" name="yearType" value="high" />
-                <span>Wet</span>
-              </label>
-            </div>
-          </fieldset>
-
-          <label class="roi-field">
-            <span>
-              Average rainfall<output id="outRain"></output>
-            </span>
-            <input type="range" name="rainfall" min="8" max="34" step="1" />
-          </label>
-
-          <fieldset class="roi-field">
-            <legend>Ground underneath</legend>
-            <div class="roi-seg">
-              <label>
-                <input type="radio" name="hydrology" value="upland" />
-                <span>Upland</span>
-              </label>
-              <label>
-                <input type="radio" name="hydrology" value="karst" />
-                <span>Fractured rock, springs</span>
-              </label>
-              <label>
-                <input type="radio" name="hydrology" value="draw" />
-                <span>Draw or creek</span>
-              </label>
-            </div>
-          </fieldset>
-
-          <details class="roi-more">
-            <summary>Grazing, money and cost share</summary>
-
-            <label class="roi-field">
-              <span>Grazing value per AUM ($)</span>
-              <input
-                type="number"
-                name="pricePerAum"
-                min="0"
-                step="0.5"
-                inputmode="decimal"
+      <!-- Step 2: brush and density -->
+      <div class="wz-step" data-step="2" hidden>
+        <h2>What&rsquo;s growing, and how thick?</h2>
+        <div class="wz-brush" role="radiogroup" aria-label="Main brush">
+          {brushes.map((b, i) => (
+            <button
+              type="button"
+              role="radio"
+              aria-checked={i === 0 ? "true" : "false"}
+              data-brush={b.id}>
+              <Icons icon={b.icon} class="wz-ico" />
+              {b.name}
+            </button>
+          ))}
+        </div>
+        <p class="wz-hint">
+          Tap the acre that looks most like yours. Each is a real acre seen from
+          above.
+        </p>
+        <div class="wz-density">
+          {densities.map((d) => (
+            <button type="button" class="wz-card wz-dcard" data-cover={d.pct}>
+              <img
+                src={`/images/pricing/acre-${pad(d.pct)}.jpg`}
+                alt={`A real acre at ${d.pct}% brush cover`}
+                width="212"
+                height="212"
+                loading="lazy"
               />
-              <small>
-                Texas private grazing averaged $14.50 per animal-unit month in
-                2024 (USDA NASS).
-              </small>
-            </label>
+              <b>{d.name}</b>
+              <span>{d.line}</span>
+              <small>about {d.pct}% cover</small>
+            </button>
+          ))}
+        </div>
+        <button type="button" class="wz-back" data-go="1">
+          <Icons icon="ArrowLeft" class="wz-ico" />
+          Back
+        </button>
+      </div>
 
-            <label class="roi-field">
+      <!-- Step 3: what matters -->
+      <div class="wz-step" data-step="3" hidden>
+        <h2>What matters most to you?</h2>
+        <p class="wz-hint">
+          We&rsquo;ll lead with that, and show the rest underneath.
+        </p>
+        <div class="wz-prio">
+          {priorities.map((p) => (
+            <button type="button" class="wz-card wz-pcard" data-priority={p.id}>
+              <Icons icon={p.icon} class="wz-pico" />
+              <b>{p.name}</b>
+              <span>{p.line}</span>
+            </button>
+          ))}
+        </div>
+        <button type="button" class="wz-back" data-go="2">
+          <Icons icon="ArrowLeft" class="wz-ico" />
+          Back
+        </button>
+      </div>
+
+      <!-- Results -->
+      <div class="wz-step wz-results" data-step="4" hidden>
+        <div class="wz-big">
+          <div class="wz-big-icons" aria-hidden="true">
+            {priorities.map((p) => (
+              <Icons icon={p.icon} class="wz-big-ico" data-icon-for={p.id} />
+            ))}
+          </div>
+          <p class="wz-big-k" id="rK"></p>
+          <p class="wz-big-n" id="rN"></p>
+          <p class="wz-big-u" id="rU"></p>
+          <p class="wz-chip" id="rChip"></p>
+        </div>
+
+        <div class="wz-stats" id="rStats"></div>
+
+        <h3 class="wz-also">Also on your place</h3>
+        <div class="wz-minis" id="rMinis">
+          {priorities.map((p) => (
+            <button type="button" class="wz-mini" data-mini={p.id}>
+              <Icons icon={p.icon} class="wz-mini-ico" />
+              <span class="wz-mini-t">{p.name}</span>
+              <b class="wz-mini-v" />
+              <span class="wz-mini-s" />
+            </button>
+          ))}
+        </div>
+
+        <p class="wz-note" id="rNote"></p>
+
+        <div class="wz-actions">
+          <a class="btn btn-primary" href="/tools/ballpark/">
+            Measure my real place, free
+          </a>
+          <button type="button" class="wz-restart" data-go="1">
+            <Icons icon="RotateCcw" class="wz-ico" />
+            Start over
+          </button>
+        </div>
+
+        <details class="wz-tune">
+          <summary>
+            <Icons icon="SlidersHorizontal" class="wz-ico" />
+            Fine-tune the assumptions
+          </summary>
+          <form id="wzTune" autocomplete="off">
+            <label>
               <span>
-                Harvest efficiency<output id="outHe"></output>
+                Brush you&rsquo;d keep<output id="oKeep"></output>
               </span>
-              <input
-                type="range"
-                name="harvestEfficiency"
-                min="0.15"
-                max="0.4"
-                step="0.01"
-              />
-              <small>
-                25% is "take half, leave half" once trampling and wildlife are
-                counted.
-              </small>
+              <input type="range" name="coverAfter" min="0" max="60" step="1" />
             </label>
-
-            <label class="roi-field">
+            <label>
+              <span>Range site</span>
+              <select name="siteId">
+                {SITES.map((s) => (
+                  <option value={s.id}>
+                    {s.label} &middot; {s.normal.toLocaleString("en-US")} lb
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span>This kind of year</span>
+              <select name="yearType">
+                <option value="low">Dry</option>
+                <option value="normal">Normal</option>
+                <option value="high">Wet</option>
+              </select>
+            </label>
+            <label>
               <span>
-                Brush spread if left alone<output id="outSpread"></output>
+                Average rainfall<output id="oRain"></output>
+              </span>
+              <input type="range" name="rainfall" min="8" max="34" step="1" />
+            </label>
+            <label>
+              <span>Ground underneath</span>
+              <select name="hydrology">
+                <option value="upland">Upland</option>
+                <option value="karst">Fractured rock, springs</option>
+                <option value="draw">Draw or creek</option>
+              </select>
+            </label>
+            <label>
+              <span>Grazing value per AUM ($)</span>
+              <input type="number" name="pricePerAum" min="0" step="0.5" />
+            </label>
+            <label>
+              <span>
+                Brush spread if left alone<output id="oSpread"></output>
               </span>
               <input
                 type="range"
@@ -212,499 +311,582 @@ const coverSteps = [
                 max="3"
                 step="0.1"
               />
-              <small>
-                Canopy points a year. Redberry juniper re-invades at 0.4 to 1.0;
-                Edwards Plateau juniper 1.6 to 5.
-              </small>
             </label>
-
-            <label class="roi-field">
-              <span>Plants per acre to treat</span>
-              <input
-                type="number"
-                name="plantsPerAcre"
-                min="1"
-                step="1"
-                inputmode="numeric"
-              />
-              <small>
-                Sets the EQIP individual-plant tier: 50&ndash;200 or
-                201&ndash;400 plants.
-              </small>
-            </label>
-
-            <fieldset class="roi-field">
-              <legend>Cost share</legend>
-              <div class="roi-seg">
-                <label>
-                  <input type="radio" name="costShare" value="none" />
-                  <span>None</span>
-                </label>
-                <label>
-                  <input type="radio" name="costShare" value="eqip" />
-                  <span>EQIP</span>
-                </label>
-                <label>
-                  <input type="radio" name="costShare" value="eqip-hu" />
-                  <span>EQIP, HU rate</span>
-                </label>
-              </div>
-            </fieldset>
-
-            <label class="roi-field">
-              <span>Your cost per acre, if you have a quote ($)</span>
-              <input
-                type="number"
-                name="costPerAcre"
-                min="0"
-                step="1"
-                inputmode="decimal"
-                placeholder="Leave blank for break-even"
-              />
-            </label>
-          </details>
-        </form>
-
-        <div class="roi-results" aria-live="polite">
-          <div class="roi-panel roi-headline">
-            <p class="roi-k">On grazing alone, over 20 years</p>
-            <p class="roi-big" id="rNpv"></p>
-            <p id="rNpvNote"></p>
-          </div>
-
-          <div class="roi-grid">
-            <article class="roi-panel">
-              <h3>Grass</h3>
-              <p class="roi-num" id="rGrass"></p>
-              <p id="rGrassNote"></p>
-              <svg
-                id="rChart"
-                viewBox="0 0 320 120"
-                role="img"
-                aria-label="Grass per acre over 20 years, treated and left alone"></svg>
-              <p class="roi-legend">
-                <i class="t"></i>Treated<i class="u"></i>Left alone
-              </p>
-            </article>
-
-            <article class="roi-panel">
-              <h3>Cattle</h3>
-              <p class="roi-num" id="rCattle"></p>
-              <p id="rCattleNote"></p>
-            </article>
-
-            <article class="roi-panel">
-              <h3>Water</h3>
-              <p class="roi-num" id="rWater"></p>
-              <p id="rWaterNote"></p>
-              <p class="roi-flag" id="rStream"></p>
-            </article>
-
-            <article class="roi-panel">
-              <h3>Fire</h3>
-              <p class="roi-num" id="rFire"></p>
-              <p id="rFireNote"></p>
-            </article>
-
-            <article class="roi-panel">
-              <h3>Wildlife</h3>
-              <ul class="roi-wild" id="rWild"></ul>
-              <p id="rWildNote"></p>
-            </article>
-
-            <article class="roi-panel">
-              <h3>Cost share</h3>
-              <p class="roi-num" id="rEqip"></p>
-              <p id="rEqipNote"></p>
-            </article>
-          </div>
-
-          <p class="roi-cta">
-            These are planning numbers from public research, not a promise. For
-            your actual brush count and a price,{" "}
-            <a href="/tools/ballpark/">run the free ballpark</a>.
-          </p>
-        </div>
+          </form>
+        </details>
       </div>
     </div>
   </section>
 
-  <section class="roi-method">
+  <section class="wz-method">
     <div class="container">
-      <h2>How the numbers are worked out</h2>
-      <div class="roi-method-grid">
+      <h2>Where the numbers come from</h2>
+      <div class="wz-method-grid">
         <div>
-          <h3>Grass</h3>
+          <h3>Grass and cattle</h3>
           <p>
-            Grass falls off as brush canopy closes. For juniper we use the
-            Edwards Plateau curve from Johnson et al. (1999). For mesquite we
-            use a 2013 Rangeland Ecology &amp; Management study: at 35% mesquite
-            cover, grama shortgrass loses about a quarter of its production and
-            midgrasses about three quarters, so desert grassland sites gain less
-            from clearing than mixed prairie. The starting point is your range
-            site's NRCS production with no brush, and gains are capped at the
-            700 lb an acre measured near Fort Stockton, the only Trans-Pecos
-            study. The response builds over three growing seasons.
-          </p>
-        </div>
-        <div>
-          <h3>Cattle</h3>
-          <p>
-            One animal unit is a 1,000 lb cow eating 26 lb of forage a day, or
-            790 lb a month (Texas A&amp;M AgriLife E-128 and the NRCS National
-            Range and Pasture Handbook). Livestock get about a quarter of what
-            grows. Extra grazing is valued at a lease rate per animal-unit month
-            and discounted at 5.25% a year over 20 years. On steep, rocky hills
-            only about 60% of the ground counts as grazable. A treatment holds
-            about 15 years on mesquite and 25 on juniper, which doesn't
-            resprout.
+            Grass under brush follows published curves: Johnson et al. (1999)
+            for juniper, and a 2013 Rangeland Ecology &amp; Management study for
+            mesquite, where midgrasses lose far more than grama. The starting
+            point is NRCS production for a Jeff Davis County range site, and
+            gains are capped at the 700 lb an acre measured near Fort Stockton.
+            A cow eats 790 lb a month (Texas A&amp;M AgriLife E-128) and gets
+            about a quarter of what grows. Grazing is valued at $14.50 per
+            animal-unit month (USDA NASS, Texas 2024), at 5.25% over 20 years.
           </p>
         </div>
         <div>
           <h3>Water</h3>
           <p>
-            We show two numbers on purpose. Water the brush stops using is about
-            0.4 inches per 10 points of cover removed (Bosch and Hewlett, via
-            the Texas State Soil and Water Conservation Board), more for juniper
-            because its canopy catches rain before it lands (Owens et al. 2006).
-            Most of that stays in the soil for grass. Water reaching creeks,
-            springs or aquifers is a published range, not a calculation. Below
-            18 inches of rain the state doesn't expect any (Hibbert 1983; Wilcox
-            2002), which covers most of the Trans-Pecos.
+            We show the water the brush stops using, about 0.4 inches per 10
+            points of cover removed (Bosch and Hewlett, via the Texas State Soil
+            and Water Conservation Board), more for cedar. Most of it stays in
+            the soil and grows grass. We don&rsquo;t multiply gallons per tree,
+            which overstates it, and we don&rsquo;t promise creek or spring
+            flow: below 18 inches of rain the state doesn&rsquo;t expect any.
           </p>
         </div>
         <div>
-          <h3>Fire and wildlife</h3>
+          <h3>Wildlife and valuation</h3>
           <p>
-            Thick juniper burns hotter and throws embers several times farther
-            than grass: up to about 7 km against 1.4 km in a Nebraska model
-            (Donovan et al. 2023). Clearing brush grows grass, and grass fires
-            spread fast but burn lower and are easier to stop. So the tool rates
-            fire behavior rather than putting a dollar figure on avoided loss.
-            Wildlife ranges are Texas Parks and Wildlife's woody-cover targets
-            for the Trans-Pecos.
+            Cover targets are Texas Parks and Wildlife&rsquo;s Trans-Pecos
+            ranges: pronghorn 1&ndash;10%, scaled quail 10&ndash;35%, mule deer
+            15&ndash;40%. For a wildlife tax valuation, brush work has to cover
+            10% of the plan area or 100 acres a year, whichever is smaller, and
+            the appraisal district decides.
+          </p>
+        </div>
+        <div>
+          <h3>Fire</h3>
+          <p>
+            Thick cedar burns hotter and throws embers farther than grass, up to
+            about 7 km against 1.4 km in a Nebraska model (Donovan et al. 2023).
+            Clearing grows grass, which still burns, but lower and easier to
+            stop. So we rate fire behavior and don&rsquo;t put a dollar figure
+            on losses avoided.
           </p>
         </div>
       </div>
+      <p class="wz-method-more">
+        The full reasoning is in
+        <a href="/articles/brush-return-calculator-scenarios/">
+          four ranches worked through
+        </a>
+        .
+      </p>
     </div>
   </section>
 </Base>
 
 <style is:global>
-  /* Brush return tool, namespaced .roi-*; colors from the site theme tokens. */
-  .roi-hero h1 {
-    margin-top: 0.5rem;
+  /* Brush return wizard, namespaced .wz-*; colors from the site theme tokens. */
+  .wz-hero {
+    text-align: center;
   }
-  .roi-eyebrow {
+  .wz-hero h1 em {
+    font-style: normal;
+    color: var(--color-primary);
+  }
+  .wz-eyebrow {
     font-size: 0.75rem;
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--color-primary);
     font-weight: 700;
   }
-  .roi-sub {
-    max-width: 66ch;
-    margin-top: 1rem;
-    color: var(--color-text-default);
+  .wz-sub {
+    max-width: 60ch;
+    margin: 1rem auto 0;
   }
-  .roi-scenarios {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 12px;
-    margin: 2rem 0 20px;
-  }
-  .roi-scn {
-    text-align: left;
-    background: var(--color-light);
-    border: 1px solid var(--color-border-light);
-    border-radius: 8px;
-    padding: 14px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    font-size: 0.875rem;
-    line-height: 1.4;
-    cursor: pointer;
-    transition: border-color 0.15s;
-  }
-  .roi-scn strong {
-    color: var(--color-dark);
-    font-size: 0.95rem;
-  }
-  .roi-scn:hover,
-  .roi-scn.is-on {
-    border-color: var(--color-primary);
-  }
-  .roi-scn.is-on {
-    box-shadow: inset 0 0 0 1px var(--color-primary);
-  }
-  .roi-tool {
-    display: grid;
-    grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
-    gap: 20px;
-    align-items: start;
-  }
-  @media (max-width: 900px) {
-    .roi-tool {
-      grid-template-columns: minmax(0, 1fr);
-    }
-  }
-  .roi-panel {
-    background: var(--color-light);
-    border: 1px solid var(--color-border-light);
-    border-radius: 8px;
-    padding: 20px;
-    min-width: 0;
-  }
-  .roi-panel h2,
-  .roi-panel h3 {
-    font-size: var(--text-h6, 1.1rem);
-    margin: 0 0 8px;
-  }
-  .roi-form {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-  @media (min-width: 901px) {
-    .roi-form {
-      position: sticky;
-      top: 96px;
-      max-height: calc(100vh - 112px);
-      overflow-y: auto;
-    }
-  }
-  .roi-field {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    border: 0;
-    padding: 0;
-    margin: 0;
-    font-size: 0.9rem;
-    min-width: 0;
-  }
-  .roi-field > span:first-child,
-  .roi-field legend {
-    font-weight: 600;
-    color: var(--color-dark);
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 6px;
-  }
-  .roi-field output {
-    color: var(--color-primary);
-    font-variant-numeric: tabular-nums;
-  }
-  .roi-field small {
-    color: var(--color-text-default);
-    font-size: 0.78rem;
-    line-height: 1.35;
-  }
-  .roi-field input[type="number"],
-  .roi-field select {
-    width: 100%;
-    border: 1px solid var(--color-border-light);
-    border-radius: 6px;
-    padding: 8px 10px;
-    background: #fff;
-    font-size: 0.95rem;
-  }
-  .roi-field input[type="range"] {
-    width: 100%;
-    accent-color: var(--color-primary);
-  }
-  .roi-ticks {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-  .roi-ticks button {
-    font-size: 0.72rem;
-    border: 1px solid var(--color-border-light);
-    border-radius: 999px;
-    padding: 2px 8px;
-    background: #fff;
-  }
-  .roi-ticks button:hover {
-    border-color: var(--color-primary);
-  }
-  .roi-seg {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-  .roi-seg label {
-    flex: 1 1 auto;
-  }
-  .roi-seg input {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-  }
-  .roi-seg span {
-    display: block;
+  .wz {
+    max-width: 980px;
     text-align: center;
-    border: 1px solid var(--color-border-light);
-    border-radius: 6px;
-    padding: 6px 8px;
-    background: #fff;
-    font-size: 0.82rem;
-    cursor: pointer;
   }
-  .roi-seg input:checked + span {
-    border-color: var(--color-primary);
-    color: var(--color-primary);
-    box-shadow: inset 0 0 0 1px var(--color-primary);
-    font-weight: 600;
-  }
-  .roi-seg input:focus-visible + span {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
-  }
-  .roi-more summary {
-    cursor: pointer;
-    font-weight: 600;
-    color: var(--color-primary);
-    margin-bottom: 12px;
-  }
-  .roi-more[open] {
+  .wz-progress {
     display: flex;
-    flex-direction: column;
-    gap: 16px;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 1rem;
   }
-  .roi-results {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    min-width: 0;
+  .wz-progress i {
+    width: 92px;
+    height: 5px;
+    border-radius: 999px;
+    background: var(--color-border-light);
+    transition: background 0.3s;
   }
-  .roi-k {
-    font-size: 0.75rem;
-    letter-spacing: 0.12em;
+  .wz-progress i.on {
+    background: var(--color-primary);
+  }
+  .wz-stepno {
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
     font-weight: 700;
-    color: var(--color-text-default);
+    margin: 10px 0 24px;
   }
-  .roi-big {
-    font-size: clamp(2rem, 5vw, 3rem);
-    font-weight: 700;
-    color: var(--color-dark);
-    line-height: 1.1;
-    margin: 6px 0 8px;
-    font-variant-numeric: tabular-nums;
+  .wz-step h2 {
+    margin: 0;
   }
-  .roi-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 16px;
+  .wz-hint {
+    margin: 6px 0 20px;
   }
-  .roi-grid p {
-    font-size: 0.9rem;
-    line-height: 1.45;
+  .wz-step {
+    animation: wz-in 0.35s ease-out;
   }
-  .roi-num {
-    font-size: 1.5rem !important;
-    font-weight: 700;
-    color: var(--color-dark);
-    line-height: 1.2 !important;
-    margin-bottom: 6px;
-    font-variant-numeric: tabular-nums;
+  @keyframes wz-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
   }
-  /* The theme paints <strong> white for dark sections. */
-  .roi-results strong {
-    color: var(--color-dark);
-    font-weight: 700;
+  .wz-ico {
+    width: 18px;
+    height: 18px;
+    display: inline-block;
+    vertical-align: -3px;
+    margin: 0 4px;
   }
-  .roi-flag {
-    margin-top: 8px;
-    padding: 8px 10px;
-    border-left: 3px solid var(--color-primary);
-    background: #fff;
-    border-radius: 4px;
-  }
-  #rChart {
-    width: 100%;
-    height: auto;
-    margin-top: 10px;
-  }
-  .roi-legend {
-    font-size: 0.75rem !important;
+  .wz-acres {
     display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 10px;
+    margin: 8px 0 16px;
+  }
+  .wz-acres input {
+    width: 4.6ch;
+    font-size: clamp(3.5rem, 10vw, 5.5rem);
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    color: var(--color-dark);
+    background: transparent;
+    border: 0;
+    border-bottom: 3px solid var(--color-border-light);
+    font-variant-numeric: tabular-nums;
+    -moz-appearance: textfield;
+  }
+  .wz-acres input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+  }
+  .wz-acres input:focus {
+    outline: none;
+    border-bottom-color: var(--color-primary);
+  }
+  .wz-acres span {
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .wz-slider {
+    width: min(560px, 100%);
+    accent-color: var(--color-primary);
+  }
+  .wz-slider-ends {
+    width: min(560px, 100%);
+    margin: 4px auto 0;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+  }
+  .wz-bumps {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin: 18px 0 26px;
+    flex-wrap: wrap;
+  }
+  .wz-bumps button,
+  .wz-examples button {
+    border: 1px solid var(--color-border-light);
+    background: var(--color-light);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  .wz-bumps button:hover,
+  .wz-examples button:hover {
+    border-color: var(--color-primary);
+  }
+  .wz-next {
+    background: var(--color-primary);
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: 999px;
+    padding: 14px 44px;
+  }
+  .wz-next:hover {
+    filter: brightness(1.08);
+  }
+  .wz-back,
+  .wz-restart {
+    margin-top: 22px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+  }
+  .wz-examples {
+    margin-top: 28px;
+    font-size: 0.85rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+  }
+  .wz-examples button {
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 4px 12px;
+  }
+  .wz-brush {
+    display: inline-flex;
+    gap: 6px;
+    padding: 5px;
+    border-radius: 999px;
+    background: var(--color-light);
+    border: 1px solid var(--color-border-light);
+    margin: 14px 0 4px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .wz-brush button {
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-weight: 600;
+    font-size: 0.92rem;
+  }
+  .wz-brush button[aria-checked="true"] {
+    background: var(--color-primary);
+    color: #fff;
+  }
+  .wz-card {
+    background: var(--color-light);
+    border: 2px solid var(--color-border-light);
+    border-radius: 16px;
+    transition:
+      transform 0.15s,
+      border-color 0.15s,
+      box-shadow 0.15s;
+  }
+  .wz-card:hover,
+  .wz-card:focus-visible {
+    transform: translateY(-3px);
+    border-color: var(--color-primary);
+    box-shadow: 0 10px 24px -14px rgb(0 0 0 / 0.35);
+    outline: none;
+  }
+  .wz-card.is-on {
+    border-color: var(--color-primary);
+  }
+  .wz-density {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+  }
+  @media (max-width: 760px) {
+    .wz-density {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .wz-dcard {
+    padding: 10px 10px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    align-items: center;
+  }
+  .wz-dcard img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 8px;
+  }
+  .wz-dcard b {
+    font-size: 1.05rem;
+    color: var(--color-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .wz-dcard span {
+    font-size: 0.82rem;
+    line-height: 1.3;
+  }
+  .wz-dcard small {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-primary);
+    margin-top: 4px;
+  }
+  .wz-prio {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px;
+  }
+  .wz-pcard {
+    padding: 22px 16px;
+    display: flex;
+    flex-direction: column;
     align-items: center;
     gap: 6px;
   }
-  .roi-legend i {
-    display: inline-block;
-    width: 14px;
-    height: 3px;
-    border-radius: 2px;
+  .wz-pico {
+    width: 44px;
+    height: 44px;
+    color: var(--color-primary);
+    stroke-width: 1.6;
+    margin-bottom: 6px;
   }
-  .roi-legend i.t {
+  .wz-pcard b {
+    color: var(--color-dark);
+    font-size: 1rem;
+  }
+  .wz-pcard span {
+    font-size: 0.82rem;
+    line-height: 1.35;
+  }
+  .wz-big {
+    position: relative;
+    overflow: hidden;
     background: var(--color-primary);
+    color: #fff;
+    border-radius: 22px;
+    padding: 34px 20px 30px;
+    box-shadow: 0 24px 40px -28px rgb(0 0 0 / 0.6);
   }
-  .roi-legend i.u {
-    background: var(--color-text-default);
-    opacity: 0.5;
-    margin-left: 8px;
+  .wz-big-icons svg {
+    position: absolute;
+    right: -18px;
+    bottom: -24px;
+    width: 180px;
+    height: 180px;
+    opacity: 0.13;
+    stroke-width: 1.4;
   }
-  .roi-wild {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 8px;
+  .wz-big-k {
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 700;
+    opacity: 0.9;
+  }
+  .wz-big-n {
+    font-size: clamp(3rem, 11vw, 6rem);
+    font-weight: 800;
+    line-height: 1;
+    margin: 12px 0 8px;
+    font-variant-numeric: tabular-nums;
+    color: #fff;
+  }
+  .wz-big-u {
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fff;
+  }
+  .wz-chip {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid rgb(255 255 255 / 0.4);
+    background: rgb(255 255 255 / 0.12);
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #fff;
+  }
+  .wz-stats {
     display: grid;
-    gap: 4px;
-    font-size: 0.85rem;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 14px;
   }
-  .roi-wild li {
+  .wz-stat {
+    background: var(--color-light);
+    border: 1px solid var(--color-border-light);
+    border-radius: 14px;
+    padding: 18px 14px;
+  }
+  .wz-stat p:first-child {
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--color-primary);
+  }
+  .wz-stat .v {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--color-dark);
+    line-height: 1.15;
+    margin: 6px 0 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .wz-stat .s {
+    font-size: 0.85rem;
+    line-height: 1.35;
+  }
+  .wz-also {
+    margin: 34px 0 12px;
+    font-size: var(--text-h6, 1.1rem);
+  }
+  .wz-minis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 10px;
+  }
+  .wz-mini {
+    text-align: left;
+    background: #fff;
+    border: 1px solid var(--color-border-light);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: grid;
+    grid-template-columns: 26px 1fr;
+    column-gap: 8px;
+    align-items: start;
+    transition: border-color 0.15s;
+  }
+  .wz-mini:hover {
+    border-color: var(--color-primary);
+  }
+  .wz-mini[hidden] {
+    display: none;
+  }
+  .wz-mini-ico {
+    width: 22px;
+    height: 22px;
+    color: var(--color-primary);
+    grid-row: span 3;
+  }
+  .wz-mini-t {
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  .wz-mini-v {
+    color: var(--color-dark);
+    font-size: 1.15rem;
+    line-height: 1.2;
+  }
+  .wz-mini-s {
+    font-size: 0.78rem;
+    line-height: 1.3;
+  }
+  .wz-note {
+    max-width: 62ch;
+    margin: 24px auto 0;
+    font-size: 0.88rem;
+  }
+  .wz-actions {
+    display: flex;
+    gap: 18px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 22px;
+  }
+  .wz-actions .wz-restart {
+    margin-top: 0;
+  }
+  .wz-tune {
+    margin: 28px auto 0;
+    max-width: 640px;
+    text-align: left;
+    background: var(--color-light);
+    border: 1px solid var(--color-border-light);
+    border-radius: 14px;
+    padding: 14px 18px;
+  }
+  .wz-tune summary {
+    cursor: pointer;
+    font-weight: 700;
+    color: var(--color-primary);
+  }
+  .wz-tune form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 14px 20px;
+    margin-top: 14px;
+  }
+  .wz-tune label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.88rem;
+  }
+  .wz-tune label > span {
+    font-weight: 600;
+    color: var(--color-dark);
     display: flex;
     justify-content: space-between;
-    gap: 8px;
   }
-  .roi-wild li.fit {
-    color: var(--color-dark);
-    font-weight: 600;
-  }
-  .roi-wild li:not(.fit) {
-    opacity: 0.6;
-  }
-  .roi-cta {
-    font-size: 0.9rem;
-  }
-  .roi-cta a,
-  .roi-grid a {
+  .wz-tune output {
     color: var(--color-primary);
-    text-decoration: underline;
   }
-  .roi-method {
-    margin-top: 3rem;
+  .wz-tune select,
+  .wz-tune input[type="number"] {
+    border: 1px solid var(--color-border-light);
+    border-radius: 6px;
+    padding: 7px 9px;
+    background: #fff;
   }
-  .roi-method-grid {
+  .wz-tune input[type="range"] {
+    accent-color: var(--color-primary);
+  }
+  /* The theme paints <strong> white for dark sections. */
+  .wz strong {
+    color: var(--color-dark);
+  }
+  .wz-method {
+    margin-top: 4rem;
+  }
+  .wz-method-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 24px;
-    margin-top: 1.5rem;
+    margin-top: 1.25rem;
   }
-  .roi-method h3 {
+  .wz-method h3 {
     font-size: var(--text-h6, 1.1rem);
     margin-bottom: 6px;
   }
-  .roi-method p {
-    font-size: 0.92rem;
+  .wz-method p {
+    font-size: 0.9rem;
     line-height: 1.55;
+  }
+  .wz-method-more {
+    margin-top: 1.5rem;
+  }
+  .wz-method a {
+    color: var(--color-primary);
+    text-decoration: underline;
   }
 </style>
 
 <script>
   import {
     DEFAULTS,
-    SCENARIOS,
-    run,
     GAL_PER_ACRE_FOOT,
+    SCENARIOS,
+    WILDLIFE,
+    quickInputs,
+    run,
+    type Brush,
     type Inputs,
+    type Priority,
   } from "@/lib/brushRoi";
 
-  const form = document.getElementById("roiForm") as HTMLFormElement;
+  const root = document.getElementById("wz")!;
   const $ = (id: string) => document.getElementById(id)!;
   const fmt = (n: number, d = 0) =>
     n.toLocaleString("en-US", {
@@ -712,225 +894,425 @@ const coverSteps = [
       minimumFractionDigits: d,
     });
   const money = (n: number) => "$" + fmt(Math.round(n));
-  const money2 = (n: number) => "$" + fmt(n, 2);
 
-  const FIRE: Record<string, [string, string]> = {
-    low: [
-      "Low",
-      "Mostly grass fuel: fast-moving fire with short flames that crews can catch.",
-    ],
-    moderate: [
-      "Moderate",
-      "Enough woody fuel to lift flames and lengthen ember throw in dry, windy weather.",
-    ],
-    high: [
-      "High",
-      "Ladder fuels and hot-burning brush. Fire resists control and can spot well ahead of the front.",
-    ],
-    "very-high": [
-      "Very high",
-      "Dense juniper torches and crowns once leaves dry out, throwing embers miles downwind.",
-    ],
+  const st = {
+    acres: 640,
+    brush: "mesquite" as Brush,
+    cover: 18,
+    priority: "grass" as Priority,
+    tune: {} as Partial<Inputs>,
   };
 
-  const NUMERIC = [
-    "acres",
-    "coverNow",
-    "coverAfter",
-    "rainfall",
-    "pricePerAum",
-    "harvestEfficiency",
-    "spreadPerYear",
-    "plantsPerAcre",
-  ];
-
-  function setForm(i: Inputs) {
-    for (const [k, v] of Object.entries(i)) {
-      const els = form.elements.namedItem(k);
-      if (!els) continue;
-      if (els instanceof RadioNodeList) els.value = String(v);
-      else (els as HTMLInputElement).value = v == null ? "" : String(v);
-    }
+  // ---- Step navigation -------------------------------------------------
+  function go(step: number) {
+    root.querySelectorAll<HTMLElement>(".wz-step").forEach((el) => {
+      el.hidden = el.dataset.step !== String(step);
+    });
+    root.querySelectorAll<HTMLElement>(".wz-progress i").forEach((el) => {
+      el.classList.toggle("on", Number(el.dataset.seg) <= Math.min(step, 3));
+    });
+    $("wzStepNo").textContent = step <= 3 ? `Step ${step} of 3` : "Your place";
+    if (step === 4) render(true);
+    const top = root.getBoundingClientRect().top + window.scrollY - 120;
+    if (window.scrollY > top) window.scrollTo({ top, behavior: "smooth" });
   }
-
-  function read(): Inputs {
-    const fd = new FormData(form);
-    const i: any = { ...DEFAULTS };
-    for (const k of NUMERIC) {
-      const n = parseFloat(String(fd.get(k)));
-      if (Number.isFinite(n)) i[k] = n;
-    }
-    for (const k of ["brush", "siteId", "yearType", "hydrology", "costShare"])
-      i[k] = String(fd.get(k) ?? i[k]);
-    const cost = parseFloat(String(fd.get("costPerAcre")));
-    i.costPerAcre = Number.isFinite(cost) && cost > 0 ? cost : undefined;
-    i.acres = Math.max(1, i.acres);
-    return i as Inputs;
-  }
-
-  function chart(r: ReturnType<typeof run>) {
-    const svg = $("rChart");
-    const W = 320,
-      H = 120,
-      P = 8;
-    const max = Math.max(r.y0, 1);
-    const pts = (f: (row: (typeof r.rows)[number]) => number) =>
-      [{ year: 0 } as any, ...r.rows]
-        .map((row, idx) => {
-          const v = idx === 0 ? r.grassNow : f(row);
-          const x = P + (idx / r.rows.length) * (W - 2 * P);
-          const y = H - P - (v / max) * (H - 2 * P);
-          return `${x.toFixed(1)},${y.toFixed(1)}`;
-        })
-        .join(" ");
-    const treated = pts((row) => row.grassTreated);
-    const left = pts((row) => row.grassUntreated);
-    svg.innerHTML =
-      `<line x1="${P}" x2="${W - P}" y1="${H - P}" y2="${H - P}" stroke="currentColor" stroke-opacity=".2"/>` +
-      `<polyline points="${left}" fill="none" stroke="var(--color-text-default)" stroke-opacity=".5" stroke-width="2" stroke-dasharray="4 3"/>` +
-      `<polyline points="${treated}" fill="none" stroke="var(--color-primary)" stroke-width="2.5"/>` +
-      `<text x="${W - P}" y="${H - P - 4}" text-anchor="end" font-size="9" fill="currentColor" opacity=".6">year ${r.rows.length}</text>`;
-  }
-
-  function render() {
-    const i = read();
-    $("outCoverNow").textContent = i.coverNow + "%";
-    $("outCoverAfter").textContent = i.coverAfter + "%";
-    $("outRain").textContent = i.rainfall + " in";
-    $("outHe").textContent = Math.round(i.harvestEfficiency * 100) + "%";
-    $("outSpread").textContent = i.spreadPerYear.toFixed(1) + " pts/yr";
-
-    const r = run(i);
-    const treating = i.coverAfter < i.coverNow;
-
-    // Headline
-    $("rNpv").textContent = treating ? money(r.npvTotal) : "$0";
-    const perAc = money2(r.npvPerAcre) + " an acre";
-    if (!treating) {
-      $("rNpvNote").textContent =
-        "Keep less cover than you have today to see what treatment would return.";
-    } else if (r.netCostPerAcre != null) {
-      $("rNpvNote").innerHTML =
-        `${perAc} in today's dollars, against your net cost of ${money2(r.netCostPerAcre)} an acre. ` +
-        (r.paybackYear
-          ? `Grazing alone pays it back in about <strong>${r.paybackYear} years</strong>.`
-          : `Grazing alone doesn't pay it back inside 20 years; the case has to rest on the water, fire and wildlife below.`);
-    } else {
-      $("rNpvNote").innerHTML =
-        `${perAc} in today's dollars. That's the most you could spend per acre, after cost share, and break even on extra grazing alone. ` +
-        (r.waitCostPerAcre > 0.5
-          ? `${money2(r.waitCostPerAcre)} of it is grass you'd lose as the brush keeps spreading.`
-          : "");
-    }
-
-    // Grass
-    $("rGrass").textContent = treating
-      ? `+${fmt(r.grassGainPerAcre)} lb/acre`
-      : "No change";
-    $("rGrassNote").textContent =
-      `${fmt(r.grassNow)} lb an acre under today's brush, about ${fmt(r.grassAfter)} once the grass comes back, on a site that grows ${fmt(r.y0)} with no brush.`;
-    chart(r);
-
-    // Cattle
-    const au = r.auAfter - r.auNow;
-    $("rCattle").textContent = treating
-      ? `+${fmt(au, 1)} animal units`
-      : "No change";
-    $("rCattleNote").textContent =
-      `From ${fmt(r.acresPerAuNow)} acres per cow to about ${fmt(r.acresPerAuAfter)}: room for ${fmt(r.auAfter, 1)} instead of ${fmt(r.auNow, 1)} on ${fmt(i.acres)} acres, or ${fmt(r.aumGainedPerYear)} more grazing months a year worth ${money(r.grazingValuePerYear)} at ${money2(i.pricePerAum)}.`;
-
-    // Water
-    const w = r.water;
-    const gal = w.onSiteGallonsTotal;
-    $("rWater").textContent = treating
-      ? gal >= 1e6
-        ? `${fmt(gal / 1e6, 1)} million gal/yr`
-        : `${fmt(gal)} gal/yr`
-      : "No change";
-    $("rWaterNote").textContent =
-      `Water the brush stops drinking: about ${w.onSiteInches.toFixed(1)} inches, or ${fmt(w.onSiteGallonsPerAcre)} gallons an acre (${fmt(gal / GAL_PER_ACRE_FOOT, 0)} acre-feet in all). Most of it stays in the soil and grows grass.`;
-    const [lo, hi] = w.streamRangePerAcre;
-    const STREAM: Record<string, string> = {
-      none: `<strong>Creeks and springs:</strong> likely none. Below 18 inches of rain the state's brush-for-water program doesn't expect added streamflow, and a USGS model of semi-arid West Texas found ${fmt(lo)}&ndash;5,000 gallons an acre at most.`,
-      low: `<strong>Springs and aquifer:</strong> small at best below 18 inches, up to about ${fmt(hi)} gallons an acre in USGS modeling. Fractured rock helps; a local spring is the best sign.`,
-      marginal: `<strong>Creeks and springs:</strong> borderline. This clears the state's 18-inch screen but sits under the ~20 inches researchers treat as the floor; expect 0&ndash;${fmt(hi)} gallons an acre, more only where a spring shows the water has a way down.`,
-      modelled: `<strong>Creeks and springs:</strong> state and USGS models put it at ${fmt(lo)}&ndash;${fmt(hi)} gallons an acre a year at this rainfall, though field projects have struggled to measure it.`,
-      karst: `<strong>Springs and aquifer:</strong> 1&ndash;4 acre-inches (${fmt(lo)}&ndash;${fmt(hi)} gallons) an acre a year on Edwards Plateau karst with dense cedar. This is where brush control does yield water.`,
-      riparian: `<strong>Shallow groundwater:</strong> up to about ${fmt(hi)} gallons an acre may stay in the water table along a draw, but Pecos River studies saw little of it reach the river.`,
-    };
-    $("rStream").innerHTML = STREAM[w.streamTier];
-
-    // Fire
-    const [nowL] = FIRE[r.fireNow];
-    const [afterL, afterD] = FIRE[r.fireAfter];
-    $("rFire").textContent =
-      treating && r.fireNow !== r.fireAfter ? `${nowL} → ${afterL}` : afterL;
-    $("rFireNote").textContent =
-      afterD +
-      (i.brush !== "mesquite"
-        ? " Treated cedar standing dead stays fuel until it falls."
-        : "");
-
-    // Wildlife
-    $("rWild").innerHTML = r.wildlifeRanges
-      .map(
-        (s) =>
-          `<li class="${i.coverAfter >= s.min && i.coverAfter <= s.max ? "fit" : ""}"><span>${s.species}</span><span>${s.min}&ndash;${s.max}%</span></li>`,
-      )
-      .join("");
-    $("rWildNote").innerHTML =
-      `Texas Parks and Wildlife's woody-cover targets. Keeping ${i.coverAfter}% suits ` +
-      (r.wildlifeFits.length
-        ? r.wildlifeFits.join(", ").replace(/, ([^,]*)$/, " and $1")
-        : "none of these on its own") +
-      `. To count toward a wildlife tax valuation here, brush work has to cover ${fmt(r.wildlifeValuationAcres)} acres a year.`;
-
-    // Cost share
-    if (i.costShare === "none") {
-      $("rEqip").textContent = "Not counted";
-      $("rEqipNote").innerHTML =
-        `EQIP pays $21.30 an acre for individual-plant treatment at 50&ndash;200 plants, $51.61 at 201&ndash;400 (Texas, FY2025). In Brewster, Jeff Davis and Presidio counties the Greater Big Bend Conservation Partnership reimburses about half.`;
-    } else if (r.eqipRatePerAcre == null) {
-      $("rEqip").textContent = "Outside the IPT tiers";
-      $("rEqipNote").textContent =
-        i.plantsPerAcre < 50
-          ? "Under 50 plants an acre doesn't fit EQIP's individual-plant scenarios."
-          : "Over 400 plants an acre, EQIP moves to its broadcast or mechanical scenarios.";
-    } else {
-      $("rEqip").textContent = `${money2(r.eqipRatePerAcre)}/acre`;
-      $("rEqipNote").textContent =
-        `About ${money(r.eqipRatePerAcre * i.acres)} on ${fmt(i.acres)} acres at the FY2025 Texas EQIP individual-plant rate${i.costShare === "eqip-hu" ? " for historically underserved producers" : ""}. Rates change each year; your NRCS field office has the current one.`;
-    }
-  }
-
-  function applyScenario(id: string) {
-    const s = SCENARIOS.find((x) => x.id === id);
-    if (!s) return;
-    setForm({ ...DEFAULTS, ...s.inputs } as Inputs);
-    document
-      .querySelectorAll<HTMLButtonElement>(".roi-scn")
-      .forEach((b) => b.classList.toggle("is-on", b.dataset.scenario === id));
-    render();
-  }
-
-  document
-    .querySelectorAll<HTMLButtonElement>(".roi-scn")
-    .forEach((b) =>
-      b.addEventListener("click", () => applyScenario(b.dataset.scenario!)),
-    );
-  document.querySelectorAll<HTMLButtonElement>("[data-cover]").forEach((b) =>
+  root.querySelectorAll<HTMLElement>("[data-go]").forEach((b) =>
     b.addEventListener("click", () => {
-      (form.elements.namedItem("coverNow") as HTMLInputElement).value =
-        b.dataset.cover!;
-      render();
+      if (b.classList.contains("wz-restart")) st.tune = {};
+      go(Number(b.dataset.go));
     }),
   );
-  form.addEventListener("input", () => {
-    document
-      .querySelectorAll(".roi-scn")
-      .forEach((b) => b.classList.remove("is-on"));
-    render();
+
+  // ---- Step 1: acres (log slider, 10 to 20,000) ------------------------
+  const acresIn = $("wzAcres") as HTMLInputElement;
+  const slider = $("wzAcreSlider") as HTMLInputElement;
+  const LO = Math.log(10),
+    HI = Math.log(20000);
+  const toSlider = (a: number) =>
+    Math.round(
+      ((Math.log(Math.max(10, Math.min(20000, a))) - LO) / (HI - LO)) * 1000,
+    );
+  const fromSlider = (v: number) => {
+    const a = Math.exp(LO + (v / 1000) * (HI - LO));
+    const step = a < 100 ? 5 : a < 1000 ? 10 : a < 5000 ? 50 : 100;
+    return Math.round(a / step) * step;
+  };
+  function setAcres(a: number, fromSlide = false) {
+    st.acres = Math.max(1, Math.min(100000, Math.round(a) || 1));
+    acresIn.value = String(st.acres);
+    if (!fromSlide) slider.value = String(toSlider(st.acres));
+  }
+  slider.addEventListener("input", () =>
+    setAcres(fromSlider(Number(slider.value)), true),
+  );
+  acresIn.addEventListener("input", () => {
+    const a = parseFloat(acresIn.value);
+    if (Number.isFinite(a) && a > 0) {
+      st.acres = Math.round(a);
+      slider.value = String(toSlider(st.acres));
+    }
   });
-  form.addEventListener("submit", (e) => e.preventDefault());
-  applyScenario(SCENARIOS[0].id);
+  acresIn.addEventListener("blur", () => setAcres(st.acres));
+  acresIn.addEventListener("keydown", (e) => e.key === "Enter" && go(2));
+  root
+    .querySelectorAll<HTMLElement>("[data-bump]")
+    .forEach((b) =>
+      b.addEventListener("click", () =>
+        setAcres(st.acres + Number(b.dataset.bump)),
+      ),
+    );
+  setAcres(640);
+
+  // ---- Step 2: brush + density ----------------------------------------
+  root.querySelectorAll<HTMLElement>("[data-brush]").forEach((b) =>
+    b.addEventListener("click", () => {
+      st.brush = b.dataset.brush as Brush;
+      root
+        .querySelectorAll("[data-brush]")
+        .forEach((x) => x.setAttribute("aria-checked", String(x === b)));
+    }),
+  );
+  root.querySelectorAll<HTMLElement>("[data-cover]").forEach((b) =>
+    b.addEventListener("click", () => {
+      st.cover = Number(b.dataset.cover);
+      root
+        .querySelectorAll("[data-cover]")
+        .forEach((x) => x.classList.toggle("is-on", x === b));
+      go(3);
+    }),
+  );
+
+  // ---- Step 3: priority -----------------------------------------------
+  root.querySelectorAll<HTMLElement>("[data-priority]").forEach((b) =>
+    b.addEventListener("click", () => {
+      st.priority = b.dataset.priority as Priority;
+      st.tune = {};
+      go(4);
+    }),
+  );
+
+  // Example ranches jump straight to results with their full inputs.
+  root.querySelectorAll<HTMLElement>("[data-scenario]").forEach((b) =>
+    b.addEventListener("click", () => {
+      const s = SCENARIOS.find((x) => x.id === b.dataset.scenario)!;
+      const i = { ...DEFAULTS, ...s.inputs };
+      setAcres(i.acres);
+      st.brush = i.brush;
+      st.cover = i.coverNow;
+      st.priority = "grass";
+      st.tune = {
+        coverAfter: i.coverAfter,
+        siteId: i.siteId,
+        rainfall: i.rainfall,
+        hydrology: i.hydrology,
+      };
+      go(4);
+    }),
+  );
+
+  // ---- Results ----------------------------------------------------------
+  const tune = $("wzTune") as HTMLFormElement;
+  const inputs = (): Inputs => ({
+    ...quickInputs(st.acres, st.brush, st.cover, st.priority),
+    ...st.tune,
+  });
+
+  function fillTune(i: Inputs) {
+    for (const k of [
+      "coverAfter",
+      "siteId",
+      "yearType",
+      "rainfall",
+      "hydrology",
+      "pricePerAum",
+      "spreadPerYear",
+    ] as const) {
+      const el = tune.elements.namedItem(k) as HTMLInputElement | null;
+      if (el) el.value = String(i[k]);
+    }
+    (tune.elements.namedItem("coverAfter") as HTMLInputElement).max = String(
+      i.coverNow,
+    );
+    $("oKeep").textContent = i.coverAfter + "%";
+    $("oRain").textContent = i.rainfall + " in";
+    $("oSpread").textContent = i.spreadPerYear.toFixed(1) + " pts/yr";
+  }
+  tune.addEventListener("input", () => {
+    const fd = new FormData(tune);
+    for (const k of [
+      "coverAfter",
+      "rainfall",
+      "pricePerAum",
+      "spreadPerYear",
+    ]) {
+      const n = parseFloat(String(fd.get(k)));
+      if (Number.isFinite(n)) (st.tune as any)[k] = n;
+    }
+    for (const k of ["siteId", "yearType", "hydrology"])
+      (st.tune as any)[k] = String(fd.get(k));
+    render(false);
+  });
+
+  const FIRE: Record<string, string> = {
+    low: "Low",
+    moderate: "Moderate",
+    high: "High",
+    "very-high": "Very high",
+  };
+  const gal = (g: number) => (g >= 1e6 ? `${fmt(g / 1e6, 1)} million` : fmt(g));
+
+  type Hero = {
+    k: string;
+    n: string;
+    count?: number;
+    u: string;
+    chip: string;
+    stats: [string, string, string][];
+  };
+
+  function hero(p: Priority, i: Inputs, r: ReturnType<typeof run>): Hero {
+    const au = r.auAfter - r.auNow;
+    const kept = i.coverAfter;
+    const fits = WILDLIFE.filter((w) => kept >= w.min && kept <= w.max).map(
+      (w) => w.species,
+    );
+    const w = r.water;
+    const streamLine: Record<string, string> = {
+      none: "Likely none at this rainfall",
+      low: "Small at best under 18 inches",
+      marginal: "Borderline at this rainfall",
+      modelled: "Some, in state and USGS models",
+      karst: "1–4 acre-inches a year here",
+      riparian: "Mostly to shallow groundwater",
+    };
+    switch (p) {
+      case "grass":
+        return {
+          k: "More cattle on the same country",
+          n: "+" + fmt(au, au < 10 ? 1 : 0),
+          count: au,
+          u: au === 1 ? "animal unit" : "animal units",
+          chip: `${fmt(r.auNow, 1)} → ${fmt(r.auAfter, 1)} head on ${fmt(i.acres)} acres`,
+          stats: [
+            [
+              "Grass back",
+              `+${fmt(r.grassGainPerAcre)} lb`,
+              "per acre a year, once it recovers",
+            ],
+            [
+              "Acres per cow",
+              `${fmt(r.acresPerAuNow)} → ${fmt(r.acresPerAuAfter)}`,
+              "year-round, at take-half-leave-half",
+            ],
+            [
+              "Grazing value",
+              money(r.npvTotal),
+              "over 20 years, in today's dollars",
+            ],
+          ],
+        };
+      case "water":
+        return {
+          k: "Water the brush stops drinking",
+          n: gal(w.onSiteGallonsTotal),
+          count:
+            w.onSiteGallonsTotal >= 1e6
+              ? w.onSiteGallonsTotal / 1e6
+              : w.onSiteGallonsTotal,
+          u: "gallons a year, back in your soil",
+          chip: `${fmt(w.onSiteGallonsPerAcre)} gallons an acre · ${fmt(w.onSiteGallonsTotal / GAL_PER_ACRE_FOOT)} acre-feet`,
+          stats: [
+            [
+              "Where it goes",
+              "Into grass",
+              "Most of it stays in the soil and grows forage",
+            ],
+            [
+              "Creeks and springs",
+              streamLine[w.streamTier],
+              `${i.rainfall} inches of rain; the state screens out land under 18`,
+            ],
+            [
+              "Grass it grows",
+              `+${fmt(r.grassGainPerAcre)} lb`,
+              "per acre a year. Same water, so don't count both",
+            ],
+          ],
+        };
+      case "wildlife":
+        return {
+          k: "Brush to keep for wildlife",
+          n: kept + "%",
+          count: kept,
+          u: "cover, kept where it counts",
+          chip: fits.length
+            ? `Inside the range for ${fits
+                .join(", ")
+                .replace(/, ([^,]*)$/, " and $1")
+                .toLowerCase()}`
+            : "Adjust what you keep below",
+          stats: [
+            [
+              "Mule deer",
+              "15–40%",
+              "Texas Parks and Wildlife's Trans-Pecos range",
+            ],
+            ["Scaled quail", "10–35%", "25–30% where you manage for both"],
+            [
+              "Grass back",
+              `+${fmt(r.grassGainPerAcre)} lb`,
+              "per acre a year, even keeping cover",
+            ],
+          ],
+        };
+      case "fire":
+        return {
+          k: "How fire would behave",
+          n: FIRE[r.fireAfter],
+          u:
+            r.fireNow !== r.fireAfter
+              ? `down from ${FIRE[r.fireNow].toLowerCase()}`
+              : "fire behavior",
+          chip: `${kept}% brush left · ${fmt((i.acres * (st.cover - kept)) / 100)} acres of canopy removed`,
+          stats: [
+            [
+              "Embers",
+              st.brush === "mesquite" ? "Shorter throw" : "~7 km → 1.4 km",
+              st.brush === "mesquite"
+                ? "Less ladder fuel lifting flames"
+                : "Juniper woodland vs grass, Nebraska model",
+            ],
+            ["Flames", "Under 4 ft", "Grass fires crews can fight by hand"],
+            [
+              "Still true",
+              "Grass burns",
+              "Clearing changes how fire behaves, not whether",
+            ],
+          ],
+        };
+      case "valuation":
+        return {
+          k: "Brush work that counts each year",
+          n: fmt(r.wildlifeValuationAcres),
+          count: r.wildlifeValuationAcres,
+          u: "acres a year toward a wildlife valuation",
+          chip: `10% of the plan area or 100 acres, whichever is smaller`,
+          stats: [
+            [
+              "To cover the place",
+              `${fmt(Math.ceil(i.acres / Math.max(1, r.wildlifeValuationAcres)))} years`,
+              "at the yearly minimum, catching regrowth as you go",
+            ],
+            [
+              "Cover kept",
+              `${kept}%`,
+              "TPWD wants the proper kind and amount of cover left",
+            ],
+            [
+              "Practices needed",
+              "3 of 7",
+              "Brush work is one. Your appraisal district decides",
+            ],
+          ],
+        };
+    }
+  }
+
+  function mini(
+    p: Priority,
+    i: Inputs,
+    r: ReturnType<typeof run>,
+  ): [string, string] {
+    switch (p) {
+      case "grass":
+        return [
+          `+${fmt(r.auAfter - r.auNow, 1)} head`,
+          `${fmt(r.acresPerAuNow)} → ${fmt(r.acresPerAuAfter)} acres per cow`,
+        ];
+      case "water":
+        return [
+          `${gal(r.water.onSiteGallonsTotal)} gal/yr`,
+          "back in the soil for grass",
+        ];
+      case "wildlife":
+        return [`${i.coverAfter}% kept`, "against TPWD's cover ranges"];
+      case "fire":
+        return [`${FIRE[r.fireNow]} → ${FIRE[r.fireAfter]}`, "fire behavior"];
+      case "valuation":
+        return [
+          `${fmt(r.wildlifeValuationAcres)} ac/yr`,
+          "toward a wildlife valuation",
+        ];
+    }
+  }
+
+  function countUp(el: HTMLElement, final: string, target?: number) {
+    if (
+      target == null ||
+      !Number.isFinite(target) ||
+      matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      el.textContent = final;
+      return;
+    }
+    const prefix = final.startsWith("+") ? "+" : "";
+    const suffix = final.match(/[^\d.,]+$/)?.[0] ?? "";
+    const dec = (final.split(".")[1] || "").replace(/\D/g, "").length;
+    const t0 = performance.now();
+    const step = (t: number) => {
+      const k = Math.min(1, (t - t0) / 900);
+      const e = 1 - Math.pow(1 - k, 3);
+      el.textContent = k < 1 ? prefix + fmt(target * e, dec) + suffix : final;
+      if (k < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  function render(animate: boolean) {
+    const i = inputs();
+    const r = run(i);
+    fillTune(i);
+    const h = hero(st.priority, i, r);
+    $("rK").textContent = h.k;
+    if (animate) countUp($("rN"), h.n, h.count);
+    else $("rN").textContent = h.n;
+    $("rU").textContent = h.u;
+    $("rChip").textContent = h.chip;
+    root.querySelectorAll<HTMLElement>("[data-icon-for]").forEach((el) => {
+      el.style.display = el.dataset.iconFor === st.priority ? "" : "none";
+    });
+    $("rStats").innerHTML = h.stats
+      .map(
+        ([k, v, s]) =>
+          `<div class="wz-stat"><p>${k}</p><p class="v">${v}</p><p class="s">${s}</p></div>`,
+      )
+      .join("");
+    root.querySelectorAll<HTMLElement>("[data-mini]").forEach((el) => {
+      const p = el.dataset.mini as Priority;
+      el.hidden = p === st.priority;
+      // Each card answers its own goal, with that goal's keep-% unless the
+      // user has set one by hand.
+      const ip = {
+        ...quickInputs(st.acres, st.brush, st.cover, p),
+        ...st.tune,
+      };
+      const [v, s] = mini(p, ip, run(ip));
+      el.querySelector(".wz-mini-v")!.textContent = v;
+      el.querySelector(".wz-mini-s")!.textContent = s;
+    });
+    const treating = i.coverAfter < i.coverNow;
+    $("rNote").innerHTML = treating
+      ? `Worked out for a ${fmt(i.acres)}-acre place at about ${i.coverNow}% ${st.brush === "juniper" ? "cedar" : st.brush === "mixed" ? "brush" : "mesquite"}, keeping ${i.coverAfter}%, on Jeff Davis County ground. These are planning numbers from public research, not a promise. A survey flight replaces them with a count of your own plants.`
+      : `You&rsquo;re already keeping as much brush as you have, so there&rsquo;s nothing to treat. Lower &ldquo;Brush you&rsquo;d keep&rdquo; below to see what treatment would return.`;
+  }
+
+  root.querySelectorAll<HTMLElement>("[data-mini]").forEach((el) =>
+    el.addEventListener("click", () => {
+      st.priority = el.dataset.mini as Priority;
+      delete st.tune.coverAfter;
+      render(true);
+    }),
+  );
+
+  go(1);
 </script>
