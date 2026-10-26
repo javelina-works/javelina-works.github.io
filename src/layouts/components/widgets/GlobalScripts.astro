@@ -1,5 +1,4 @@
 ---
-
 ---
 
 <script>
@@ -16,7 +15,16 @@
 
     // AOS - https://github.com/michalsnik/aos
     await safeInit("aos", async () => {
-      const AOS = await import("aos");
+      let AOS;
+      try {
+        AOS = await import("aos");
+      } catch (error) {
+        // aos.css hides [data-aos] until AOS reveals it, so a failed chunk
+        // load would leave that content invisible. Drop the attributes so it
+        // renders unanimated, then let safeInit report the failure.
+        revealAosContent();
+        throw error;
+      }
       AOS.init({
         duration: 700,
         easing: "ease-out",
@@ -43,6 +51,14 @@
     // Magnetic Hover Animation
     await safeInit("magnetic-hover", initMagneticHoverAnimation);
   });
+
+  function revealAosContent() {
+    document.querySelectorAll("[data-aos]").forEach((el) => {
+      for (const attr of [...el.attributes]) {
+        if (attr.name.startsWith("data-aos")) el.removeAttribute(attr.name);
+      }
+    });
+  }
 
   async function safeInit(name: string, init: () => unknown) {
     try {
