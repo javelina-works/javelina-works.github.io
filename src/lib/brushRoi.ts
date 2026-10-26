@@ -217,6 +217,12 @@ export function grassAt(
   return y0 * canopyFactor(brush, grass, cover);
 }
 
+// Animal units a pasture carries year-round at a given grass production.
+export function carrying(i: Inputs, grass: number): number {
+  const he = i.harvestEfficiency * siteById(i.siteId).grazable;
+  return (i.acres * grass * he) / LB_PER_AUY;
+}
+
 export function acresPerAu(grass: number, he: number): number {
   return grass > 0 ? LB_PER_AUY / (grass * he) : Infinity;
 }
@@ -305,6 +311,7 @@ export const WILDLIFE = [
 export interface YearRow {
   year: number;
   coverUntreated: number;
+  coverTreated: number;
   grassUntreated: number;
   grassTreated: number; // with the phase-in and fade applied
   aumGained: number; // whole property
@@ -391,6 +398,7 @@ export function run(i: Inputs): Result {
     rows.push({
       year: t,
       coverUntreated,
+      coverTreated: treatedCover,
       grassUntreated,
       grassTreated: grassUntreated + gain,
       aumGained: aum,

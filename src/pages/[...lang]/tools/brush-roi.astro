@@ -2,7 +2,7 @@
 import Base from "@/layouts/Base.astro";
 import Icons from "@/helpers/Icons.astro";
 import { generatePaths } from "@/lib/utils/i18nUtils";
-import { SCENARIOS, SITES } from "@/lib/brushRoi";
+import { SITES, WILDLIFE } from "@/lib/brushRoi";
 
 export function getStaticPaths() {
   return generatePaths();
@@ -11,366 +11,360 @@ export function getStaticPaths() {
 const meta = {
   metaTitle: "Brush Control Return Calculator, West Texas | Javelina Works",
   metaDescription:
-    "What clearing mesquite and cedar could give back on a West Texas ranch: grass, cattle, water, fire risk and wildlife cover, from NRCS, TPWD and Texas A&M research.",
+    "Watch a West Texas pasture 20 years out, left alone and treated plant by plant: grass, cattle, water, wildlife cover and fire, from NRCS, TPWD and Texas A&M research.",
   disableTagline: true,
 };
 
-// The same five reference acres the pricing page shows: real NAIP windows
-// measured at each cover step.
 const densities = [
-  { name: "Scattered", pct: 3, line: "A tree here and there" },
-  { name: "Light", pct: 8, line: "Easy to see between them" },
-  { name: "Medium", pct: 18, line: "Patchy and spreading" },
-  { name: "Heavy", pct: 30, line: "Crowding the grass" },
-  { name: "Thicket", pct: 40, line: "Hard to ride through" },
+  { name: "Scattered", pct: 3 },
+  { name: "Light", pct: 8 },
+  { name: "Medium", pct: 18 },
+  { name: "Heavy", pct: 30 },
+  { name: "Thicket", pct: 40 },
 ];
-const pad = (n: number) => String(n).padStart(2, "0");
 
-const brushes = [
-  { id: "mesquite", name: "Mesquite", icon: "TreeDeciduous" },
-  { id: "juniper", name: "Cedar / juniper", icon: "TreePine" },
-  { id: "mixed", name: "Some of both", icon: "Trees" },
+const lenses = [
+  { id: "cattle", name: "Cattle", icon: "Beef" },
+  { id: "water", name: "Water", icon: "Droplets" },
+  { id: "wildlife", name: "Wildlife", icon: "Bird" },
+  { id: "fire", name: "Fire", icon: "Flame" },
 ] as const;
 
-const priorities = [
-  {
-    id: "grass",
-    name: "More grass and cattle",
-    line: "Carry more head on the same country",
-    icon: "Beef",
-  },
-  {
-    id: "water",
-    name: "Water",
-    line: "Stop the brush drinking what the grass needs",
-    icon: "Droplets",
-  },
-  {
-    id: "wildlife",
-    name: "Wildlife and hunting",
-    line: "The right cover for deer and quail",
-    icon: "Bird",
-  },
-  {
-    id: "fire",
-    name: "Fire safety",
-    line: "Fuel near the house, roads and lines",
-    icon: "Flame",
-  },
-  {
-    id: "valuation",
-    name: "Wildlife tax valuation",
-    line: "Brush work that counts every year",
-    icon: "Landmark",
-  },
-] as const;
+const sides = [
+  { id: "L", title: "Leave it", sub: "The brush keeps spreading" },
+  { id: "R", title: "Treat it, plant by plant", sub: "Tap a tree to keep it" },
+];
 ---
 
 <Base {...meta} sectionSpacing="md">
-  <section class="wz-hero">
+  <section class="ps-hero">
     <div class="container">
-      <p class="wz-eyebrow">Free &middot; three questions</p>
+      <p class="ps-eyebrow">Free &middot; interactive</p>
       <h1>
-        What would clearing your brush<em>give back?</em>
+        Watch your pasture<em>twenty years out.</em>
       </h1>
-      <p class="wz-sub">
-        Tell us how big the place is, how thick the brush is and what you care
-        about most. We&rsquo;ll show what treating it could return, from
-        published NRCS, Texas Parks and Wildlife and Texas A&amp;M research.
+      <p class="ps-sub">
+        Two pieces of the same country. One you leave alone, one you treat plant
+        by plant, keeping the trees you choose. Press play and watch the grass,
+        the cattle, the water and the fire risk move, worked out from NRCS,
+        Texas Parks and Wildlife and Texas A&amp;M research.
       </p>
     </div>
   </section>
 
   <section>
-    <div class="container wz" id="wz">
-      <div class="wz-progress" aria-hidden="true">
-        <i data-seg="1"></i>
-        <i data-seg="2"></i>
-        <i data-seg="3"></i>
-      </div>
-      <p class="wz-stepno" id="wzStepNo">
-        Step 1 of 3
-      </p>
-
-      <!-- Step 1: acres -->
-      <div class="wz-step" data-step="1">
-        <h2>How many acres?</h2>
-        <p class="wz-hint">The pasture or the whole place.</p>
-        <div class="wz-acres">
+    <div class="container ps" id="ps">
+      <div class="ps-controls">
+        <label class="ps-ctl">
+          <span>Acres</span>
           <input
-            id="wzAcres"
+            id="psAcres"
             type="number"
             min="1"
             max="100000"
             value="640"
             inputmode="numeric"
-            aria-label="Acres"
           />
-          <span>acres</span>
-        </div>
-        <input
-          id="wzAcreSlider"
-          class="wz-slider"
-          type="range"
-          min="0"
-          max="1000"
-          step="1"
-          aria-label="Drag to set acres"
-        />
-        <div class="wz-slider-ends">
-          <span>10</span>
-          <span>Drag to set acres</span>
-          <span>20,000</span>
-        </div>
-        <div class="wz-bumps">
-          <button type="button" data-bump="-100">
-            &minus;100
-          </button>
-          <button type="button" data-bump="-10">
-            &minus;10
-          </button>
-          <button type="button" data-bump="10">
-            +10
-          </button>
-          <button type="button" data-bump="100">
-            +100
-          </button>
-        </div>
-        <button type="button" class="wz-next" data-go="2">
-          Next
-          <Icons icon="ArrowRight" class="wz-ico" />
-        </button>
-        <p class="wz-examples">
-          Or start from an example ranch:
-          {SCENARIOS.map((s) => (
-            <button type="button" data-scenario={s.id}>
-              {s.label}
-            </button>
-          ))}
-        </p>
-      </div>
-
-      <!-- Step 2: brush and density -->
-      <div class="wz-step" data-step="2" hidden>
-        <h2>What&rsquo;s growing, and how thick?</h2>
-        <div class="wz-brush" role="radiogroup" aria-label="Main brush">
-          {brushes.map((b, i) => (
+          <span class="ps-chips">
+            {[160, 640, 2000, 10000].map((a) => (
+              <button type="button" data-acres={a}>
+                {a.toLocaleString("en-US")}
+              </button>
+            ))}
+          </span>
+        </label>
+        <div class="ps-ctl">
+          <span>Brush</span>
+          <div class="ps-seg" role="radiogroup" aria-label="Main brush">
             <button
               type="button"
               role="radio"
-              aria-checked={i === 0 ? "true" : "false"}
-              data-brush={b.id}>
-              <Icons icon={b.icon} class="wz-ico" />
-              {b.name}
+              aria-checked="true"
+              data-brush="mesquite">
+              Mesquite
             </button>
-          ))}
-        </div>
-        <p class="wz-hint">
-          Tap the acre that looks most like yours. Each is a real acre seen from
-          above.
-        </p>
-        <div class="wz-density">
-          {densities.map((d) => (
-            <button type="button" class="wz-card wz-dcard" data-cover={d.pct}>
-              <img
-                src={`/images/pricing/acre-${pad(d.pct)}.jpg`}
-                alt={`A real acre at ${d.pct}% brush cover`}
-                width="212"
-                height="212"
-                loading="lazy"
-              />
-              <b>{d.name}</b>
-              <span>{d.line}</span>
-              <small>about {d.pct}% cover</small>
+            <button
+              type="button"
+              role="radio"
+              aria-checked="false"
+              data-brush="juniper">
+              Cedar
             </button>
-          ))}
-        </div>
-        <button type="button" class="wz-back" data-go="1">
-          <Icons icon="ArrowLeft" class="wz-ico" />
-          Back
-        </button>
-      </div>
-
-      <!-- Step 3: what matters -->
-      <div class="wz-step" data-step="3" hidden>
-        <h2>What matters most to you?</h2>
-        <p class="wz-hint">
-          We&rsquo;ll lead with that, and show the rest underneath.
-        </p>
-        <div class="wz-prio">
-          {priorities.map((p) => (
-            <button type="button" class="wz-card wz-pcard" data-priority={p.id}>
-              <Icons icon={p.icon} class="wz-pico" />
-              <b>{p.name}</b>
-              <span>{p.line}</span>
+            <button
+              type="button"
+              role="radio"
+              aria-checked="false"
+              data-brush="mixed">
+              Both
             </button>
-          ))}
-        </div>
-        <button type="button" class="wz-back" data-go="2">
-          <Icons icon="ArrowLeft" class="wz-ico" />
-          Back
-        </button>
-      </div>
-
-      <!-- Results -->
-      <div class="wz-step wz-results" data-step="4" hidden>
-        <div class="wz-big">
-          <div class="wz-big-icons" aria-hidden="true">
-            {priorities.map((p) => (
-              <Icons icon={p.icon} class="wz-big-ico" data-icon-for={p.id} />
-            ))}
           </div>
-          <p class="wz-big-k" id="rK"></p>
-          <p class="wz-big-n" id="rN"></p>
-          <p class="wz-big-u" id="rU"></p>
-          <p class="wz-chip" id="rChip"></p>
         </div>
-
-        <div class="wz-stats" id="rStats"></div>
-
-        <h3 class="wz-also">Also on your place</h3>
-        <div class="wz-minis" id="rMinis">
-          {priorities.map((p) => (
-            <button type="button" class="wz-mini" data-mini={p.id}>
-              <Icons icon={p.icon} class="wz-mini-ico" />
-              <span class="wz-mini-t">{p.name}</span>
-              <b class="wz-mini-v" />
-              <span class="wz-mini-s" />
+        <label class="ps-ctl ps-ctl-wide">
+          <span>
+            How thick today<output id="psCoverOut"></output>
+          </span>
+          <input
+            id="psCover"
+            type="range"
+            min="2"
+            max="45"
+            step="1"
+            value="18"
+          />
+          <span class="ps-ticks">
+            {densities.map((d) => (
+              <button type="button" data-cover={d.pct}>
+                {d.name}
+              </button>
+            ))}
+          </span>
+        </label>
+        <div class="ps-ctl ps-ctl-wide">
+          <span>
+            What stays<output id="psKeepOut"></output>
+          </span>
+          <div class="ps-seg ps-keep">
+            <button type="button" data-keep="shade">
+              Shade trees for cattle
             </button>
-          ))}
+            <button type="button" data-keep="draw">
+              Cover for deer and quail
+            </button>
+            <button type="button" data-keep="none">
+              Clear it all
+            </button>
+          </div>
+          <small>
+            Or tap any tree in the treated pasture to keep it or let it go.
+          </small>
         </div>
+      </div>
 
-        <p class="wz-note" id="rNote"></p>
-
-        <div class="wz-actions">
-          <a class="btn btn-primary" href="/tools/ballpark/">
-            Measure my real place, free
-          </a>
-          <button type="button" class="wz-restart" data-go="1">
-            <Icons icon="RotateCcw" class="wz-ico" />
-            Start over
-          </button>
-        </div>
-
-        <details class="wz-tune">
-          <summary>
-            <Icons icon="SlidersHorizontal" class="wz-ico" />
-            Fine-tune the assumptions
-          </summary>
-          <form id="wzTune" autocomplete="off">
-            <label>
-              <span>
-                Brush you&rsquo;d keep<output id="oKeep"></output>
-              </span>
-              <input type="range" name="coverAfter" min="0" max="60" step="1" />
-            </label>
-            <label>
-              <span>Range site</span>
-              <select name="siteId">
-                {SITES.map((s) => (
-                  <option value={s.id}>
-                    {s.label} &middot; {s.normal.toLocaleString("en-US")} lb
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span>This kind of year</span>
-              <select name="yearType">
-                <option value="low">Dry</option>
-                <option value="normal">Normal</option>
-                <option value="high">Wet</option>
-              </select>
-            </label>
-            <label>
-              <span>
-                Average rainfall<output id="oRain"></output>
-              </span>
-              <input type="range" name="rainfall" min="8" max="34" step="1" />
-            </label>
-            <label>
-              <span>Ground underneath</span>
-              <select name="hydrology">
-                <option value="upland">Upland</option>
-                <option value="karst">Fractured rock, springs</option>
-                <option value="draw">Draw or creek</option>
-              </select>
-            </label>
-            <label>
-              <span>Grazing value per AUM ($)</span>
-              <input type="number" name="pricePerAum" min="0" step="0.5" />
-            </label>
-            <label>
-              <span>
-                Brush spread if left alone<output id="oSpread"></output>
-              </span>
-              <input
-                type="range"
-                name="spreadPerYear"
-                min="0"
-                max="3"
-                step="0.1"
+      <div class="ps-stage">
+        {sides.map((s) => (
+          <figure class="ps-side" data-side={s.id}>
+            <figcaption>
+              <b>{s.title}</b>
+              <span>{s.sub}</span>
+            </figcaption>
+            <div class="ps-canvas-wrap">
+              <canvas
+                id={`psCanvas${s.id}`}
+                aria-label={`${s.title} pasture`}
               />
-            </label>
-          </form>
-        </details>
+              <span class="ps-year" id={`psYear${s.id}`}>
+                Today
+              </span>
+              <span class="ps-cowkey" id={`psCowKey${s.id}`} hidden />
+            </div>
+            <dl class="ps-stats">
+              <div>
+                <dt>Brush</dt>
+                <dd id={`psStatCover${s.id}`} />
+              </div>
+              <div>
+                <dt>Grass</dt>
+                <dd id={`psStatGrass${s.id}`} />
+              </div>
+              <div>
+                <dt>Carries</dt>
+                <dd id={`psStatHead${s.id}`} />
+              </div>
+              <div>
+                <dt>Fire</dt>
+                <dd id={`psStatFire${s.id}`} />
+              </div>
+            </dl>
+            <ul class="ps-species" id={`psSpecies${s.id}`} hidden>
+              {WILDLIFE.map((w) => (
+                <li data-min={w.min} data-max={w.max}>
+                  {w.species}
+                </li>
+              ))}
+            </ul>
+          </figure>
+        ))}
+      </div>
+
+      <div class="ps-timeline">
+        <button
+          type="button"
+          class="ps-play"
+          id="psPlay"
+          aria-label="Play twenty years">
+          <Icons icon="Play" class="ps-ico ps-ico-play" />
+          <Icons icon="Pause" class="ps-ico ps-ico-pause" />
+        </button>
+        <input
+          id="psTime"
+          type="range"
+          min="0"
+          max="20"
+          step="0.01"
+          value="0"
+          aria-label="Years from today"
+        />
+        <span class="ps-time-label" id="psTimeLabel">
+          Today
+        </span>
+      </div>
+
+      <div class="ps-lenses" role="tablist" aria-label="What to show">
+        {lenses.map((l, i) => (
+          <button
+            type="button"
+            role="tab"
+            aria-selected={i === 0 ? "true" : "false"}
+            data-lens={l.id}>
+            <Icons icon={l.icon} class="ps-ico" />
+            {l.name}
+          </button>
+        ))}
+        <button type="button" class="ps-ignite" id="psIgnite" hidden>
+          <Icons icon="Flame" class="ps-ico" />
+          Light a fire
+        </button>
+      </div>
+      <p class="ps-caption" id="psCaption"></p>
+
+      <div class="ps-outcome">
+        <p class="ps-outcome-k" id="psOutK">
+          After 20 years, treated vs left alone
+        </p>
+        <div class="ps-outcome-grid">
+          <div>
+            <b id="psOutHead"></b>
+            <span>more head carried</span>
+          </div>
+          <div>
+            <b id="psOutGrass"></b>
+            <span>more grass an acre</span>
+          </div>
+          <div>
+            <b id="psOutValue"></b>
+            <span>grazing value over 20 years</span>
+          </div>
+          <div>
+            <b id="psOutWater"></b>
+            <span>gallons a year back in the soil</span>
+          </div>
+        </div>
+        <p class="ps-outcome-note" id="psOutNote"></p>
+        <div class="ps-actions">
+          <a class="btn btn-primary" href="/tools/ballpark/">
+            See your real place, free
+          </a>
+          <details class="ps-tune">
+            <summary>
+              <Icons icon="SlidersHorizontal" class="ps-ico" />
+              Fine-tune
+            </summary>
+            <form id="psTune" autocomplete="off">
+              <label>
+                <span>Range site</span>
+                <select name="siteId">
+                  {SITES.map((s) => (
+                    <option value={s.id}>
+                      {s.label} &middot; {s.normal.toLocaleString("en-US")} lb
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                <span>This kind of year</span>
+                <select name="yearType">
+                  <option value="low">Dry</option>
+                  <option value="normal" selected>
+                    Normal
+                  </option>
+                  <option value="high">Wet</option>
+                </select>
+              </label>
+              <label>
+                <span>
+                  Average rainfall<output id="psRainOut"></output>
+                </span>
+                <input type="range" name="rainfall" min="8" max="34" step="1" />
+              </label>
+              <label>
+                <span>Grazing value per AUM ($)</span>
+                <input type="number" name="pricePerAum" min="0" step="0.5" />
+              </label>
+              <label>
+                <span>
+                  Brush spread if left alone<output id="psSpreadOut"></output>
+                </span>
+                <input
+                  type="range"
+                  name="spreadPerYear"
+                  min="0"
+                  max="3"
+                  step="0.1"
+                />
+              </label>
+            </form>
+          </details>
+        </div>
       </div>
     </div>
   </section>
 
-  <section class="wz-method">
+  <section class="ps-method">
     <div class="container">
       <h2>Where the numbers come from</h2>
-      <div class="wz-method-grid">
+      <div class="ps-method-grid">
         <div>
           <h3>Grass and cattle</h3>
           <p>
             Grass under brush follows published curves: Johnson et al. (1999)
             for juniper, and a 2013 Rangeland Ecology &amp; Management study for
-            mesquite, where midgrasses lose far more than grama. The starting
-            point is NRCS production for a Jeff Davis County range site, and
-            gains are capped at the 700 lb an acre measured near Fort Stockton.
-            A cow eats 790 lb a month (Texas A&amp;M AgriLife E-128) and gets
-            about a quarter of what grows. Grazing is valued at $14.50 per
-            animal-unit month (USDA NASS, Texas 2024), at 5.25% over 20 years.
+            mesquite. The starting point is NRCS production for a Jeff Davis
+            County range site, recovery is capped at the 700 lb an acre measured
+            near Fort Stockton and builds over three seasons. A cow eats 790 lb
+            a month and gets about a quarter of what grows (Texas A&amp;M
+            AgriLife E-128). Grazing is valued at $14.50 per animal-unit month
+            (USDA NASS, Texas 2024), at 5.25% over 20 years. A treatment holds
+            about 15 years on mesquite and 25 on cedar, then the brush starts
+            back.
           </p>
         </div>
         <div>
           <h3>Water</h3>
           <p>
-            We show the water the brush stops using, about 0.4 inches per 10
-            points of cover removed (Bosch and Hewlett, via the Texas State Soil
-            and Water Conservation Board), more for cedar. Most of it stays in
-            the soil and grows grass. We don&rsquo;t multiply gallons per tree,
-            which overstates it, and we don&rsquo;t promise creek or spring
-            flow: below 18 inches of rain the state doesn&rsquo;t expect any.
+            The water figure is what the brush stops using, about 0.4 inches per
+            10 points of cover removed (Bosch and Hewlett, via the Texas State
+            Soil and Water Conservation Board), more for cedar. Most of it stays
+            in the soil and grows the grass above, so the two aren&rsquo;t added
+            together. Below 18 inches of rain the state doesn&rsquo;t expect any
+            of it to reach a creek or spring.
           </p>
         </div>
         <div>
-          <h3>Wildlife and valuation</h3>
+          <h3>Wildlife</h3>
           <p>
-            Cover targets are Texas Parks and Wildlife&rsquo;s Trans-Pecos
-            ranges: pronghorn 1&ndash;10%, scaled quail 10&ndash;35%, mule deer
-            15&ndash;40%. For a wildlife tax valuation, brush work has to cover
-            10% of the plan area or 100 acres a year, whichever is smaller, and
-            the appraisal district decides.
+            Species light up when the brush on that side is inside Texas Parks
+            and Wildlife&rsquo;s Trans-Pecos woody-cover range: pronghorn
+            1&ndash;10%, scaled quail 10&ndash;35%, mule deer 15&ndash;40%. The
+            &ldquo;cover for deer and quail&rdquo; choice keeps brush along the
+            wash first, the way TPWD asks for buffers on draws.
           </p>
         </div>
         <div>
           <h3>Fire</h3>
           <p>
-            Thick cedar burns hotter and throws embers farther than grass, up to
-            about 7 km against 1.4 km in a Nebraska model (Donovan et al. 2023).
-            Clearing grows grass, which still burns, but lower and easier to
-            stop. So we rate fire behavior and don&rsquo;t put a dollar figure
-            on losses avoided.
+            The fire is an illustration of behavior, not a forecast. Cedar burns
+            hotter and throws embers farther than grass, up to about 7 km
+            against 1.4 km in a Nebraska model (Donovan et al. 2023). Grass
+            still burns, lower and easier to stop, and treated trees stay fuel
+            while they stand. We don&rsquo;t put a dollar figure on losses
+            avoided.
           </p>
         </div>
       </div>
-      <p class="wz-method-more">
-        The full reasoning is in
+      <p class="ps-method-more">
+        The reasoning, worked through on four ranches:
         <a href="/articles/brush-return-calculator-scenarios/">
-          four ranches worked through
+          what clearing gives back
         </a>
         .
       </p>
@@ -379,495 +373,436 @@ const priorities = [
 </Base>
 
 <style is:global>
-  /* Brush return wizard, namespaced .wz-*; colors from the site theme tokens. */
-  .wz-hero {
-    text-align: center;
-  }
-  .wz-hero h1 em {
+  /* Pasture simulator, namespaced .ps-*; colors from the site theme tokens. */
+  .ps-hero h1 em {
     font-style: normal;
     color: var(--color-primary);
   }
-  .wz-eyebrow {
+  .ps-eyebrow {
     font-size: 0.75rem;
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--color-primary);
     font-weight: 700;
   }
-  .wz-sub {
-    max-width: 60ch;
-    margin: 1rem auto 0;
-  }
-  .wz {
-    max-width: 980px;
-    text-align: center;
-  }
-  .wz-progress {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
+  .ps-sub {
+    max-width: 66ch;
     margin-top: 1rem;
   }
-  .wz-progress i {
-    width: 92px;
-    height: 5px;
-    border-radius: 999px;
-    background: var(--color-border-light);
-    transition: background 0.3s;
-  }
-  .wz-progress i.on {
-    background: var(--color-primary);
-  }
-  .wz-stepno {
-    font-size: 0.72rem;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    font-weight: 700;
-    margin: 10px 0 24px;
-  }
-  .wz-step h2 {
-    margin: 0;
-  }
-  .wz-hint {
-    margin: 6px 0 20px;
-  }
-  .wz-step {
-    animation: wz-in 0.35s ease-out;
-  }
-  @keyframes wz-in {
-    from {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-  }
-  .wz-ico {
-    width: 18px;
-    height: 18px;
+  .ps-ico {
+    width: 17px;
+    height: 17px;
     display: inline-block;
     vertical-align: -3px;
-    margin: 0 4px;
   }
-  .wz-acres {
-    display: flex;
-    align-items: baseline;
-    justify-content: center;
-    gap: 10px;
-    margin: 8px 0 16px;
-  }
-  .wz-acres input {
-    width: 4.6ch;
-    font-size: clamp(3.5rem, 10vw, 5.5rem);
-    font-weight: 700;
-    line-height: 1;
-    text-align: center;
-    color: var(--color-dark);
-    background: transparent;
-    border: 0;
-    border-bottom: 3px solid var(--color-border-light);
-    font-variant-numeric: tabular-nums;
-    -moz-appearance: textfield;
-  }
-  .wz-acres input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-  }
-  .wz-acres input:focus {
-    outline: none;
-    border-bottom-color: var(--color-primary);
-  }
-  .wz-acres span {
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-  }
-  .wz-slider {
-    width: min(560px, 100%);
-    accent-color: var(--color-primary);
-  }
-  .wz-slider-ends {
-    width: min(560px, 100%);
-    margin: 4px auto 0;
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.75rem;
-  }
-  .wz-bumps {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    margin: 18px 0 26px;
-    flex-wrap: wrap;
-  }
-  .wz-bumps button,
-  .wz-examples button {
-    border: 1px solid var(--color-border-light);
-    background: var(--color-light);
-    border-radius: 999px;
-    padding: 6px 14px;
-    font-size: 0.9rem;
-    font-weight: 600;
-  }
-  .wz-bumps button:hover,
-  .wz-examples button:hover {
-    border-color: var(--color-primary);
-  }
-  .wz-next {
-    background: var(--color-primary);
-    color: #fff;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    border-radius: 999px;
-    padding: 14px 44px;
-  }
-  .wz-next:hover {
-    filter: brightness(1.08);
-  }
-  .wz-back,
-  .wz-restart {
-    margin-top: 22px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    font-size: 0.85rem;
-  }
-  .wz-examples {
-    margin-top: 28px;
-    font-size: 0.85rem;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
-    align-items: center;
-  }
-  .wz-examples button {
-    font-size: 0.8rem;
-    font-weight: 500;
-    padding: 4px 12px;
-  }
-  .wz-brush {
-    display: inline-flex;
-    gap: 6px;
-    padding: 5px;
-    border-radius: 999px;
-    background: var(--color-light);
-    border: 1px solid var(--color-border-light);
-    margin: 14px 0 4px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  .wz-brush button {
-    border-radius: 999px;
-    padding: 8px 16px;
-    font-weight: 600;
-    font-size: 0.92rem;
-  }
-  .wz-brush button[aria-checked="true"] {
-    background: var(--color-primary);
-    color: #fff;
-  }
-  .wz-card {
-    background: var(--color-light);
-    border: 2px solid var(--color-border-light);
-    border-radius: 16px;
-    transition:
-      transform 0.15s,
-      border-color 0.15s,
-      box-shadow 0.15s;
-  }
-  .wz-card:hover,
-  .wz-card:focus-visible {
-    transform: translateY(-3px);
-    border-color: var(--color-primary);
-    box-shadow: 0 10px 24px -14px rgb(0 0 0 / 0.35);
-    outline: none;
-  }
-  .wz-card.is-on {
-    border-color: var(--color-primary);
-  }
-  .wz-density {
+  .ps-controls {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 12px;
+    grid-template-columns: auto auto minmax(0, 1fr) minmax(0, 1.2fr);
+    gap: 18px 26px;
+    align-items: start;
+    background: var(--color-light);
+    border: 1px solid var(--color-border-light);
+    border-radius: 16px;
+    padding: 18px 20px;
+    margin-top: 1.5rem;
   }
-  @media (max-width: 760px) {
-    .wz-density {
+  @media (max-width: 1100px) {
+    .ps-controls {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
-  .wz-dcard {
-    padding: 10px 10px 14px;
+  @media (max-width: 560px) {
+    .ps-controls {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .ps-ctl {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    font-size: 0.88rem;
   }
-  .wz-dcard img {
-    width: 100%;
-    aspect-ratio: 1;
-    object-fit: cover;
-    border-radius: 10px;
-    margin-bottom: 8px;
-  }
-  .wz-dcard b {
-    font-size: 1.05rem;
-    color: var(--color-dark);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-  .wz-dcard span {
-    font-size: 0.82rem;
-    line-height: 1.3;
-  }
-  .wz-dcard small {
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--color-primary);
-    margin-top: 4px;
-  }
-  .wz-prio {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-    gap: 12px;
-  }
-  .wz-pcard {
-    padding: 22px 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-  }
-  .wz-pico {
-    width: 44px;
-    height: 44px;
-    color: var(--color-primary);
-    stroke-width: 1.6;
-    margin-bottom: 6px;
-  }
-  .wz-pcard b {
-    color: var(--color-dark);
-    font-size: 1rem;
-  }
-  .wz-pcard span {
-    font-size: 0.82rem;
-    line-height: 1.35;
-  }
-  .wz-big {
-    position: relative;
-    overflow: hidden;
-    background: var(--color-primary);
-    color: #fff;
-    border-radius: 22px;
-    padding: 34px 20px 30px;
-    box-shadow: 0 24px 40px -28px rgb(0 0 0 / 0.6);
-  }
-  .wz-big-icons svg {
-    position: absolute;
-    right: -18px;
-    bottom: -24px;
-    width: 180px;
-    height: 180px;
-    opacity: 0.13;
-    stroke-width: 1.4;
-  }
-  .wz-big-k {
-    font-size: 0.75rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    font-weight: 700;
-    opacity: 0.9;
-  }
-  .wz-big-n {
-    font-size: clamp(3rem, 11vw, 6rem);
-    font-weight: 800;
-    line-height: 1;
-    margin: 12px 0 8px;
-    font-variant-numeric: tabular-nums;
-    color: #fff;
-  }
-  .wz-big-u {
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #fff;
-  }
-  .wz-chip {
-    display: inline-block;
-    margin-top: 16px;
-    padding: 8px 16px;
-    border-radius: 999px;
-    border: 1px solid rgb(255 255 255 / 0.4);
-    background: rgb(255 255 255 / 0.12);
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: #fff;
-  }
-  .wz-stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 12px;
-    margin-top: 14px;
-  }
-  .wz-stat {
-    background: var(--color-light);
-    border: 1px solid var(--color-border-light);
-    border-radius: 14px;
-    padding: 18px 14px;
-  }
-  .wz-stat p:first-child {
+  .ps-ctl > span:first-child {
     font-size: 0.72rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     font-weight: 700;
-    color: var(--color-primary);
-  }
-  .wz-stat .v {
-    font-size: 2rem;
-    font-weight: 800;
-    color: var(--color-dark);
-    line-height: 1.15;
-    margin: 6px 0 4px;
-    font-variant-numeric: tabular-nums;
-  }
-  .wz-stat .s {
-    font-size: 0.85rem;
-    line-height: 1.35;
-  }
-  .wz-also {
-    margin: 34px 0 12px;
-    font-size: var(--text-h6, 1.1rem);
-  }
-  .wz-minis {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-    gap: 10px;
-  }
-  .wz-mini {
-    text-align: left;
-    background: #fff;
-    border: 1px solid var(--color-border-light);
-    border-radius: 12px;
-    padding: 12px 14px;
-    display: grid;
-    grid-template-columns: 26px 1fr;
-    column-gap: 8px;
-    align-items: start;
-    transition: border-color 0.15s;
-  }
-  .wz-mini:hover {
-    border-color: var(--color-primary);
-  }
-  .wz-mini[hidden] {
-    display: none;
-  }
-  .wz-mini-ico {
-    width: 22px;
-    height: 22px;
-    color: var(--color-primary);
-    grid-row: span 3;
-  }
-  .wz-mini-t {
-    font-size: 0.72rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    font-weight: 700;
-  }
-  .wz-mini-v {
-    color: var(--color-dark);
-    font-size: 1.15rem;
-    line-height: 1.2;
-  }
-  .wz-mini-s {
-    font-size: 0.78rem;
-    line-height: 1.3;
-  }
-  .wz-note {
-    max-width: 62ch;
-    margin: 24px auto 0;
-    font-size: 0.88rem;
-  }
-  .wz-actions {
-    display: flex;
-    gap: 18px;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    margin-top: 22px;
-  }
-  .wz-actions .wz-restart {
-    margin-top: 0;
-  }
-  .wz-tune {
-    margin: 28px auto 0;
-    max-width: 640px;
-    text-align: left;
-    background: var(--color-light);
-    border: 1px solid var(--color-border-light);
-    border-radius: 14px;
-    padding: 14px 18px;
-  }
-  .wz-tune summary {
-    cursor: pointer;
-    font-weight: 700;
-    color: var(--color-primary);
-  }
-  .wz-tune form {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-    gap: 14px 20px;
-    margin-top: 14px;
-  }
-  .wz-tune label {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    font-size: 0.88rem;
-  }
-  .wz-tune label > span {
-    font-weight: 600;
     color: var(--color-dark);
     display: flex;
     justify-content: space-between;
   }
-  .wz-tune output {
+  .ps-ctl output {
     color: var(--color-primary);
+    letter-spacing: 0.04em;
   }
-  .wz-tune select,
-  .wz-tune input[type="number"] {
+  .ps-ctl small {
+    font-size: 0.78rem;
+  }
+  #psAcres {
+    width: 8ch;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--color-dark);
+    border: 0;
+    border-bottom: 2px solid var(--color-border-light);
+    background: transparent;
+    font-variant-numeric: tabular-nums;
+  }
+  #psAcres:focus {
+    outline: none;
+    border-bottom-color: var(--color-primary);
+  }
+  .ps-chips,
+  .ps-ticks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .ps-chips button,
+  .ps-ticks button {
+    font-size: 0.72rem;
     border: 1px solid var(--color-border-light);
-    border-radius: 6px;
-    padding: 7px 9px;
+    border-radius: 999px;
+    padding: 2px 9px;
     background: #fff;
   }
-  .wz-tune input[type="range"] {
+  .ps-chips button:hover,
+  .ps-ticks button:hover {
+    border-color: var(--color-primary);
+  }
+  #psCover {
+    accent-color: var(--color-primary);
+    width: 100%;
+  }
+  .ps-seg {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 12px;
+    background: #fff;
+    border: 1px solid var(--color-border-light);
+  }
+  .ps-seg button {
+    flex: 1 1 auto;
+    border-radius: 9px;
+    padding: 6px 10px;
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+  .ps-seg button[aria-checked="true"],
+  .ps-seg button.is-on {
+    background: var(--color-primary);
+    color: #fff;
+  }
+  .ps-stage {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    margin-top: 18px;
+  }
+  @media (max-width: 640px) {
+    .ps-stage {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .ps-side {
+    margin: 0;
+    min-width: 0;
+  }
+  .ps-side figcaption {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .ps-side figcaption b {
+    color: var(--color-dark);
+    font-size: 1.05rem;
+  }
+  .ps-side figcaption span {
+    font-size: 0.8rem;
+  }
+  .ps-canvas-wrap {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 18px 34px -24px rgb(0 0 0 / 0.55);
+    aspect-ratio: 1;
+    background: #cbb48a;
+  }
+  .ps-canvas-wrap canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    touch-action: manipulation;
+  }
+  [data-side="R"] canvas {
+    cursor: crosshair;
+  }
+  .ps-year,
+  .ps-cowkey {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgb(20 16 12 / 0.62);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+  .ps-cowkey {
+    top: auto;
+    bottom: 10px;
+    font-weight: 600;
+  }
+  .ps-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    margin: 10px 0 0;
+  }
+  .ps-stats div {
+    background: var(--color-light);
+    border: 1px solid var(--color-border-light);
+    border-radius: 10px;
+    padding: 8px 8px 7px;
+    min-width: 0;
+  }
+  .ps-stats dt {
+    font-size: 0.64rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  .ps-stats dd {
+    margin: 2px 0 0;
+    color: var(--color-dark);
+    font-weight: 700;
+    font-size: 1rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ps-species {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .ps-species li {
+    font-size: 0.75rem;
+    padding: 3px 9px;
+    border-radius: 999px;
+    border: 1px solid var(--color-border-light);
+    opacity: 0.45;
+    transition:
+      opacity 0.25s,
+      background 0.25s;
+  }
+  .ps-species li.on {
+    opacity: 1;
+    background: #e4ead0;
+    border-color: #9aaa5a;
+    color: #2f3d14;
+    font-weight: 600;
+  }
+  .ps-timeline {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 18px;
+  }
+  .ps-play {
+    flex: none;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 10px 20px -12px rgb(0 0 0 / 0.6);
+  }
+  .ps-play .ps-ico {
+    width: 22px;
+    height: 22px;
+    margin: 0;
+  }
+  .ps-play .ps-ico-pause,
+  .ps-play.is-playing .ps-ico-play {
+    display: none;
+  }
+  .ps-play.is-playing .ps-ico-pause {
+    display: inline-block;
+  }
+  #psTime {
+    flex: 1;
     accent-color: var(--color-primary);
   }
-  /* The theme paints <strong> white for dark sections. */
-  .wz strong {
+  .ps-time-label {
+    flex: none;
+    min-width: 6.5ch;
+    font-weight: 700;
     color: var(--color-dark);
+    font-variant-numeric: tabular-nums;
   }
-  .wz-method {
+  .ps-lenses {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+    align-items: center;
+  }
+  .ps-lenses button {
+    border: 1px solid var(--color-border-light);
+    background: var(--color-light);
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-weight: 600;
+    font-size: 0.88rem;
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .ps-lenses button[aria-selected="true"] {
+    background: var(--color-dark);
+    border-color: var(--color-dark);
+    color: #fff;
+  }
+  .ps-lenses .ps-ignite {
+    background: #d9480f;
+    border-color: #d9480f;
+    color: #fff;
+    margin-left: auto;
+  }
+  .ps-caption {
+    margin-top: 10px;
+    font-size: 0.88rem;
+    max-width: 80ch;
+  }
+  .ps-outcome {
+    margin-top: 26px;
+    background: var(--color-primary);
+    color: #fff;
+    border-radius: 20px;
+    padding: 24px 22px;
+  }
+  .ps-outcome-k {
+    font-size: 0.75rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #fff;
+    opacity: 0.9;
+  }
+  .ps-outcome-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 14px;
+    margin-top: 12px;
+  }
+  .ps-outcome-grid div {
+    display: flex;
+    flex-direction: column;
+  }
+  .ps-outcome-grid b {
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    line-height: 1.1;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+  }
+  .ps-outcome-grid span {
+    font-size: 0.85rem;
+    color: #fff;
+    opacity: 0.9;
+  }
+  .ps-outcome-note {
+    margin-top: 14px;
+    font-size: 0.85rem;
+    color: #fff;
+    opacity: 0.92;
+    max-width: 80ch;
+  }
+  .ps-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: flex-start;
+    margin-top: 18px;
+  }
+  .ps-actions .btn-primary {
+    background: #fff;
+    color: var(--color-primary);
+    border-color: #fff;
+  }
+  .ps-tune {
+    background: rgb(255 255 255 / 0.12);
+    border: 1px solid rgb(255 255 255 / 0.35);
+    border-radius: 12px;
+    padding: 9px 14px;
+    color: #fff;
+    flex: 1 1 280px;
+  }
+  .ps-tune summary {
+    cursor: pointer;
+    font-weight: 700;
+  }
+  .ps-tune form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px 16px;
+    margin-top: 12px;
+  }
+  .ps-tune label {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: 0.85rem;
+  }
+  .ps-tune label > span {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 600;
+  }
+  .ps-tune select,
+  .ps-tune input[type="number"] {
+    border-radius: 6px;
+    padding: 6px 8px;
+    color: var(--color-dark);
+    border: 0;
+  }
+  .ps-tune input[type="range"] {
+    accent-color: #fff;
+  }
+  .ps-method {
     margin-top: 4rem;
   }
-  .wz-method-grid {
+  .ps-method-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 24px;
     margin-top: 1.25rem;
   }
-  .wz-method h3 {
+  .ps-method h3 {
     font-size: var(--text-h6, 1.1rem);
     margin-bottom: 6px;
   }
-  .wz-method p {
+  .ps-method p {
     font-size: 0.9rem;
     line-height: 1.55;
   }
-  .wz-method-more {
+  .ps-method-more {
     margin-top: 1.5rem;
   }
-  .wz-method a {
+  .ps-method a {
     color: var(--color-primary);
     text-decoration: underline;
   }
@@ -876,443 +811,466 @@ const priorities = [
 <script>
   import {
     DEFAULTS,
-    GAL_PER_ACRE_FOOT,
-    SCENARIOS,
-    WILDLIFE,
-    quickInputs,
+    carrying,
+    fireTier,
     run,
     type Brush,
     type Inputs,
-    type Priority,
   } from "@/lib/brushRoi";
+  import {
+    autoKeep,
+    drawPasture,
+    embersFor,
+    groundTextures,
+    keptCover,
+    makeStand,
+    type FireParticle,
+    type Stand,
+    type Tree,
+  } from "@/lib/brushPasture";
 
-  const root = document.getElementById("wz")!;
+  type Lens = "cattle" | "water" | "wildlife" | "fire";
   const $ = (id: string) => document.getElementById(id)!;
   const fmt = (n: number, d = 0) =>
     n.toLocaleString("en-US", {
       maximumFractionDigits: d,
       minimumFractionDigits: d,
     });
-  const money = (n: number) => "$" + fmt(Math.round(n));
-
-  const st = {
-    acres: 640,
-    brush: "mesquite" as Brush,
-    cover: 18,
-    priority: "grass" as Priority,
-    tune: {} as Partial<Inputs>,
-  };
-
-  // ---- Step navigation -------------------------------------------------
-  function go(step: number) {
-    root.querySelectorAll<HTMLElement>(".wz-step").forEach((el) => {
-      el.hidden = el.dataset.step !== String(step);
-    });
-    root.querySelectorAll<HTMLElement>(".wz-progress i").forEach((el) => {
-      el.classList.toggle("on", Number(el.dataset.seg) <= Math.min(step, 3));
-    });
-    $("wzStepNo").textContent = step <= 3 ? `Step ${step} of 3` : "Your place";
-    if (step === 4) render(true);
-    const top = root.getBoundingClientRect().top + window.scrollY - 120;
-    if (window.scrollY > top) window.scrollTo({ top, behavior: "smooth" });
-  }
-  root.querySelectorAll<HTMLElement>("[data-go]").forEach((b) =>
-    b.addEventListener("click", () => {
-      if (b.classList.contains("wz-restart")) st.tune = {};
-      go(Number(b.dataset.go));
-    }),
-  );
-
-  // ---- Step 1: acres (log slider, 10 to 20,000) ------------------------
-  const acresIn = $("wzAcres") as HTMLInputElement;
-  const slider = $("wzAcreSlider") as HTMLInputElement;
-  const LO = Math.log(10),
-    HI = Math.log(20000);
-  const toSlider = (a: number) =>
-    Math.round(
-      ((Math.log(Math.max(10, Math.min(20000, a))) - LO) / (HI - LO)) * 1000,
-    );
-  const fromSlider = (v: number) => {
-    const a = Math.exp(LO + (v / 1000) * (HI - LO));
-    const step = a < 100 ? 5 : a < 1000 ? 10 : a < 5000 ? 50 : 100;
-    return Math.round(a / step) * step;
-  };
-  function setAcres(a: number, fromSlide = false) {
-    st.acres = Math.max(1, Math.min(100000, Math.round(a) || 1));
-    acresIn.value = String(st.acres);
-    if (!fromSlide) slider.value = String(toSlider(st.acres));
-  }
-  slider.addEventListener("input", () =>
-    setAcres(fromSlider(Number(slider.value)), true),
-  );
-  acresIn.addEventListener("input", () => {
-    const a = parseFloat(acresIn.value);
-    if (Number.isFinite(a) && a > 0) {
-      st.acres = Math.round(a);
-      slider.value = String(toSlider(st.acres));
-    }
-  });
-  acresIn.addEventListener("blur", () => setAcres(st.acres));
-  acresIn.addEventListener("keydown", (e) => e.key === "Enter" && go(2));
-  root
-    .querySelectorAll<HTMLElement>("[data-bump]")
-    .forEach((b) =>
-      b.addEventListener("click", () =>
-        setAcres(st.acres + Number(b.dataset.bump)),
-      ),
-    );
-  setAcres(640);
-
-  // ---- Step 2: brush + density ----------------------------------------
-  root.querySelectorAll<HTMLElement>("[data-brush]").forEach((b) =>
-    b.addEventListener("click", () => {
-      st.brush = b.dataset.brush as Brush;
-      root
-        .querySelectorAll("[data-brush]")
-        .forEach((x) => x.setAttribute("aria-checked", String(x === b)));
-    }),
-  );
-  root.querySelectorAll<HTMLElement>("[data-cover]").forEach((b) =>
-    b.addEventListener("click", () => {
-      st.cover = Number(b.dataset.cover);
-      root
-        .querySelectorAll("[data-cover]")
-        .forEach((x) => x.classList.toggle("is-on", x === b));
-      go(3);
-    }),
-  );
-
-  // ---- Step 3: priority -----------------------------------------------
-  root.querySelectorAll<HTMLElement>("[data-priority]").forEach((b) =>
-    b.addEventListener("click", () => {
-      st.priority = b.dataset.priority as Priority;
-      st.tune = {};
-      go(4);
-    }),
-  );
-
-  // Example ranches jump straight to results with their full inputs.
-  root.querySelectorAll<HTMLElement>("[data-scenario]").forEach((b) =>
-    b.addEventListener("click", () => {
-      const s = SCENARIOS.find((x) => x.id === b.dataset.scenario)!;
-      const i = { ...DEFAULTS, ...s.inputs };
-      setAcres(i.acres);
-      st.brush = i.brush;
-      st.cover = i.coverNow;
-      st.priority = "grass";
-      st.tune = {
-        coverAfter: i.coverAfter,
-        siteId: i.siteId,
-        rainfall: i.rainfall,
-        hydrology: i.hydrology,
-      };
-      go(4);
-    }),
-  );
-
-  // ---- Results ----------------------------------------------------------
-  const tune = $("wzTune") as HTMLFormElement;
-  const inputs = (): Inputs => ({
-    ...quickInputs(st.acres, st.brush, st.cover, st.priority),
-    ...st.tune,
-  });
-
-  function fillTune(i: Inputs) {
-    for (const k of [
-      "coverAfter",
-      "siteId",
-      "yearType",
-      "rainfall",
-      "hydrology",
-      "pricePerAum",
-      "spreadPerYear",
-    ] as const) {
-      const el = tune.elements.namedItem(k) as HTMLInputElement | null;
-      if (el) el.value = String(i[k]);
-    }
-    (tune.elements.namedItem("coverAfter") as HTMLInputElement).max = String(
-      i.coverNow,
-    );
-    $("oKeep").textContent = i.coverAfter + "%";
-    $("oRain").textContent = i.rainfall + " in";
-    $("oSpread").textContent = i.spreadPerYear.toFixed(1) + " pts/yr";
-  }
-  tune.addEventListener("input", () => {
-    const fd = new FormData(tune);
-    for (const k of [
-      "coverAfter",
-      "rainfall",
-      "pricePerAum",
-      "spreadPerYear",
-    ]) {
-      const n = parseFloat(String(fd.get(k)));
-      if (Number.isFinite(n)) (st.tune as any)[k] = n;
-    }
-    for (const k of ["siteId", "yearType", "hydrology"])
-      (st.tune as any)[k] = String(fd.get(k));
-    render(false);
-  });
-
   const FIRE: Record<string, string> = {
     low: "Low",
     moderate: "Moderate",
     high: "High",
     "very-high": "Very high",
   };
-  const gal = (g: number) => (g >= 1e6 ? `${fmt(g / 1e6, 1)} million` : fmt(g));
 
-  type Hero = {
-    k: string;
-    n: string;
-    count?: number;
-    u: string;
-    chip: string;
-    stats: [string, string, string][];
+  const st = {
+    acres: 640,
+    brush: "mesquite" as Brush,
+    cover: 18,
+    keepMode: "shade" as "shade" | "draw" | "none" | "custom",
+    t: 0,
+    playing: false,
+    lens: "cattle" as Lens,
+    fire: -1,
+    tune: {} as Partial<Inputs>,
   };
 
-  function hero(p: Priority, i: Inputs, r: ReturnType<typeof run>): Hero {
-    const au = r.auAfter - r.auNow;
-    const kept = i.coverAfter;
-    const fits = WILDLIFE.filter((w) => kept >= w.min && kept <= w.max).map(
-      (w) => w.species,
+  let stand: Stand;
+  let inputs: Inputs;
+  let result: ReturnType<typeof run>;
+  let perCow = 1;
+  let embers: { L: FireParticle[]; R: FireParticle[] } = { L: [], R: [] };
+  let hover: Tree | null = null;
+
+  // ---- Canvases ------------------------------------------------------------
+  const canv = {
+    L: $("psCanvasL") as HTMLCanvasElement,
+    R: $("psCanvasR") as HTMLCanvasElement,
+  };
+  const ctx = { L: canv.L.getContext("2d")!, R: canv.R.getContext("2d")! };
+  let px = 0;
+  let tex: ReturnType<typeof groundTextures>;
+  function resize() {
+    const w = Math.round(
+      canv.L.clientWidth * Math.min(2, devicePixelRatio || 1),
     );
-    const w = r.water;
-    const streamLine: Record<string, string> = {
-      none: "Likely none at this rainfall",
-      low: "Small at best under 18 inches",
-      marginal: "Borderline at this rainfall",
-      modelled: "Some, in state and USGS models",
-      karst: "1–4 acre-inches a year here",
-      riparian: "Mostly to shallow groundwater",
+    if (!w || w === px) return;
+    px = w;
+    for (const c of [canv.L, canv.R]) c.width = c.height = px;
+    tex = groundTextures(px);
+  }
+  new ResizeObserver(() => {
+    resize();
+    paint(performance.now());
+  }).observe(canv.L);
+
+  // ---- Model ---------------------------------------------------------------
+  function keepTarget(mode: typeof st.keepMode) {
+    if (mode === "shade") return st.cover <= 5 ? 1 : 5;
+    if (mode === "draw")
+      return Math.min(st.cover, Math.max(10, Math.min(20, st.cover * 0.6)));
+    return 0;
+  }
+
+  function rebuildStand() {
+    const spread = st.tune.spreadPerYear ?? DEFAULTS.spreadPerYear;
+    // Hand-picked keeps survive a rebuild of the same stand.
+    const kept =
+      st.keepMode === "custom" && stand ? stand.base.map((t) => t.keep) : null;
+    stand = makeStand(
+      st.brush,
+      st.cover,
+      Math.min(70, st.cover + spread * 20 + 2),
+    );
+    if (kept && kept.length === stand.base.length)
+      stand.base.forEach((t, i) => (t.keep = kept[i]));
+    else if (st.keepMode === "custom") st.keepMode = "shade";
+    if (st.keepMode !== "custom")
+      autoKeep(
+        stand,
+        st.cover,
+        keepTarget(st.keepMode),
+        st.keepMode === "draw" ? "draw" : "shade",
+      );
+    recompute();
+  }
+
+  const SITE_FOR: Record<Brush, string> = {
+    mesquite: "loamy-dg",
+    juniper: "igneous-mp",
+    mixed: "gravelly-mp",
+  };
+  function recompute() {
+    const after = Math.round(keptCover(stand, st.cover) * 10) / 10;
+    inputs = {
+      ...DEFAULTS,
+      acres: st.acres,
+      brush: st.brush,
+      coverNow: st.cover,
+      coverAfter: Math.min(after, st.cover),
+      siteId: SITE_FOR[st.brush],
+      rainfall: st.brush === "juniper" ? 18 : 16,
+      ...st.tune,
     };
-    switch (p) {
-      case "grass":
-        return {
-          k: "More cattle on the same country",
-          n: "+" + fmt(au, au < 10 ? 1 : 0),
-          count: au,
-          u: au === 1 ? "animal unit" : "animal units",
-          chip: `${fmt(r.auNow, 1)} → ${fmt(r.auAfter, 1)} head on ${fmt(i.acres)} acres`,
-          stats: [
-            [
-              "Grass back",
-              `+${fmt(r.grassGainPerAcre)} lb`,
-              "per acre a year, once it recovers",
-            ],
-            [
-              "Acres per cow",
-              `${fmt(r.acresPerAuNow)} → ${fmt(r.acresPerAuAfter)}`,
-              "year-round, at take-half-leave-half",
-            ],
-            [
-              "Grazing value",
-              money(r.npvTotal),
-              "over 20 years, in today's dollars",
-            ],
-          ],
-        };
-      case "water":
-        return {
-          k: "Water the brush stops drinking",
-          n: gal(w.onSiteGallonsTotal),
-          count:
-            w.onSiteGallonsTotal >= 1e6
-              ? w.onSiteGallonsTotal / 1e6
-              : w.onSiteGallonsTotal,
-          u: "gallons a year, back in your soil",
-          chip: `${fmt(w.onSiteGallonsPerAcre)} gallons an acre · ${fmt(w.onSiteGallonsTotal / GAL_PER_ACRE_FOOT)} acre-feet`,
-          stats: [
-            [
-              "Where it goes",
-              "Into grass",
-              "Most of it stays in the soil and grows forage",
-            ],
-            [
-              "Creeks and springs",
-              streamLine[w.streamTier],
-              `${i.rainfall} inches of rain; the state screens out land under 18`,
-            ],
-            [
-              "Grass it grows",
-              `+${fmt(r.grassGainPerAcre)} lb`,
-              "per acre a year. Same water, so don't count both",
-            ],
-          ],
-        };
-      case "wildlife":
-        return {
-          k: "Brush to keep for wildlife",
-          n: kept + "%",
-          count: kept,
-          u: "cover, kept where it counts",
-          chip: fits.length
-            ? `Inside the range for ${fits
-                .join(", ")
-                .replace(/, ([^,]*)$/, " and $1")
-                .toLowerCase()}`
-            : "Adjust what you keep below",
-          stats: [
-            [
-              "Mule deer",
-              "15–40%",
-              "Texas Parks and Wildlife's Trans-Pecos range",
-            ],
-            ["Scaled quail", "10–35%", "25–30% where you manage for both"],
-            [
-              "Grass back",
-              `+${fmt(r.grassGainPerAcre)} lb`,
-              "per acre a year, even keeping cover",
-            ],
-          ],
-        };
-      case "fire":
-        return {
-          k: "How fire would behave",
-          n: FIRE[r.fireAfter],
-          u:
-            r.fireNow !== r.fireAfter
-              ? `down from ${FIRE[r.fireNow].toLowerCase()}`
-              : "fire behavior",
-          chip: `${kept}% brush left · ${fmt((i.acres * (st.cover - kept)) / 100)} acres of canopy removed`,
-          stats: [
-            [
-              "Embers",
-              st.brush === "mesquite" ? "Shorter throw" : "~7 km → 1.4 km",
-              st.brush === "mesquite"
-                ? "Less ladder fuel lifting flames"
-                : "Juniper woodland vs grass, Nebraska model",
-            ],
-            ["Flames", "Under 4 ft", "Grass fires crews can fight by hand"],
-            [
-              "Still true",
-              "Grass burns",
-              "Clearing changes how fire behaves, not whether",
-            ],
-          ],
-        };
-      case "valuation":
-        return {
-          k: "Brush work that counts each year",
-          n: fmt(r.wildlifeValuationAcres),
-          count: r.wildlifeValuationAcres,
-          u: "acres a year toward a wildlife valuation",
-          chip: `10% of the plan area or 100 acres, whichever is smaller`,
-          stats: [
-            [
-              "To cover the place",
-              `${fmt(Math.ceil(i.acres / Math.max(1, r.wildlifeValuationAcres)))} years`,
-              "at the yearly minimum, catching regrowth as you go",
-            ],
-            [
-              "Cover kept",
-              `${kept}%`,
-              "TPWD wants the proper kind and amount of cover left",
-            ],
-            [
-              "Practices needed",
-              "3 of 7",
-              "Brush work is one. Your appraisal district decides",
-            ],
-          ],
-        };
-    }
+    result = run(inputs);
+    const maxAu = Math.max(
+      result.auAfter,
+      result.auNow,
+      ...result.rows.map((r) => carrying(inputs, r.grassTreated)),
+    );
+    perCow = Math.max(1, Math.ceil(maxAu / 36));
+    $("psKeepOut").textContent =
+      `keeping ${fmt(inputs.coverAfter, inputs.coverAfter < 3 ? 1 : 0)}%`;
+    $("psCoverOut").textContent = `${st.cover}%`;
+    document
+      .querySelectorAll<HTMLElement>("[data-keep]")
+      .forEach((b) =>
+        b.classList.toggle("is-on", b.dataset.keep === st.keepMode),
+      );
+    fillTune();
+    outcome();
+    st.fire = -1;
+    paint(performance.now());
   }
 
-  function mini(
-    p: Priority,
-    i: Inputs,
-    r: ReturnType<typeof run>,
-  ): [string, string] {
-    switch (p) {
-      case "grass":
-        return [
-          `+${fmt(r.auAfter - r.auNow, 1)} head`,
-          `${fmt(r.acresPerAuNow)} → ${fmt(r.acresPerAuAfter)} acres per cow`,
-        ];
-      case "water":
-        return [
-          `${gal(r.water.onSiteGallonsTotal)} gal/yr`,
-          "back in the soil for grass",
-        ];
-      case "wildlife":
-        return [`${i.coverAfter}% kept`, "against TPWD's cover ranges"];
-      case "fire":
-        return [`${FIRE[r.fireNow]} → ${FIRE[r.fireAfter]}`, "fire behavior"];
-      case "valuation":
-        return [
-          `${fmt(r.wildlifeValuationAcres)} ac/yr`,
-          "toward a wildlife valuation",
-        ];
-    }
-  }
-
-  function countUp(el: HTMLElement, final: string, target?: number) {
-    if (
-      target == null ||
-      !Number.isFinite(target) ||
-      matchMedia("(prefers-reduced-motion: reduce)").matches
-    ) {
-      el.textContent = final;
-      return;
-    }
-    const prefix = final.startsWith("+") ? "+" : "";
-    const suffix = final.match(/[^\d.,]+$/)?.[0] ?? "";
-    const dec = (final.split(".")[1] || "").replace(/\D/g, "").length;
-    const t0 = performance.now();
-    const step = (t: number) => {
-      const k = Math.min(1, (t - t0) / 900);
-      const e = 1 - Math.pow(1 - k, 3);
-      el.textContent = k < 1 ? prefix + fmt(target * e, dec) + suffix : final;
-      if (k < 1) requestAnimationFrame(step);
+  // Interpolate the yearly model at a fractional year.
+  function at(t: number) {
+    const rows = result.rows;
+    const y0 = {
+      cu: st.cover,
+      ct: st.cover,
+      gu: result.grassNow,
+      gt: result.grassNow,
     };
-    requestAnimationFrame(step);
+    const row = (k: number) =>
+      k <= 0
+        ? y0
+        : {
+            cu: rows[k - 1].coverUntreated,
+            ct: rows[k - 1].coverTreated,
+            gu: rows[k - 1].grassUntreated,
+            gt: rows[k - 1].grassTreated,
+          };
+    const k = Math.min(rows.length - 1, Math.floor(t));
+    const a = row(k),
+      b = row(k + 1),
+      f = t - k;
+    const l = (x: number, y: number) => x + (y - x) * f;
+    // Treated brush dies over the first two seasons, not overnight.
+    const dying = Math.min(1, t / 2);
+    const ctLive =
+      t < 2 ? st.cover + (inputs.coverAfter - st.cover) * dying : l(a.ct, b.ct);
+    return {
+      cu: l(a.cu, b.cu),
+      ct: ctLive,
+      gu: l(a.gu, b.gu),
+      gt: l(a.gt, b.gt),
+    };
   }
 
-  function render(animate: boolean) {
-    const i = inputs();
-    const r = run(i);
-    fillTune(i);
-    const h = hero(st.priority, i, r);
-    $("rK").textContent = h.k;
-    if (animate) countUp($("rN"), h.n, h.count);
-    else $("rN").textContent = h.n;
-    $("rU").textContent = h.u;
-    $("rChip").textContent = h.chip;
-    root.querySelectorAll<HTMLElement>("[data-icon-for]").forEach((el) => {
-      el.style.display = el.dataset.iconFor === st.priority ? "" : "none";
-    });
-    $("rStats").innerHTML = h.stats
-      .map(
-        ([k, v, s]) =>
-          `<div class="wz-stat"><p>${k}</p><p class="v">${v}</p><p class="s">${s}</p></div>`,
-      )
-      .join("");
-    root.querySelectorAll<HTMLElement>("[data-mini]").forEach((el) => {
-      const p = el.dataset.mini as Priority;
-      el.hidden = p === st.priority;
-      // Each card answers its own goal, with that goal's keep-% unless the
-      // user has set one by hand.
-      const ip = {
-        ...quickInputs(st.acres, st.brush, st.cover, p),
-        ...st.tune,
-      };
-      const [v, s] = mini(p, ip, run(ip));
-      el.querySelector(".wz-mini-v")!.textContent = v;
-      el.querySelector(".wz-mini-s")!.textContent = s;
-    });
-    const treating = i.coverAfter < i.coverNow;
-    $("rNote").innerHTML = treating
-      ? `Worked out for a ${fmt(i.acres)}-acre place at about ${i.coverNow}% ${st.brush === "juniper" ? "cedar" : st.brush === "mixed" ? "brush" : "mesquite"}, keeping ${i.coverAfter}%, on Jeff Davis County ground. These are planning numbers from public research, not a promise. A survey flight replaces them with a count of your own plants.`
-      : `You&rsquo;re already keeping as much brush as you have, so there&rsquo;s nothing to treat. Lower &ldquo;Brush you&rsquo;d keep&rdquo; below to see what treatment would return.`;
+  // ---- Paint ---------------------------------------------------------------
+  function paint(clock: number) {
+    if (!px || !stand) return;
+    const s = at(st.t);
+    const y0 = result.y0;
+    const side = (id: "L" | "R") => {
+      const treated = id === "R";
+      const cover = treated ? s.ct : s.cu;
+      const grass = treated ? s.gt : s.gu;
+      const au = carrying(inputs, grass);
+      drawPasture(
+        ctx[id],
+        px,
+        stand,
+        tex,
+        {
+          t: treated ? st.t : 0,
+          grass: grass / y0,
+          cover: treated ? (st.t < 2 ? inputs.coverAfter : s.ct) : s.cu,
+          treated,
+          cows: au / perCow,
+          lens: st.lens,
+          fire: st.fire,
+          clock,
+          hover: treated ? hover : null,
+        },
+        embers[id],
+      );
+      $(`psStatCover${id}`).textContent = `${fmt(cover, cover < 3 ? 1 : 0)}%`;
+      $(`psStatGrass${id}`).textContent = `${fmt(grass)} lb`;
+      $(`psStatHead${id}`).textContent = `${fmt(au, au < 20 ? 1 : 0)} head`;
+      $(`psStatFire${id}`).textContent =
+        FIRE[
+          fireTier(
+            st.brush,
+            treated && st.t < 2 ? s.ct + (st.cover - s.ct) * 0.5 : cover,
+          )
+        ];
+      const key = $(`psCowKey${id}`);
+      key.hidden = st.lens !== "cattle" || perCow === 1;
+      key.textContent = `Each cow = ${perCow} head`;
+      document
+        .querySelectorAll<HTMLElement>(`#psSpecies${id} li`)
+        .forEach((li) => {
+          li.classList.toggle(
+            "on",
+            cover >= Number(li.dataset.min) && cover <= Number(li.dataset.max),
+          );
+        });
+      $(`psSpecies${id}`).hidden = st.lens !== "wildlife";
+    };
+    side("L");
+    side("R");
+    const label = st.t < 0.05 ? "Today" : `Year ${Math.floor(st.t) || 1}`;
+    $("psYearL").textContent = label;
+    $("psYearR").textContent =
+      st.t < 0.05 ? "Today: red is treated, white is kept" : label;
+    $("psTimeLabel").textContent = label;
   }
 
-  root.querySelectorAll<HTMLElement>("[data-mini]").forEach((el) =>
-    el.addEventListener("click", () => {
-      st.priority = el.dataset.mini as Priority;
-      delete st.tune.coverAfter;
-      render(true);
+  function outcome() {
+    const last = result.rows[result.rows.length - 1];
+    const head =
+      carrying(inputs, last.grassTreated) -
+      carrying(inputs, last.grassUntreated);
+    const treating = inputs.coverAfter < inputs.coverNow;
+    $("psOutHead").textContent = treating
+      ? `+${fmt(head, head < 10 ? 1 : 0)}`
+      : "0";
+    $("psOutGrass").textContent = treating
+      ? `+${fmt(last.grassTreated - last.grassUntreated)} lb`
+      : "0 lb";
+    $("psOutValue").textContent = "$" + fmt(Math.round(result.npvTotal));
+    const g = result.water.onSiteGallonsTotal;
+    $("psOutWater").textContent = g >= 1e6 ? `${fmt(g / 1e6, 1)}M` : fmt(g);
+    const stream: Record<string, string> = {
+      none: "At this rainfall the state doesn't expect any of it to reach a creek or spring.",
+      low: "Little of it is likely to reach a spring under 18 inches of rain.",
+      marginal: "At this rainfall, creek or spring flow is borderline.",
+      modelled:
+        "State and USGS models put some of it in creeks at this rainfall.",
+      karst:
+        "On fractured rock at this rainfall, 1 to 4 acre-inches can reach springs and aquifers.",
+      riparian: "Along a draw it mostly stays in shallow groundwater.",
+    };
+    $("psOutNote").textContent =
+      `${fmt(st.acres)} acres of ${st.brush === "juniper" ? "cedar" : st.brush === "mixed" ? "mesquite and cedar" : "mesquite"} at ${st.cover}%, keeping ${fmt(inputs.coverAfter, 0)}%. ` +
+      `The water is what grows the extra grass, so don't count both. ${stream[result.water.streamTier]} ` +
+      `Planning numbers from public research, not a promise. A survey flight replaces them with your own plant count.`;
+  }
+
+  // ---- Loop ----------------------------------------------------------------
+  let last = 0;
+  let visible = true;
+  let autoplayed = false;
+  new IntersectionObserver(
+    ([e]) => {
+      visible = e.isIntersecting;
+      // Play the twenty years once, the first time the pastures are in view.
+      if (visible && !autoplayed && e.intersectionRatio > 0.3) {
+        autoplayed = true;
+        if (!matchMedia("(prefers-reduced-motion: reduce)").matches)
+          setTimeout(() => setPlaying(true), 700);
+      }
+    },
+    { threshold: [0, 0.3] },
+  ).observe($("ps"));
+  function loop(now: number) {
+    const dt = last ? Math.min(0.1, (now - last) / 1000) : 0;
+    last = now;
+    if (st.playing) {
+      st.t = Math.min(20, st.t + dt * 2);
+      ($("psTime") as HTMLInputElement).value = String(st.t);
+      if (st.t >= 20) setPlaying(false);
+    }
+    if (st.fire >= 0 && st.fire < 1) st.fire = Math.min(1, st.fire + dt / 4.5);
+    if (visible) paint(now);
+    requestAnimationFrame(loop);
+  }
+
+  function setPlaying(on: boolean) {
+    if (on && st.t >= 20) st.t = 0;
+    st.playing = on;
+    st.fire = -1;
+    $("psPlay").classList.toggle("is-playing", on);
+  }
+
+  // ---- Inputs --------------------------------------------------------------
+  const acresIn = $("psAcres") as HTMLInputElement;
+  acresIn.addEventListener("input", () => {
+    const a = parseFloat(acresIn.value);
+    if (Number.isFinite(a) && a > 0) {
+      st.acres = Math.round(a);
+      recompute();
+    }
+  });
+  document.querySelectorAll<HTMLElement>("[data-acres]").forEach((b) =>
+    b.addEventListener("click", () => {
+      st.acres = Number(b.dataset.acres);
+      acresIn.value = String(st.acres);
+      recompute();
+    }),
+  );
+  document.querySelectorAll<HTMLElement>("[data-brush]").forEach((b) =>
+    b.addEventListener("click", () => {
+      st.brush = b.dataset.brush as Brush;
+      document
+        .querySelectorAll("[data-brush]")
+        .forEach((x) => x.setAttribute("aria-checked", String(x === b)));
+      if (st.keepMode === "custom") st.keepMode = "shade";
+      rebuildStand();
+    }),
+  );
+  const coverIn = $("psCover") as HTMLInputElement;
+  const setCover = (c: number) => {
+    st.cover = c;
+    coverIn.value = String(c);
+    if (st.keepMode === "custom") st.keepMode = "shade";
+    st.t = 0;
+    ($("psTime") as HTMLInputElement).value = "0";
+    rebuildStand();
+  };
+  coverIn.addEventListener("input", () => setCover(Number(coverIn.value)));
+  document
+    .querySelectorAll<HTMLElement>("[data-cover]")
+    .forEach((b) =>
+      b.addEventListener("click", () => setCover(Number(b.dataset.cover))),
+    );
+  document.querySelectorAll<HTMLElement>("[data-keep]").forEach((b) =>
+    b.addEventListener("click", () => {
+      st.keepMode = b.dataset.keep as typeof st.keepMode;
+      autoKeep(
+        stand,
+        st.cover,
+        keepTarget(st.keepMode),
+        st.keepMode === "draw" ? "draw" : "shade",
+      );
+      st.t = 0;
+      ($("psTime") as HTMLInputElement).value = "0";
+      setPlaying(false);
+      recompute();
     }),
   );
 
-  go(1);
+  // Tap a tree in the treated pasture to keep it or let it go.
+  function treeAt(e: PointerEvent) {
+    const r = canv.R.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width,
+      y = (e.clientY - r.top) / r.height;
+    let best: Tree | null = null,
+      bd = Infinity;
+    for (const t of stand.base) {
+      const d = Math.hypot(t.x - x, t.y - y) - t.r;
+      if (d < 0.012 && d < bd) {
+        best = t;
+        bd = d;
+      }
+    }
+    return best;
+  }
+  canv.R.addEventListener("pointermove", (e) => {
+    hover = treeAt(e);
+    canv.R.style.cursor = hover ? "pointer" : "crosshair";
+  });
+  canv.R.addEventListener("pointerleave", () => (hover = null));
+  canv.R.addEventListener("click", (e) => {
+    const t = treeAt(e as PointerEvent);
+    if (!t) return;
+    t.keep = !t.keep;
+    st.keepMode = "custom";
+    setPlaying(false);
+    st.t = 0;
+    ($("psTime") as HTMLInputElement).value = "0";
+    recompute();
+  });
+
+  $("psPlay").addEventListener("click", () => setPlaying(!st.playing));
+  $("psTime").addEventListener("input", () => {
+    setPlaying(false);
+    st.t = Number(($("psTime") as HTMLInputElement).value);
+  });
+
+  const CAPTION: Record<Lens, string> = {
+    cattle:
+      "Cows stand in the open grass. Each pasture carries what its grass will feed year-round, with cattle taking about a quarter of what grows.",
+    water:
+      "The brown halos are where brush roots pull water out of the soil. Treated, that water stays for the grass. Below 18 inches of rain, very little of it ever reaches a creek.",
+    wildlife:
+      "A species lights up when that pasture's brush is inside Texas Parks and Wildlife's woody-cover range for it. Thickening brush trades mule deer and quail country for whitetail cover.",
+    fire: "Wind from the west. Flames stand tall in brush and throw embers ahead of the front; grass burns low and fast. An illustration of fire behavior, not a forecast.",
+  };
+  document.querySelectorAll<HTMLElement>("[data-lens]").forEach((b) =>
+    b.addEventListener("click", () => {
+      st.lens = b.dataset.lens as Lens;
+      document
+        .querySelectorAll("[data-lens]")
+        .forEach((x) => x.setAttribute("aria-selected", String(x === b)));
+      $("psIgnite").hidden = st.lens !== "fire";
+      // Standing dead trees are still fuel; show the fire once they've fallen.
+      if (st.lens === "fire" && st.t < 8) {
+        setPlaying(false);
+        st.t = 10;
+        ($("psTime") as HTMLInputElement).value = "10";
+      }
+      $("psCaption").textContent = CAPTION[st.lens];
+      st.fire = -1;
+    }),
+  );
+  $("psIgnite").addEventListener("click", () => {
+    setPlaying(false);
+    embers = { L: embersFor(stand, false, 0), R: embersFor(stand, true, st.t) };
+    st.fire = 0;
+  });
+  $("psCaption").textContent = CAPTION.cattle;
+
+  // ---- Fine-tune -----------------------------------------------------------
+  const tune = $("psTune") as HTMLFormElement;
+  function fillTune() {
+    for (const k of [
+      "siteId",
+      "yearType",
+      "rainfall",
+      "pricePerAum",
+      "spreadPerYear",
+    ] as const) {
+      const el = tune.elements.namedItem(k) as HTMLInputElement | null;
+      if (el && document.activeElement !== el) el.value = String(inputs[k]);
+    }
+    $("psRainOut").textContent = inputs.rainfall + " in";
+    $("psSpreadOut").textContent = inputs.spreadPerYear.toFixed(1) + " pts/yr";
+  }
+  tune.addEventListener("input", () => {
+    const fd = new FormData(tune);
+    for (const k of ["rainfall", "pricePerAum", "spreadPerYear"]) {
+      const n = parseFloat(String(fd.get(k)));
+      if (Number.isFinite(n)) (st.tune as any)[k] = n;
+    }
+    for (const k of ["siteId", "yearType"])
+      (st.tune as any)[k] = String(fd.get(k));
+    rebuildStand();
+  });
+
+  resize();
+  rebuildStand();
+  requestAnimationFrame(loop);
 </script>
