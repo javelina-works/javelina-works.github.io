@@ -1163,6 +1163,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
     var PARCELS =
       "https://feature.geographic.texas.gov/arcgis/rest/services/Parcels/stratmap_land_parcels_48_most_recent/MapServer/identify";
     var ACRE_M2 = 4046.8564224;
+    var PARCEL_TIMEOUT_MS = 10000;
 
     // Partner embed (embed/ballpark.astro): ?partner= attributes every
     // event, the estimate trigger, and the lead to the partner site. Only a
@@ -1516,14 +1517,38 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         returnGeometry: "true",
         f: "json",
       });
-      return fetch(PARCELS, { method: "POST", body: p })
-        .then(function (r) {
-          return r.json();
+      // The state's identify service now and then errors or stalls; one
+      // retry with a timeout keeps a blip from dropping the visitor onto
+      // the circle fallback.
+      function once() {
+        var ctl = window.AbortController ? new AbortController() : null;
+        var timer = ctl
+          ? setTimeout(function () {
+              ctl.abort();
+            }, PARCEL_TIMEOUT_MS)
+          : null;
+        return fetch(PARCELS, {
+          method: "POST",
+          body: p,
+          signal: ctl ? ctl.signal : undefined,
         })
-        .then(function (d) {
-          if (d.error) throw new Error("parcel service error");
-          return (d.results || []).map(toFeature);
-        });
+          .then(function (r) {
+            if (!r.ok) throw new Error("parcel service HTTP " + r.status);
+            return r.json();
+          })
+          .then(function (d) {
+            if (d.error) throw new Error("parcel service error");
+            return (d.results || []).map(toFeature);
+          })
+          .finally(function () {
+            if (timer) clearTimeout(timer);
+          });
+      }
+      return once().catch(function () {
+        return new Promise(function (resolve) {
+          setTimeout(resolve, 600);
+        }).then(once);
+      });
     }
     var normOwner = function (s) {
       return (s || "")
@@ -1732,6 +1757,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
               lat,
               lng,
               "No parcel records here — size the circle to your ground instead.",
+              "No county parcel at this spot — using a circle",
             );
             return;
           }
@@ -1767,13 +1793,16 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
           ringFlow(
             lat,
             lng,
-            "Couldn't reach the parcel records — size the circle instead.",
+            "Couldn't reach the parcel records — size the circle instead, or tap “Different place” to try again.",
+            "County parcel records didn't answer — using a circle",
           );
         });
     }
 
-    function ringFlow(lat, lng, hint) {
+    function ringFlow(lat, lng, hint, mapNote) {
       st.demoBase = null;
+      // Never leave "Looking up the property lines…" behind a circle.
+      mapmsg(mapNote || "Circle boundary — size it to your ground");
       invalidateRun();
       clearIntakeLayers();
       st.county = null;
