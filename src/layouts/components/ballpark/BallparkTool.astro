@@ -2378,7 +2378,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         /* cosmetic only */
       }
       var noteSuffix =
-        bigAcres > 300 ? " · big country — expect a few minutes" : "";
+        bigAcres > 300 ? " · big country — can take up to a minute" : "";
       var elapsed = setInterval(function () {
         note.textContent =
           ((Date.now() - t0) / 1000).toFixed(0) + "s elapsed" + noteSuffix;
