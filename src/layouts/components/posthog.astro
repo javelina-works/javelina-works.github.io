@@ -8,6 +8,16 @@
 // a build on the proxy if the variable is missing.
 const apiHost =
   import.meta.env.PUBLIC_POSTHOG_HOST || "https://bristle.javelinaworks.com";
+
+// `embed` is the partner iframe (layouts/Embed.astro). A cookie banner can't
+// be shown inside someone else's page, and consent given on javelinaworks.com
+// doesn't reach a partitioned third-party iframe, so the embed runs PostHog
+// with in-memory persistence: no cookies or localStorage, an anonymous id that
+// lives only as long as the page, no session replay, no surveys.
+interface Props {
+  embed?: boolean;
+}
+const { embed = false } = Astro.props;
 ---
 
 <script
@@ -16,6 +26,7 @@ const apiHost =
     apiKey: import.meta.env.PUBLIC_POSTHOG_PROJECT_TOKEN,
     apiHost,
     uiHost: "https://us.posthog.com",
+    embed,
   }}>
   !(function (t, e) {
     var o, n, p, r;
@@ -66,19 +77,41 @@ const apiHost =
       }),
       (e.__SV = 1));
   })(document, window.posthog || []);
-  posthog.init(apiKey || "", {
-    api_host: apiHost || "",
-    ui_host: uiHost,
-    defaults: "2026-01-30",
-    // Nothing is captured until the visitor accepts the cookie banner.
-    opt_out_capturing_by_default: true,
-  });
+  if (embed) {
+    // Cookieless: memory persistence stores nothing on the device, so there
+    // is no consent to collect. The partner slug (validated the same way as
+    // the tool does) rides on every event, $pageview included.
+    var partner = null;
+    try {
+      partner = new URLSearchParams(location.search).get("partner");
+    } catch (e) {}
+    if (!partner || !/^[a-z0-9-]{1,40}$/.test(partner)) partner = null;
+    posthog.init(apiKey || "", {
+      api_host: apiHost || "",
+      ui_host: uiHost,
+      defaults: "2026-01-30",
+      persistence: "memory",
+      disable_session_recording: true,
+      disable_surveys: true,
+      loaded: function (ph) {
+        ph.register({ embed: true, partner: partner });
+      },
+    });
+  } else {
+    posthog.init(apiKey || "", {
+      api_host: apiHost || "",
+      ui_host: uiHost,
+      defaults: "2026-01-30",
+      // Nothing is captured until the visitor accepts the cookie banner.
+      opt_out_capturing_by_default: true,
+    });
 
-  // A saved acceptance opts in on later visits; a saved rejection, or no
-  // choice yet, leaves capture off.
-  try {
-    if (localStorage.getItem("cookie-consent") === "accepted") {
-      posthog.opt_in_capturing();
-    }
-  } catch (e) {}
+    // A saved acceptance opts in on later visits; a saved rejection, or no
+    // choice yet, leaves capture off.
+    try {
+      if (localStorage.getItem("cookie-consent") === "accepted") {
+        posthog.opt_in_capturing();
+      }
+    } catch (e) {}
+  }
 </script>

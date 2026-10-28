@@ -1,8 +1,16 @@
 ---
 // The Ballpark estimate tool itself: markup, styles and scripts. Rendered by
-// the public page (tools/ballpark.astro, inside the site chrome) and by
-// any other page that needs it.
+// the public page (tools/ballpark.astro, inside the site chrome) and by the
+// chrome-free partner embed (embed/ballpark.astro). `embed` turns on partner
+// attribution (?partner=), parent-window postMessage events, and the
+// fixed-height map that an auto-sizing iframe needs (vh units would feed
+// back into the iframe's own height).
 import "@/styles/leafletVendor.css";
+
+interface Props {
+  embed?: boolean;
+}
+const { embed = false } = Astro.props;
 
 // Public URL-restricted Mapbox token, injected at build time so the literal
 // never lives in git (GitHub secret scanning flags every Mapbox JWT, pk or
@@ -10,7 +18,7 @@ import "@/styles/leafletVendor.css";
 const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
 ---
 
-<section class="bp-toolwrap">
+<section class:list={["bp-toolwrap", { "bp-embed": embed }]}>
   <div class="container">
     <ol class="bp-steps" id="bpSteps" aria-label="Progress">
       <li>
@@ -1134,8 +1142,9 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
   src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/7.2.0/turf.min.js"
   integrity="sha384-ll8qH0IE3im19Dtlr1jtv5fdy+gm+0bx8T4+OYxPeJpc6PO1XLNFnyvdzaKJ78bU"
   crossorigin="anonymous"></script>
-<script is:inline define:vars={{ mapboxToken }}>
+<script is:inline define:vars={{ mapboxToken, embed }}>
   window.BP_MB_TOKEN = mapboxToken;
+  window.BP_EMBED = embed;
 </script>
 <script is:inline>
   (function () {
@@ -1155,9 +1164,35 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       "https://feature.geographic.texas.gov/arcgis/rest/services/Parcels/stratmap_land_parcels_48_most_recent/MapServer/identify";
     var ACRE_M2 = 4046.8564224;
 
+    // Partner embed (embed/ballpark.astro): ?partner= attributes every
+    // event, the estimate trigger, and the lead to the partner site. Only a
+    // short slug is accepted; anything else is ignored. The public page
+    // never reads it.
+    var EMBED = !!window.BP_EMBED;
+    var PARTNER = null;
+    if (EMBED) {
+      try {
+        var qp = new URLSearchParams(location.search).get("partner");
+        if (qp && /^[a-z0-9-]{1,40}$/.test(qp)) PARTNER = qp;
+      } catch (e) {
+        /* no-op */
+      }
+    }
+    // Tell the embedding page about milestones (never PII). Its loader
+    // checks our origin, so "*" as the target is fine for this data.
+    function notifyParent(msg) {
+      if (!EMBED || window.parent === window) return;
+      try {
+        window.parent.postMessage(msg, "*");
+      } catch (e) {
+        /* no-op */
+      }
+    }
+
     // Product analytics — best-effort; analytics must never break the page.
     function track(name, props) {
       try {
+        if (PARTNER) props = Object.assign({}, props, { partner: PARTNER });
         if (window.posthog) window.posthog.capture(name, props);
       } catch (e) {
         /* no-op */
@@ -2392,6 +2427,14 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
           acres: Math.round(bigAcres),
           demo: !!st.demoBase,
         });
+        notifyParent({
+          type: "javelina-ballpark:estimate",
+          status: "failed",
+          acres: Math.round(bigAcres),
+          low: null,
+          high: null,
+          demo: !!st.demoBase,
+        });
         stopTimers();
         clearEarlyTerrain();
         el("bpScan").hidden = true;
@@ -2412,14 +2455,17 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         return;
       }
 
+      var trigBody = {
+        geometry: st.geometry,
+        brush: brush,
+        plants_per_acre: ppa,
+      };
+      // Only when set, so the public page's request is unchanged.
+      if (PARTNER) trigBody.partner = PARTNER;
       fetch(API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          geometry: st.geometry,
-          brush: brush,
-          plants_per_acre: ppa,
-        }),
+        body: JSON.stringify(trigBody),
       })
         .then(function (r) {
           if (!r.ok)
@@ -2487,6 +2533,14 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
                     quote_high: rq.high,
                     demo: false,
                   });
+                  notifyParent({
+                    type: "javelina-ballpark:estimate",
+                    status: "succeeded",
+                    acres: rr.acres,
+                    low: rq.low,
+                    high: rq.high,
+                    demo: false,
+                  });
                   bar.style.width = "100%";
                   feedRender(FEED.length, true);
                   st.resp = stt.result;
@@ -2541,6 +2595,14 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
                   : null,
               quote_low: dq.low,
               quote_high: dq.high,
+              demo: true,
+            });
+            notifyParent({
+              type: "javelina-ballpark:estimate",
+              status: "succeeded",
+              acres: result.acres,
+              low: dq.low,
+              high: dq.high,
               demo: true,
             });
             setTimeout(function () {
@@ -3341,6 +3403,8 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         tsWidget !== null &&
         window.turnstile.getResponse(tsWidget);
       if (tsToken) payload.turnstile_token = tsToken;
+      // Same rule for the partner slug: the public page never sends it.
+      if (PARTNER) payload.partner = PARTNER;
       fetch(API + "/" + st.runId + "/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -3660,6 +3724,26 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
   /* Keep Leaflet's attribution visible above the docked bar. */
   .bp-mapcard:has(.bp-dockbar.show) .leaflet-control-attribution {
     margin-bottom: 46px;
+  }
+
+  /* --- Partner embed: the iframe is sized to its content, so vh units
+     would feed back into its own height. Fixed map heights instead. --- */
+  .bp-embed.bp-toolwrap {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  .bp-embed #bpMap {
+    height: 560px;
+  }
+  @media (max-width: 900px) {
+    .bp-embed #bpMap {
+      height: 440px;
+      min-height: 0;
+    }
+    body.bp-analyzing .bp-embed #bpMap {
+      height: 260px;
+      min-height: 0;
+    }
   }
 </style>
 <script is:inline>

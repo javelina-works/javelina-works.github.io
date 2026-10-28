@@ -24,6 +24,24 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
+# Partner embeds (src/pages/embed/, public/embed/). frame-ancestors is the
+# ONLY directive on purpose, so this policy can never block a script, tile or
+# API call. To add a partner, append its origins here and see
+# docs/embed-ballpark.md. No Permissions-Policy is set anywhere, which the
+# iframe's allow="geolocation" relies on for "I'm standing on it".
+[[headers]]
+  for = "/embed/*"
+  [headers.values]
+    Content-Security-Policy = "frame-ancestors 'self' https://brushbullet.com https://*.brushbullet.com http://localhost:*"
+    X-Robots-Tag            = "noindex, nofollow"
+
+# The loader partners include from their pages: short cache so fixes reach
+# them quickly.
+[[headers]]
+  for = "/embed/ballpark.js"
+  [headers.values]
+    Cache-Control = "public, max-age=300"
+
 # Sveltia CMS admin. The config.yml is hand-edited in this repo, so never
 # cache it — editors need their changes visible on the next reload.
 [[headers]]
