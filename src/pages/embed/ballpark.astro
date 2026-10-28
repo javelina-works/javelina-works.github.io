@@ -1,0 +1,92 @@
+---
+// Partner embed of the Ballpark estimate tool: the same BallparkTool the
+// public /tools/ballpark/ page renders, without site chrome, for partners to
+// frame via public/embed/ballpark.js. English only and outside the [...lang]
+// tree on purpose. noindex (Embed layout) and filtered out of the sitemap
+// (astro.config.mjs); the canonical points at the public page.
+import Embed from "@/layouts/Embed.astro";
+import BallparkTool from "@/layouts/components/ballpark/BallparkTool.astro";
+
+const canonical = new URL("/tools/ballpark/", Astro.site).href;
+---
+
+<Embed
+  title="Brush Clearing Cost Estimate | Javelina Works"
+  description="Find your West Texas ranch and get a measured budget range for clearing mesquite and cedar."
+  canonical={canonical}>
+  <div class="container bp-embed-head">
+    <h2>What would it cost to clear your brush?</h2>
+    <p>
+      Find the ranch and we&rsquo;ll read it with lidar and infrared imagery,
+      then hand you a budget range. Free, about a minute.
+    </p>
+  </div>
+
+  <BallparkTool embed />
+
+  <p class="container bp-embed-credit">
+    <a
+      id="bpEmbedCredit"
+      href="https://javelinaworks.com/?utm_medium=embed&utm_campaign=ballpark"
+      target="_blank"
+      rel="noopener">
+      Estimate powered by Javelina Works
+      <span aria-hidden="true">&#8599;</span>
+      <span class="sr-only">(opens in a new tab)</span>
+    </a>
+  </p>
+</Embed>
+
+<script is:inline>
+  // Credit the partner on the way out, same slug rule as the tool.
+  (function () {
+    try {
+      var p = new URLSearchParams(location.search).get("partner");
+      if (!p || !/^[a-z0-9-]{1,40}$/.test(p)) return;
+      var a = document.getElementById("bpEmbedCredit");
+      var u = new URL(a.href);
+      u.searchParams.set("utm_source", p);
+      a.href = u.href;
+    } catch (e) {}
+  })();
+</script>
+
+<style is:global>
+  .bp-embed-head {
+    padding-top: 16px;
+    padding-bottom: 12px;
+  }
+  .bp-embed-head h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    line-height: 1.2;
+  }
+  .bp-embed-head p {
+    margin-top: 0.35rem;
+    font-size: 0.95rem;
+    color: var(--color-text-default);
+    max-width: 66ch;
+  }
+  .bp-embed-credit {
+    padding-top: 12px;
+    padding-bottom: 16px;
+    font-size: 0.8rem;
+    text-align: right;
+  }
+  .bp-embed-credit a {
+    color: var(--color-text-default);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .bp-embed-credit a:hover {
+    color: var(--color-primary);
+  }
+  @media (max-width: 640px) {
+    .bp-embed-head h2 {
+      font-size: 1.25rem;
+    }
+    .bp-embed-credit {
+      text-align: center;
+    }
+  }
+</style>

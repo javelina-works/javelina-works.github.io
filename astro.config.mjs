@@ -88,6 +88,12 @@ let {
   },
 } = config;
 
+// Partner embeds (src/pages/embed/) are framed on other sites, never browsed
+// directly: keep them out of the sitemap (they are also noindex).
+const sitemapOptions = {
+  filter: (page) => !new URL(page).pathname.startsWith("/embed/"),
+};
+
 // https://astro.build/config
 export default defineConfig({
   // The ballpark moved under /tools/ when the site grew a tools section. Keep
@@ -114,7 +120,7 @@ export default defineConfig({
   },
 
   integrations: [
-    sitemapConfig.enable ? sitemap() : null,
+    sitemapConfig.enable ? sitemap(sitemapOptions) : null,
     AutoImport({
       imports: [
         "@/components/CustomButton.astro",
@@ -131,7 +137,7 @@ export default defineConfig({
       ],
     }),
     mdx(),
-    sitemap(),
+    sitemap(sitemapOptions),
     sentry({
       org: process.env.SENTRY_ORG,
       project: process.env.SENTRY_PROJECT,

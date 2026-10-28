@@ -9,6 +9,7 @@ This site is built with [Astro](https://astro.build) and deployed to GitHub Page
 - [Deployment](./deployment.md) — How the site is built and deployed via GitHub Actions
 - [Development](./development.md) — Local development setup, scripts, and conventions
 - [Content](./content.md) — How site content is authored and configured
+- [Ballpark partner embed](./embed-ballpark.md) — Framing the estimate tool on partner sites
 
 ## Quick reference
 
