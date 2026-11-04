@@ -1521,7 +1521,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
   (function () {
     "use strict";
 
-    var MAPBOX_TOKEN = mapboxToken || "";
+    var MAPBOX_TOKEN = mapboxToken || window.BP_MB_TOKEN || "";
     // Same-origin, like the ballpark: production proxies /api/ranch-map via
     // Netlify; deploy previews and `astro dev` get /api/ranch-map-staging.
     var API = location.hostname.endsWith("javelinaworks.com")

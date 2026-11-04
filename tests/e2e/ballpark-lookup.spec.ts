@@ -87,10 +87,18 @@ function trackErrors(page: Page) {
 }
 
 async function openTool(page: Page) {
-  // Keep the cookie banner out of the way; it is not what's under test.
   await page.addInitScript(() => {
+    // Keep the cookie banner out of the way; it is not what's under test.
     localStorage.setItem("cookie-consent", "rejected");
+    // Deploy previews are built without the Mapbox token; hand the page one
+    // so the Mapbox paths run (every Mapbox call below is mocked).
+    (window as unknown as { BP_MB_TOKEN: string }).BP_MB_TOKEN = "pk.e2e";
   });
+  // Netlify deploy previews inject a feedback drawer over the bottom of the
+  // page; it never ships to production, so block its loader.
+  await page.route(/\/\.netlify\/scripts\/cdp|app\.netlify\.com\/cdp/, (r) =>
+    r.abort(),
+  );
   // No county parcel at the pin: the page falls back to the sizing circle,
   // which is enough to prove the lookup produced a point on the map.
   await page.route(PARCELS, (r) => r.fulfill({ json: { results: [] } }));

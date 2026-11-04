@@ -47,6 +47,11 @@ function trackErrors(page: Page) {
 // The consent banner sits over the bottom of the page; a visitor would
 // answer it first, so the tests do too.
 async function open(page: Page) {
+  // Deploy previews are built without the Mapbox token; hand the page one so
+  // the Mapbox path runs (the specs mock every Mapbox call).
+  await page.addInitScript(() => {
+    (window as unknown as { BP_MB_TOKEN: string }).BP_MB_TOKEN = "pk.e2e";
+  });
   // Netlify deploy previews inject a feedback drawer over the bottom of the
   // page (it covers the consent banner); it never ships to production, so
   // block its loader.

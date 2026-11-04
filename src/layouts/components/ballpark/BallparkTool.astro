@@ -1144,7 +1144,9 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
   integrity="sha384-ll8qH0IE3im19Dtlr1jtv5fdy+gm+0bx8T4+OYxPeJpc6PO1XLNFnyvdzaKJ78bU"
   crossorigin="anonymous"></script>
 <script is:inline define:vars={{ mapboxToken, embed }}>
-  window.BP_MB_TOKEN = mapboxToken;
+  // A host without a baked token (deploy previews, LAN dev) can still be
+  // handed one before this script runs — the e2e specs do, with Mapbox mocked.
+  window.BP_MB_TOKEN = mapboxToken || window.BP_MB_TOKEN || "";
   window.BP_EMBED = embed;
 </script>
 <script is:inline>
