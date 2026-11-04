@@ -86,7 +86,12 @@ const coverSteps = [
 
           <label class="roi-field">
             <span>
-              Brush cover today<span class="roi-out" id="outCoverNow"></span>
+              Brush cover today
+              <span
+                class="roi-out"
+                id="outCoverNow"
+                aria-live="polite"
+                aria-atomic="true"></span>
             </span>
             <input type="range" name="coverNow" min="1" max="60" step="1" />
             <span class="roi-ticks">
@@ -100,7 +105,12 @@ const coverSteps = [
 
           <label class="roi-field">
             <span>
-              Cover you'd keep<span class="roi-out" id="outCoverAfter"></span>
+              Cover you'd keep
+              <span
+                class="roi-out"
+                id="outCoverAfter"
+                aria-live="polite"
+                aria-atomic="true"></span>
             </span>
             <input type="range" name="coverAfter" min="0" max="60" step="1" />
             <small>
@@ -143,7 +153,12 @@ const coverSteps = [
 
           <label class="roi-field">
             <span>
-              Average rainfall<span class="roi-out" id="outRain"></span>
+              Average rainfall
+              <span
+                class="roi-out"
+                id="outRain"
+                aria-live="polite"
+                aria-atomic="true"></span>
             </span>
             <input type="range" name="rainfall" min="8" max="34" step="1" />
           </label>
@@ -186,7 +201,12 @@ const coverSteps = [
 
             <label class="roi-field">
               <span>
-                Harvest efficiency<span class="roi-out" id="outHe"></span>
+                Harvest efficiency
+                <span
+                  class="roi-out"
+                  id="outHe"
+                  aria-live="polite"
+                  aria-atomic="true"></span>
               </span>
               <input
                 type="range"
@@ -204,7 +224,11 @@ const coverSteps = [
             <label class="roi-field">
               <span>
                 Brush spread if left alone
-                <span class="roi-out" id="outSpread"></span>
+                <span
+                  class="roi-out"
+                  id="outSpread"
+                  aria-live="polite"
+                  aria-atomic="true"></span>
               </span>
               <input
                 type="range"

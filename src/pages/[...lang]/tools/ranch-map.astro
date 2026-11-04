@@ -2039,7 +2039,13 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       // ctx: the submission's own query / provider / latency, so a second
       // search started meanwhile can't relabel this one's outcome.
       function report(props) {
-        trackSearch(Object.assign({}, ctx || {}, props));
+        var data = Object.assign({}, ctx || {}, props);
+        // Latency runs to the outcome, parcel lookup included.
+        if (data.startedAt != null) {
+          data.ms = Date.now() - data.startedAt;
+          delete data.startedAt;
+        }
+        trackSearch(data);
       }
       say("Finding the property lines…");
       parcelLayer.clearLayers();
@@ -2115,7 +2121,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
           return selectAt(p.lat, p.lng, ll ? "coords" : "address", {
             query: ll ? null : q,
             provider: provider,
-            ms: Date.now() - t0,
+            startedAt: t0,
           });
         })
         .catch(function () {
