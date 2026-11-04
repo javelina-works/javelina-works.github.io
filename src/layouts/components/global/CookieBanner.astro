@@ -1,38 +1,99 @@
 ---
-// Cookie consent banner. Shows on first visit until the user accepts or
-// rejects. Choice persists in localStorage under `cookie-consent`. PostHog
-// starts opted out (see posthog.astro); accepting opts in and records the
-// page the visitor accepted on, rejecting keeps it off.
+// Cookie consent, opt-out model. Analytics and session replay run from page
+// load (posthog.astro); this banner records the visitor's choice and applies
+// it on the spot. "Accept all" and the ✕ keep everything on; "Customize"
+// opens a pane with Analytics and Session recordings switches. The choice
+// persists in localStorage under `cookie-consent` as JSON — the older
+// "accepted" / "rejected" strings still read — and "Cookie preferences" in
+// the footer (or window.openCookiePreferences()) reopens the pane. A Global
+// Privacy Control signal with no saved choice pre-sets the switches to off.
 ---
 
 <div
   id="cookie-banner"
-  class="fixed inset-x-0 bottom-0 z-50 hidden border-t border-border bg-background/95 p-4 shadow-lg backdrop-blur md:p-6"
+  class="fixed inset-x-0 bottom-0 z-[5000] hidden border-t border-border-light bg-light/95 p-4 shadow-lg backdrop-blur md:p-6"
   role="dialog"
   aria-live="polite"
-  aria-label="Cookie consent">
-  <div class="mx-auto flex max-w-5xl flex-col items-start gap-3 md:flex-row md:items-center md:justify-between md:gap-6">
-    <p class="text-sm text-text">
-      We use cookies and similar technologies to understand how our site is used
-      and to improve your experience. See our
-      <a class="underline" href="/privacy-policy">
-        privacy policy
-      </a>
-      for details.
-    </p>
-    <div class="flex shrink-0 gap-2">
-      <button
-        type="button"
-        id="cookie-reject"
-        class="rounded border border-border px-4 py-2 text-sm font-medium text-text hover:bg-theme-light">
-        Reject
-      </button>
-      <button
-        type="button"
-        id="cookie-accept"
-        class="rounded bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90">
-        Accept
-      </button>
+  aria-labelledby="cookie-title">
+  <div class="relative mx-auto max-w-5xl pr-8">
+    <button
+      type="button"
+      id="cookie-close"
+      class="absolute -top-1 right-0 rounded p-1 text-xl leading-none text-text-default/70 hover:bg-theme-light hover:text-text-default"
+      aria-label="Close and keep everything on">
+      ✕
+    </button>
+
+    <div
+      id="cookie-summary"
+      class="flex flex-col items-start gap-3 md:flex-row md:items-center md:justify-between md:gap-6">
+      <p id="cookie-title" class="text-sm text-text-default">
+        We use cookies to see how the site is used and to fix what breaks,
+        including a replay of your visit with anything you type masked. See our{" "}
+        <a class="underline" href="/privacy-policy/">
+          privacy policy
+        </a>{" "}
+        for details.
+      </p>
+      <div class="flex shrink-0 gap-2">
+        <button
+          type="button"
+          id="cookie-customize"
+          class="rounded border border-border-light px-4 py-2 text-sm font-medium text-text-default hover:bg-theme-light">
+          Customize
+        </button>
+        <button
+          type="button"
+          id="cookie-accept"
+          class="rounded bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90">
+          Accept all
+        </button>
+      </div>
+    </div>
+
+    <div id="cookie-options" class="space-y-4" hidden>
+      <fieldset class="space-y-3">
+        <legend class="mb-1 text-sm font-semibold text-text-default">
+          Choose what we may use
+        </legend>
+        <label class="flex items-start gap-3 text-sm text-text-default">
+          <input type="checkbox" class="mt-1" checked disabled />
+          <span>
+            <strong class="font-semibold text-dark">Essential</strong> — keeps
+            the site working and protects the estimate tools from abuse. Always
+            on.
+          </span>
+        </label>
+        <label class="flex items-start gap-3 text-sm text-text-default">
+          <input type="checkbox" class="mt-1" id="cookie-opt-analytics" />
+          <span>
+            <strong class="font-semibold text-dark">Analytics</strong> — which
+            pages and tools get used, so we can improve them.
+          </span>
+        </label>
+        <label class="flex items-start gap-3 text-sm text-text-default">
+          <input type="checkbox" class="mt-1" id="cookie-opt-replay" />
+          <span>
+            <strong class="font-semibold text-dark">Session recordings</strong>{" "}
+            — a replay of your visit, with anything you type masked, so we can
+            see what broke and fix it.
+          </span>
+        </label>
+      </fieldset>
+      <div class="flex flex-wrap gap-2">
+        <button
+          type="button"
+          id="cookie-save"
+          class="rounded border border-border-light px-4 py-2 text-sm font-medium text-text-default hover:bg-theme-light">
+          Save choices
+        </button>
+        <button
+          type="button"
+          id="cookie-accept-all"
+          class="rounded bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90">
+          Accept all
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -42,37 +103,117 @@
     var STORAGE_KEY = "cookie-consent";
     var banner = document.getElementById("cookie-banner");
     if (!banner) return;
+    function el(id) {
+      return document.getElementById(id);
+    }
+    var summary = el("cookie-summary");
+    var options = el("cookie-options");
+    var optAnalytics = el("cookie-opt-analytics");
+    var optReplay = el("cookie-opt-replay");
+    var gpc = navigator.globalPrivacyControl === true;
 
-    var existing = null;
-    try {
-      existing = localStorage.getItem(STORAGE_KEY);
-    } catch (e) {}
-    if (existing === "accepted" || existing === "rejected") return;
-
-    banner.classList.remove("hidden");
-
-    function record(choice) {
+    function read() {
       try {
-        localStorage.setItem(STORAGE_KEY, choice);
+        var raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return null;
+        if (raw === "accepted") return { analytics: true, replay: true };
+        if (raw === "rejected") return { analytics: false, replay: false };
+        var o = JSON.parse(raw);
+        if (o && typeof o.analytics === "boolean") {
+          return { analytics: o.analytics, replay: o.analytics && !!o.replay };
+        }
       } catch (e) {}
-      if (choice === "accepted" && window.posthog) {
-        window.posthog.opt_in_capturing();
-        window.posthog.capture("$pageview");
-      } else if (choice === "rejected" && window.posthog) {
-        window.posthog.opt_out_capturing();
-      }
+      return null;
+    }
+    function write(c) {
+      try {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({
+            v: 2,
+            analytics: c.analytics,
+            replay: c.replay,
+            at: new Date().toISOString(),
+          }),
+        );
+      } catch (e) {}
+    }
+    // Apply the choice to the running PostHog. posthog.astro applies a saved
+    // one at init on later page loads, so this only has to cover right now.
+    function apply(c, how) {
+      var ph = window.posthog;
+      if (!ph) return;
+      try {
+        if (c.analytics) {
+          if (ph.has_opted_out_capturing && ph.has_opted_out_capturing()) {
+            ph.opt_in_capturing({ captureEventName: null });
+          }
+          if (c.replay) {
+            if (ph.startSessionRecording) ph.startSessionRecording();
+          } else if (ph.stopSessionRecording) {
+            ph.stopSessionRecording();
+          }
+          ph.capture("cookie_consent", {
+            analytics: true,
+            session_replay: c.replay,
+            how: how,
+          });
+        } else {
+          if (ph.stopSessionRecording) ph.stopSessionRecording();
+          ph.opt_out_capturing();
+        }
+      } catch (e) {}
+    }
+    function show(pane) {
+      var opts = pane === "options";
+      summary.hidden = opts;
+      options.hidden = !opts;
+      banner.classList.remove("hidden");
+      if (opts) optAnalytics.focus();
+    }
+    function hide() {
       banner.classList.add("hidden");
     }
+    function choose(c, how) {
+      write(c);
+      apply(c, how);
+      hide();
+    }
+    function syncReplay() {
+      optReplay.disabled = !optAnalytics.checked;
+      if (!optAnalytics.checked) optReplay.checked = false;
+    }
+    function openOptions() {
+      var c = read() || { analytics: !gpc, replay: !gpc };
+      optAnalytics.checked = c.analytics;
+      optReplay.checked = c.replay;
+      syncReplay();
+      show("options");
+    }
 
-    document
-      .getElementById("cookie-accept")
-      ?.addEventListener("click", function () {
-        record("accepted");
-      });
-    document
-      .getElementById("cookie-reject")
-      ?.addEventListener("click", function () {
-        record("rejected");
-      });
+    optAnalytics.addEventListener("change", syncReplay);
+    el("cookie-customize").addEventListener("click", openOptions);
+    el("cookie-save").addEventListener("click", function () {
+      choose(
+        {
+          analytics: optAnalytics.checked,
+          replay: optAnalytics.checked && optReplay.checked,
+        },
+        "customize",
+      );
+    });
+    function acceptAll(how) {
+      return function () {
+        choose({ analytics: true, replay: true }, how);
+      };
+    }
+    el("cookie-accept").addEventListener("click", acceptAll("accept_all"));
+    el("cookie-accept-all").addEventListener("click", acceptAll("accept_all"));
+    el("cookie-close").addEventListener("click", acceptAll("dismiss"));
+    window.openCookiePreferences = openOptions;
+    var link = el("cookie-preferences-link");
+    if (link) link.addEventListener("click", openOptions);
+
+    if (!read()) show("summary");
   })();
 </script>

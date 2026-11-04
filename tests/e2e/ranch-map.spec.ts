@@ -44,19 +44,21 @@ function trackErrors(page: Page) {
   return errors;
 }
 
-// The consent banner sits over the bottom of the page; a visitor would
-// answer it first, so the tests do too.
+// A saved consent choice keeps the banner off the bottom of the page and,
+// on deploy previews, keeps test traffic out of analytics.
 async function open(page: Page) {
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      "cookie-consent",
+      JSON.stringify({ v: 2, analytics: false, replay: false }),
+    );
+  });
   // Netlify deploy previews inject a feedback drawer over the bottom of the
-  // page (it covers the consent banner); it never ships to production, so
-  // block its loader.
+  // page; it never ships to production, so block its loader.
   await page.route(/\/\.netlify\/scripts\/cdp|app\.netlify\.com\/cdp/, (r) =>
     r.abort(),
   );
-  const res = await page.goto("/tools/ranch-map/");
-  const reject = page.getByRole("button", { name: "Reject" });
-  if (await reject.isVisible().catch(() => false)) await reject.click();
-  return res;
+  return page.goto("/tools/ranch-map/");
 }
 
 async function mapIsPainted(page: Page, id: string) {

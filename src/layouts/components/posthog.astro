@@ -65,7 +65,7 @@ const { embed = false } = Astro.props;
               return u.toString(1) + ".people (stub)";
             },
             o =
-              "capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getNextSurveyStep onSessionId".split(
+              "capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getNextSurveyStep onSessionId startSessionRecording stopSessionRecording".split(
                 " ",
               ),
             n = 0;
@@ -98,20 +98,48 @@ const { embed = false } = Astro.props;
       },
     });
   } else {
+    // Opt-out model: analytics and session replay run from the first page
+    // load, and the cookie banner (CookieBanner.astro) records what the
+    // visitor turns off. A saved choice is applied here, before the first
+    // event, so it holds on every later visit. Older saved values:
+    // "accepted" = all on, "rejected" = all off. A Global Privacy Control
+    // signal with no saved choice is honoured as all off.
+    var consent = null;
+    try {
+      var raw = localStorage.getItem("cookie-consent");
+      if (raw === "accepted") consent = { analytics: true, replay: true };
+      else if (raw === "rejected")
+        consent = { analytics: false, replay: false };
+      else if (raw) {
+        var saved = JSON.parse(raw);
+        if (saved && typeof saved.analytics === "boolean") {
+          consent = {
+            analytics: saved.analytics,
+            replay: saved.analytics && !!saved.replay,
+          };
+        }
+      }
+    } catch (e) {}
+    if (!consent && navigator.globalPrivacyControl === true) {
+      consent = { analytics: false, replay: false };
+    }
+    var analyticsOff = !!consent && !consent.analytics;
+    var replayOff = analyticsOff || (!!consent && !consent.replay);
     posthog.init(apiKey || "", {
       api_host: apiHost || "",
       ui_host: uiHost,
       defaults: "2026-01-30",
-      // Nothing is captured until the visitor accepts the cookie banner.
-      opt_out_capturing_by_default: true,
+      opt_out_capturing_by_default: analyticsOff,
+      disable_session_recording: replayOff,
     });
-
-    // A saved acceptance opts in on later visits; a saved rejection, or no
-    // choice yet, leaves capture off.
-    try {
-      if (localStorage.getItem("cookie-consent") === "accepted") {
-        posthog.opt_in_capturing();
-      }
-    } catch (e) {}
+    // PostHog remembers its own opt-out from an earlier choice; a saved
+    // acceptance (or no choice) must win over that.
+    if (!analyticsOff) {
+      try {
+        if (posthog.has_opted_out_capturing()) {
+          posthog.opt_in_capturing({ captureEventName: null });
+        }
+      } catch (e) {}
+    }
   }
 </script>
