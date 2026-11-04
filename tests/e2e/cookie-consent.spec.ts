@@ -15,6 +15,15 @@ async function stored(page: Page) {
 
 const banner = (page: Page) => page.locator("#cookie-banner");
 
+// Netlify deploy previews inject a feedback drawer over the bottom of the
+// page, right where the banner sits, and it swallows clicks; it never ships
+// to production, so block its loader.
+test.beforeEach(async ({ page }) => {
+  await page.route(/\/\.netlify\/scripts\/cdp|app\.netlify\.com\/cdp/, (r) =>
+    r.abort(),
+  );
+});
+
 test("first visit shows the banner; Accept all stores everything on", async ({
   page,
 }) => {
