@@ -77,26 +77,50 @@ const { embed = false } = Astro.props;
       }),
       (e.__SV = 1));
   })(document, window.posthog || []);
+  // Visitors who need prior consent: a Global Privacy Control signal, or a
+  // UK / EU / EEA time zone (outermost regions included). The browser's time
+  // zone stands in for the country: no lookup, nothing stored, wrong only
+  // for VPNs and travellers. Same rule as CookieBanner.astro's defaults.
+  var gpc = navigator.globalPrivacyControl === true;
+  var priorConsent = false;
+  try {
+    var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+    priorConsent =
+      /^Europe\//.test(tz) ||
+      /^Atlantic\/(Reykjavik|Canary|Madeira|Faroe|Azores|Jan_Mayen)$/.test(
+        tz,
+      ) ||
+      /^(Asia\/Nicosia|Asia\/Famagusta|Africa\/Ceuta|Arctic\/Longyearbyen)$/.test(
+        tz,
+      ) ||
+      /^(America\/(Guadeloupe|Martinique|Cayenne|Marigot)|Indian\/(Reunion|Mayotte))$/.test(
+        tz,
+      );
+  } catch (e) {}
   if (embed) {
     // Cookieless: memory persistence stores nothing on the device, so there
     // is no consent to collect. The partner slug (validated the same way as
-    // the tool does) rides on every event, $pageview included.
+    // the tool does) rides on every event, $pageview included. No banner can
+    // be shown in a partner's page, so visitors who need prior consent get
+    // no PostHog in the embed at all.
     var partner = null;
     try {
       partner = new URLSearchParams(location.search).get("partner");
     } catch (e) {}
     if (!partner || !/^[a-z0-9-]{1,40}$/.test(partner)) partner = null;
-    posthog.init(apiKey || "", {
-      api_host: apiHost || "",
-      ui_host: uiHost,
-      defaults: "2026-01-30",
-      persistence: "memory",
-      disable_session_recording: true,
-      disable_surveys: true,
-      loaded: function (ph) {
-        ph.register({ embed: true, partner: partner });
-      },
-    });
+    if (!gpc && !priorConsent) {
+      posthog.init(apiKey || "", {
+        api_host: apiHost || "",
+        ui_host: uiHost,
+        defaults: "2026-01-30",
+        persistence: "memory",
+        disable_session_recording: true,
+        disable_surveys: true,
+        loaded: function (ph) {
+          ph.register({ embed: true, partner: partner });
+        },
+      });
+    }
   } else {
     // Opt-out model: analytics and session replay run from the first page
     // load, and the cookie banner (CookieBanner.astro) records what the
@@ -120,23 +144,7 @@ const { embed = false } = Astro.props;
         }
       }
     } catch (e) {}
-    // UK / EU / EEA visitors need prior consent, so with no saved choice
-    // they start off until they accept. The browser's time zone stands in
-    // for the country: no lookup, nothing stored, wrong only for VPNs and
-    // travellers. Same rule as CookieBanner.astro's defaults.
-    var priorConsent = false;
-    try {
-      var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
-      priorConsent =
-        /^Europe\//.test(tz) ||
-        /^Atlantic\/(Reykjavik|Canary|Madeira|Faroe|Azores|Jan_Mayen)$/.test(
-          tz,
-        ) ||
-        /^(Asia\/Nicosia|Asia\/Famagusta|Africa\/Ceuta|Arctic\/Longyearbyen)$/.test(
-          tz,
-        );
-    } catch (e) {}
-    if (!consent && (navigator.globalPrivacyControl === true || priorConsent)) {
+    if (!consent && (gpc || priorConsent)) {
       consent = { analytics: false, replay: false };
     }
     var analyticsOff = !!consent && !consent.analytics;

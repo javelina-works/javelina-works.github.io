@@ -1554,13 +1554,6 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       ? "/api/ballpark/lookups"
       : "/api/ballpark-staging/lookups";
     function trackSearch(props) {
-      if (props.source === "address") props.query = st.lastQuery || null;
-      // Form lookups settle in selectAt, which doesn't know which geocoder
-      // answered or when the search began; taps and GPS stay clear of it.
-      if (props.source === "address" || props.source === "coords") {
-        if (props.provider == null) props.provider = st.lastProvider || null;
-        if (props.ms == null && st.lastT0) props.ms = Date.now() - st.lastT0;
-      }
       track("ranchmap_search", props);
       try {
         var ph = window.posthog;
@@ -1608,9 +1601,6 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       geometry: null,
       county: null,
       busy: false,
-      lastQuery: null,
-      lastProvider: null,
-      lastT0: 0,
     };
 
     /* ---------------- map ---------------- */
@@ -1711,9 +1701,18 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
     // the ballpark tool, 2026-11-04). Points of interest lose to real
     // places, Texas wins over a same-named street elsewhere, and
     // addresses come before towns.
+    var MAPBOX_TIMEOUT_MS = 8000;
     function mapboxForward(address) {
       if (!MAPBOX_TOKEN) return Promise.reject(new Error("no token"));
       var rank = { address: 0, street: 1, place: 2, locality: 3, poi: 4 };
+      // Bounded, so a hung request falls through to Census / Nominatim
+      // instead of leaving the search on "Looking that up…".
+      var ctl = window.AbortController ? new AbortController() : null;
+      var timer = ctl
+        ? setTimeout(function () {
+            ctl.abort();
+          }, MAPBOX_TIMEOUT_MS)
+        : null;
       return fetch(
         "https://api.mapbox.com/search/searchbox/v1/forward?" +
           new URLSearchParams({
@@ -1725,6 +1724,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
             types: "address,street,place,locality,poi",
             limit: "5",
           }),
+        { signal: ctl ? ctl.signal : undefined },
       )
         .then(function (r) {
           if (!r.ok) throw new Error("mapbox HTTP " + r.status);
@@ -1764,6 +1764,9 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
           });
           if (!list.length) throw new Error("no match");
           return { lat: list[0].lat, lng: list[0].lng };
+        })
+        .finally(function () {
+          if (timer) clearTimeout(timer);
         });
     }
 
@@ -2032,7 +2035,18 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         refresh(false);
       });
     }
-    function selectAt(lat, lng, source) {
+    function selectAt(lat, lng, source, ctx) {
+      // ctx: the submission's own query / provider / latency, so a second
+      // search started meanwhile can't relabel this one's outcome.
+      function report(props) {
+        var data = Object.assign({}, ctx || {}, props);
+        // Latency runs to the outcome, parcel lookup included.
+        if (data.startedAt != null) {
+          data.ms = Date.now() - data.startedAt;
+          delete data.startedAt;
+        }
+        trackSearch(data);
+      }
       say("Finding the property lines…");
       parcelLayer.clearLayers();
       st.members = {};
@@ -2044,7 +2058,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
               "No county parcel there. Try a spot inside the ranch, or another address.",
               "warn",
             );
-            trackSearch({ source: source, outcome: "no_parcel" });
+            report({ source: source, outcome: "no_parcel" });
             return;
           }
           st.county = seed.properties.county
@@ -2063,7 +2077,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
               "Gold is your ranch. Tap neighboring parcels to add or remove them.",
             );
             refresh(true);
-            trackSearch({
+            report({
               source: source,
               outcome: "parcel",
               parcels: r.members.length,
@@ -2075,7 +2089,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
             "The county parcel service didn't answer. Try again in a moment.",
             "warn",
           );
-          trackSearch({ source: source, outcome: "error" });
+          report({ source: source, outcome: "error" });
         });
     }
     map.on("click", function (ev) {
@@ -2087,7 +2101,6 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       var q = el("rmAddr").value.trim();
       if (!q) return;
       var ll = parseLatLng(q);
-      st.lastQuery = ll ? null : q;
       say("Looking that up…");
       var t0 = Date.now();
       var provider = ll ? "coords" : "mapbox";
@@ -2104,10 +2117,12 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
             })
       )
         .then(function (p) {
-          st.lastProvider = provider;
-          st.lastT0 = t0;
           map.setView([p.lat, p.lng], 15);
-          return selectAt(p.lat, p.lng, ll ? "coords" : "address");
+          return selectAt(p.lat, p.lng, ll ? "coords" : "address", {
+            query: ll ? null : q,
+            provider: provider,
+            startedAt: t0,
+          });
         })
         .catch(function () {
           say(

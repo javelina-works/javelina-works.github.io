@@ -86,7 +86,12 @@ const coverSteps = [
 
           <label class="roi-field">
             <span>
-              Brush cover today<output id="outCoverNow"></output>
+              Brush cover today
+              <span
+                class="roi-out"
+                id="outCoverNow"
+                aria-live="polite"
+                aria-atomic="true"></span>
             </span>
             <input type="range" name="coverNow" min="1" max="60" step="1" />
             <span class="roi-ticks">
@@ -100,7 +105,12 @@ const coverSteps = [
 
           <label class="roi-field">
             <span>
-              Cover you'd keep<output id="outCoverAfter"></output>
+              Cover you'd keep
+              <span
+                class="roi-out"
+                id="outCoverAfter"
+                aria-live="polite"
+                aria-atomic="true"></span>
             </span>
             <input type="range" name="coverAfter" min="0" max="60" step="1" />
             <small>
@@ -143,7 +153,12 @@ const coverSteps = [
 
           <label class="roi-field">
             <span>
-              Average rainfall<output id="outRain"></output>
+              Average rainfall
+              <span
+                class="roi-out"
+                id="outRain"
+                aria-live="polite"
+                aria-atomic="true"></span>
             </span>
             <input type="range" name="rainfall" min="8" max="34" step="1" />
           </label>
@@ -186,7 +201,12 @@ const coverSteps = [
 
             <label class="roi-field">
               <span>
-                Harvest efficiency<output id="outHe"></output>
+                Harvest efficiency
+                <span
+                  class="roi-out"
+                  id="outHe"
+                  aria-live="polite"
+                  aria-atomic="true"></span>
               </span>
               <input
                 type="range"
@@ -203,7 +223,12 @@ const coverSteps = [
 
             <label class="roi-field">
               <span>
-                Brush spread if left alone<output id="outSpread"></output>
+                Brush spread if left alone
+                <span
+                  class="roi-out"
+                  id="outSpread"
+                  aria-live="polite"
+                  aria-atomic="true"></span>
               </span>
               <input
                 type="range"
@@ -492,7 +517,7 @@ const coverSteps = [
     justify-content: space-between;
     margin-bottom: 6px;
   }
-  .roi-field output {
+  .roi-field .roi-out {
     color: var(--color-primary);
     font-variant-numeric: tabular-nums;
   }
@@ -871,15 +896,17 @@ const coverSteps = [
         ? " Treated cedar standing dead stays fuel until it falls."
         : "");
 
-    // Wildlife
+    // Wildlife — the same clamped cover run() scored wildlifeFits with, so
+    // the highlighted rows and the sentence agree when "keep" exceeds "now".
+    const kept = Math.min(i.coverAfter, i.coverNow);
     $("rWild").innerHTML = r.wildlifeRanges
       .map(
         (s) =>
-          `<li class="${i.coverAfter >= s.min && i.coverAfter <= s.max ? "fit" : ""}"><span>${s.species}</span><span>${s.min}&ndash;${s.max}%</span></li>`,
+          `<li class="${kept >= s.min && kept <= s.max ? "fit" : ""}"><span>${s.species}</span><span>${s.min}&ndash;${s.max}%</span></li>`,
       )
       .join("");
     $("rWildNote").innerHTML =
-      `Texas Parks and Wildlife's woody-cover targets. Keeping ${i.coverAfter}% suits ` +
+      `Texas Parks and Wildlife's woody-cover targets. Keeping ${kept}% suits ` +
       (r.wildlifeFits.length
         ? r.wildlifeFits.join(", ").replace(/, ([^,]*)$/, " and $1")
         : "none of these on its own") +

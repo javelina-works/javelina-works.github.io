@@ -1474,7 +1474,16 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         /(^|-)TX$/.test(region.region_code || "") || region.name === "Texas"
       );
     }
+    var MAPBOX_TIMEOUT_MS = 8000;
     function mbForward(q) {
+      // Bounded, so a hung request falls through to Census / Nominatim
+      // instead of leaving the search on "Looking that up…".
+      var ctl = window.AbortController ? new AbortController() : null;
+      var timer = ctl
+        ? setTimeout(function () {
+            ctl.abort();
+          }, MAPBOX_TIMEOUT_MS)
+        : null;
       return fetch(
         MB_BASE +
           "/forward?" +
@@ -1487,6 +1496,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
             types: "address,street,place,locality,poi",
             limit: "5",
           }),
+        { signal: ctl ? ctl.signal : undefined },
       )
         .then(function (r) {
           if (!r.ok) throw new Error("mapbox HTTP " + r.status);
@@ -1508,6 +1518,9 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
               };
             }),
           );
+        })
+        .finally(function () {
+          if (timer) clearTimeout(timer);
         });
     }
     // Drop points of interest when a real place matched, keep Texas over a
