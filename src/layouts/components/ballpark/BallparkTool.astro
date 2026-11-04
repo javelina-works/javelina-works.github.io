@@ -77,6 +77,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
             <input
               type="text"
               id="bpAddrInput"
+              data-ph-unmask
               aria-label="Ranch address, town, or GPS coordinates"
               placeholder="Address, town, or GPS (lat, long)"
               autocomplete="street-address"
@@ -1143,7 +1144,9 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
   integrity="sha384-ll8qH0IE3im19Dtlr1jtv5fdy+gm+0bx8T4+OYxPeJpc6PO1XLNFnyvdzaKJ78bU"
   crossorigin="anonymous"></script>
 <script is:inline define:vars={{ mapboxToken, embed }}>
-  window.BP_MB_TOKEN = mapboxToken;
+  // A host without a baked token (deploy previews, LAN dev) can still be
+  // handed one before this script runs — the e2e specs do, with Mapbox mocked.
+  window.BP_MB_TOKEN = mapboxToken || window.BP_MB_TOKEN || "";
   window.BP_EMBED = embed;
 </script>
 <script is:inline>
@@ -1198,16 +1201,78 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         /* no-op */
       }
     }
-    // One row per address lookup: what they typed and whether it yielded
-    // ground (a parcel), a ring fallback, or nothing.
+    // One row per address lookup: what they typed, which service answered,
+    // how many candidates it had, what was picked, and whether it yielded
+    // ground (a parcel), a ring fallback, or nothing — enough to explain
+    // "the address lookup wasn't working" without a recording.
     function trackSearch(outcome) {
-      if (!st.pendingSearch) return;
-      track("ballpark_address_search", {
-        query: st.pendingSearch.query,
-        source: st.pendingSearch.source,
+      var ps = st.pendingSearch;
+      if (!ps) return;
+      var row = {
+        query: ps.query,
+        source: ps.source,
+        provider: ps.provider || null,
+        candidates: ps.candidates == null ? null : ps.candidates,
+        picked: ps.picked || null,
+        ms: ps.t0 ? Date.now() - ps.t0 : null,
         outcome: outcome,
-      });
+      };
+      track("ballpark_address_search", row);
+      reportLookup(row, ps.shortlist);
       st.pendingSearch = null;
+    }
+    // Every lookup also goes to the API as one log line — what was typed,
+    // what the geocoder offered, what was picked, how it ended — whether or
+    // not the visitor allowed analytics: it is how we recreate a failed
+    // search. The PostHog ids let a line open the replay; `analytics`
+    // tells the API whether it may also raise the event there.
+    function reportLookup(row, shortlist) {
+      try {
+        var ph = window.posthog;
+        var optedOut =
+          !ph ||
+          !ph.has_opted_out_capturing ||
+          ph.has_opted_out_capturing() !== false;
+        var body = {
+          tool: "ballpark",
+          query: row.query || null,
+          source: row.source,
+          provider: row.provider || null,
+          outcome: row.outcome,
+          candidates: (shortlist || []).slice(0, 6).map(function (o) {
+            return {
+              label: String(o.label || "").slice(0, 160),
+              type: String(o.type || "").slice(0, 24),
+              lat: isFinite(o.lat) ? o.lat : null,
+              lng: isFinite(o.lng) ? o.lng : null,
+            };
+          }),
+          picked: row.picked ? String(row.picked).slice(0, 160) : null,
+          ms:
+            row.ms == null
+              ? null
+              : Math.max(0, Math.min(600000, Math.round(row.ms))),
+          // No ids once the visitor opted out: there is no session or replay
+          // to link to, and the typed address must not travel with one.
+          session_id:
+            !optedOut && ph.get_session_id ? ph.get_session_id() : null,
+          distinct_id:
+            !optedOut && ph.get_distinct_id ? ph.get_distinct_id() : null,
+          analytics: !optedOut,
+          partner: PARTNER || null,
+          page: location.pathname.slice(0, 200),
+        };
+        fetch(API + "/lookups", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+          keepalive: true,
+        }).catch(function () {
+          /* best effort */
+        });
+      } catch (e) {
+        /* best effort */
+      }
     }
 
     // Fox Canyon — a 180-acre slice of the scouted bowl, chosen from the
@@ -1391,6 +1456,77 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         b = t;
       }
       return { lat: a, lng: b };
+    }
+    /* Mapbox Search Box forward geocode — the submit path's first stop.
+       It is the only service here that knows rural ranch roads, and it is
+       what the typeahead shows, so Enter / "Find it" agree with the
+       dropdown. Census and Nominatim stay as the no-token / outage
+       fallback: on 2026-11-04 neither could place our own
+       "03 Ranch Road, Fort Davis", which is how a partner ended up drawing
+       their ranch by hand. */
+    var PLACE_RANK = { address: 0, street: 1, place: 2, locality: 3, poi: 4 };
+    function placeRank(o) {
+      return PLACE_RANK[o.type] == null ? 9 : PLACE_RANK[o.type];
+    }
+    function inTexas(ctx) {
+      var region = (ctx && ctx.region) || {};
+      return (
+        /(^|-)TX$/.test(region.region_code || "") || region.name === "Texas"
+      );
+    }
+    function mbForward(q) {
+      return fetch(
+        MB_BASE +
+          "/forward?" +
+          new URLSearchParams({
+            q: q,
+            access_token: MAPBOX_TOKEN,
+            country: "US",
+            language: "en",
+            proximity: "-99.5,31.2",
+            types: "address,street,place,locality,poi",
+            limit: "5",
+          }),
+      )
+        .then(function (r) {
+          if (!r.ok) throw new Error("mapbox HTTP " + r.status);
+          return r.json();
+        })
+        .then(function (d) {
+          return rankPlaces(
+            ((d && d.features) || []).map(function (f) {
+              var p = f.properties || {};
+              var c = (f.geometry && f.geometry.coordinates) || [];
+              return {
+                lat: c[1],
+                lng: c[0],
+                label:
+                  (p.name || "") +
+                  (p.place_formatted ? ", " + p.place_formatted : ""),
+                type: p.feature_type || "",
+                tx: inTexas(p.context),
+              };
+            }),
+          );
+        });
+    }
+    // Drop points of interest when a real place matched, keep Texas over a
+    // same-named street elsewhere, and put addresses ahead of towns.
+    function rankPlaces(list) {
+      list = list.filter(function (o) {
+        return isFinite(o.lat) && isFinite(o.lng) && o.label;
+      });
+      var real = list.filter(function (o) {
+        return o.type !== "poi";
+      });
+      if (real.length) list = real;
+      var tx = list.filter(function (o) {
+        return o.tx;
+      });
+      if (tx.length) list = tx;
+      return list.sort(function (a, b) {
+        return placeRank(a) - placeRank(b);
+      });
     }
     function censusGeocode(address) {
       return new Promise(function (resolve, reject) {
@@ -1833,6 +1969,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
     var mbSeq = 0;
     var mbTimer = null;
     var mbItems = [];
+    var mbItemsQ = ""; // the query mbItems answers; stale once typing continues
     var mbActive = -1;
     function mbNewSession() {
       mbSession =
@@ -1847,6 +1984,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       sg.hidden = true;
       sg.innerHTML = "";
       mbItems = [];
+      mbItemsQ = "";
       mbActive = -1;
     }
     function mbLabel(s) {
@@ -1903,6 +2041,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
           mbItems = (d.suggestions || []).filter(function (s) {
             return s.mapbox_id;
           });
+          mbItemsQ = q;
           mbActive = -1;
           mbRenderList();
         })
@@ -1910,12 +2049,39 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
           /* typeahead is best-effort; Find it still works */
         });
     }
-    function mbPick(i) {
+    // Enter or "Find it" with the dropdown open takes the highlighted
+    // suggestion, else the best visible one: the Texas address over a
+    // same-named street in another state, and never a point of interest
+    // when a real place is listed.
+    function bestSuggestion() {
+      var fallback = -1;
+      for (var i = 0; i < mbItems.length; i++) {
+        var s = mbItems[i];
+        if (s.feature_type === "poi") continue;
+        if (inTexas(s.context)) return i;
+        if (fallback < 0) fallback = i;
+      }
+      return fallback < 0 ? 0 : fallback;
+    }
+    function mbPick(i, source) {
       var s = mbItems[i];
       if (!s) return;
+      var typed = el("bpAddrInput").value.trim();
+      var candidates = mbItems.length;
+      var shortlist = mbItems.map(function (it) {
+        return { label: mbLabel(it), type: it.feature_type || "" };
+      });
       mbHide();
       var seq = ++st.intakeSeq;
-      st.pendingSearch = { query: mbLabel(s), source: "typeahead" };
+      st.pendingSearch = {
+        query: source ? typed : mbLabel(s),
+        source: source || "typeahead",
+        provider: "mapbox_retrieve",
+        candidates: candidates,
+        shortlist: shortlist,
+        picked: mbLabel(s),
+        t0: Date.now(),
+      };
       el("bpAddrInput").value = mbLabel(s);
       el("bpAddrMsg").hidden = true;
       fetch(
@@ -1971,11 +2137,12 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       } else if (e.key === "Escape" && open) {
         mbHide();
       } else if (e.key === "Enter") {
-        if (open && mbActive >= 0) {
-          e.preventDefault();
-          mbPick(mbActive);
+        e.preventDefault();
+        // A list still answering an earlier, shorter query is not "that
+        // one": fall through to the search of what was actually typed.
+        if (open && mbItemsQ === el("bpAddrInput").value.trim()) {
+          mbPick(mbActive >= 0 ? mbActive : bestSuggestion(), "enter");
         } else {
-          mbHide();
           doFind();
         }
       }
@@ -1994,6 +2161,11 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         btn.disabled = false;
         btn.textContent = "Find it";
       }
+      // "Find it" with the dropdown showing means "that one".
+      if (!sg.hidden && mbItems.length && mbItemsQ === q) {
+        mbPick(mbActive >= 0 ? mbActive : bestSuggestion(), "find");
+        return;
+      }
       mbHide();
       if (!q) {
         say("Type the ranch address, the nearest town, or lat, long.", false);
@@ -2002,7 +2174,11 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       var seq = ++st.intakeSeq;
       fileMsg.hidden = true;
       var ll = parseLatLng(q);
-      st.pendingSearch = { query: q, source: ll ? "latlng" : "search" };
+      st.pendingSearch = {
+        query: q,
+        source: ll ? "latlng" : "submit",
+        t0: Date.now(),
+      };
       if (ll) {
         am.hidden = true;
         parcelFlow(ll.lat, ll.lng, seq);
@@ -2011,59 +2187,94 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       btn.disabled = true;
       btn.textContent = "Searching…";
       say("Looking that up…", true);
-      function pick(o) {
+      function go(o, provider, list) {
         sg.hidden = true;
+        sg.innerHTML = "";
         am.hidden = true;
         el("bpAddrInput").value = o.label;
-        parcelFlow(o.lat, o.lng, ++st.intakeSeq);
+        if (!st.pendingSearch) {
+          // Chosen from the "pick yours" list: a fresh row for the pick.
+          st.pendingSearch = {
+            query: q,
+            source: "pick",
+            provider: provider,
+            candidates: list ? list.length : null,
+            shortlist: list,
+            t0: Date.now(),
+          };
+          seq = ++st.intakeSeq;
+        }
+        st.pendingSearch.picked = o.label;
+        parcelFlow(o.lat, o.lng, seq);
       }
-      censusGeocode(q)
-        .then(function (p) {
+      var lookup = MAPBOX_TOKEN
+        ? mbForward(q).then(function (list) {
+            if (!list.length) throw new Error("no mapbox match");
+            return { list: list, provider: "mapbox" };
+          })
+        : Promise.reject(new Error("no mapbox token"));
+      lookup
+        .catch(function () {
+          // No token, or Mapbox didn't answer: the older chain.
+          return censusGeocode(q)
+            .then(function (p) {
+              return {
+                list: [{ lat: p.lat, lng: p.lng, label: q, type: "address" }],
+                provider: "census",
+              };
+            })
+            .catch(function () {
+              return nominatimList(q).then(function (list) {
+                return { list: list, provider: "nominatim" };
+              });
+            });
+        })
+        .then(function (r) {
           if (seq !== st.intakeSeq) return;
           idle();
-          am.hidden = true;
-          parcelFlow(p.lat, p.lng, seq);
+          st.pendingSearch.provider = r.provider;
+          st.pendingSearch.candidates = r.list.length;
+          st.pendingSearch.shortlist = r.list;
+          if (!r.list.length) {
+            trackSearch("not_found");
+            say(
+              "Couldn't place that — add the town or ZIP, tap “I'm standing on it,” or open “More ways.”",
+              false,
+            );
+            return;
+          }
+          var top = r.list[0];
+          var next = r.list[1];
+          // One match, or one street-level match ahead of towns and
+          // points of interest: go straight to the parcel.
+          if (!next || (placeRank(top) <= 1 && placeRank(next) > 1)) {
+            go(top, r.provider, r.list);
+            return;
+          }
+          trackSearch("ambiguous");
+          say("A few matches — pick yours:", true);
+          sg.innerHTML = "";
+          r.list.slice(0, 5).forEach(function (o) {
+            var b = document.createElement("button");
+            b.type = "button";
+            b.className = "bp-suggestion";
+            b.setAttribute("role", "option");
+            b.textContent = o.label;
+            b.addEventListener("click", function () {
+              go(o, r.provider, r.list);
+            });
+            sg.appendChild(b);
+          });
+          sg.hidden = false;
         })
         .catch(function () {
           if (seq !== st.intakeSeq) return;
-          nominatimList(q)
-            .then(function (list) {
-              if (seq !== st.intakeSeq) return;
-              idle();
-              if (!list.length) {
-                trackSearch("not_found");
-                say(
-                  "Couldn't place that — add the town or ZIP, tap “I'm standing on it,” or open “More ways.”",
-                  false,
-                );
-                return;
-              }
-              if (list.length === 1) {
-                pick(list[0]);
-                return;
-              }
-              say("A few matches — pick yours:", true);
-              list.forEach(function (o) {
-                var b = document.createElement("button");
-                b.type = "button";
-                b.className = "bp-suggestion";
-                b.textContent = o.label;
-                b.addEventListener("click", function () {
-                  pick(o);
-                });
-                sg.appendChild(b);
-              });
-              sg.hidden = false;
-            })
-            .catch(function () {
-              if (seq !== st.intakeSeq) return;
-              idle();
-              trackSearch("error");
-              say(
-                "The address service didn't answer — try again in a moment.",
-                false,
-              );
-            });
+          idle();
+          trackSearch("error");
+          say(
+            "The address service didn't answer — try again in a moment.",
+            false,
+          );
         });
     }
     el("bpAddrInput").addEventListener("input", function () {

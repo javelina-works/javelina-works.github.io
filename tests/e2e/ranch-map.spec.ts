@@ -44,14 +44,17 @@ function trackErrors(page: Page) {
   return errors;
 }
 
-// A saved consent choice keeps the banner off the bottom of the page and,
-// on deploy previews, keeps test traffic out of analytics.
 async function open(page: Page) {
   await page.addInitScript(() => {
+    // A saved opt-out keeps the banner off the bottom of the page and, on
+    // deploy previews, keeps test traffic out of analytics.
     localStorage.setItem(
       "cookie-consent",
       JSON.stringify({ v: 2, analytics: false, replay: false }),
     );
+    // Deploy previews are built without the Mapbox token; hand the page one
+    // so the Mapbox path runs (the specs mock every Mapbox call).
+    (window as unknown as { BP_MB_TOKEN: string }).BP_MB_TOKEN = "pk.e2e";
   });
   // Netlify deploy previews inject a feedback drawer over the bottom of the
   // page; it never ships to production, so block its loader.
@@ -76,7 +79,7 @@ test("ranch map page renders its lookup without errors", async ({ page }) => {
   const errors = trackErrors(page);
   const res = await open(page);
   expect(res?.status()).toBeLessThan(400);
-  await expect(page.locator("h1")).toContainText("map of your ranch");
+  await expect(page.locator("main h1")).toContainText("map of your ranch");
   await expect(page.locator("#rmLookupMap .leaflet-tile-pane")).toBeAttached();
   await expect(page.locator("#rmStudio")).toBeHidden();
   expect(errors, errors.join("\n")).toEqual([]);
@@ -233,4 +236,81 @@ test("printing sizes the page to the chosen sheet", async ({ page }) => {
   await expect(page.locator("html")).toHaveClass(/rm-printing/);
   const rule = await page.locator("#rmPageRule").textContent();
   expect(rule).toMatch(/@page \{ size: (11in 17in|17in 11in); margin: 0; \}/);
+});
+
+// The typed-address path: Mapbox first (the only geocoder that knows rural
+// ranch roads), then the Census geocoder and Nominatim when it can't answer.
+const FORWARD = /api\.mapbox\.com\/search\/searchbox\/v1\/forward/;
+const CENSUS =
+  /geocoding\.geo\.census\.gov\/geocoder\/locations\/onelineaddress/;
+const NOMINATIM = /nominatim\.openstreetmap\.org\/search/;
+const RANCH_ROAD = {
+  type: "Feature",
+  geometry: { type: "Point", coordinates: [-104.0445, 30.9345] },
+  properties: {
+    name: "03 Ranch Road",
+    place_formatted: "Fort Davis, Texas 79734, United States",
+    feature_type: "street",
+    context: { region: { region_code: "TX" } },
+  },
+};
+
+test("a typed address resolves through Mapbox, then the parcel lookup", async ({
+  page,
+}) => {
+  const errors = trackErrors(page);
+  await page.route(/feature\.geographic\.texas\.gov/, (r: Route) =>
+    r.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(PARCEL),
+    }),
+  );
+  await page.route(FORWARD, (r: Route) =>
+    r.fulfill({ json: { features: [RANCH_ROAD] } }),
+  );
+  await open(page);
+  const forward = page.waitForRequest(FORWARD);
+  await page.fill("#rmAddr", "03 Ranch Road, Fort Davis");
+  await page.click("#rmFind button[type=submit]");
+  const url = new URL((await forward).url());
+  expect(url.searchParams.get("q")).toBe("03 Ranch Road, Fort Davis");
+  await expect(page.locator("#rmAcres")).toContainText(
+    /1\d\d acres · 1 parcel · Jeff Davis County/,
+    { timeout: 15_000 },
+  );
+  expect(errors, errors.join("\n")).toEqual([]);
+});
+
+test("falls back to Census and Nominatim when Mapbox can't answer", async ({
+  page,
+}) => {
+  const errors = trackErrors(page);
+  await page.route(/feature\.geographic\.texas\.gov/, (r: Route) =>
+    r.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(PARCEL),
+    }),
+  );
+  await page.route(FORWARD, (r: Route) => r.fulfill({ status: 500, body: "" }));
+  // The Census geocoder is called as JSONP: answer with the callback it named.
+  await page.route(CENSUS, (r: Route) => {
+    const cb = new URL(r.request().url()).searchParams.get("callback");
+    r.fulfill({
+      contentType: "application/javascript",
+      body: `${cb}({"result":{"addressMatches":[]}})`,
+    });
+  });
+  await page.route(NOMINATIM, (r: Route) =>
+    r.fulfill({ json: [{ lat: "30.9345", lon: "-104.0445" }] }),
+  );
+  await open(page);
+  const nominatim = page.waitForRequest(NOMINATIM);
+  await page.fill("#rmAddr", "Fort Davis, TX");
+  await page.click("#rmFind button[type=submit]");
+  await nominatim;
+  await expect(page.locator("#rmAcres")).toContainText(
+    /1\d\d acres · 1 parcel · Jeff Davis County/,
+    { timeout: 15_000 },
+  );
+  expect(errors, errors.join("\n")).toEqual([]);
 });
