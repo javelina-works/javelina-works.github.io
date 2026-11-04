@@ -77,6 +77,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
             <input
               type="text"
               id="bpAddrInput"
+              data-ph-unmask
               aria-label="Ranch address, town, or GPS coordinates"
               placeholder="Address, town, or GPS (lat, long)"
               autocomplete="street-address"
@@ -1205,7 +1206,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
     function trackSearch(outcome) {
       var ps = st.pendingSearch;
       if (!ps) return;
-      track("ballpark_address_search", {
+      var row = {
         query: ps.query,
         source: ps.source,
         provider: ps.provider || null,
@@ -1213,8 +1214,59 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         picked: ps.picked || null,
         ms: ps.t0 ? Date.now() - ps.t0 : null,
         outcome: outcome,
-      });
+      };
+      track("ballpark_address_search", row);
+      reportLookup(row, ps.shortlist);
       st.pendingSearch = null;
+    }
+    // Every lookup also goes to the API as one log line — what was typed,
+    // what the geocoder offered, what was picked, how it ended — whether or
+    // not the visitor allowed analytics: it is how we recreate a failed
+    // search. The PostHog ids let a line open the replay; `analytics`
+    // tells the API whether it may also raise the event there.
+    function reportLookup(row, shortlist) {
+      try {
+        var ph = window.posthog;
+        var optedOut =
+          !ph ||
+          !ph.has_opted_out_capturing ||
+          ph.has_opted_out_capturing() !== false;
+        var body = {
+          tool: "ballpark",
+          query: row.query || null,
+          source: row.source,
+          provider: row.provider || null,
+          outcome: row.outcome,
+          candidates: (shortlist || []).slice(0, 6).map(function (o) {
+            return {
+              label: String(o.label || "").slice(0, 160),
+              type: String(o.type || "").slice(0, 24),
+              lat: isFinite(o.lat) ? o.lat : null,
+              lng: isFinite(o.lng) ? o.lng : null,
+            };
+          }),
+          picked: row.picked ? String(row.picked).slice(0, 160) : null,
+          ms:
+            row.ms == null
+              ? null
+              : Math.max(0, Math.min(600000, Math.round(row.ms))),
+          session_id: ph && ph.get_session_id ? ph.get_session_id() : null,
+          distinct_id: ph && ph.get_distinct_id ? ph.get_distinct_id() : null,
+          analytics: !optedOut,
+          partner: PARTNER || null,
+          page: location.pathname.slice(0, 200),
+        };
+        fetch(API + "/lookups", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+          keepalive: true,
+        }).catch(function () {
+          /* best effort */
+        });
+      } catch (e) {
+        /* best effort */
+      }
     }
 
     // Fox Canyon — a 180-acre slice of the scouted bowl, chosen from the
@@ -2007,6 +2059,9 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       if (!s) return;
       var typed = el("bpAddrInput").value.trim();
       var candidates = mbItems.length;
+      var shortlist = mbItems.map(function (it) {
+        return { label: mbLabel(it), type: it.feature_type || "" };
+      });
       mbHide();
       var seq = ++st.intakeSeq;
       st.pendingSearch = {
@@ -2014,6 +2069,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         source: source || "typeahead",
         provider: "mapbox_retrieve",
         candidates: candidates,
+        shortlist: shortlist,
         picked: mbLabel(s),
         t0: Date.now(),
       };
@@ -2120,7 +2176,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       btn.disabled = true;
       btn.textContent = "Searching…";
       say("Looking that up…", true);
-      function go(o, provider) {
+      function go(o, provider, list) {
         sg.hidden = true;
         sg.innerHTML = "";
         am.hidden = true;
@@ -2131,6 +2187,8 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
             query: q,
             source: "pick",
             provider: provider,
+            candidates: list ? list.length : null,
+            shortlist: list,
             t0: Date.now(),
           };
           seq = ++st.intakeSeq;
@@ -2164,6 +2222,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
           idle();
           st.pendingSearch.provider = r.provider;
           st.pendingSearch.candidates = r.list.length;
+          st.pendingSearch.shortlist = r.list;
           if (!r.list.length) {
             trackSearch("not_found");
             say(
@@ -2177,7 +2236,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
           // One match, or one street-level match ahead of towns and
           // points of interest: go straight to the parcel.
           if (!next || (placeRank(top) <= 1 && placeRank(next) > 1)) {
-            go(top, r.provider);
+            go(top, r.provider, r.list);
             return;
           }
           trackSearch("ambiguous");
@@ -2190,7 +2249,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
             b.setAttribute("role", "option");
             b.textContent = o.label;
             b.addEventListener("click", function () {
-              go(o, r.provider);
+              go(o, r.provider, r.list);
             });
             sg.appendChild(b);
           });

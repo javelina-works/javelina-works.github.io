@@ -44,6 +44,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
             <input
               type="text"
               id="rmAddr"
+              data-ph-unmask
               aria-label="Ranch address, town, or GPS coordinates"
               placeholder="Address, town, or GPS (lat, long)"
               autocomplete="street-address"
@@ -1546,6 +1547,44 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         /* analytics must never break the page */
       }
     }
+    // The lookup log lives on the ballpark API (same backend, same proxy):
+    // one line per lookup, whatever the visitor allowed, so a failed search
+    // can be recreated. See BallparkTool.astro for the field meanings.
+    var LOOKUPS = location.hostname.endsWith("javelinaworks.com")
+      ? "/api/ballpark/lookups"
+      : "/api/ballpark-staging/lookups";
+    function trackSearch(props) {
+      if (props.source === "address") props.query = st.lastQuery || null;
+      track("ranchmap_search", props);
+      try {
+        var ph = window.posthog;
+        var optedOut =
+          !ph ||
+          !ph.has_opted_out_capturing ||
+          ph.has_opted_out_capturing() !== false;
+        fetch(LOOKUPS, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tool: "ranch-map",
+            query: props.query || null,
+            source: props.source,
+            provider: props.provider || null,
+            outcome: props.outcome,
+            ms: props.ms == null ? null : Math.max(0, Math.round(props.ms)),
+            session_id: ph && ph.get_session_id ? ph.get_session_id() : null,
+            distinct_id: ph && ph.get_distinct_id ? ph.get_distinct_id() : null,
+            analytics: !optedOut,
+            page: location.pathname.slice(0, 200),
+          }),
+          keepalive: true,
+        }).catch(function () {
+          /* best effort */
+        });
+      } catch (e) {
+        /* best effort */
+      }
+    }
     function say(msg, kind) {
       var m = el("rmMsg");
       m.textContent = msg || "";
@@ -1559,6 +1598,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       geometry: null,
       county: null,
       busy: false,
+      lastQuery: null,
     };
 
     /* ---------------- map ---------------- */
@@ -1992,7 +2032,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
               "No county parcel there. Try a spot inside the ranch, or another address.",
               "warn",
             );
-            track("ranchmap_search", { source: source, outcome: "no_parcel" });
+            trackSearch({ source: source, outcome: "no_parcel" });
             return;
           }
           st.county = seed.properties.county
@@ -2011,7 +2051,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
               "Gold is your ranch. Tap neighboring parcels to add or remove them.",
             );
             refresh(true);
-            track("ranchmap_search", {
+            trackSearch({
               source: source,
               outcome: "parcel",
               parcels: r.members.length,
@@ -2023,7 +2063,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
             "The county parcel service didn't answer. Try again in a moment.",
             "warn",
           );
-          track("ranchmap_search", { source: source, outcome: "error" });
+          trackSearch({ source: source, outcome: "error" });
         });
     }
     map.on("click", function (ev) {
@@ -2035,6 +2075,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       var q = el("rmAddr").value.trim();
       if (!q) return;
       var ll = parseLatLng(q);
+      st.lastQuery = ll ? null : q;
       say("Looking that up…");
       var t0 = Date.now();
       var provider = ll ? "coords" : "mapbox";
@@ -2059,7 +2100,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
             "We couldn't find that address. Try a nearby town, or tap the map.",
             "warn",
           );
-          track("ranchmap_search", {
+          trackSearch({
             source: "address",
             outcome: "no_match",
             query: q,

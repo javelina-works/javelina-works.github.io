@@ -12,6 +12,17 @@ const PARCELS = /feature\.geographic\.texas\.gov\/.*\/identify/;
 const CENSUS =
   /geocoding\.geo\.census\.gov\/geocoder\/locations\/onelineaddress/;
 const NOMINATIM = /nominatim\.openstreetmap\.org\/search/;
+// Every lookup is reported to the API as one log line, consent or not.
+const LOOKUPS = /\/api\/ballpark(-staging)?\/lookups$/;
+
+async function captureLookups(page: Page) {
+  const reports: Record<string, unknown>[] = [];
+  await page.route(LOOKUPS, (r: Route) => {
+    reports.push(r.request().postDataJSON());
+    r.fulfill({ status: 204, body: "" });
+  });
+  return reports;
+}
 
 const TX_LABEL = "03 Ranch Road, Fort Davis, Texas 79734, United States";
 
@@ -106,6 +117,7 @@ test("'Find it' on a typed address resolves through Mapbox and prefers Texas", a
       json: { features: [RANCH_ROAD_FL, RANCH_ROAD_TX, SHOPPING_POI] },
     }),
   );
+  const reports = await captureLookups(page);
   await openTool(page);
 
   await addressBox(page).fill("03 Ranch Road, Fort Davis");
@@ -118,6 +130,18 @@ test("'Find it' on a typed address resolves through Mapbox and prefers Texas", a
   await expect(confirmHeading(page)).toBeVisible();
   await expect(addressValue(page)).toHaveValue(TX_LABEL);
   await expect(page.getByText(/size the circle/)).toBeVisible();
+  await expect.poll(() => reports.length).toBe(1);
+  expect(reports[0]).toMatchObject({
+    tool: "ballpark",
+    query: "03 Ranch Road, Fort Davis",
+    source: "submit",
+    provider: "mapbox",
+    outcome: "no_parcel",
+    picked: TX_LABEL,
+    analytics: false,
+  });
+  // Florida and the DC point of interest were ranked out; only Texas was offered.
+  expect(reports[0].candidates).toHaveLength(1);
   expect(errors, errors.join("\n")).toEqual([]);
 });
 

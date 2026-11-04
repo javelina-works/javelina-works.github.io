@@ -74,7 +74,7 @@ test("ranch map page renders its lookup without errors", async ({ page }) => {
   const errors = trackErrors(page);
   const res = await open(page);
   expect(res?.status()).toBeLessThan(400);
-  await expect(page.locator("h1")).toContainText("map of your ranch");
+  await expect(page.locator("main h1")).toContainText("map of your ranch");
   await expect(page.locator("#rmLookupMap .leaflet-tile-pane")).toBeAttached();
   await expect(page.locator("#rmStudio")).toBeHidden();
   expect(errors, errors.join("\n")).toEqual([]);
