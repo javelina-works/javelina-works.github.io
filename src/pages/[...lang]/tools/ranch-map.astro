@@ -13,6 +13,9 @@ const meta = {
     "Find your West Texas ranch and get a printable map of it: lidar terrain and contours, creeks and draws, brush cover from infrared imagery, and mapped roads, fences and tanks. Free.",
   disableTagline: true,
 };
+// Same public, URL-restricted Mapbox token the ballpark tool uses, injected
+// at build time. Empty = Mapbox skipped, the Census/Nominatim chain remains.
+const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
 ---
 
 <Base {...meta} sectionSpacing="md">
@@ -41,6 +44,7 @@ const meta = {
             <input
               type="text"
               id="rmAddr"
+              data-ph-unmask
               aria-label="Ranch address, town, or GPS coordinates"
               placeholder="Address, town, or GPS (lat, long)"
               autocomplete="street-address"
@@ -1513,10 +1517,11 @@ const meta = {
 <script>
   import "@/scripts/ranch-map/engine.js";
 </script>
-<script is:inline>
+<script is:inline define:vars={{ mapboxToken }}>
   (function () {
     "use strict";
 
+    var MAPBOX_TOKEN = mapboxToken || window.BP_MB_TOKEN || "";
     // Same-origin, like the ballpark: production proxies /api/ranch-map via
     // Netlify; deploy previews and `astro dev` get /api/ranch-map-staging.
     var API = location.hostname.endsWith("javelinaworks.com")
@@ -1542,6 +1547,54 @@ const meta = {
         /* analytics must never break the page */
       }
     }
+    // The lookup log lives on the ballpark API (same backend, same proxy):
+    // one line per lookup, whatever the visitor allowed, so a failed search
+    // can be recreated. See BallparkTool.astro for the field meanings.
+    var LOOKUPS = location.hostname.endsWith("javelinaworks.com")
+      ? "/api/ballpark/lookups"
+      : "/api/ballpark-staging/lookups";
+    function trackSearch(props) {
+      if (props.source === "address") props.query = st.lastQuery || null;
+      // Form lookups settle in selectAt, which doesn't know which geocoder
+      // answered or when the search began; taps and GPS stay clear of it.
+      if (props.source === "address" || props.source === "coords") {
+        if (props.provider == null) props.provider = st.lastProvider || null;
+        if (props.ms == null && st.lastT0) props.ms = Date.now() - st.lastT0;
+      }
+      track("ranchmap_search", props);
+      try {
+        var ph = window.posthog;
+        var optedOut =
+          !ph ||
+          !ph.has_opted_out_capturing ||
+          ph.has_opted_out_capturing() !== false;
+        fetch(LOOKUPS, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tool: "ranch-map",
+            query: props.query || null,
+            source: props.source,
+            provider: props.provider || null,
+            outcome: props.outcome,
+            ms: props.ms == null ? null : Math.max(0, Math.round(props.ms)),
+            // No ids once the visitor opted out: nothing to link to, and the
+            // typed address must not travel with one.
+            session_id:
+              !optedOut && ph.get_session_id ? ph.get_session_id() : null,
+            distinct_id:
+              !optedOut && ph.get_distinct_id ? ph.get_distinct_id() : null,
+            analytics: !optedOut,
+            page: location.pathname.slice(0, 200),
+          }),
+          keepalive: true,
+        }).catch(function () {
+          /* best effort */
+        });
+      } catch (e) {
+        /* best effort */
+      }
+    }
     function say(msg, kind) {
       var m = el("rmMsg");
       m.textContent = msg || "";
@@ -1555,6 +1608,9 @@ const meta = {
       geometry: null,
       county: null,
       busy: false,
+      lastQuery: null,
+      lastProvider: null,
+      lastT0: 0,
     };
 
     /* ---------------- map ---------------- */
@@ -1648,6 +1704,66 @@ const meta = {
         .then(function (d) {
           if (!d || !d.length) throw new Error("no match");
           return { lat: parseFloat(d[0].lat), lng: parseFloat(d[0].lon) };
+        });
+    }
+    // Mapbox Search Box forward geocode, tried first: the Census geocoder
+    // and Nominatim cannot place most rural ranch roads (same finding as
+    // the ballpark tool, 2026-11-04). Points of interest lose to real
+    // places, Texas wins over a same-named street elsewhere, and
+    // addresses come before towns.
+    function mapboxForward(address) {
+      if (!MAPBOX_TOKEN) return Promise.reject(new Error("no token"));
+      var rank = { address: 0, street: 1, place: 2, locality: 3, poi: 4 };
+      return fetch(
+        "https://api.mapbox.com/search/searchbox/v1/forward?" +
+          new URLSearchParams({
+            q: address,
+            access_token: MAPBOX_TOKEN,
+            country: "US",
+            language: "en",
+            proximity: "-99.5,31.2",
+            types: "address,street,place,locality,poi",
+            limit: "5",
+          }),
+      )
+        .then(function (r) {
+          if (!r.ok) throw new Error("mapbox HTTP " + r.status);
+          return r.json();
+        })
+        .then(function (d) {
+          var list = ((d && d.features) || [])
+            .map(function (f) {
+              var p = f.properties || {};
+              var c = (f.geometry && f.geometry.coordinates) || [];
+              var region = (p.context && p.context.region) || {};
+              return {
+                lat: c[1],
+                lng: c[0],
+                type: p.feature_type || "",
+                tx:
+                  /(^|-)TX$/.test(region.region_code || "") ||
+                  region.name === "Texas",
+              };
+            })
+            .filter(function (o) {
+              return isFinite(o.lat) && isFinite(o.lng);
+            });
+          var real = list.filter(function (o) {
+            return o.type !== "poi";
+          });
+          if (real.length) list = real;
+          var tx = list.filter(function (o) {
+            return o.tx;
+          });
+          if (tx.length) list = tx;
+          list.sort(function (a, b) {
+            return (
+              (rank[a.type] == null ? 9 : rank[a.type]) -
+              (rank[b.type] == null ? 9 : rank[b.type])
+            );
+          });
+          if (!list.length) throw new Error("no match");
+          return { lat: list[0].lat, lng: list[0].lng };
         });
     }
 
@@ -1928,7 +2044,7 @@ const meta = {
               "No county parcel there. Try a spot inside the ranch, or another address.",
               "warn",
             );
-            track("ranchmap_search", { source: source, outcome: "no_parcel" });
+            trackSearch({ source: source, outcome: "no_parcel" });
             return;
           }
           st.county = seed.properties.county
@@ -1947,7 +2063,7 @@ const meta = {
               "Gold is your ranch. Tap neighboring parcels to add or remove them.",
             );
             refresh(true);
-            track("ranchmap_search", {
+            trackSearch({
               source: source,
               outcome: "parcel",
               parcels: r.members.length,
@@ -1959,7 +2075,7 @@ const meta = {
             "The county parcel service didn't answer. Try again in a moment.",
             "warn",
           );
-          track("ranchmap_search", { source: source, outcome: "error" });
+          trackSearch({ source: source, outcome: "error" });
         });
     }
     map.on("click", function (ev) {
@@ -1971,14 +2087,25 @@ const meta = {
       var q = el("rmAddr").value.trim();
       if (!q) return;
       var ll = parseLatLng(q);
+      st.lastQuery = ll ? null : q;
       say("Looking that up…");
+      var t0 = Date.now();
+      var provider = ll ? "coords" : "mapbox";
       (ll
         ? Promise.resolve(ll)
-        : censusGeocode(q).catch(function () {
-            return nominatim(q);
-          })
+        : mapboxForward(q)
+            .catch(function () {
+              provider = "census";
+              return censusGeocode(q);
+            })
+            .catch(function () {
+              provider = "nominatim";
+              return nominatim(q);
+            })
       )
         .then(function (p) {
+          st.lastProvider = provider;
+          st.lastT0 = t0;
           map.setView([p.lat, p.lng], 15);
           return selectAt(p.lat, p.lng, ll ? "coords" : "address");
         })
@@ -1987,7 +2114,13 @@ const meta = {
             "We couldn't find that address. Try a nearby town, or tap the map.",
             "warn",
           );
-          track("ranchmap_search", { source: "address", outcome: "no_match" });
+          trackSearch({
+            source: "address",
+            outcome: "no_match",
+            query: q,
+            provider: provider,
+            ms: Date.now() - t0,
+          });
         });
     });
     el("rmHere").addEventListener("click", function () {
