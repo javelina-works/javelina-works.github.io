@@ -1252,8 +1252,12 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
             row.ms == null
               ? null
               : Math.max(0, Math.min(600000, Math.round(row.ms))),
-          session_id: ph && ph.get_session_id ? ph.get_session_id() : null,
-          distinct_id: ph && ph.get_distinct_id ? ph.get_distinct_id() : null,
+          // No ids once the visitor opted out: there is no session or replay
+          // to link to, and the typed address must not travel with one.
+          session_id:
+            !optedOut && ph.get_session_id ? ph.get_session_id() : null,
+          distinct_id:
+            !optedOut && ph.get_distinct_id ? ph.get_distinct_id() : null,
           analytics: !optedOut,
           partner: PARTNER || null,
           page: location.pathname.slice(0, 200),
@@ -1965,6 +1969,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
     var mbSeq = 0;
     var mbTimer = null;
     var mbItems = [];
+    var mbItemsQ = ""; // the query mbItems answers; stale once typing continues
     var mbActive = -1;
     function mbNewSession() {
       mbSession =
@@ -1979,6 +1984,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       sg.hidden = true;
       sg.innerHTML = "";
       mbItems = [];
+      mbItemsQ = "";
       mbActive = -1;
     }
     function mbLabel(s) {
@@ -2035,6 +2041,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
           mbItems = (d.suggestions || []).filter(function (s) {
             return s.mapbox_id;
           });
+          mbItemsQ = q;
           mbActive = -1;
           mbRenderList();
         })
@@ -2131,7 +2138,9 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         mbHide();
       } else if (e.key === "Enter") {
         e.preventDefault();
-        if (open) {
+        // A list still answering an earlier, shorter query is not "that
+        // one": fall through to the search of what was actually typed.
+        if (open && mbItemsQ === el("bpAddrInput").value.trim()) {
           mbPick(mbActive >= 0 ? mbActive : bestSuggestion(), "enter");
         } else {
           doFind();
@@ -2153,7 +2162,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         btn.textContent = "Find it";
       }
       // "Find it" with the dropdown showing means "that one".
-      if (!sg.hidden && mbItems.length) {
+      if (!sg.hidden && mbItems.length && mbItemsQ === q) {
         mbPick(mbActive >= 0 ? mbActive : bestSuggestion(), "find");
         return;
       }
@@ -2200,6 +2209,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       }
       var lookup = MAPBOX_TOKEN
         ? mbForward(q).then(function (list) {
+            if (!list.length) throw new Error("no mapbox match");
             return { list: list, provider: "mapbox" };
           })
         : Promise.reject(new Error("no mapbox token"));

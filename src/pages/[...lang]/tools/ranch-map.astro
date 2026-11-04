@@ -1555,6 +1555,12 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       : "/api/ballpark-staging/lookups";
     function trackSearch(props) {
       if (props.source === "address") props.query = st.lastQuery || null;
+      // Form lookups settle in selectAt, which doesn't know which geocoder
+      // answered or when the search began; taps and GPS stay clear of it.
+      if (props.source === "address" || props.source === "coords") {
+        if (props.provider == null) props.provider = st.lastProvider || null;
+        if (props.ms == null && st.lastT0) props.ms = Date.now() - st.lastT0;
+      }
       track("ranchmap_search", props);
       try {
         var ph = window.posthog;
@@ -1572,8 +1578,12 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
             provider: props.provider || null,
             outcome: props.outcome,
             ms: props.ms == null ? null : Math.max(0, Math.round(props.ms)),
-            session_id: ph && ph.get_session_id ? ph.get_session_id() : null,
-            distinct_id: ph && ph.get_distinct_id ? ph.get_distinct_id() : null,
+            // No ids once the visitor opted out: nothing to link to, and the
+            // typed address must not travel with one.
+            session_id:
+              !optedOut && ph.get_session_id ? ph.get_session_id() : null,
+            distinct_id:
+              !optedOut && ph.get_distinct_id ? ph.get_distinct_id() : null,
             analytics: !optedOut,
             page: location.pathname.slice(0, 200),
           }),
@@ -1599,6 +1609,8 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       county: null,
       busy: false,
       lastQuery: null,
+      lastProvider: null,
+      lastT0: 0,
     };
 
     /* ---------------- map ---------------- */
@@ -2092,6 +2104,8 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
             })
       )
         .then(function (p) {
+          st.lastProvider = provider;
+          st.lastT0 = t0;
           map.setView([p.lat, p.lng], 15);
           return selectAt(p.lat, p.lng, ll ? "coords" : "address");
         })
