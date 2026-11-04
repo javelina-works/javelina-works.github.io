@@ -20,7 +20,7 @@
       type="button"
       id="cookie-close"
       class="absolute -top-1 right-0 rounded p-1 text-xl leading-none text-text-default/70 hover:bg-theme-light hover:text-text-default"
-      aria-label="Close and keep everything on">
+      aria-label="Close">
       ✕
     </button>
 
@@ -29,7 +29,8 @@
       class="flex flex-col items-start gap-3 md:flex-row md:items-center md:justify-between md:gap-6">
       <p id="cookie-title" class="text-sm text-text-default">
         We use cookies to see how the site is used and to fix what breaks,
-        including a replay of your visit with anything you type masked. See our{" "}
+        including a replay of your visit. What you type is masked, except the
+        address you search for on our estimate tools. See our{" "}
         <a class="underline" href="/privacy-policy/">
           privacy policy
         </a>{" "}
@@ -62,7 +63,7 @@
         <label class="flex items-start gap-3 text-sm text-text-default">
           <input type="checkbox" class="mt-1" checked disabled />
           <span>
-            <strong class="font-semibold text-dark">Essential</strong>— keeps
+            <strong class="font-semibold text-dark">Essential</strong> — keeps
             the site working and protects the estimate tools from abuse. Always
             on.
           </span>
@@ -70,7 +71,7 @@
         <label class="flex items-start gap-3 text-sm text-text-default">
           <input type="checkbox" class="mt-1" id="cookie-opt-analytics" />
           <span>
-            <strong class="font-semibold text-dark">Analytics</strong>— which
+            <strong class="font-semibold text-dark">Analytics</strong> — which
             pages and tools get used, so we can improve them.
           </span>
         </label>
@@ -78,8 +79,9 @@
           <input type="checkbox" class="mt-1" id="cookie-opt-replay" />
           <span>
             <strong class="font-semibold text-dark">Session recordings</strong>{" "}
-            — a replay of your visit, with anything you type masked, so we can
-            see what broke and fix it.
+            — a replay of your visit, so we can see what broke and fix it. What
+            you type is masked, except the address you search for on our
+            estimate tools.
           </span>
         </label>
       </fieldset>
@@ -123,7 +125,12 @@
       var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
       priorConsent =
         /^Europe\//.test(tz) ||
-        /^Atlantic\/(Reykjavik|Canary|Madeira|Faroe|Azores)$/.test(tz);
+        /^Atlantic\/(Reykjavik|Canary|Madeira|Faroe|Azores|Jan_Mayen)$/.test(
+          tz,
+        ) ||
+        /^(Asia\/Nicosia|Asia\/Famagusta|Africa\/Ceuta|Arctic\/Longyearbyen)$/.test(
+          tz,
+        );
     } catch (e) {}
     var defaultsOn = !(gpc || priorConsent);
     function defaults() {
@@ -228,7 +235,10 @@
     el("cookie-accept").addEventListener("click", acceptAll("accept_all"));
     el("cookie-accept-all").addEventListener("click", acceptAll("accept_all"));
     el("cookie-close").addEventListener("click", function () {
-      choose(defaults(), "dismiss");
+      // First visit: closing keeps the defaults. Reopened from the footer:
+      // closing changes nothing.
+      if (read()) hide();
+      else choose(defaults(), "dismiss");
     });
     window.openCookiePreferences = openOptions;
     var link = el("cookie-preferences-link");

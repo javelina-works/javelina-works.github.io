@@ -129,7 +129,12 @@ const { embed = false } = Astro.props;
       var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
       priorConsent =
         /^Europe\//.test(tz) ||
-        /^Atlantic\/(Reykjavik|Canary|Madeira|Faroe|Azores)$/.test(tz);
+        /^Atlantic\/(Reykjavik|Canary|Madeira|Faroe|Azores|Jan_Mayen)$/.test(
+          tz,
+        ) ||
+        /^(Asia\/Nicosia|Asia\/Famagusta|Africa\/Ceuta|Arctic\/Longyearbyen)$/.test(
+          tz,
+        );
     } catch (e) {}
     if (!consent && (navigator.globalPrivacyControl === true || priorConsent)) {
       consent = { analytics: false, replay: false };
@@ -142,6 +147,14 @@ const { embed = false } = Astro.props;
       defaults: "2026-01-30",
       opt_out_capturing_by_default: analyticsOff,
       disable_session_recording: replayOff,
+      loaded: function (ph) {
+        // PostHog remembers its own opt-out from an earlier choice; a saved
+        // acceptance (or no choice) must win over that. Only the loaded
+        // instance can answer this — the pre-load stub returns undefined.
+        if (!analyticsOff && ph.has_opted_out_capturing()) {
+          ph.opt_in_capturing({ captureEventName: null });
+        }
+      },
       session_recording: {
         // Inputs stay masked (the lead form), except the address boxes on
         // the estimate tools: what a visitor typed is the whole point of
@@ -155,14 +168,5 @@ const { embed = false } = Astro.props;
         },
       },
     });
-    // PostHog remembers its own opt-out from an earlier choice; a saved
-    // acceptance (or no choice) must win over that.
-    if (!analyticsOff) {
-      try {
-        if (posthog.has_opted_out_capturing()) {
-          posthog.opt_in_capturing({ captureEventName: null });
-        }
-      } catch (e) {}
-    }
   }
 </script>

@@ -8,6 +8,9 @@ import { test, expect, type Page } from "@playwright/test";
 
 const KEY = "cookie-consent";
 
+// Defaults are on outside UK/EU/EEA; do not depend on the host time zone.
+test.use({ timezoneId: "America/Chicago" });
+
 async function stored(page: Page) {
   const raw = await page.evaluate((k) => localStorage.getItem(k), KEY);
   return raw ? (JSON.parse(raw) as Record<string, unknown>) : null;
@@ -42,7 +45,7 @@ test("first visit shows the banner; Accept all stores everything on", async ({
 
 test("closing the banner keeps the defaults on", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: /close and keep/i }).click();
+  await page.locator("#cookie-close").click();
   await expect(banner(page)).toBeHidden();
   expect(await stored(page)).toMatchObject({ analytics: true, replay: true });
 });
@@ -118,7 +121,7 @@ test.describe("prior-consent regions", () => {
     await expect(
       page.getByText("Nothing is collected until you accept."),
     ).toBeVisible();
-    await page.getByRole("button", { name: /close and keep/i }).click();
+    await page.locator("#cookie-close").click();
     expect(await stored(page)).toMatchObject({
       analytics: false,
       replay: false,
