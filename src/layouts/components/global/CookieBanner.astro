@@ -33,7 +33,10 @@
         <a class="underline" href="/privacy-policy/">
           privacy policy
         </a>{" "}
-        for details.
+        for details.{" "}
+        <span id="cookie-off-note" hidden>
+          Nothing is collected until you accept.
+        </span>
       </p>
       <div class="flex shrink-0 gap-2">
         <button
@@ -59,7 +62,7 @@
         <label class="flex items-start gap-3 text-sm text-text-default">
           <input type="checkbox" class="mt-1" checked disabled />
           <span>
-            <strong class="font-semibold text-dark">Essential</strong> — keeps
+            <strong class="font-semibold text-dark">Essential</strong>— keeps
             the site working and protects the estimate tools from abuse. Always
             on.
           </span>
@@ -67,7 +70,7 @@
         <label class="flex items-start gap-3 text-sm text-text-default">
           <input type="checkbox" class="mt-1" id="cookie-opt-analytics" />
           <span>
-            <strong class="font-semibold text-dark">Analytics</strong> — which
+            <strong class="font-semibold text-dark">Analytics</strong>— which
             pages and tools get used, so we can improve them.
           </span>
         </label>
@@ -110,7 +113,22 @@
     var options = el("cookie-options");
     var optAnalytics = el("cookie-opt-analytics");
     var optReplay = el("cookie-opt-replay");
+    // Defaults are "on" except where prior consent is required: a Global
+    // Privacy Control signal, or a UK / EU / EEA time zone (same rule as
+    // posthog.astro, which already started PostHog off for them). The ✕
+    // keeps the defaults, whatever they are.
     var gpc = navigator.globalPrivacyControl === true;
+    var priorConsent = false;
+    try {
+      var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+      priorConsent =
+        /^Europe\//.test(tz) ||
+        /^Atlantic\/(Reykjavik|Canary|Madeira|Faroe|Azores)$/.test(tz);
+    } catch (e) {}
+    var defaultsOn = !(gpc || priorConsent);
+    function defaults() {
+      return { analytics: defaultsOn, replay: defaultsOn };
+    }
 
     function read() {
       try {
@@ -184,7 +202,7 @@
       if (!optAnalytics.checked) optReplay.checked = false;
     }
     function openOptions() {
-      var c = read() || { analytics: !gpc, replay: !gpc };
+      var c = read() || defaults();
       optAnalytics.checked = c.analytics;
       optReplay.checked = c.replay;
       syncReplay();
@@ -209,10 +227,13 @@
     }
     el("cookie-accept").addEventListener("click", acceptAll("accept_all"));
     el("cookie-accept-all").addEventListener("click", acceptAll("accept_all"));
-    el("cookie-close").addEventListener("click", acceptAll("dismiss"));
+    el("cookie-close").addEventListener("click", function () {
+      choose(defaults(), "dismiss");
+    });
     window.openCookiePreferences = openOptions;
     var link = el("cookie-preferences-link");
     if (link) link.addEventListener("click", openOptions);
+    if (!defaultsOn) el("cookie-off-note").hidden = false;
 
     if (!read()) show("summary");
   })();

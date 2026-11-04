@@ -96,3 +96,42 @@ test("the older string values still count as a saved choice", async ({
   await page.getByRole("button", { name: "Cookie preferences" }).click();
   await expect(page.locator("#cookie-opt-analytics")).not.toBeChecked();
 });
+
+// UK / EU / EEA visitors (by browser time zone) need prior consent: the
+// defaults are off, closing the banner keeps them off, Accept all turns
+// them on.
+test.describe("prior-consent regions", () => {
+  test.use({ timezoneId: "Europe/London" });
+
+  test("closing the banner keeps everything off", async ({ page }) => {
+    await page.goto("/");
+    await expect(banner(page)).toBeVisible();
+    await expect(
+      page.getByText("Nothing is collected until you accept."),
+    ).toBeVisible();
+    await page.getByRole("button", { name: /close and keep/i }).click();
+    expect(await stored(page)).toMatchObject({
+      analytics: false,
+      replay: false,
+    });
+  });
+
+  test("Customize starts with both switches off; Accept all turns them on", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Customize" }).click();
+    await expect(page.locator("#cookie-opt-analytics")).not.toBeChecked();
+    await expect(page.locator("#cookie-opt-replay")).not.toBeChecked();
+    await page.getByRole("button", { name: "Accept all" }).click();
+    expect(await stored(page)).toMatchObject({ analytics: true, replay: true });
+  });
+});
+
+test("outside those regions the off note is not shown", async ({ page }) => {
+  await page.goto("/");
+  await expect(banner(page)).toBeVisible();
+  await expect(
+    page.getByText("Nothing is collected until you accept."),
+  ).toBeHidden();
+});

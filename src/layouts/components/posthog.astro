@@ -120,7 +120,18 @@ const { embed = false } = Astro.props;
         }
       }
     } catch (e) {}
-    if (!consent && navigator.globalPrivacyControl === true) {
+    // UK / EU / EEA visitors need prior consent, so with no saved choice
+    // they start off until they accept. The browser's time zone stands in
+    // for the country: no lookup, nothing stored, wrong only for VPNs and
+    // travellers. Same rule as CookieBanner.astro's defaults.
+    var priorConsent = false;
+    try {
+      var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+      priorConsent =
+        /^Europe\//.test(tz) ||
+        /^Atlantic\/(Reykjavik|Canary|Madeira|Faroe|Azores)$/.test(tz);
+    } catch (e) {}
+    if (!consent && (navigator.globalPrivacyControl === true || priorConsent)) {
       consent = { analytics: false, replay: false };
     }
     var analyticsOff = !!consent && !consent.analytics;
@@ -131,6 +142,18 @@ const { embed = false } = Astro.props;
       defaults: "2026-01-30",
       opt_out_capturing_by_default: analyticsOff,
       disable_session_recording: replayOff,
+      session_recording: {
+        // Inputs stay masked (the lead form), except the address boxes on
+        // the estimate tools: what a visitor typed is the whole point of
+        // watching a failed lookup. The policy discloses the search text.
+        maskInputFn: function (text, element) {
+          var open =
+            element &&
+            element.getAttribute &&
+            element.getAttribute("data-ph-unmask") !== null;
+          return open ? text : "*".repeat((text || "").length);
+        },
+      },
     });
     // PostHog remembers its own opt-out from an earlier choice; a saved
     // acceptance (or no choice) must win over that.
