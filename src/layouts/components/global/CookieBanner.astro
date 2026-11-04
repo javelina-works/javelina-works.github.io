@@ -63,7 +63,7 @@
         <label class="flex items-start gap-3 text-sm text-text-default">
           <input type="checkbox" class="mt-1" checked disabled />
           <span>
-            <strong class="font-semibold text-dark">Essential</strong> — keeps
+            <strong class="font-semibold text-dark">Essential</strong>— keeps
             the site working and protects the estimate tools from abuse. Always
             on.
           </span>
@@ -71,7 +71,7 @@
         <label class="flex items-start gap-3 text-sm text-text-default">
           <input type="checkbox" class="mt-1" id="cookie-opt-analytics" />
           <span>
-            <strong class="font-semibold text-dark">Analytics</strong> — which
+            <strong class="font-semibold text-dark">Analytics</strong>— which
             pages and tools get used, so we can improve them.
           </span>
         </label>
@@ -130,6 +130,9 @@
         ) ||
         /^(Asia\/Nicosia|Asia\/Famagusta|Africa\/Ceuta|Arctic\/Longyearbyen)$/.test(
           tz,
+        ) ||
+        /^(America\/(Guadeloupe|Martinique|Cayenne|Marigot)|Indian\/(Reunion|Mayotte))$/.test(
+          tz,
         );
     } catch (e) {}
     var defaultsOn = !(gpc || priorConsent);
@@ -170,9 +173,9 @@
       if (!ph) return;
       try {
         if (c.analytics) {
-          if (ph.has_opted_out_capturing && ph.has_opted_out_capturing()) {
-            ph.opt_in_capturing({ captureEventName: null });
-          }
+          // Unconditional: before the SDK loads, the stub can't say whether
+          // PostHog started opted out, but it queues this call for it.
+          ph.opt_in_capturing({ captureEventName: null });
           if (c.replay) {
             if (ph.startSessionRecording) ph.startSessionRecording();
           } else if (ph.stopSessionRecording) {

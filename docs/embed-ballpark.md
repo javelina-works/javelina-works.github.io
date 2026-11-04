@@ -89,14 +89,17 @@ document
 
 ## Analytics in the embed
 
-The site's consent model keeps PostHog opted out until the cookie banner is
-accepted. A banner can't be shown inside a partner's page, and consent given on
-javelinaworks.com doesn't reach a (storage-partitioned) third-party iframe. So
-the embed initializes PostHog with `persistence: "memory"`: nothing is written
-to cookies or localStorage, the anonymous id lasts only for that page view,
-and session replay and surveys are off. Events are captured without a banner
-on that basis. If that is not acceptable, drop `<PostHog embed />` from
-`src/layouts/Embed.astro`.
+On javelinaworks.com, analytics and session replay run from page load unless
+the visitor turns them off in the cookie banner; visitors who need prior
+consent (a Global Privacy Control signal, or a UK / EU / EEA time zone) start
+off until they accept. A banner can't be shown inside a partner's page, and a
+choice made on javelinaworks.com doesn't reach a (storage-partitioned)
+third-party iframe. So the embed initializes PostHog with
+`persistence: "memory"`: nothing is written to cookies or localStorage, the
+anonymous id lasts only for that page view, and session replay and surveys are
+off. Events are captured without a banner on that basis, and visitors who
+need prior consent get no PostHog in the embed at all. If that is not
+acceptable, drop `<PostHog embed />` from `src/layouts/Embed.astro`.
 
 ## Testing locally
 
