@@ -4,7 +4,7 @@ metaDescription: "What Javelina Works collects through this website and the inst
 draft: false
 ---
 
-Effective Date: October 5, 2026
+Effective Date: November 4, 2026
 
 Javelina Works, Inc. ("Javelina Works," "we," "our," or "us") is a Texas company. This Privacy Policy explains what information we collect through our website, https://www.javelinaworks.com, and the tools on it, including the instant ballpark estimate (together, the "Website"), how we use it, and the choices you have.
 
