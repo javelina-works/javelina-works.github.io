@@ -8,6 +8,16 @@
 // a build on the proxy if the variable is missing.
 const apiHost =
   import.meta.env.PUBLIC_POSTHOG_HOST || "https://bristle.javelinaworks.com";
+
+// `embed` is the partner iframe (layouts/Embed.astro). A cookie banner can't
+// be shown inside someone else's page, and consent given on javelinaworks.com
+// doesn't reach a partitioned third-party iframe, so the embed runs PostHog
+// with in-memory persistence: no cookies or localStorage, an anonymous id that
+// lives only as long as the page, no session replay, no surveys.
+interface Props {
+  embed?: boolean;
+}
+const { embed = false } = Astro.props;
 ---
 
 <script
@@ -16,6 +26,7 @@ const apiHost =
     apiKey: import.meta.env.PUBLIC_POSTHOG_PROJECT_TOKEN,
     apiHost,
     uiHost: "https://us.posthog.com",
+    embed,
   }}>
   !(function (t, e) {
     var o, n, p, r;
@@ -54,7 +65,7 @@ const apiHost =
               return u.toString(1) + ".people (stub)";
             },
             o =
-              "capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getNextSurveyStep onSessionId".split(
+              "capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getNextSurveyStep onSessionId startSessionRecording stopSessionRecording".split(
                 " ",
               ),
             n = 0;
@@ -66,19 +77,104 @@ const apiHost =
       }),
       (e.__SV = 1));
   })(document, window.posthog || []);
-  posthog.init(apiKey || "", {
-    api_host: apiHost || "",
-    ui_host: uiHost,
-    defaults: "2026-01-30",
-    // Nothing is captured until the visitor accepts the cookie banner.
-    opt_out_capturing_by_default: true,
-  });
-
-  // A saved acceptance opts in on later visits; a saved rejection, or no
-  // choice yet, leaves capture off.
+  // Visitors who need prior consent: a Global Privacy Control signal, or a
+  // UK / EU / EEA time zone (outermost regions included). The browser's time
+  // zone stands in for the country: no lookup, nothing stored, wrong only
+  // for VPNs and travellers. Same rule as CookieBanner.astro's defaults.
+  var gpc = navigator.globalPrivacyControl === true;
+  var priorConsent = false;
   try {
-    if (localStorage.getItem("cookie-consent") === "accepted") {
-      posthog.opt_in_capturing();
-    }
+    var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+    priorConsent =
+      /^Europe\//.test(tz) ||
+      /^Atlantic\/(Reykjavik|Canary|Madeira|Faroe|Azores|Jan_Mayen)$/.test(
+        tz,
+      ) ||
+      /^(Asia\/Nicosia|Asia\/Famagusta|Africa\/Ceuta|Arctic\/Longyearbyen)$/.test(
+        tz,
+      ) ||
+      /^(America\/(Guadeloupe|Martinique|Cayenne|Marigot)|Indian\/(Reunion|Mayotte))$/.test(
+        tz,
+      );
   } catch (e) {}
+  if (embed) {
+    // Cookieless: memory persistence stores nothing on the device, so there
+    // is no consent to collect. The partner slug (validated the same way as
+    // the tool does) rides on every event, $pageview included. No banner can
+    // be shown in a partner's page, so visitors who need prior consent get
+    // no PostHog in the embed at all.
+    var partner = null;
+    try {
+      partner = new URLSearchParams(location.search).get("partner");
+    } catch (e) {}
+    if (!partner || !/^[a-z0-9-]{1,40}$/.test(partner)) partner = null;
+    if (!gpc && !priorConsent) {
+      posthog.init(apiKey || "", {
+        api_host: apiHost || "",
+        ui_host: uiHost,
+        defaults: "2026-01-30",
+        persistence: "memory",
+        disable_session_recording: true,
+        disable_surveys: true,
+        loaded: function (ph) {
+          ph.register({ embed: true, partner: partner });
+        },
+      });
+    }
+  } else {
+    // Opt-out model: analytics and session replay run from the first page
+    // load, and the cookie banner (CookieBanner.astro) records what the
+    // visitor turns off. A saved choice is applied here, before the first
+    // event, so it holds on every later visit. Older saved values:
+    // "accepted" = all on, "rejected" = all off. A Global Privacy Control
+    // signal with no saved choice is honoured as all off.
+    var consent = null;
+    try {
+      var raw = localStorage.getItem("cookie-consent");
+      if (raw === "accepted") consent = { analytics: true, replay: true };
+      else if (raw === "rejected")
+        consent = { analytics: false, replay: false };
+      else if (raw) {
+        var saved = JSON.parse(raw);
+        if (saved && typeof saved.analytics === "boolean") {
+          consent = {
+            analytics: saved.analytics,
+            replay: saved.analytics && !!saved.replay,
+          };
+        }
+      }
+    } catch (e) {}
+    if (!consent && (gpc || priorConsent)) {
+      consent = { analytics: false, replay: false };
+    }
+    var analyticsOff = !!consent && !consent.analytics;
+    var replayOff = analyticsOff || (!!consent && !consent.replay);
+    posthog.init(apiKey || "", {
+      api_host: apiHost || "",
+      ui_host: uiHost,
+      defaults: "2026-01-30",
+      opt_out_capturing_by_default: analyticsOff,
+      disable_session_recording: replayOff,
+      loaded: function (ph) {
+        // PostHog remembers its own opt-out from an earlier choice; a saved
+        // acceptance (or no choice) must win over that. Only the loaded
+        // instance can answer this — the pre-load stub returns undefined.
+        if (!analyticsOff && ph.has_opted_out_capturing()) {
+          ph.opt_in_capturing({ captureEventName: null });
+        }
+      },
+      session_recording: {
+        // Inputs stay masked (the lead form), except the address boxes on
+        // the estimate tools: what a visitor typed is the whole point of
+        // watching a failed lookup. The policy discloses the search text.
+        maskInputFn: function (text, element) {
+          var open =
+            element &&
+            element.getAttribute &&
+            element.getAttribute("data-ph-unmask") !== null;
+          return open ? text : "*".repeat((text || "").length);
+        },
+      },
+    });
+  }
 </script>

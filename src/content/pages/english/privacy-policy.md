@@ -4,7 +4,7 @@ metaDescription: "What Javelina Works collects through this website and the inst
 draft: false
 ---
 
-Effective Date: October 5, 2026
+Effective Date: November 4, 2026
 
 Javelina Works, Inc. ("Javelina Works," "we," "our," or "us") is a Texas company. This Privacy Policy explains what information we collect through our website, https://www.javelinaworks.com, and the tools on it, including the instant ballpark estimate (together, the "Website"), how we use it, and the choices you have.
 
@@ -40,7 +40,7 @@ The boundary and contact details you give us with an estimate are used to prepar
 
 ## Cookies and Analytics
 
-We use an analytics service to understand how visitors use the Website. It stores a cookie or similar identifier in your browser. The banner shown on your first visit lets you accept or reject this. Analytics stays off until you accept. Your choice is saved in your browser when browser storage is available, and if you reject, it stays off for that browser. If the choice cannot be saved, the banner shows again on your next visit and analytics stays off until you accept. You can also clear or block cookies in your browser settings.
+We use an analytics service to understand how visitors use the Website and, when something on it breaks, to replay the visit and see what went wrong. It stores a cookie or similar identifier in your browser. Analytics and session recordings are on by default. The banner shown on your first visit lets you accept that or customize it: you can turn off analytics, session recordings, or both, and closing the banner keeps the defaults. Session recordings mask what you type, except the address you search for on our estimate tools, which we keep so we can see why a search failed. Your choice is saved in your browser when browser storage is available, and you can change it at any time with "Cookie preferences" in the footer of every page. If the choice cannot be saved, the banner shows again on your next visit. If you are visiting from the United Kingdom, the European Union or the European Economic Area (we go by your browser's time zone), or if your browser sends a Global Privacy Control signal, analytics and session recordings stay off until you accept them. You can also clear or block cookies in your browser settings.
 
 We do not use advertising or marketing cookies.
 

@@ -1,0 +1,116 @@
+---
+// Chrome-free layout for pages that partners frame on their own sites
+// (src/pages/embed/*). No header, nav, footer, cookie banner, page loader,
+// smooth-scroll or AOS: just the theme CSS, fonts, cookieless analytics, and
+// the auto-height bridge the partner loader (public/embed/ballpark.js) reads.
+// Framing is allowed per partner by the /embed/* CSP in netlify.toml.
+import "@/styles/global.css";
+import { Font } from "astro:assets";
+import fontsJson from "@/config/fonts.json";
+import PostHog from "@/components/posthog.astro";
+
+interface Props {
+  title: string;
+  description?: string;
+  canonical?: string;
+}
+const { title, description, canonical } = Astro.props;
+
+const fonts = fontsJson.map((font) => ({
+  cssVariable: font.cssVariable as any,
+  preload: font.preload === true,
+}));
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=5"
+    />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+    <meta name="robots" content="noindex, nofollow" />
+    {canonical && <link rel="canonical" href={canonical} />}
+    <link rel="icon" href="/images/favicons/favicon.ico" />
+    <!-- Every link opens outside the frame, so nothing navigates the
+         partner's iframe away from the tool. -->
+    <base target="_blank" />
+    <script is:inline>
+      // ?bg=transparent lets the partner's page show through.
+      try {
+        if (new URLSearchParams(location.search).get("bg") === "transparent")
+          document.documentElement.classList.add("jw-embed-transparent");
+      } catch (e) {}
+    </script>
+    {fonts.map((font) => (
+      <Font cssVariable={font.cssVariable} preload={font.preload} />
+    ))}
+    {import.meta.env.PROD && <PostHog embed />}
+  </head>
+  <body class="jw-embed">
+    <div id="jwEmbedRoot">
+      <slot />
+    </div>
+
+    <script is:inline>
+      // Auto-height bridge: report the content height (not the viewport,
+      // which is the iframe itself and would never shrink) to the parent.
+      (function () {
+        if (window.parent === window) return;
+        var root = document.getElementById("jwEmbedRoot");
+        var last = -1;
+        var queued = false;
+        function post(msg) {
+          try {
+            window.parent.postMessage(msg, "*");
+          } catch (e) {}
+        }
+        function measure() {
+          queued = false;
+          var h = Math.ceil(root.getBoundingClientRect().height);
+          if (h === last) return;
+          last = h;
+          post({ type: "javelina-ballpark:height", height: h });
+        }
+        function schedule() {
+          if (queued) return;
+          queued = true;
+          requestAnimationFrame(measure);
+        }
+        if ("ResizeObserver" in window) {
+          new ResizeObserver(schedule).observe(root);
+        } else {
+          setInterval(schedule, 500);
+        }
+        window.addEventListener("load", function () {
+          post({ type: "javelina-ballpark:ready" });
+          last = -1;
+          schedule();
+        });
+        schedule();
+      })();
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  html,
+  body.jw-embed {
+    background: #fff;
+  }
+  html.jw-embed-transparent,
+  html.jw-embed-transparent body.jw-embed {
+    background: transparent;
+  }
+  body.jw-embed {
+    margin: 0;
+    min-height: 0;
+  }
+  /* flow-root keeps child margins inside the measured box. */
+  #jwEmbedRoot {
+    display: flow-root;
+  }
+</style>

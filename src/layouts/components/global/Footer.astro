@@ -79,6 +79,15 @@ const copyrightText = (copyright.text || t("footer.copyright")).replace(
                   />
                 </li>
               ))}
+            <li class="inline-block">
+              {/* Reopens the consent pane (CookieBanner.astro). */}
+              <button
+                type="button"
+                id="cookie-preferences-link"
+                class="has-underline-anim inline-block py-px text-inherit">
+                Cookie preferences
+              </button>
+            </li>
           </ul>
         </div>
         <div>
