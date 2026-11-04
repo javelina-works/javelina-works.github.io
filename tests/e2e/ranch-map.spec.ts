@@ -44,24 +44,24 @@ function trackErrors(page: Page) {
   return errors;
 }
 
-// The consent banner sits over the bottom of the page; a visitor would
-// answer it first, so the tests do too.
 async function open(page: Page) {
-  // Deploy previews are built without the Mapbox token; hand the page one so
-  // the Mapbox path runs (the specs mock every Mapbox call).
   await page.addInitScript(() => {
+    // A saved opt-out keeps the banner off the bottom of the page and, on
+    // deploy previews, keeps test traffic out of analytics.
+    localStorage.setItem(
+      "cookie-consent",
+      JSON.stringify({ v: 2, analytics: false, replay: false }),
+    );
+    // Deploy previews are built without the Mapbox token; hand the page one
+    // so the Mapbox path runs (the specs mock every Mapbox call).
     (window as unknown as { BP_MB_TOKEN: string }).BP_MB_TOKEN = "pk.e2e";
   });
   // Netlify deploy previews inject a feedback drawer over the bottom of the
-  // page (it covers the consent banner); it never ships to production, so
-  // block its loader.
+  // page; it never ships to production, so block its loader.
   await page.route(/\/\.netlify\/scripts\/cdp|app\.netlify\.com\/cdp/, (r) =>
     r.abort(),
   );
-  const res = await page.goto("/tools/ranch-map/");
-  const reject = page.getByRole("button", { name: "Reject" });
-  if (await reject.isVisible().catch(() => false)) await reject.click();
-  return res;
+  return page.goto("/tools/ranch-map/");
 }
 
 async function mapIsPainted(page: Page, id: string) {
