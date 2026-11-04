@@ -13,6 +13,9 @@ const meta = {
     "Find your West Texas ranch and get a printable map of it: lidar terrain and contours, creeks and draws, brush cover from infrared imagery, and mapped roads, fences and tanks. Free.",
   disableTagline: true,
 };
+// Same public, URL-restricted Mapbox token the ballpark tool uses, injected
+// at build time. Empty = Mapbox skipped, the Census/Nominatim chain remains.
+const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
 ---
 
 <Base {...meta} sectionSpacing="md">
@@ -1513,10 +1516,11 @@ const meta = {
 <script>
   import "@/scripts/ranch-map/engine.js";
 </script>
-<script is:inline>
+<script is:inline define:vars={{ mapboxToken }}>
   (function () {
     "use strict";
 
+    var MAPBOX_TOKEN = mapboxToken || "";
     // Same-origin, like the ballpark: production proxies /api/ranch-map via
     // Netlify; deploy previews and `astro dev` get /api/ranch-map-staging.
     var API = location.hostname.endsWith("javelinaworks.com")
@@ -1648,6 +1652,66 @@ const meta = {
         .then(function (d) {
           if (!d || !d.length) throw new Error("no match");
           return { lat: parseFloat(d[0].lat), lng: parseFloat(d[0].lon) };
+        });
+    }
+    // Mapbox Search Box forward geocode, tried first: the Census geocoder
+    // and Nominatim cannot place most rural ranch roads (same finding as
+    // the ballpark tool, 2026-11-04). Points of interest lose to real
+    // places, Texas wins over a same-named street elsewhere, and
+    // addresses come before towns.
+    function mapboxForward(address) {
+      if (!MAPBOX_TOKEN) return Promise.reject(new Error("no token"));
+      var rank = { address: 0, street: 1, place: 2, locality: 3, poi: 4 };
+      return fetch(
+        "https://api.mapbox.com/search/searchbox/v1/forward?" +
+          new URLSearchParams({
+            q: address,
+            access_token: MAPBOX_TOKEN,
+            country: "US",
+            language: "en",
+            proximity: "-99.5,31.2",
+            types: "address,street,place,locality,poi",
+            limit: "5",
+          }),
+      )
+        .then(function (r) {
+          if (!r.ok) throw new Error("mapbox HTTP " + r.status);
+          return r.json();
+        })
+        .then(function (d) {
+          var list = ((d && d.features) || [])
+            .map(function (f) {
+              var p = f.properties || {};
+              var c = (f.geometry && f.geometry.coordinates) || [];
+              var region = (p.context && p.context.region) || {};
+              return {
+                lat: c[1],
+                lng: c[0],
+                type: p.feature_type || "",
+                tx:
+                  /(^|-)TX$/.test(region.region_code || "") ||
+                  region.name === "Texas",
+              };
+            })
+            .filter(function (o) {
+              return isFinite(o.lat) && isFinite(o.lng);
+            });
+          var real = list.filter(function (o) {
+            return o.type !== "poi";
+          });
+          if (real.length) list = real;
+          var tx = list.filter(function (o) {
+            return o.tx;
+          });
+          if (tx.length) list = tx;
+          list.sort(function (a, b) {
+            return (
+              (rank[a.type] == null ? 9 : rank[a.type]) -
+              (rank[b.type] == null ? 9 : rank[b.type])
+            );
+          });
+          if (!list.length) throw new Error("no match");
+          return { lat: list[0].lat, lng: list[0].lng };
         });
     }
 
@@ -1972,11 +2036,19 @@ const meta = {
       if (!q) return;
       var ll = parseLatLng(q);
       say("Looking that up…");
+      var t0 = Date.now();
+      var provider = ll ? "coords" : "mapbox";
       (ll
         ? Promise.resolve(ll)
-        : censusGeocode(q).catch(function () {
-            return nominatim(q);
-          })
+        : mapboxForward(q)
+            .catch(function () {
+              provider = "census";
+              return censusGeocode(q);
+            })
+            .catch(function () {
+              provider = "nominatim";
+              return nominatim(q);
+            })
       )
         .then(function (p) {
           map.setView([p.lat, p.lng], 15);
@@ -1987,7 +2059,13 @@ const meta = {
             "We couldn't find that address. Try a nearby town, or tap the map.",
             "warn",
           );
-          track("ranchmap_search", { source: "address", outcome: "no_match" });
+          track("ranchmap_search", {
+            source: "address",
+            outcome: "no_match",
+            query: q,
+            provider: provider,
+            ms: Date.now() - t0,
+          });
         });
     });
     el("rmHere").addEventListener("click", function () {
