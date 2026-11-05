@@ -933,7 +933,9 @@ const coverSteps = [
   function applyScenario(id: string) {
     const s = SCENARIOS.find((x) => x.id === id);
     if (!s) return;
-    setForm({ ...DEFAULTS, ...s.inputs } as Inputs);
+    // costPerAcre is in neither DEFAULTS nor a scenario, so clear it
+    // explicitly: a quote typed for one ranch must not price the next.
+    setForm({ ...DEFAULTS, costPerAcre: undefined, ...s.inputs } as Inputs);
     document
       .querySelectorAll<HTMLButtonElement>(".roi-scn")
       .forEach((b) => b.classList.toggle("is-on", b.dataset.scenario === id));
@@ -949,7 +951,9 @@ const coverSteps = [
     b.addEventListener("click", () => {
       (form.elements.namedItem("coverNow") as HTMLInputElement).value =
         b.dataset.cover!;
-      render();
+      // Setting .value fires no input event; dispatch one so the scenario
+      // highlight clears like it does for typed changes, and render() runs.
+      form.dispatchEvent(new Event("input", { bubbles: true }));
     }),
   );
   form.addEventListener("input", () => {
