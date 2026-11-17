@@ -47,14 +47,18 @@ const SECTION_CRUMBS: Record<string, { name: string; path: string }> = {
 /** Markdown/HTML to plain text for JSON-LD string values. */
 export function plainText(value: unknown): string {
   if (typeof value !== "string") return "";
-  return value
-    .replace(/<br\s*\/?>/gi, " ")
-    .replace(/<[^>]+>/g, "")
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
-    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
-    .replace(/(\*\*|__|`)/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+  return (
+    value
+      .replace(/<br\s*\/?>/gi, " ")
+      .replace(/<[^>]+>/g, "")
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+      .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+      .replace(/(\*\*|__|`)/g, "")
+      // Drop any angle brackets a malformed or nested tag left behind
+      .replace(/[<>]/g, "")
+      .replace(/\s+/g, " ")
+      .trim()
+  );
 }
 
 /** Flatten either a flat FAQ list or a grouped one ({ label, list: [...] }). */
