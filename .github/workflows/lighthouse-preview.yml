@@ -35,14 +35,23 @@ jobs:
         with:
           urls: ${{ github.event.target_url }}
           # Simulated throttling derives LCP from one observed paint, so a
-          # single run can swing 40+ points. Three runs; the summary reads the
-          # median (LHCI's representative run).
+          # single run can swing 40+ points. Three runs; the summary reads
+          # LHCI's representative run (closest to the median FCP and TTI).
           runs: 3
           # Tags the UA as Chrome-Lighthouse so PostHog drops audit traffic.
           configPath: ./lighthouserc.json
-          # Full HTML/JSON reports, linked from the PR comment
-          uploadArtifacts: true
-          artifactName: lighthouse-preview
+          # Uploaded in a separate step: an upload failure inside the action
+          # would exit before manifest.json exists and hide good results.
+          uploadArtifacts: false
+
+      - name: Upload Lighthouse reports
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: lighthouse-preview
+          path: .lighthouseci/
+          if-no-files-found: ignore
 
       - name: Summarize Lighthouse run
         if: always()
@@ -139,14 +148,14 @@ jobs:
             echo ""
             echo "**Core Web Vitals:** LCP $(metric largest-contentful-paint) · FCP $(metric first-contentful-paint) · TBT $(metric total-blocking-time) · CLS $(metric cumulative-layout-shift)"
             echo ""
-            echo "<sub>Median of 3 runs · captured ${FETCHED} · [full report](${RUN_URL}#artifacts) (artifact \`lighthouse-preview\`). Previews carry ~1 MB of Netlify's review toolbar, so compare against the production badge, not an absolute bar. SEO is left out: previews are noindex.</sub>"
+            echo "<sub>Representative run of 3 · captured ${FETCHED} · [full report](${RUN_URL}#artifacts) (artifact \`lighthouse-preview\`). Previews carry ~1 MB of Netlify's review toolbar, so compare against the production badge, not an absolute bar. SEO is left out: previews are noindex.</sub>"
           } > "$COMMENT"
 
           # ---- Workflow step summary (full detail) ----
           {
             echo "## Lighthouse Audit — ${TARGET_URL}"
             echo ""
-            echo "_Median of 3 runs — captured ${FETCHED}_"
+            echo "_Representative run of 3 — captured ${FETCHED}_"
             echo ""
             echo "### Category Scores"
             echo ""
