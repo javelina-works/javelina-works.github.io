@@ -34,7 +34,10 @@ jobs:
         uses: treosh/lighthouse-ci-action@v12
         with:
           urls: ${{ github.event.target_url }}
-          runs: 1
+          # Simulated throttling derives LCP from one observed paint, so a
+          # single run can swing 40+ points. Three runs; the summary reads the
+          # median (LHCI's representative run).
+          runs: 3
           # Tags the UA as Chrome-Lighthouse so PostHog drops audit traffic.
           configPath: ./lighthouserc.json
           uploadArtifacts: false
@@ -113,7 +116,8 @@ jobs:
           warn_if_low "Performance" "$PERF"
           warn_if_low "Accessibility" "$A11Y"
           warn_if_low "Best Practices" "$BP"
-          warn_if_low "SEO" "$SEO"
+          # No SEO warning: Netlify serves previews with X-Robots-Tag: noindex,
+          # which Lighthouse scores as "page is blocked from indexing".
 
           FETCHED=$(jq -r '.fetchTime' "$REPORT")
 
@@ -130,18 +134,17 @@ jobs:
             echo "| Performance | ${PERF_E} ${PERF_S} |"
             echo "| Accessibility | ${A11Y_E} ${A11Y_S} |"
             echo "| Best Practices | ${BP_E} ${BP_S} |"
-            echo "| SEO | ${SEO_E} ${SEO_S} |"
             echo ""
             echo "**Core Web Vitals:** LCP $(metric largest-contentful-paint) · FCP $(metric first-contentful-paint) · TBT $(metric total-blocking-time) · CLS $(metric cumulative-layout-shift)"
             echo ""
-            echo "<sub>Single run · captured ${FETCHED} · [full report](${RUN_URL})</sub>"
+            echo "<sub>Median of 3 runs · captured ${FETCHED} · [full report](${RUN_URL}). Previews carry ~1 MB of Netlify's review toolbar, so compare against the production badge, not an absolute bar. SEO is left out: previews are noindex.</sub>"
           } > "$COMMENT"
 
           # ---- Workflow step summary (full detail) ----
           {
             echo "## Lighthouse Audit — ${TARGET_URL}"
             echo ""
-            echo "_Single run — captured ${FETCHED}_"
+            echo "_Median of 3 runs — captured ${FETCHED}_"
             echo ""
             echo "### Category Scores"
             echo ""
@@ -150,7 +153,7 @@ jobs:
             echo "| Performance | ${PERF_E} ${PERF_S} |"
             echo "| Accessibility | ${A11Y_E} ${A11Y_S} |"
             echo "| Best Practices | ${BP_E} ${BP_S} |"
-            echo "| SEO | ${SEO_E} ${SEO_S} |"
+            echo "| SEO | ${SEO_E} ${SEO_S} (preview is noindex; not meaningful) |"
             echo ""
             echo "### Core Web Vitals"
             echo ""
