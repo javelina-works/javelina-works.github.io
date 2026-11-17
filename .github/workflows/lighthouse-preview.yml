@@ -51,7 +51,9 @@ jobs:
         with:
           name: lighthouse-preview
           path: .lighthouseci/
-          if-no-files-found: ignore
+          # upload-artifact skips dot-directories unless told otherwise
+          include-hidden-files: true
+          if-no-files-found: warn
 
       - name: Summarize Lighthouse run
         if: always()
