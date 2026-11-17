@@ -1682,18 +1682,30 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
           signal: ctl ? ctl.signal : undefined,
         })
           .then(function (r) {
-            if (!r.ok) throw new Error("parcel service HTTP " + r.status);
+            if (!r.ok) {
+              var he = new Error("parcel service HTTP " + r.status);
+              he.retry = r.status >= 500;
+              throw he;
+            }
             return r.json();
           })
           .then(function (d) {
-            if (d.error) throw new Error("parcel service error");
+            // An error payload is deterministic (bad geometry, bad query):
+            // asking again gets the same answer, so fall back right away.
+            if (d.error) {
+              var de = new Error("parcel service error");
+              de.retry = false;
+              throw de;
+            }
             return (d.results || []).map(toFeature);
           })
           .finally(function () {
             if (timer) clearTimeout(timer);
           });
       }
-      return once().catch(function () {
+      // Retry network errors, timeouts and 5xx only.
+      return once().catch(function (e) {
+        if (e && e.retry === false) throw e;
         return new Promise(function (resolve) {
           setTimeout(resolve, 600);
         }).then(once);

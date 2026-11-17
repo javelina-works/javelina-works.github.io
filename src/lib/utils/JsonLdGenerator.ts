@@ -44,21 +44,25 @@ const SECTION_CRUMBS: Record<string, { name: string; path: string }> = {
   tools: { name: "Remote tools", path: "/services/remote-tools/" },
 };
 
-/** Markdown/HTML to plain text for JSON-LD string values. */
+/**
+ * Markdown/HTML to plain text for JSON-LD string values. This is cleanup,
+ * not an XSS guard: JsonLD.astro escapes every "<" when it serializes.
+ */
 export function plainText(value: unknown): string {
   if (typeof value !== "string") return "";
-  return (
-    value
-      .replace(/<br\s*\/?>/gi, " ")
-      .replace(/<[^>]+>/g, "")
-      .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
-      .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
-      .replace(/(\*\*|__|`)/g, "")
-      // Drop any angle brackets a malformed or nested tag left behind
-      .replace(/[<>]/g, "")
-      .replace(/\s+/g, " ")
-      .trim()
-  );
+  // Strip tags until none are left, so removing one cannot expose another.
+  let text = value.replace(/<br\s*\/?>/gi, " ");
+  let previous;
+  do {
+    previous = text;
+    text = text.replace(/<\/?[a-zA-Z][^<>]*>/g, "");
+  } while (text !== previous);
+  return text
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/(\*\*|__|`)/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 /** Flatten either a flat FAQ list or a grouped one ({ label, list: [...] }). */
@@ -235,7 +239,12 @@ export default function JsonLdGenerator(content: JSONLDProps, Astro: any) {
 
   if (type === "article") {
     const published = isoDate(content.date);
-    const authorName = typeof content.author === "string" ? content.author : "";
+    // JsonLD.astro fills a missing author with the site default (the
+    // company); that is the Organization, not a Person.
+    const authorName =
+      typeof content.author === "string" && content.author !== config.seo.author
+        ? content.author
+        : "";
     graph.push({
       "@type": "BlogPosting",
       "@id": `${pageId}#article`,

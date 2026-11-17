@@ -77,7 +77,7 @@ const metaTitle = indexTitle.includes(" | ")
   ? indexTitle.replace(" | ", `, Page ${currentPage} | `)
   : `${indexTitle}, Page ${currentPage}`;
 const metaDescription =
-  `${postIndex?.data.metaDescription || ""} Page ${currentPage}.`.trim();
+  `${postIndex?.data.metaDescription || postIndex?.data.description || ""} Page ${currentPage}.`.trim();
 ---
 
 <Base

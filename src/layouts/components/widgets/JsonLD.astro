@@ -12,7 +12,6 @@ let {
   description = config.site.description,
   metaDescription = description,
   image = config.opengraph.image,
-  taglineSeparator = " - ",
   disableTagline,
   canonical,
   lang,
@@ -21,17 +20,18 @@ let {
 } = content;
 
 // The on-page title (h1 text) becomes the headline of articles and services;
-// the page name follows the <title> tag.
+// the page name follows the <title> tag, built exactly as Seo.astro builds it.
 const headline = title;
+const baseTitle = metaTitle || title || config.site.title;
 title =
-  !disableTagline && metaTitle ? metaTitle : title ? title : config.site.title;
+  disableTagline || !config.site.tagline
+    ? baseTitle
+    : baseTitle +
+      (config.site.taglineSeparator || " - ") +
+      config.site.tagline;
 
-// Add tagline & separator to title
 // prettier-ignore
 const alternateLangs =  config.settings.multilingual.enable ? supportedLanguages : []
-title = metaTitle && metaTitle !== headline
-  ? metaTitle
-  : title + (config.site.tagline ? taglineSeparator + config.site.tagline : "");
 description = metaDescription ? metaDescription : description;
 canonical = canonical ? canonical : Astro.url.href;
 lang = Astro.currentLocale;

@@ -6,7 +6,7 @@ import { z } from "astro/zod";
 // Universal Page Schema
 const page = z.object({
   title: z.string(),
-  date: z.date().optional(), // example date format 2022-01-01 or 2022-01-01T00:00:00+00:00 (Year-Month-Day Hour:Minute:Second+Timezone)
+  date: z.date().optional(), // always give a time and offset, e.g. 2026-10-03T12:00:00-05:00 (a bare 2026-10-03 is UTC midnight and shows as the previous day in Texas)
   description: z.string().optional(),
   image: z.string().optional(),
   draft: z.boolean().optional(),

@@ -40,7 +40,9 @@ jobs:
           runs: 3
           # Tags the UA as Chrome-Lighthouse so PostHog drops audit traffic.
           configPath: ./lighthouserc.json
-          uploadArtifacts: false
+          # Full HTML/JSON reports, linked from the PR comment
+          uploadArtifacts: true
+          artifactName: lighthouse-preview
 
       - name: Summarize Lighthouse run
         if: always()
@@ -137,7 +139,7 @@ jobs:
             echo ""
             echo "**Core Web Vitals:** LCP $(metric largest-contentful-paint) · FCP $(metric first-contentful-paint) · TBT $(metric total-blocking-time) · CLS $(metric cumulative-layout-shift)"
             echo ""
-            echo "<sub>Median of 3 runs · captured ${FETCHED} · [full report](${RUN_URL}). Previews carry ~1 MB of Netlify's review toolbar, so compare against the production badge, not an absolute bar. SEO is left out: previews are noindex.</sub>"
+            echo "<sub>Median of 3 runs · captured ${FETCHED} · [full report](${RUN_URL}#artifacts) (artifact \`lighthouse-preview\`). Previews carry ~1 MB of Netlify's review toolbar, so compare against the production badge, not an absolute bar. SEO is left out: previews are noindex.</sub>"
           } > "$COMMENT"
 
           # ---- Workflow step summary (full detail) ----
