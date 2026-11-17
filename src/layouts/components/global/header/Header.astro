@@ -93,6 +93,27 @@ const { homepage } = Astro.props as { homepage?: boolean };
       HSDropdown?.autoInit();
     }
 
+    // Tab should only move focus. Preline's Tab handler clicks any dropdown
+    // toggle that Tab lands on inside a dropdown menu, and #nav-menu is one
+    // (the mobile collapse), so tabbing across the nav opened Services,
+    // Tools and More. Keep Tab away from Preline here, and close a nav
+    // dropdown once focus has left it. Enter, Space, arrows and Escape
+    // still go through Preline.
+    const headerNav = document.querySelector("header nav.hs-dropdown");
+    if (headerNav) {
+      headerNav.addEventListener("keydown", (event) => {
+        if ((event as KeyboardEvent).key === "Tab") event.stopPropagation();
+      });
+      document.addEventListener("focusin", (event) => {
+        const target = event.target as Node;
+        document
+          .querySelectorAll<HTMLElement>("header .hs-dropdown.open")
+          .forEach((dropdown) => {
+            if (!dropdown.contains(target)) HSDropdown.close(dropdown);
+          });
+      });
+    }
+
     function stickyHeader(): void {
       const header = document.querySelector(
         ".sticky-header",

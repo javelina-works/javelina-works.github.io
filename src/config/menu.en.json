@@ -1,7 +1,7 @@
 {
   "main": [
     {
-      "enable": true,
+      "enable": false,
       "name": "Home",
       "weight": 0,
       "url": ""
@@ -76,8 +76,56 @@
     },
     {
       "enable": true,
-      "name": "More",
+      "name": "Tools",
       "weight": 3,
+      "hasMegaMenu": true,
+      "cta": {
+        "enable": true,
+        "image": "/images/tools/ranch-map.jpg",
+        "title": "Map your ranch, free",
+        "description": "Terrain, creeks, brush cover, roads and tanks on one printable map of your place.",
+        "button": {
+          "enable": true,
+          "hoverEffect": "text-flip",
+          "label": "Make my map",
+          "url": "/tools/ranch-map/",
+          "rel": "",
+          "target": ""
+        }
+      },
+      "menus": [
+        {
+          "enable": true,
+          "children": [
+            {
+              "enable": true,
+              "icon": "ReceiptText",
+              "name": "Free ballpark estimate",
+              "description": "A measured budget range from the ranch address.",
+              "url": "/tools/ballpark/"
+            },
+            {
+              "enable": true,
+              "icon": "TrendingUp",
+              "name": "Brush return calculator",
+              "description": "What clearing brush could give back in grass and water.",
+              "url": "/tools/brush-roi/"
+            },
+            {
+              "enable": true,
+              "icon": "Map",
+              "name": "Free ranch map",
+              "description": "Terrain, creeks and brush on a printable map.",
+              "url": "/tools/ranch-map/"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "enable": true,
+      "name": "More",
+      "weight": 4,
       "hasChildren": true,
       "children": [
         {
@@ -104,7 +152,7 @@
       "enable": true,
       "name": "Contact",
       "url": "/contact/",
-      "weight": 4
+      "weight": 5
     }
   ],
   "footerMenu": [
