@@ -19,6 +19,7 @@ type Props = {
 const { content } = Astro.props;
 const {
   title,
+  heading,
   description,
   image,
   imagePosition,
@@ -44,7 +45,11 @@ const hasBody = Boolean(content.body && content.body.trim().length > 0);
 ---
 
 {!hideHeader && (
-  <PageHeader hasBgShape={true} title={title} description={description} />
+  <PageHeader
+    hasBgShape={true}
+    title={heading || title}
+    description={description}
+  />
 )}
 
 {toolsList && <ToolsList />}

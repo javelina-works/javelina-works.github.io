@@ -1,7 +1,8 @@
 ---
 title: "Monitoring after treatment"
+heading: "**Brush treatment** monitoring"
 metaTitle: "Brush Treatment Monitoring in West Texas | Javelina Works"
-metaDescription: "After brush treatment on a West Texas ranch we keep watching: satellite greenness every few days, follow-up drone flights, regrowth found early, documentation for NRCS."
+metaDescription: "After brush treatment we keep watching: satellite greenness every few days, follow-up drone flights, regrowth caught early, documentation for NRCS."
 disableTagline: true
 keywords:
   - brush management West Texas

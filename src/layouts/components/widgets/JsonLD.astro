@@ -20,13 +20,18 @@ let {
   structuredData,
 } = content;
 
+// The on-page title (h1 text) becomes the headline of articles and services;
+// the page name follows the <title> tag.
+const headline = title;
 title =
   !disableTagline && metaTitle ? metaTitle : title ? title : config.site.title;
 
 // Add tagline & separator to title
 // prettier-ignore
 const alternateLangs =  config.settings.multilingual.enable ? supportedLanguages : []
-title += config.site.tagline ? taglineSeparator + config.site.tagline : "";
+title = metaTitle && metaTitle !== headline
+  ? metaTitle
+  : title + (config.site.tagline ? taglineSeparator + config.site.tagline : "");
 description = metaDescription ? metaDescription : description;
 canonical = canonical ? canonical : Astro.url.href;
 lang = Astro.currentLocale;
@@ -38,6 +43,7 @@ const jsonLdData = JsonLdGenerator(
     ...content,
     ...structuredData,
     title,
+    headline,
     description,
     image,
     canonical,

@@ -1,5 +1,7 @@
 ---
 title: "Privacy Policy"
+metaTitle: "Privacy Policy | Javelina Works"
+disableTagline: true
 metaDescription: "What Javelina Works collects through this website and the instant ballpark tool, how it is used, who it is shared with, and the choices you have."
 draft: false
 ---
