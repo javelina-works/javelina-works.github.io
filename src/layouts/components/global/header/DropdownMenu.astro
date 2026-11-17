@@ -20,9 +20,12 @@ const { pathname } = Astro.url;
         : "",
   ]}
   role="menuitem">
-  <span
+  <button
+    type="button"
+    aria-haspopup="menu"
+    aria-expanded="false"
     class:list={[
-      "nav-dropdown-toggle hs-dropdown-toggle flex items-center",
+      "nav-dropdown-toggle hs-dropdown-toggle flex w-full items-center lg:w-auto",
       {
         active:
           menu.children?.map(({ url }) => url).includes(pathname) ||
@@ -47,7 +50,7 @@ const { pathname } = Astro.url;
       class="hs-dropdown-open:rotate-180 ml-2 h-4 w-4 transition duration-300">
       <path d="m6 9 6 6 6-6"></path>
     </svg>
-  </span>
+  </button>
   {
     !menu.hasMegaMenu && menu.hasChildren && (
       <ul
