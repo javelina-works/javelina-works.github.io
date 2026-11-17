@@ -37,7 +37,8 @@ canonical = canonical ? canonical : Astro.url.href;
 lang = Astro.currentLocale;
 image = absoluteUrl(image, Astro);
 
-// Generate JSON-LD dynamically
+// Generate JSON-LD dynamically. The output goes into a <script> as raw HTML,
+// so "<" is escaped below: no value can close the script tag.
 const jsonLdData = JsonLdGenerator(
   {
     ...content,
@@ -61,7 +62,7 @@ const jsonLdData = JsonLdGenerator(
     <script
       type="application/ld+json"
       is:inline
-      set:html={JSON.stringify(jsonLdData, null, 2)}
+      set:html={JSON.stringify(jsonLdData, null, 2).replace(/</g, "\\u003c")}
     />
   ) : null
 }
