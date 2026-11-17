@@ -283,7 +283,7 @@
   }
 
   .logo-text {
-    @apply text-h5 font-normal tracking-wider;
+    @apply text-h5 font-normal tracking-wider whitespace-nowrap;
   }
 }
 
