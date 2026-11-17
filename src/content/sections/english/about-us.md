@@ -1,6 +1,6 @@
 ---
 enable: true
-title: "About Javelina Works"
+title: "About **Javelina Works**, Fort Davis, Texas"
 officeImages:
   - /images/about/k-t-hardware.jpeg
   - /images/about/gray-emlid.jpeg

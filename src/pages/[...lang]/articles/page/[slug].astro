@@ -69,9 +69,21 @@ export async function getStaticPaths() {
 const { slug } = Astro.params;
 const currentPage = slug && !isNaN(Number(slug)) ? Number(slug) : 1;
 let { postIndex } = Astro.props;
+
+// Each list page needs its own title and description, or search engines see
+// /articles/page/2/ as a duplicate of /articles/.
+const indexTitle: string = postIndex?.data.metaTitle || "Articles";
+const metaTitle = indexTitle.includes(" | ")
+  ? indexTitle.replace(" | ", `, Page ${currentPage} | `)
+  : `${indexTitle}, Page ${currentPage}`;
+const metaDescription =
+  `${postIndex?.data.metaDescription || postIndex?.data.description || ""} Page ${currentPage}.`.trim();
 ---
 
-<Base {...postIndex?.data}>
+<Base
+  {...postIndex?.data}
+  metaTitle={metaTitle}
+  metaDescription={metaDescription}>
   <PageHeader
     hasBgShape={true}
     title={postIndex?.data.title}

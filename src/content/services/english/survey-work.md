@@ -1,5 +1,6 @@
 ---
 title: "Survey work"
+heading: "**Drone brush surveys** for West Texas ranches"
 metaTitle: "Drone Brush Survey for West Texas Ranches | Javelina Works"
 metaDescription: "A drone survey at 2.5 to 5 cm per pixel that counts and maps every mesquite, cedar and juniper on a West Texas ranch, with a density map and a firm quote."
 disableTagline: true

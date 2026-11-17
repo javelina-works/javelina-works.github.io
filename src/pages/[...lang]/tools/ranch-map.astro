@@ -10,7 +10,7 @@ export function getStaticPaths() {
 const meta = {
   metaTitle: "Free Ranch Map: Terrain, Creeks and Brush | Javelina Works",
   metaDescription:
-    "Find your West Texas ranch and get a printable map of it: lidar terrain and contours, creeks and draws, brush cover from infrared imagery, and mapped roads, fences and tanks. Free.",
+    "A free printable map of your West Texas ranch: lidar terrain and contours, creeks and draws, brush cover, and mapped roads, fences and tanks.",
   disableTagline: true,
 };
 // Same public, URL-restricted Mapbox token the ballpark tool uses, injected
@@ -1755,7 +1755,10 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
           var tx = list.filter(function (o) {
             return o.tx;
           });
-          if (tx.length) list = tx;
+          // Parcels here are Texas-only: an out-of-state match would only
+          // end in "no parcel", so let the Census / Nominatim chain try.
+          if (!tx.length) throw new Error("no Texas match");
+          list = tx;
           list.sort(function (a, b) {
             return (
               (rank[a.type] == null ? 9 : rank[a.type]) -

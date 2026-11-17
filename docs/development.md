@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Node.js `>=22.12.0` (see `package.json` → `engines`)
+- Node.js `>=22.23.4` (see `package.json` → `engines`)
 - npm (lockfile is not committed; `pnpm-lock.yaml` / `yarn.lock` are git-ignored)
 
 ## Getting started

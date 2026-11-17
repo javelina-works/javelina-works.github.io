@@ -1,7 +1,7 @@
 ---
 title: "**Frequently** asked questions"
 metaTitle: "Brush Clearing FAQ for West Texas Ranches | Javelina Works"
-metaDescription: "How brush clearing works in West Texas: the free ballpark estimate, drone surveys, plant-by-plant treatment of mesquite and cedar, what it costs and how long it takes."
+metaDescription: "How brush clearing works in West Texas: the free ballpark estimate, drone surveys, plant-by-plant mesquite and cedar treatment, cost and timing."
 disableTagline: true
 keywords:
   - brush management West Texas

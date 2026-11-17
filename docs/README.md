@@ -22,4 +22,4 @@ This site is built with [Astro](https://astro.build) and deployed to GitHub Page
 | Format source | `npm run format` |
 | Type-check | `npm run astro-check` |
 
-Node `>=22.12.0` is required (see `package.json` → `engines`).
+Node `>=22.23.4` is required (see `package.json` → `engines`).

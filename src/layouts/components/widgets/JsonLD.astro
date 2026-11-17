@@ -12,7 +12,6 @@ let {
   description = config.site.description,
   metaDescription = description,
   image = config.opengraph.image,
-  taglineSeparator = " - ",
   disableTagline,
   canonical,
   lang,
@@ -20,24 +19,32 @@ let {
   structuredData,
 } = content;
 
+// The on-page title (h1 text) becomes the headline of articles and services;
+// the page name follows the <title> tag, built exactly as Seo.astro builds it.
+const headline = title;
+const baseTitle = metaTitle || title || config.site.title;
 title =
-  !disableTagline && metaTitle ? metaTitle : title ? title : config.site.title;
+  disableTagline || !config.site.tagline
+    ? baseTitle
+    : baseTitle +
+      (config.site.taglineSeparator || " - ") +
+      config.site.tagline;
 
-// Add tagline & separator to title
 // prettier-ignore
 const alternateLangs =  config.settings.multilingual.enable ? supportedLanguages : []
-title += config.site.tagline ? taglineSeparator + config.site.tagline : "";
 description = metaDescription ? metaDescription : description;
 canonical = canonical ? canonical : Astro.url.href;
 lang = Astro.currentLocale;
 image = absoluteUrl(image, Astro);
 
-// Generate JSON-LD dynamically
+// Generate JSON-LD dynamically. The output goes into a <script> as raw HTML,
+// so "<" is escaped below: no value can close the script tag.
 const jsonLdData = JsonLdGenerator(
   {
     ...content,
     ...structuredData,
     title,
+    headline,
     description,
     image,
     canonical,
@@ -55,7 +62,7 @@ const jsonLdData = JsonLdGenerator(
     <script
       type="application/ld+json"
       is:inline
-      set:html={JSON.stringify(jsonLdData, null, 2)}
+      set:html={JSON.stringify(jsonLdData, null, 2).replace(/</g, "\\u003c")}
     />
   ) : null
 }

@@ -10,7 +10,7 @@ export function getStaticPaths() {
 const meta = {
   metaTitle: "Brush Control Return Calculator, West Texas | Javelina Works",
   metaDescription:
-    "What clearing mesquite and cedar could give back on a West Texas ranch: grass, stocking rate, water, fire risk and wildlife cover, from NRCS, TPWD and Texas A&M research.",
+    "What clearing mesquite and cedar could give back on a West Texas ranch: grass, stocking rate, water, fire risk and wildlife cover, from Texas research.",
   disableTagline: true,
 };
 
@@ -933,7 +933,9 @@ const coverSteps = [
   function applyScenario(id: string) {
     const s = SCENARIOS.find((x) => x.id === id);
     if (!s) return;
-    setForm({ ...DEFAULTS, ...s.inputs } as Inputs);
+    // costPerAcre is in neither DEFAULTS nor a scenario, so clear it
+    // explicitly: a quote typed for one ranch must not price the next.
+    setForm({ ...DEFAULTS, costPerAcre: undefined, ...s.inputs } as Inputs);
     document
       .querySelectorAll<HTMLButtonElement>(".roi-scn")
       .forEach((b) => b.classList.toggle("is-on", b.dataset.scenario === id));
@@ -949,7 +951,9 @@ const coverSteps = [
     b.addEventListener("click", () => {
       (form.elements.namedItem("coverNow") as HTMLInputElement).value =
         b.dataset.cover!;
-      render();
+      // Setting .value fires no input event; dispatch one so the scenario
+      // highlight clears like it does for typed changes, and render() runs.
+      form.dispatchEvent(new Event("input", { bubbles: true }));
     }),
   );
   form.addEventListener("input", () => {

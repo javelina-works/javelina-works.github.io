@@ -1,7 +1,7 @@
 ---
 title: "Brush targeting"
 metaTitle: "Drone Brush Targeting in West Texas | Javelina Works"
-metaDescription: "Targeted drone treatment of mesquite, cedar and juniper on West Texas ranches. Every woody plant mapped, the trees you keep protected, a measured hexazinone dose per plant."
+metaDescription: "Drone treatment of mesquite, cedar and juniper on West Texas ranches: every woody plant mapped, the trees you keep protected, a measured dose per plant."
 disableTagline: true
 keywords:
   - brush management West Texas
@@ -29,7 +29,7 @@ weight: 1
 draft: false
 
 bento:
-  title: "**The future** of brush management"
+  title: "**Drone brush targeting** for mesquite and cedar"
   list:
     - image: "/images/services/brush-targeting/plants-found-boxes.png"
       halfWidth: true

@@ -6,7 +6,7 @@ import { z } from "astro/zod";
 // Universal Page Schema
 const page = z.object({
   title: z.string(),
-  date: z.date().optional(), // example date format 2022-01-01 or 2022-01-01T00:00:00+00:00 (Year-Month-Day Hour:Minute:Second+Timezone)
+  date: z.date().optional(), // always give a time and offset, e.g. 2026-10-03T12:00:00-05:00 (a bare 2026-10-03 is UTC midnight and shows as the previous day in Texas)
   description: z.string().optional(),
   image: z.string().optional(),
   draft: z.boolean().optional(),
@@ -59,6 +59,7 @@ const servicesCollection = defineCollection({
   loader: contentLoader("./src/content/services"),
   schema: page.extend({
     excerpt: z.string().optional(), // short line used on cards
+    heading: z.string().optional(), // h1 text when it should differ from the short card title
     hideHeader: z.boolean().optional(), // skip the title band; the first section carries the h1
     toolsList: z.boolean().optional(), // render the tools collection as a list under the header
     icon: z.string().optional(), // Lucide icon name, e.g. "Crosshair"

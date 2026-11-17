@@ -34,10 +34,26 @@ jobs:
         uses: treosh/lighthouse-ci-action@v12
         with:
           urls: ${{ github.event.target_url }}
-          runs: 1
+          # Simulated throttling derives LCP from one observed paint, so a
+          # single run can swing 40+ points. Three runs; the summary reads
+          # LHCI's representative run (closest to the median FCP and TTI).
+          runs: 3
           # Tags the UA as Chrome-Lighthouse so PostHog drops audit traffic.
           configPath: ./lighthouserc.json
+          # Uploaded in a separate step: an upload failure inside the action
+          # would exit before manifest.json exists and hide good results.
           uploadArtifacts: false
+
+      - name: Upload Lighthouse reports
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: lighthouse-preview
+          path: .lighthouseci/
+          # upload-artifact skips dot-directories unless told otherwise
+          include-hidden-files: true
+          if-no-files-found: warn
 
       - name: Summarize Lighthouse run
         if: always()
@@ -113,7 +129,8 @@ jobs:
           warn_if_low "Performance" "$PERF"
           warn_if_low "Accessibility" "$A11Y"
           warn_if_low "Best Practices" "$BP"
-          warn_if_low "SEO" "$SEO"
+          # No SEO warning: Netlify serves previews with X-Robots-Tag: noindex,
+          # which Lighthouse scores as "page is blocked from indexing".
 
           FETCHED=$(jq -r '.fetchTime' "$REPORT")
 
@@ -130,18 +147,17 @@ jobs:
             echo "| Performance | ${PERF_E} ${PERF_S} |"
             echo "| Accessibility | ${A11Y_E} ${A11Y_S} |"
             echo "| Best Practices | ${BP_E} ${BP_S} |"
-            echo "| SEO | ${SEO_E} ${SEO_S} |"
             echo ""
             echo "**Core Web Vitals:** LCP $(metric largest-contentful-paint) · FCP $(metric first-contentful-paint) · TBT $(metric total-blocking-time) · CLS $(metric cumulative-layout-shift)"
             echo ""
-            echo "<sub>Single run · captured ${FETCHED} · [full report](${RUN_URL})</sub>"
+            echo "<sub>Representative run of 3 · captured ${FETCHED} · [full report](${RUN_URL}#artifacts) (artifact \`lighthouse-preview\`). Previews carry ~1 MB of Netlify's review toolbar, so compare against the production badge, not an absolute bar. SEO is left out: previews are noindex.</sub>"
           } > "$COMMENT"
 
           # ---- Workflow step summary (full detail) ----
           {
             echo "## Lighthouse Audit — ${TARGET_URL}"
             echo ""
-            echo "_Single run — captured ${FETCHED}_"
+            echo "_Representative run of 3 — captured ${FETCHED}_"
             echo ""
             echo "### Category Scores"
             echo ""
@@ -150,7 +166,7 @@ jobs:
             echo "| Performance | ${PERF_E} ${PERF_S} |"
             echo "| Accessibility | ${A11Y_E} ${A11Y_S} |"
             echo "| Best Practices | ${BP_E} ${BP_S} |"
-            echo "| SEO | ${SEO_E} ${SEO_S} |"
+            echo "| SEO | ${SEO_E} ${SEO_S} (preview is noindex; not meaningful) |"
             echo ""
             echo "### Core Web Vitals"
             echo ""

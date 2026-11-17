@@ -1,5 +1,6 @@
 ---
 title: "Remote tools"
+heading: "**Free tools** for pricing and mapping your ranch"
 metaTitle: "Brush Clearing Cost Estimate Tools, West Texas | Javelina Works"
 metaDescription: "Free tools for West Texas ranchers: price mesquite and cedar clearing from an address in about a minute with the instant ballpark, before anyone flies."
 disableTagline: true
