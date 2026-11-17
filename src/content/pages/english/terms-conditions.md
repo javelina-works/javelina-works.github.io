@@ -1,5 +1,7 @@
 ---
 title: "Terms & Conditions"
+metaTitle: "Terms & Conditions | Javelina Works"
+disableTagline: true
 metaDescription: "The terms for using the Javelina Works website and its free estimate tools, governed by the laws of the State of Texas."
 draft: false
 ---

@@ -162,6 +162,24 @@
     },
     {
       "enable": true,
+      "name": "Free ballpark estimate",
+      "url": "/tools/ballpark/",
+      "weight": 0
+    },
+    {
+      "enable": true,
+      "name": "Brush return calculator",
+      "url": "/tools/brush-roi/",
+      "weight": 0
+    },
+    {
+      "enable": true,
+      "name": "Free ranch map",
+      "url": "/tools/ranch-map/",
+      "weight": 0
+    },
+    {
+      "enable": true,
       "name": "Privacy Policy",
       "url": "/privacy-policy/",
       "weight": 0

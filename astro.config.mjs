@@ -98,9 +98,12 @@ const sitemapOptions = {
 export default defineConfig({
   // The ballpark moved under /tools/ when the site grew a tools section. Keep
   // the old address working for anything that linked it (Netlify emits a 301).
+  // /features/ was a leftover theme page (removed 2026-11); its one real
+  // section describes brush targeting.
   redirects: {
     "/ballpark/": "/tools/ballpark/",
     "/tools/": "/services/remote-tools/",
+    "/features/": "/services/brush-targeting/",
   },
   site: config.site.baseUrl ? config.site.baseUrl : "http://javelinaworks.com",
   trailingSlash: config.site.trailingSlash ? "always" : "never",
@@ -137,7 +140,6 @@ export default defineConfig({
       ],
     }),
     mdx(),
-    sitemap(sitemapOptions),
     sentry({
       org: process.env.SENTRY_ORG,
       project: process.env.SENTRY_PROJECT,

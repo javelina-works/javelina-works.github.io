@@ -1,7 +1,7 @@
 ---
 title: "What we do for **your ranch**"
 metaTitle: "Brush Control Services in West Texas | Javelina Works"
-metaDescription: "Drone brush surveys, plant-by-plant mesquite and cedar targeting, post-treatment monitoring and a free clearing estimate for West Texas ranches, from Fort Davis."
+metaDescription: "Drone brush surveys, plant-by-plant mesquite and cedar targeting, post-treatment monitoring and free clearing estimates for West Texas ranches."
 disableTagline: true
 keywords:
   - brush management West Texas

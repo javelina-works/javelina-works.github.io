@@ -1,7 +1,7 @@
 ---
 title: ""
 metaTitle: "Brush Management in West Texas | Javelina Works"
-metaDescription: "Drone brush management for West Texas ranches. We map every mesquite, cedar and juniper from the air and treat them one plant at a time. Fort Davis, Texas. Free ballpark estimate."
+metaDescription: "Drone brush management for West Texas ranches. We map every mesquite, cedar and juniper from the air and treat them one plant at a time. Free estimate."
 disableTagline: true
 keywords:
   - brush management West Texas

@@ -1,6 +1,6 @@
 ---
 enable: true # Control the visibility of this section across all pages where it is used
-title: "**Have questions?** <br /> We'd love to hear from you"
+title: "**Contact** Javelina Works <br /> in Fort Davis, Texas"
 description: "Fill out the form below, and we’ll get back to you as soon as possible. We’re committed to providing excellent customer service and addressing any inquiries you may have."
 
 directContact:

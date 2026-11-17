@@ -59,6 +59,7 @@ const servicesCollection = defineCollection({
   loader: contentLoader("./src/content/services"),
   schema: page.extend({
     excerpt: z.string().optional(), // short line used on cards
+    heading: z.string().optional(), // h1 text when it should differ from the short card title
     hideHeader: z.boolean().optional(), // skip the title band; the first section carries the h1
     toolsList: z.boolean().optional(), // render the tools collection as a list under the header
     icon: z.string().optional(), // Lucide icon name, e.g. "Crosshair"

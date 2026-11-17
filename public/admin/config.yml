@@ -143,6 +143,7 @@ collections:
       - { name: title, label: Title, widget: string }
       - { name: description, label: Page intro, widget: text, required: false }
       - { name: excerpt, label: Card excerpt, widget: text, required: false }
+      - { name: heading, label: Page heading (h1; defaults to the title), widget: string, required: false }
       - { name: hideHeader, label: Hide the title band (first section carries the heading), widget: boolean, default: false, required: false }
       - { name: icon, label: Lucide icon name, widget: string, required: false, hint: "https://lucide.dev/icons/ (PascalCase, e.g. Crosshair)" }
       - { name: image, label: Hero image, widget: image, required: false }
