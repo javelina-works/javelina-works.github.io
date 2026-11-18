@@ -7,6 +7,7 @@ import config from ".astro/config.generated.json";
 import { Font } from "astro:assets";
 import fontsJson from "@/config/fonts.json";
 import PostHog from "@/components/posthog.astro";
+import StaleChunkReload from "@/components/global/StaleChunkReload.astro";
 
 const fonts = fontsJson.map((font) => ({
   cssVariable: font.cssVariable as any,
@@ -19,6 +20,7 @@ const fonts = fontsJson.map((font) => ({
     General
 -------------->
   <meta charset="UTF-8" />
+  {import.meta.env.PROD && <StaleChunkReload />}
   <meta http-equiv="Content-Language" content={Astro.currentLocale} />
   <meta
     name="viewport"
