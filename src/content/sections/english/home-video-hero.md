@@ -1,5 +1,5 @@
 ---
-title: "Brush management for **West Texas** ranches"
+title: "Precision brush management for **Texas** ranches"
 # preTitle:
 #   enable: false
 #   label: Preview Our Fall Release

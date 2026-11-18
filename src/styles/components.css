@@ -269,9 +269,11 @@
 .logo-wrapper {
   @apply flex items-center gap-2;
 
+  /* Size comes from config.toml (logoWidth/logoHeight). Never force a
+     width here: the PNG is square, and a 40 px width over a 32 px height
+     stretched the mark sideways. */
   .logo {
-    @apply !w-10;
-    @apply flex w-10 items-center gap-x-4;
+    @apply object-contain;
   }
 
   &.has-hover-animation {

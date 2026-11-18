@@ -19,6 +19,14 @@ let {
 title = plainify(metaTitle ? metaTitle : title ? title : config.site.title);
 keywords = keywords.join(", ");
 
+// Netlify sets CONTEXT at build time. Anything but the production deploy
+// (deploy previews, branch deploys such as staging) must stay out of search
+// results; netlify.toml adds the matching X-Robots-Tag header.
+const netlifyContext = process.env.CONTEXT;
+if (netlifyContext && netlifyContext !== "production") {
+  robots = "noindex, nofollow";
+}
+
 // Add tagline & separator to title
 if (!disableTagline) {
   title =
@@ -56,18 +64,14 @@ if (
 ---
 
 {title && <title>{removeWhitespace(title)}</title>}
-{
-  description && (
-    <meta name="description" content={removeWhitespace(description)} />
-  )
-}
+{description && (
+  <meta name="description" content={removeWhitespace(description)} />
+)}
 {keywords && <meta name="keywords" content={removeWhitespace(keywords)} />}
 {author && <meta name="author" content={removeWhitespace(author)} />}
 {robots && <meta name="robots" content={removeWhitespace(robots)} />}
 {canonical && <link rel="canonical" href={canonical} item-prop="url" />}
-{
-  alternateTags &&
-    alternateTags.map((tag) => (
-      <link rel="alternate" hreflang={tag.hreflang} href={tag.href} />
-    ))
-}
+{alternateTags &&
+  alternateTags.map((tag) => (
+    <link rel="alternate" hreflang={tag.hreflang} href={tag.href} />
+  ))}
