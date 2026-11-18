@@ -113,6 +113,10 @@ const embedSrc =
   // Open: create the embed iframe on the click (a user gesture, so autoplay
   // is allowed) or start the native video. Close: remove the iframe, which
   // stops playback and frees the player, or pause the video.
+  // Each opening of a modal gets a number; closing bumps it. A player
+  // scheduled by an opening that was closed before it ran is not built.
+  const openings = new WeakMap();
+
   videoButtons.forEach((button) => {
     button.addEventListener("click", () => {
       const overlaySelector = button.getAttribute("data-hs-overlay");
@@ -126,8 +130,12 @@ const embedSrc =
         // show anything (the site's slowest interaction). The click still
         // counts as the user gesture that allows autoplay.
         const title = button.textContent?.trim() || "Video";
+        const opening = (openings.get(modal) || 0) + 1;
+        openings.set(modal, opening);
         requestAnimationFrame(() =>
-          setTimeout(() => buildPlayer(frame, title), 0),
+          setTimeout(() => {
+            if (openings.get(modal) === opening) buildPlayer(frame, title);
+          }, 0),
         );
       }
 
@@ -137,7 +145,6 @@ const embedSrc =
   });
 
   function buildPlayer(frame, title) {
-    // Closed again before this ran, or already built: nothing to do.
     if (frame.querySelector("iframe")) return;
     const iframe = document.createElement("iframe");
     iframe.src = frame.dataset.embedSrc;
@@ -152,6 +159,7 @@ const embedSrc =
   document.addEventListener("close.hs.overlay", (event) => {
     const modal = event.detail?.payload;
     if (!(modal instanceof HTMLElement)) return;
+    openings.set(modal, (openings.get(modal) || 0) + 1);
     modal.querySelector(".video-frame")?.replaceChildren();
     modal.querySelector("video.video-player")?.pause();
   });
