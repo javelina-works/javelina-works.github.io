@@ -3,7 +3,13 @@
 
 [build]
   publish = "dist"
-  command = "pnpm build"
+  # DEPLOY_ID is unset for the build so the Astro Netlify adapter skips
+  # skew protection. It tagged asset links in the HTML with ?dpl=<deploy id>
+  # but not the imports inside the scripts, so every shared chunk (dropdowns,
+  # accordions, AOS, the runtime) was downloaded twice under two URLs. The
+  # site is fully static (no server routes, actions or islands), which is
+  # all skew protection guards.
+  command = "env -u DEPLOY_ID pnpm build"
 
   [build.environment]
     NODE_VERSION = "22"
@@ -111,7 +117,7 @@
 # the trailing-slash 307). Production never carries these routes. Both the
 # ballpark and the Ranch Map staging routes ride along.
 [context.deploy-preview]
-  command = "pnpm build && printf '/api/ballpark-staging https://fastapi-staging.up.railway.app/api/v2/ballpark 200!\n/api/ballpark-staging/* https://fastapi-staging.up.railway.app/api/v2/ballpark/:splat 200!\n/api/ranch-map-staging https://fastapi-staging.up.railway.app/api/v2/ranch-map 200!\n/api/ranch-map-staging/* https://fastapi-staging.up.railway.app/api/v2/ranch-map/:splat 200!\n' >> dist/_redirects && printf '/*\n  X-Robots-Tag: noindex, nofollow\n' >> dist/_headers"
+  command = "env -u DEPLOY_ID pnpm build && printf '/api/ballpark-staging https://fastapi-staging.up.railway.app/api/v2/ballpark 200!\n/api/ballpark-staging/* https://fastapi-staging.up.railway.app/api/v2/ballpark/:splat 200!\n/api/ranch-map-staging https://fastapi-staging.up.railway.app/api/v2/ranch-map 200!\n/api/ranch-map-staging/* https://fastapi-staging.up.railway.app/api/v2/ranch-map/:splat 200!\n' >> dist/_redirects && printf '/*\n  X-Robots-Tag: noindex, nofollow\n' >> dist/_headers"
 
 [context.branch-deploy]
-  command = "pnpm build && printf '/api/ballpark-staging https://fastapi-staging.up.railway.app/api/v2/ballpark 200!\n/api/ballpark-staging/* https://fastapi-staging.up.railway.app/api/v2/ballpark/:splat 200!\n/api/ranch-map-staging https://fastapi-staging.up.railway.app/api/v2/ranch-map 200!\n/api/ranch-map-staging/* https://fastapi-staging.up.railway.app/api/v2/ranch-map/:splat 200!\n' >> dist/_redirects && printf '/*\n  X-Robots-Tag: noindex, nofollow\n' >> dist/_headers"
+  command = "env -u DEPLOY_ID pnpm build && printf '/api/ballpark-staging https://fastapi-staging.up.railway.app/api/v2/ballpark 200!\n/api/ballpark-staging/* https://fastapi-staging.up.railway.app/api/v2/ballpark/:splat 200!\n/api/ranch-map-staging https://fastapi-staging.up.railway.app/api/v2/ranch-map 200!\n/api/ranch-map-staging/* https://fastapi-staging.up.railway.app/api/v2/ranch-map/:splat 200!\n' >> dist/_redirects && printf '/*\n  X-Robots-Tag: noindex, nofollow\n' >> dist/_headers"

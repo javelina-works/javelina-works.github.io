@@ -1,10 +1,63 @@
 ---
+// Lucide icon, drawn into the HTML at build time.
+//
+// The theme used to ship an empty <div data-lucide="Name"> and download all
+// of Lucide (~1,600 icons, ~108 KB) in the browser to swap each one for an
+// SVG. This renders the same SVG on the server instead, so no icon code
+// reaches the browser and icons show before any script runs. Output matches
+// lucide's createElement: its default attributes, then every prop passed
+// here (class, style, aria-*), and data-lucide is kept so the existing
+// [data-lucide] CSS still sizes it. An unknown name renders nothing and
+// warns at build time, as the browser version did at runtime.
+import * as lucide from "lucide";
+
+type IconNode = [string, Record<string, string | number>][];
+
 interface Props {
   icon: keyof typeof import("lucide");
   [key: string]: any;
 }
 
 const { icon, ...restProps } = Astro.props;
+
+const node = (lucide as unknown as Record<string, IconNode | undefined>)[
+  icon as string
+];
+if (!Array.isArray(node)) {
+  console.warn(`Lucide icon "${String(icon)}" not found`);
+}
+
+const escape = (value: unknown) =>
+  String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;");
+
+const children = Array.isArray(node)
+  ? node
+      .map(
+        ([tag, attrs]) =>
+          `<${tag} ${Object.entries(attrs)
+            .map(([k, v]) => `${k}="${escape(v)}"`)
+            .join(" ")}></${tag}>`,
+      )
+      .join("")
+  : "";
 ---
 
-<div data-lucide={icon} {...restProps}></div>
+{Array.isArray(node) && (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    data-lucide={icon}
+    {...restProps}
+    set:html={children}
+  />
+)}

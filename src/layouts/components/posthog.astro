@@ -44,11 +44,20 @@ const { embed = false } = Astro.props;
         (((p = t.createElement("script")).type = "text/javascript"),
           (p.crossOrigin = "anonymous"),
           (p.async = !0),
-          (p.src = s.api_host + "/static/array.js"),
+          (p.src = s.api_host + "/static/array.js"));
+        // Fetch the SDK once the browser is idle after first paint (at most
+        // 1.5 s), so its ~120 KB doesn't compete with the page's own CSS,
+        // fonts and hero. Calls made before then queue on this stub, and
+        // web vitals are read from the browser's buffered entries.
+        var ph_load = function () {
           (r = t.getElementsByTagName("script")[0]).parentNode.insertBefore(
             p,
             r,
-          ));
+          );
+        };
+        "requestIdleCallback" in window
+          ? window.requestIdleCallback(ph_load, { timeout: 1500 })
+          : setTimeout(ph_load, 1);
         var u = e;
         for (
           void 0 !== a ? (u = e[a] = []) : (a = "posthog"),
@@ -116,6 +125,7 @@ const { embed = false } = Astro.props;
         persistence: "memory",
         disable_session_recording: true,
         disable_surveys: true,
+        disable_conversations: true,
         loaded: function (ph) {
           ph.register({ embed: true, partner: partner });
         },
@@ -155,6 +165,12 @@ const { embed = false } = Astro.props;
       defaults: "2026-01-30",
       opt_out_capturing_by_default: analyticsOff,
       disable_session_recording: replayOff,
+      // Support's chat widget isn't used on the site; this stops its script
+      // loading on every page (Support itself keeps working in PostHog).
+      disable_conversations: true,
+      // Surveys load only on the tool pages, the one place we plan to run
+      // them; elsewhere their script is never fetched.
+      disable_surveys: location.pathname.indexOf("/tools/") !== 0,
       loaded: function (ph) {
         // PostHog remembers its own opt-out from an earlier choice; a saved
         // acceptance (or no choice) must win over that. Only the loaded

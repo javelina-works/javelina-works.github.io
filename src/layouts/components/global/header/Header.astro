@@ -28,45 +28,24 @@ const { homepage } = Astro.props as { homepage?: boolean };
     { "over-hero": homepage },
   ]}>
   <div class="relative container">
-    <nav
-      class="hs-dropdown relative flex items-center justify-between px-2 py-2.5 [--auto-close:inside] [--gpu-acceleration:false] [--strategy:absolute] lg:[--strategy:static]">
+    <nav class="hs-dropdown relative flex items-center justify-between px-2 py-2.5 [--auto-close:inside] [--gpu-acceleration:false] [--strategy:absolute] lg:[--strategy:static]">
       <Logo />
 
       <ul
         id="nav-menu"
         class="navbar hs-dropdown-menu hs-dropdown-open:flex hs-dropdown-open:mt-2! max-lg:absolute max-lg:transform-none! lg:transform-none!">
-        {main.map((menu) => <NavMenuItem menu={menu} />)}
+        {main.map((menu) => (
+          <NavMenuItem menu={menu} />
+        ))}
 
         {/* Language Switcher For Small Devices */}
-        {
-          config.settings.multilingual.enable && (
-            <li class="max-lg:px-4 max-lg:py-2 lg:hidden" role="menuitem">
-              <LanguageSwitcher />
-            </li>
-          )
-        }
-        {
-          navigationButton.enable && (
-            <li class="max-lg:px-4 max-lg:py-2 lg:hidden" role="menuitem">
-              {navigationButton.enable && (
-                <CustomButton
-                  hoverEffect="text-flip"
-                  variant="fill"
-                  {...navigationButton}
-                  label={navigationButton.label || t("navigation.buttonLabel")}
-                  class="btn-primary"
-                />
-              )}
-            </li>
-          )
-        }
-      </ul>
-
-      {/* Navigation Button For Large Devices */}
-      {
-        (navigationButton.enable || config.settings.multilingual.enable) && (
-          <div class="hidden gap-3.5 max-lg:ms-auto max-lg:me-4 lg:flex lg:items-center">
-            {config.settings.multilingual.enable && <LanguageSwitcher />}
+        {config.settings.multilingual.enable && (
+          <li class="max-lg:px-4 max-lg:py-2 lg:hidden" role="menuitem">
+            <LanguageSwitcher />
+          </li>
+        )}
+        {navigationButton.enable && (
+          <li class="max-lg:px-4 max-lg:py-2 lg:hidden" role="menuitem">
             {navigationButton.enable && (
               <CustomButton
                 hoverEffect="text-flip"
@@ -76,14 +55,30 @@ const { homepage } = Astro.props as { homepage?: boolean };
                 class="btn-primary"
               />
             )}
-          </div>
-        )
-      }
+          </li>
+        )}
+      </ul>
+
+      {/* Navigation Button For Large Devices */}
+      {(navigationButton.enable || config.settings.multilingual.enable) && (
+        <div class="hidden gap-3.5 max-lg:ms-auto max-lg:me-4 lg:flex lg:items-center">
+          {config.settings.multilingual.enable && <LanguageSwitcher />}
+          {navigationButton.enable && (
+            <CustomButton
+              hoverEffect="text-flip"
+              variant="fill"
+              {...navigationButton}
+              label={navigationButton.label || t("navigation.buttonLabel")}
+              class="btn-primary"
+            />
+          )}
+        </div>
+      )}
       <NavToggleBtn />
     </nav>
   </div>
   <script>
-    import { HSDropdown } from "preline";
+    import HSDropdown from "preline/plugins/dropdown-non-auto";
 
     if (
       [".hs-dropdown", "[data-hs-dropdown]"].some((selector) =>

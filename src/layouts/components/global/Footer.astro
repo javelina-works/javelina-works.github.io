@@ -145,13 +145,6 @@ const copyrightText = (copyright.text || t("footer.copyright")).replace(
         linkType="follow"
         list={social.main.filter((social) => social.enable)}
       />
-      {/* Invisible Sentry tunnel smoke test: document.getElementById("__sentry_test").click() */}
-      <button
-        type="button"
-        id="__sentry_test"
-        aria-hidden="true"
-        tabindex={-1}
-        class="h-4 w-4 opacity-0"></button>
     </div>
   </div>
 
@@ -198,9 +191,5 @@ const copyrightText = (copyright.text || t("footer.copyright")).replace(
     document
       .querySelectorAll(".responsive-brand-text")
       .forEach((el) => fitText(el, { minSize: 20, maxSize: 800 }));
-
-    document.getElementById("__sentry_test")?.addEventListener("click", () => {
-      throw new Error(`Sentry tunnel test @ ${new Date().toISOString()}`);
-    });
   </script>
 </footer>
