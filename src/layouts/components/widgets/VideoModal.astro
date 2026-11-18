@@ -21,45 +21,43 @@ const embedSrc =
     : `https://www.youtube-nocookie.com/embed/${src}?${autoplayParam}rel=0&playsinline=1`;
 ---
 
-{
-  src && (
-    <div
-      id={id}
-      class="hs-overlay pointer-events-none fixed start-0 top-0 z-60 hidden size-full overflow-x-hidden overflow-y-auto"
-      role="dialog"
-      tabindex="-1">
-      <div class="hs-overlay-animation-target hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 mt-0 flex min-h-[calc(100%-3.5rem)] items-center opacity-0 transition-[margin,opacity] ease-out sm:mx-auto sm:w-full sm:max-w-4xl">
-        <div class="has-video-player pointer-events-auto container flex flex-col">
-          <button
-            type="button"
-            aria-label="Close"
-            data-hs-overlay={`#${id}`}
-            data-hs-overlay-options={`{"emulateScrollbarSpace" : true}`}
-            class="mb-2 ml-auto flex h-10 w-10 items-center justify-center rounded-full bg-white ring-0 ring-white/50 duration-300 hover:rotate-90 hover:ring-4">
-            <span class="sr-only">Close</span>
-            <Icons icon="X" class="text-dark/80 h-6 w-6" />
-          </button>
-          {isNativeVideo ? (
-            <video
-              class="video-player w-full rounded-lg bg-black"
-              controls
-              playsinline
-              preload="none"
-              poster={poster || undefined}
-              data-autoplay={autoplay === true ? "true" : "false"}>
-              <source src={src} type={type} />
-            </video>
-          ) : (
-            <div
-              class="video-frame aspect-video w-full overflow-hidden rounded-lg bg-black"
-              data-embed-src={embedSrc}
-            />
-          )}
-        </div>
+{src && (
+  <div
+    id={id}
+    class="hs-overlay pointer-events-none fixed start-0 top-0 z-60 hidden size-full overflow-x-hidden overflow-y-auto"
+    role="dialog"
+    tabindex="-1">
+    <div class="hs-overlay-animation-target hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 mt-0 flex min-h-[calc(100%-3.5rem)] items-center opacity-0 transition-[margin,opacity] ease-out sm:mx-auto sm:w-full sm:max-w-4xl">
+      <div class="has-video-player pointer-events-auto container flex flex-col">
+        <button
+          type="button"
+          aria-label="Close"
+          data-hs-overlay={`#${id}`}
+          data-hs-overlay-options={`{"emulateScrollbarSpace" : true}`}
+          class="mb-2 ml-auto flex h-10 w-10 items-center justify-center rounded-full bg-white ring-0 ring-white/50 duration-300 hover:rotate-90 hover:ring-4">
+          <span class="sr-only">Close</span>
+          <Icons icon="X" class="text-dark/80 h-6 w-6" />
+        </button>
+        {isNativeVideo ? (
+          <video
+            class="video-player w-full rounded-lg bg-black"
+            controls
+            playsinline
+            preload="none"
+            poster={poster || undefined}
+            data-autoplay={autoplay === true ? "true" : "false"}>
+            <source src={src} type={type} />
+          </video>
+        ) : (
+          <div
+            class="video-frame aspect-video w-full overflow-hidden rounded-lg bg-black"
+            data-embed-src={embedSrc}
+          />
+        )}
       </div>
     </div>
-  )
-}
+  </div>
+)}
 
 <script>
   // @ts-nocheck
@@ -115,6 +113,10 @@ const embedSrc =
   // Open: create the embed iframe on the click (a user gesture, so autoplay
   // is allowed) or start the native video. Close: remove the iframe, which
   // stops playback and frees the player, or pause the video.
+  // Each opening of a modal gets a number; closing bumps it. A player
+  // scheduled by an opening that was closed before it ran is not built.
+  const openings = new WeakMap();
+
   videoButtons.forEach((button) => {
     button.addEventListener("click", () => {
       const overlaySelector = button.getAttribute("data-hs-overlay");
@@ -123,15 +125,18 @@ const embedSrc =
 
       const frame = modal.querySelector(".video-frame");
       if (frame && !frame.querySelector("iframe")) {
-        const iframe = document.createElement("iframe");
-        iframe.src = frame.dataset.embedSrc;
-        iframe.title = button.textContent?.trim() || "Video";
-        iframe.allow =
-          "autoplay; encrypted-media; picture-in-picture; fullscreen";
-        iframe.allowFullscreen = true;
-        iframe.referrerPolicy = "strict-origin-when-cross-origin";
-        iframe.className = "size-full";
-        frame.replaceChildren(iframe);
+        // Let the overlay paint first, then build the player. Building the
+        // YouTube iframe inside the click made the click take ~350 ms to
+        // show anything (the site's slowest interaction). The click still
+        // counts as the user gesture that allows autoplay.
+        const title = button.textContent?.trim() || "Video";
+        const opening = (openings.get(modal) || 0) + 1;
+        openings.set(modal, opening);
+        requestAnimationFrame(() =>
+          setTimeout(() => {
+            if (openings.get(modal) === opening) buildPlayer(frame, title);
+          }, 0),
+        );
       }
 
       const video = modal.querySelector("video.video-player");
@@ -139,9 +144,22 @@ const embedSrc =
     });
   });
 
+  function buildPlayer(frame, title) {
+    if (frame.querySelector("iframe")) return;
+    const iframe = document.createElement("iframe");
+    iframe.src = frame.dataset.embedSrc;
+    iframe.title = title;
+    iframe.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
+    iframe.allowFullscreen = true;
+    iframe.referrerPolicy = "strict-origin-when-cross-origin";
+    iframe.className = "size-full";
+    frame.replaceChildren(iframe);
+  }
+
   document.addEventListener("close.hs.overlay", (event) => {
     const modal = event.detail?.payload;
     if (!(modal instanceof HTMLElement)) return;
+    openings.set(modal, (openings.get(modal) || 0) + 1);
     modal.querySelector(".video-frame")?.replaceChildren();
     modal.querySelector("video.video-player")?.pause();
   });

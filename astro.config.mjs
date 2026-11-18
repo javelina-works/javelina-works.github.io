@@ -140,7 +140,11 @@ export default defineConfig({
       ],
     }),
     mdx(),
+    // Sentry reports server-side errors only (the Netlify Functions). PostHog
+    // error tracking already covers the browser, so the browser SDK (~40 KB
+    // in every page's page.js) is switched off.
     sentry({
+      enabled: { client: false, server: true },
       org: process.env.SENTRY_ORG,
       project: process.env.SENTRY_PROJECT,
       authToken: process.env.SENTRY_AUTH_TOKEN,

@@ -44,11 +44,20 @@ const { embed = false } = Astro.props;
         (((p = t.createElement("script")).type = "text/javascript"),
           (p.crossOrigin = "anonymous"),
           (p.async = !0),
-          (p.src = s.api_host + "/static/array.js"),
+          (p.src = s.api_host + "/static/array.js"));
+        // Fetch the SDK once the browser is idle after first paint (at most
+        // 1.5 s), so its ~120 KB doesn't compete with the page's own CSS,
+        // fonts and hero. Calls made before then queue on this stub, and
+        // web vitals are read from the browser's buffered entries.
+        var ph_load = function () {
           (r = t.getElementsByTagName("script")[0]).parentNode.insertBefore(
             p,
             r,
-          ));
+          );
+        };
+        "requestIdleCallback" in window
+          ? window.requestIdleCallback(ph_load, { timeout: 1500 })
+          : setTimeout(ph_load, 1);
         var u = e;
         for (
           void 0 !== a ? (u = e[a] = []) : (a = "posthog"),
@@ -97,6 +106,34 @@ const { embed = false } = Astro.props;
         tz,
       );
   } catch (e) {}
+  // Early errors. The SDK now loads when the browser is idle after first
+  // paint, and its exception autocapture only starts then, so an error in
+  // the page's first moments (a script piece failing to start) would go
+  // unrecorded. Hold those here and hand them to PostHog once it has
+  // loaded, then stop listening so nothing is reported twice. Capped at 20
+  // so a page that loops on an error can't pile them up.
+  var earlyErrors = [];
+  function holdError(e) {
+    if (earlyErrors && earlyErrors.length < 20)
+      earlyErrors.push(e.error || new Error(e.message || "Script error"));
+  }
+  function holdRejection(e) {
+    if (earlyErrors && earlyErrors.length < 20) earlyErrors.push(e.reason);
+  }
+  window.addEventListener("error", holdError);
+  window.addEventListener("unhandledrejection", holdRejection);
+  function flushEarlyErrors(ph) {
+    window.removeEventListener("error", holdError);
+    window.removeEventListener("unhandledrejection", holdRejection);
+    var held = earlyErrors || [];
+    earlyErrors = null;
+    for (var i = 0; i < held.length; i++) {
+      try {
+        ph.captureException(held[i], { $early_error: true });
+      } catch (err) {}
+    }
+  }
+
   if (embed) {
     // Cookieless: memory persistence stores nothing on the device, so there
     // is no consent to collect. The partner slug (validated the same way as
@@ -116,8 +153,10 @@ const { embed = false } = Astro.props;
         persistence: "memory",
         disable_session_recording: true,
         disable_surveys: true,
+        disable_conversations: true,
         loaded: function (ph) {
           ph.register({ embed: true, partner: partner });
+          flushEarlyErrors(ph);
         },
       });
     }
@@ -155,6 +194,12 @@ const { embed = false } = Astro.props;
       defaults: "2026-01-30",
       opt_out_capturing_by_default: analyticsOff,
       disable_session_recording: replayOff,
+      // Support's chat widget isn't used on the site; this stops its script
+      // loading on every page (Support itself keeps working in PostHog).
+      disable_conversations: true,
+      // Surveys load only on the tool pages, the one place we plan to run
+      // them; elsewhere their script is never fetched.
+      disable_surveys: location.pathname.indexOf("/tools/") !== 0,
       loaded: function (ph) {
         // PostHog remembers its own opt-out from an earlier choice; a saved
         // acceptance (or no choice) must win over that. Only the loaded
@@ -162,6 +207,9 @@ const { embed = false } = Astro.props;
         if (!analyticsOff && ph.has_opted_out_capturing()) {
           ph.opt_in_capturing({ captureEventName: null });
         }
+        // After the opt-in above, so a held error isn't dropped by a stale
+        // opt-out; an opted-out visitor's errors are dropped, as before.
+        flushEarlyErrors(ph);
       },
       session_recording: {
         // Inputs stay masked (the lead form), except the address boxes on
