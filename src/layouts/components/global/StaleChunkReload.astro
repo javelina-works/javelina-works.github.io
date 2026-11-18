@@ -1,0 +1,71 @@
+---
+// Reload once when one of the site's own scripts fails to load.
+//
+// Builds no longer use Netlify skew protection (#208), so a page that was
+// opened just before a deploy can ask for a script file the new deploy no
+// longer has and get a 404. When that happens to one of our /_astro/
+// files (a <script> or modulepreload that errors, or a dynamic import that
+// rejects), reload the page once so it picks up the new version. A
+// one-minute guard in sessionStorage stops a genuinely broken file from
+// causing a reload loop, and without sessionStorage nothing reloads.
+// Third-party scripts (PostHog, maps, YouTube) are ignored. Must run before
+// any module script, so it sits right under <meta charset>.
+---
+
+<script is:inline>
+  (function () {
+    var KEY = "jw-stale-chunk-reload";
+    var IMPORT_FAILED =
+      /dynamically imported module|Importing a module script failed|error loading dynamically imported module/i;
+    var prefix = location.origin + "/_astro/";
+
+    function reloadOnce(reason, url) {
+      try {
+        var last = Number(sessionStorage.getItem(KEY)) || 0;
+        if (Date.now() - last < 60000) return;
+        sessionStorage.setItem(KEY, String(Date.now()));
+      } catch (e) {
+        return;
+      }
+      try {
+        window.posthog &&
+          window.posthog.capture &&
+          window.posthog.capture("stale_chunk_reload", {
+            reason: reason,
+            url: url || null,
+          });
+      } catch (e) {}
+      location.reload();
+    }
+
+    function ours(url) {
+      return typeof url === "string" && url.indexOf(prefix) === 0;
+    }
+
+    window.addEventListener(
+      "error",
+      function (e) {
+        var t = e.target;
+        if (t && t.tagName === "SCRIPT" && ours(t.src))
+          return reloadOnce("script", t.src);
+        if (
+          t &&
+          t.tagName === "LINK" &&
+          t.rel === "modulepreload" &&
+          ours(t.href)
+        )
+          return reloadOnce("modulepreload", t.href);
+        var msg = e.message || (e.error && e.error.message) || "";
+        if (IMPORT_FAILED.test(msg)) reloadOnce("import");
+      },
+      true,
+    );
+    window.addEventListener("unhandledrejection", function (e) {
+      var msg = (e.reason && e.reason.message) || "";
+      if (IMPORT_FAILED.test(msg)) reloadOnce("import");
+    });
+    window.addEventListener("vite:preloadError", function () {
+      reloadOnce("preload");
+    });
+  })();
+</script>
