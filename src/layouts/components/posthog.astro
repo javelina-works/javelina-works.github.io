@@ -106,6 +106,34 @@ const { embed = false } = Astro.props;
         tz,
       );
   } catch (e) {}
+  // Early errors. The SDK now loads when the browser is idle after first
+  // paint, and its exception autocapture only starts then, so an error in
+  // the page's first moments (a script piece failing to start) would go
+  // unrecorded. Hold those here and hand them to PostHog once it has
+  // loaded, then stop listening so nothing is reported twice. Capped at 20
+  // so a page that loops on an error can't pile them up.
+  var earlyErrors = [];
+  function holdError(e) {
+    if (earlyErrors && earlyErrors.length < 20)
+      earlyErrors.push(e.error || new Error(e.message || "Script error"));
+  }
+  function holdRejection(e) {
+    if (earlyErrors && earlyErrors.length < 20) earlyErrors.push(e.reason);
+  }
+  window.addEventListener("error", holdError);
+  window.addEventListener("unhandledrejection", holdRejection);
+  function flushEarlyErrors(ph) {
+    window.removeEventListener("error", holdError);
+    window.removeEventListener("unhandledrejection", holdRejection);
+    var held = earlyErrors || [];
+    earlyErrors = null;
+    for (var i = 0; i < held.length; i++) {
+      try {
+        ph.captureException(held[i], { $early_error: true });
+      } catch (err) {}
+    }
+  }
+
   if (embed) {
     // Cookieless: memory persistence stores nothing on the device, so there
     // is no consent to collect. The partner slug (validated the same way as
@@ -128,6 +156,7 @@ const { embed = false } = Astro.props;
         disable_conversations: true,
         loaded: function (ph) {
           ph.register({ embed: true, partner: partner });
+          flushEarlyErrors(ph);
         },
       });
     }
@@ -178,6 +207,9 @@ const { embed = false } = Astro.props;
         if (!analyticsOff && ph.has_opted_out_capturing()) {
           ph.opt_in_capturing({ captureEventName: null });
         }
+        // After the opt-in above, so a held error isn't dropped by a stale
+        // opt-out; an opted-out visitor's errors are dropped, as before.
+        flushEarlyErrors(ph);
       },
       session_recording: {
         // Inputs stay masked (the lead form), except the address boxes on
