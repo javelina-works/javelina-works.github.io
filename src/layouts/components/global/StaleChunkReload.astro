@@ -42,6 +42,17 @@
       return typeof url === "string" && url.indexOf(prefix) === 0;
     }
 
+    // A failed dynamic import: reload only when the message names one of our
+    // /_astro/ files. Safari's "Importing a module script failed." names no
+    // URL; those still count, because the site itself never imports
+    // third-party code dynamically (PostHog, maps and YouTube load as plain
+    // scripts or iframes, which these messages don't come from).
+    function importFailed(msg) {
+      if (!IMPORT_FAILED.test(msg)) return false;
+      var url = msg.match(/https?:\/\/[^\s'"]+/);
+      return url ? ours(url[0]) : true;
+    }
+
     window.addEventListener(
       "error",
       function (e) {
@@ -56,13 +67,13 @@
         )
           return reloadOnce("modulepreload", t.href);
         var msg = e.message || (e.error && e.error.message) || "";
-        if (IMPORT_FAILED.test(msg)) reloadOnce("import");
+        if (importFailed(msg)) reloadOnce("import");
       },
       true,
     );
     window.addEventListener("unhandledrejection", function (e) {
       var msg = (e.reason && e.reason.message) || "";
-      if (IMPORT_FAILED.test(msg)) reloadOnce("import");
+      if (importFailed(msg)) reloadOnce("import");
     });
     window.addEventListener("vite:preloadError", function () {
       reloadOnce("preload");
