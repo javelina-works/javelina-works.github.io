@@ -2187,9 +2187,20 @@ canvas.addEventListener("dblclick", (e) => {
 });
 const ptrs = new Map();
 let pinch0 = null;
+let mid0 = null;
 canvas.addEventListener("pointerdown", (e) => {
-  canvas.setPointerCapture(e.pointerId);
   ptrs.set(e.pointerId, toCanvas(e));
+  // On a phone one finger scrolls the page (touch-action: pan-y in the
+  // page CSS), so the map never traps the visitor; two fingers move and
+  // zoom it. A mouse or pen still drags with one.
+  if (e.pointerType === "touch" && ptrs.size < 2) return;
+  for (const id of ptrs.keys()) {
+    try {
+      canvas.setPointerCapture(id);
+    } catch {
+      // The browser already took that finger for scrolling.
+    }
+  }
   canvas.classList.add("dragging");
 });
 canvas.addEventListener("pointermove", (e) => {
@@ -2198,6 +2209,7 @@ canvas.addEventListener("pointermove", (e) => {
     cur = toCanvas(e);
   ptrs.set(e.pointerId, cur);
   if (ptrs.size === 1) {
+    if (e.pointerType === "touch") return;
     view.x0 -= (cur[0] - prev[0]) / S;
     view.y0 -= (cur[1] - prev[1]) / S;
     clampView();
@@ -2205,14 +2217,23 @@ canvas.addEventListener("pointermove", (e) => {
     $("zHint").style.opacity = 0;
   } else if (ptrs.size === 2) {
     const [a, b] = [...ptrs.values()],
-      d = Math.hypot(a[0] - b[0], a[1] - b[1]);
-    if (pinch0) zoomAt((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, d / pinch0);
+      d = Math.hypot(a[0] - b[0], a[1] - b[1]),
+      mid = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+    if (mid0) {
+      view.x0 -= (mid[0] - mid0[0]) / S;
+      view.y0 -= (mid[1] - mid0[1]) / S;
+      clampView();
+    }
+    if (pinch0) zoomAt(mid[0], mid[1], d / pinch0);
+    else redraw();
     pinch0 = d;
+    mid0 = mid;
+    $("zHint").style.opacity = 0;
   }
 });
 const endPtr = (e) => {
   ptrs.delete(e.pointerId);
-  if (ptrs.size < 2) pinch0 = null;
+  if (ptrs.size < 2) pinch0 = mid0 = null;
   if (!ptrs.size) canvas.classList.remove("dragging");
 };
 canvas.addEventListener("pointerup", endPtr);
@@ -2337,7 +2358,23 @@ function prepareForPrint() {
   return save;
 }
 let PR_PRINT = 0;
+let printOpened = false;
+function toast(msg, ms) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.hidden = false;
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => (t.hidden = true), ms || 8000);
+}
+try {
+  window.matchMedia("print").addEventListener("change", (e) => {
+    if (e.matches) printOpened = true;
+  });
+} catch {
+  // Older Safari: beforeprint alone.
+}
 window.addEventListener("beforeprint", () => {
+  printOpened = true;
   prepareForPrint();
   document.documentElement.classList.add("rm-printing");
 });
@@ -2359,8 +2396,21 @@ $("printBtn").addEventListener("click", () => {
   } catch (e) {
     /* analytics never breaks the page */
   }
+  // Some phone browsers (Brave and other in-app browsers on iPhone) ignore
+  // window.print() without a word; a replay showed a visitor tapping this
+  // five times. If no print dialog opened, say how to get one.
+  printOpened = false;
   window.print();
+  setTimeout(() => {
+    if (!printOpened)
+      toast(
+        "This browser didn't open printing. Use its Share menu and choose Print, or open this page in Safari or Chrome.",
+        12000,
+      );
+  }, 1500);
 });
+// The phone-only Print button beside the view tabs.
+$("mPrintNow").addEventListener("click", () => $("printBtn").click());
 
 const fontsWanted = [
   '400 16px "Old Standard TT"',
