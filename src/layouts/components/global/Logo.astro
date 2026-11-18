@@ -39,29 +39,26 @@ let {
 <a
   href={getLocaleUrlCTM("/", Astro.currentLocale)}
   class:list={["logo-wrapper", className]}>
-  {
-    src || logo ? (
-      <>
-        <OptimizedImage
-          src={src ? src : logo}
-          class="logo"
-          width={getNumber(logoWidth)}
-          height={getNumber(logoHeight)}
-          alt={toSentenceCase("Brand logo of " + title)}
-          style={{
-            height: getNumber(logoHeight) + "px",
-            width: getNumber(logoWidth) + "px",
-          }}
-        />
+  {src || logo ? (
+    <>
+      <OptimizedImage
+        src={src ? src : logo}
+        class="logo"
+        width={getNumber(logoWidth)}
+        height={getNumber(logoHeight)}
+        alt={toSentenceCase("Brand logo of " + title)}
+        densities={[1, 2]}
+        style={{
+          height: getNumber(logoHeight) + "px",
+          width: getNumber(logoWidth) + "px",
+        }}
+      />
 
-        {logoText && (
-          <span class="logo-text" set:html={markdownify(logoText)} />
-        )}
-      </>
-    ) : logoText ? (
-      logoText
-    ) : (
-      title
-    )
-  }
+      {logoText && <span class="logo-text" set:html={markdownify(logoText)} />}
+    </>
+  ) : logoText ? (
+    logoText
+  ) : (
+    title
+  )}
 </a>

@@ -86,6 +86,12 @@
   status = 200
   force  = true
 
+# Deploy previews and branch deploys (staging included) also get an
+# X-Robots-Tag: noindex header on every path, appended to dist/_headers, so
+# search engines never list a preview above the published site. Seo.astro
+# adds the matching <meta name="robots"> from Netlify's CONTEXT variable.
+# Production builds get neither.
+#
 # The STAGING proxy exists ONLY on deploy previews and branch deploys (the
 # staging branch at staging--javelina-works.netlify.app): the context
 # overrides below append it to dist/_redirects at build time (the _redirects
@@ -93,7 +99,7 @@
 # the trailing-slash 307). Production never carries these routes. Both the
 # ballpark and the Ranch Map staging routes ride along.
 [context.deploy-preview]
-  command = "pnpm build && printf '/api/ballpark-staging https://fastapi-staging.up.railway.app/api/v2/ballpark 200!\n/api/ballpark-staging/* https://fastapi-staging.up.railway.app/api/v2/ballpark/:splat 200!\n/api/ranch-map-staging https://fastapi-staging.up.railway.app/api/v2/ranch-map 200!\n/api/ranch-map-staging/* https://fastapi-staging.up.railway.app/api/v2/ranch-map/:splat 200!\n' >> dist/_redirects"
+  command = "pnpm build && printf '/api/ballpark-staging https://fastapi-staging.up.railway.app/api/v2/ballpark 200!\n/api/ballpark-staging/* https://fastapi-staging.up.railway.app/api/v2/ballpark/:splat 200!\n/api/ranch-map-staging https://fastapi-staging.up.railway.app/api/v2/ranch-map 200!\n/api/ranch-map-staging/* https://fastapi-staging.up.railway.app/api/v2/ranch-map/:splat 200!\n' >> dist/_redirects && printf '/*\n  X-Robots-Tag: noindex, nofollow\n' >> dist/_headers"
 
 [context.branch-deploy]
-  command = "pnpm build && printf '/api/ballpark-staging https://fastapi-staging.up.railway.app/api/v2/ballpark 200!\n/api/ballpark-staging/* https://fastapi-staging.up.railway.app/api/v2/ballpark/:splat 200!\n/api/ranch-map-staging https://fastapi-staging.up.railway.app/api/v2/ranch-map 200!\n/api/ranch-map-staging/* https://fastapi-staging.up.railway.app/api/v2/ranch-map/:splat 200!\n' >> dist/_redirects"
+  command = "pnpm build && printf '/api/ballpark-staging https://fastapi-staging.up.railway.app/api/v2/ballpark 200!\n/api/ballpark-staging/* https://fastapi-staging.up.railway.app/api/v2/ballpark/:splat 200!\n/api/ranch-map-staging https://fastapi-staging.up.railway.app/api/v2/ranch-map 200!\n/api/ranch-map-staging/* https://fastapi-staging.up.railway.app/api/v2/ranch-map/:splat 200!\n' >> dist/_redirects && printf '/*\n  X-Robots-Tag: noindex, nofollow\n' >> dist/_headers"
