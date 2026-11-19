@@ -1,0 +1,16 @@
+<!-- @dsCard group="Map and survey" height=320 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Survey map</title></head>
+<body>
+<div id="root" class="jw-demo"></div>
+<script>
+var J = window.JavelinaWorks, h = React.createElement;
+function Row(p) { return h('div', { className: 'jw-row', style: p.style }, p.children); }
+ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+ h(J.SurveyMap, { src: '/assets/images/survey-detections.jpg', alt: 'Survey image of a pasture with each woody plant boxed', height: 240, plants: [{id:1,x:24,y:38,status:'treat'},{id:2,x:58,y:64,status:'treat'},{id:3,x:80,y:30,status:'treat'},{id:4,x:40,y:22,status:'keep'},{id:5,x:70,y:80,status:'keep'},{id:6,x:12,y:70,status:'keep'},{id:7,x:88,y:62,status:'keep'}] }),
+ h('span', { className: 'jw-caption' }, 'Hover a plant to light it. Click to switch it between treat and keep.')
+));
+</script>
+</body>
+</html>

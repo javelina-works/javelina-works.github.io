@@ -1,0 +1,21 @@
+<!-- @dsCard group="Materials" height=560 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Surface</title></head>
+<body>
+<div id="root" class="jw-demo"></div>
+<script>
+var J = window.JavelinaWorks, h = React.createElement;
+function Row(p) { return h('div', { className: 'jw-row', style: p.style }, p.children); }
+ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+ h(J.Surface, { variant: 'band-shell' },
+  h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 } },
+   h(J.Surface, { variant: 'card', style: { padding: 20, display: 'flex', flexDirection: 'column', gap: 14 } }, h('span', { className: 'jw-eyebrow' }, 'Treatment plan'), h('span', { className: 't-heading-3' }, 'Pasture 4'), h(J.Meter, { label: 'Treated', value: 212, max: 640 })),
+   h(J.Surface, { variant: 'tint', style: { padding: 20, display: 'flex', flexDirection: 'column', gap: 10 } }, h('span', { className: 't-heading-3' }, '3 plants to treat'), h('span', { className: 't-body' }, '41 kept. You approve the plan before anything flies.'), h('span', null, h(J.Button, { variant: 'burnt', size: 'sm' }, 'Approve plan')))
+  )),
+ h(J.Surface, { variant: 'band-agave', style: { paddingTop: 32, paddingBottom: 32 } },
+  h(J.Surface, { variant: 'card', style: { padding: 12 } }, h(J.SurveyMap, { src: '/assets/images/survey-detections.jpg', height: 150, plants: [{id:1,x:24,y:38,status:'treat'},{id:2,x:58,y:64,status:'treat'},{id:3,x:80,y:30,status:'treat'},{id:4,x:40,y:22,status:'keep'},{id:5,x:70,y:80,status:'keep'},{id:6,x:12,y:70,status:'keep'},{id:7,x:88,y:62,status:'keep'}] })))
+));
+</script>
+</body>
+</html>

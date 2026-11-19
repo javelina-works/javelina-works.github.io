@@ -1,0 +1,16 @@
+<!-- @dsCard group="Status" height=130 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Chip</title></head>
+<body>
+<div id="root" class="jw-demo"></div>
+<script>
+var J = window.JavelinaWorks, h = React.createElement;
+function Row(p) { return h('div', { className: 'jw-row', style: p.style }, p.children); }
+ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+ h(Row, null, h(J.Chip, { tone: 'treat', count: 3 }, 'Treat'), h(J.Chip, { tone: 'keep', count: 41 }, 'Keep'), h(J.Chip, { tone: 'selected' }, 'Selected'), h(J.Chip, { tone: 'queued' }, 'Queued')),
+ h(Row, null, h(J.Chip, { tone: 'success' }, 'Survey done'), h(J.Chip, { tone: 'warning' }, 'Check boundary'), h(J.Chip, { tone: 'error' }, 'Upload failed'))
+));
+</script>
+</body>
+</html>

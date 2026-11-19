@@ -1,0 +1,16 @@
+<!-- @dsCard group="Data" height=150 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Meter</title></head>
+<body>
+<div id="root" class="jw-demo"></div>
+<script>
+var J = window.JavelinaWorks, h = React.createElement;
+function Row(p) { return h('div', { className: 'jw-row', style: p.style }, p.children); }
+ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+ h(J.Meter, { label: 'Pasture 4 · treated', value: 212, max: 640 }),
+ h(J.Meter, { label: 'North trap · treated', value: 118, max: 160 })
+));
+</script>
+</body>
+</html>

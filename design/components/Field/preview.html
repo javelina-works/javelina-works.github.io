@@ -1,0 +1,17 @@
+<!-- @dsCard group="Forms" height=230 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Field</title></head>
+<body>
+<div id="root" class="jw-demo"></div>
+<script>
+var J = window.JavelinaWorks, h = React.createElement;
+function Row(p) { return h('div', { className: 'jw-row', style: p.style }, p.children); }
+ReactDOM.createRoot(document.getElementById('root')).render(h('div', { style: { maxWidth: 420, display: 'flex', flexDirection: 'column', gap: 18 } },
+ h(J.Field, { label: 'Acres to survey', suffix: 'ac', defaultValue: '640', inputMode: 'numeric', hint: 'A whole pasture or the full place.',
+   validate: function (v) { var n = Number(String(v).replace(/,/g, '')); return n > 0 ? null : 'Enter the acres as a number, like 640.'; } }),
+ h(J.Field, { label: 'County', placeholder: 'Jeff Davis', error: 'Enter the county the land is in.' })
+));
+</script>
+</body>
+</html>

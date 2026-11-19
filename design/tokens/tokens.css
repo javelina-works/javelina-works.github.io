@@ -1,0 +1,312 @@
+/* Javelina Works design tokens, generated from tokens.json. Do not edit by hand: change tokens.json and regenerate.
+   By day is the default (:root). At night is [data-theme="dark"] on <html>. */
+@font-face { font-family: 'Barlow'; src: url('../fonts/Barlow-Medium.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Figtree'; src: url('../fonts/Figtree-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Figtree'; src: url('../fonts/Figtree-Medium.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'IBM Plex Mono'; src: url('../fonts/IBMPlexMono-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'IBM Plex Mono'; src: url('../fonts/IBMPlexMono-Medium.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-14: 56px;
+  --space-20: 80px;
+  --radius-xs: 2px;
+  --radius-sm: 3px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-round: 999px;
+  --grain-opacity: 0.45;
+  --grain-opacity-ground: 0.3;
+  --photo-brightness-dark: 0.82;
+  --lamp-reach: 300;
+  --lamp-height: 56;
+  --tube-reach: 150;
+  --tube-height: 18;
+  --status-reach: 130;
+  --status-height: 8;
+  --corrugation: 96;
+  --duration-hover: 200ms;
+  --duration-glow: 320ms;
+  --duration-ping: 2.8s;
+  --duration-flicker: 2.8s;
+  --duration-breathe: 3.2s;
+  --duration-glint: 5s;
+  --font-display: "Barlow", "Helvetica Neue", Arial, sans-serif;
+  --font-body: Figtree, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --bg: #EFEEE8;
+  --surface: #FAF9F6;
+  --surface-sunken: #E6E6DE;
+  --surface-input: #FFFFFF;
+  --line: #D8D9D1;
+  --line-strong: #868B80;
+  --text: #20251F;
+  --text-body: #40463E;
+  --text-muted: #61675E;
+  --label: #6F281B;
+  --land: #44543D;
+  --land-soft: #DDE2D3;
+  --on-land-soft: #2E3A29;
+  --sage: #A3AE95;
+  --juniper-900: #2B3527;
+  --juniper-700: #44543D;
+  --juniper-500: #6B7B61;
+  --juniper-300: #A3AE95;
+  --juniper-100: #DDE2D3;
+  --juniper-50: #EEF1E8;
+  --rust: #6F281B;
+  --rust-900: #4A1A11;
+  --rust-500: #9A4A35;
+  --rust-300: #C99383;
+  --rust-100: #F1DDD5;
+  --tip-50: #FEF3EA;
+  --tip-100: #FCE4D3;
+  --tip-200: #F8C6A4;
+  --tip-300: #F2A273;
+  --tip-500: #E5743A;
+  --tip-600: #BE4A1C;
+  --tip-700: #A84A16;
+  --tip-800: #8E3613;
+  --tip-900: #6E2A0E;
+  --glow-50: #FFF4DC;
+  --glow-100: #FFE29A;
+  --glow-200: #FFD36B;
+  --glow-300: #F2A71B;
+  --glow-400: #FF9A2A;
+  --glow-500: #FF8A1F;
+  --glow-600: #F26A1E;
+  --glow-700: #E8501A;
+  --glow-800: #C2421A;
+  --glow-900: #8E2A0A;
+  --action: var(--tip-500);
+  --action-outline: #F2A273;
+  --on-action: #1A0B05;
+  --action-strong: var(--tip-600);
+  --action-strong-outline: var(--tip-200);
+  --on-action-strong: #FFFFFF;
+  --action-tint: #FCE4D3;
+  --action-tint-outline: #F2A273;
+  --on-action-tint: #8E3613;
+  --action-ghost: #A84A16;
+  --action-ghost-outline: #E5743A;
+  --lit-body: #FF9A2A;
+  --lit-body-mid: #FF8A1F;
+  --lit-body-edge: #F57A1E;
+  --lit-edge: #D9561A;
+  --attn-glow: rgba(255,160,46,0);
+  --chip-treat: var(--tip-600);
+  --chip-treat-2: var(--tip-600);
+  --chip-treat-outline: #E5743A;
+  --on-chip-treat: #FFFFFF;
+  --marker-core: rgba(229,116,58,0.28);
+  --marker-ring: #F8C6A4;
+  --marker-ring-outer: #E5743A;
+  --marker-ping: rgba(248,198,164,0.95);
+  --meter-start: #CF5F2C;
+  --meter-mid: #E5743A;
+  --meter-end: #EC8550;
+  --meter-rim: rgba(255,255,255,0.3);
+  --selected: #F2A71B;
+  --selected-hairline: #20251F;
+  --shell-1: #34405F;
+  --shell-2: #1D2232;
+  --shell-3: #12141B;
+  --shell-band-1: #3B4A70;
+  --shell-band-2: #222839;
+  --shell-band-3: #14171F;
+  --shell-band-4: #0C0E13;
+  --shell-edge: rgba(143,166,214,0.32);
+  --shell-highlight: rgba(190,208,245,0.22);
+  --shell-streak: rgba(170,195,240,0.28);
+  --on-shell: #EEF0F4;
+  --agave-1: #6A8C87;
+  --agave-2: #3D5A57;
+  --agave-3: #2A403E;
+  --agave-band-1: #8FB0AA;
+  --agave-band-2: #5A7A76;
+  --agave-band-4: #263A38;
+  --agave-edge: rgba(169,193,187,0.45);
+  --agave-highlight: rgba(220,240,235,0.3);
+  --agave-streak: rgba(220,240,235,0.3);
+  --on-agave: #F3F7F6;
+  --water: #3E6A8A;
+  --boundary: var(--text);
+  --success: #2F7D4F;
+  --warning: #8A5A00;
+  --error: #B8283F;
+  --focus: #44543D;
+  --light-lamp: #FFA35A;
+  --light-tube: #FF7429;
+  --light-ok: #29FF6B;
+  --light-sun: #FFF2DB;
+  --shadow-action: inset 0 1px 0 rgba(255,255,255,0.28), 0 1px 0 rgba(110,42,14,0.25);
+  --shadow-action-strong: inset 0 1px 0 rgba(242,162,115,0.45);
+  --shadow-glow: inset 0 0 0 1px #FFE29A, inset 0 0 8px 2px rgba(255,214,120,0.8), 0 0 8px 1px rgba(255,150,40,0.42), 0 0 16px rgba(255,170,60,0.16);
+  --shadow-glow-hover: inset 0 0 0 1px #FFE29A, inset 0 0 8px 2px rgba(255,214,120,0.8), 0 0 8px 1px rgba(255,150,40,0.42), 0 0 16px rgba(255,170,60,0.16);
+  --shadow-glow-chip: inset 0 1px 0 rgba(242,162,115,0.45);
+  --shadow-glow-marker: 0 0 0 1px rgba(26,11,5,0.3);
+  --shadow-glow-marker-hover: 0 0 8px 2px rgba(255,150,40,0.55);
+  --shadow-glow-meter: inset 0 0 0 1px rgba(190,74,28,0.25);
+  --shadow-sheen-shell: inset 0 1px 0 rgba(190,208,245,0.22), 0 6px 16px -8px rgba(10,12,18,0.7);
+  --shadow-sheen-agave: inset 0 1px 0 rgba(220,240,235,0.3), 0 6px 16px -8px rgba(20,36,34,0.6);
+  --shadow-raise: 0 1px 0 rgba(32,37,31,0.04), 0 12px 24px -18px rgba(32,37,31,0.35);
+  --shadow-raise-on-band: 0 1px 0 rgba(0,0,0,0.2), 0 18px 36px -20px rgba(0,0,0,0.75);
+  --shadow-well: inset 0 1px 2px rgba(30,34,48,0.18);
+  --shadow-focus: 0 0 0 2px #EFEEE8, 0 0 0 4px #44543D;
+  color-scheme: light;
+}
+[data-theme="dark"] {
+  --bg: #101219;
+  --surface: #171A23;
+  --surface-sunken: #0A0C11;
+  --surface-input: #0E1016;
+  --line: #2A2F3C;
+  --line-strong: #646B7D;
+  --text: #EEF0F4;
+  --text-body: #BCC0CB;
+  --text-muted: #9095A3;
+  --label: #FF9A4A;
+  --land: #A3AE95;
+  --land-soft: #2A3328;
+  --on-land-soft: #D3DBC6;
+  --sage: #6E7A62;
+  --juniper-900: #2B3527;
+  --juniper-700: #44543D;
+  --juniper-500: #6B7B61;
+  --juniper-300: #A3AE95;
+  --juniper-100: #DDE2D3;
+  --juniper-50: #EEF1E8;
+  --rust: #6F281B;
+  --rust-900: #4A1A11;
+  --rust-500: #9A4A35;
+  --rust-300: #C99383;
+  --rust-100: #F1DDD5;
+  --tip-50: #FEF3EA;
+  --tip-100: #FCE4D3;
+  --tip-200: #F8C6A4;
+  --tip-300: #F2A273;
+  --tip-500: #E5743A;
+  --tip-600: #BE4A1C;
+  --tip-700: #A84A16;
+  --tip-800: #8E3613;
+  --tip-900: #6E2A0E;
+  --glow-50: #FFF4DC;
+  --glow-100: #FFE29A;
+  --glow-200: #FFD36B;
+  --glow-300: #F2A71B;
+  --glow-400: #FF9A2A;
+  --glow-500: #FF8A1F;
+  --glow-600: #F26A1E;
+  --glow-700: #E8501A;
+  --glow-800: #C2421A;
+  --glow-900: #8E2A0A;
+  --action: var(--tip-500);
+  --action-outline: #FFB060;
+  --on-action: #1A0B05;
+  --action-strong: var(--tip-600);
+  --action-strong-outline: var(--tip-200);
+  --on-action-strong: #FFFFFF;
+  --action-tint: rgba(229,116,58,0.14);
+  --action-tint-outline: rgba(242,162,115,0.45);
+  --on-action-tint: #F2A273;
+  --action-ghost: #F2A273;
+  --action-ghost-outline: #F2A273;
+  --lit-body: #F26A1E;
+  --lit-body-mid: #E8501A;
+  --lit-body-edge: #D8461A;
+  --lit-edge: #FFB060;
+  --attn-glow: rgba(255,100,24,0.95);
+  --chip-treat: rgba(242,106,30,0.92);
+  --chip-treat-2: rgba(232,80,26,0.9);
+  --chip-treat-outline: rgba(255,176,96,0.85);
+  --on-chip-treat: #1A0B05;
+  --marker-core: rgba(232,80,26,0.35);
+  --marker-ring: #FFC070;
+  --marker-ring-outer: #FF7A1A;
+  --marker-ping: rgba(255,176,96,0.9);
+  --meter-start: #C2421A;
+  --meter-mid: #F06A1E;
+  --meter-end: #FF8A2A;
+  --meter-rim: rgba(255,200,120,0.9);
+  --selected: #F2A71B;
+  --selected-hairline: #F2A71B;
+  --shell-1: #34405F;
+  --shell-2: #1D2232;
+  --shell-3: #12141B;
+  --shell-band-1: #3B4A70;
+  --shell-band-2: #222839;
+  --shell-band-3: #14171F;
+  --shell-band-4: #0C0E13;
+  --shell-edge: rgba(143,166,214,0.32);
+  --shell-highlight: rgba(190,208,245,0.22);
+  --shell-streak: rgba(170,195,240,0.28);
+  --on-shell: #EEF0F4;
+  --agave-1: #6A8C87;
+  --agave-2: #3D5A57;
+  --agave-3: #2A403E;
+  --agave-band-1: #8FB0AA;
+  --agave-band-2: #5A7A76;
+  --agave-band-4: #263A38;
+  --agave-edge: rgba(169,193,187,0.45);
+  --agave-highlight: rgba(220,240,235,0.3);
+  --agave-streak: rgba(220,240,235,0.3);
+  --on-agave: #F3F7F6;
+  --water: #7FAED0;
+  --boundary: var(--text);
+  --success: #5CC48A;
+  --warning: #F2C14E;
+  --error: #FF6B7E;
+  --focus: #FFB13B;
+  --light-lamp: #FFA35A;
+  --light-tube: #FF7429;
+  --light-ok: #29FF6B;
+  --light-sun: #FFF2DB;
+  --shadow-action: inset 0 1px 0 rgba(255,255,255,0.2);
+  --shadow-action-strong: inset 0 1px 0 rgba(242,162,115,0.45);
+  --shadow-glow: inset 0 0 0 1px rgba(255,200,120,0.75), inset 0 0 7px 1px rgba(255,170,80,0.55), 0 0 6px 1px rgba(255,100,24,0.34), 0 0 12px rgba(255,90,20,0.12);
+  --shadow-glow-hover: inset 0 0 0 1px rgba(255,214,150,0.95), inset 0 0 10px 2px rgba(255,170,80,0.85), 0 0 9px 2px rgba(255,100,24,0.5), 0 0 18px rgba(255,90,20,0.2);
+  --shadow-glow-chip: inset 0 0 0 1px rgba(255,200,120,0.8), inset 0 0 5px 1px rgba(255,170,80,0.6), 0 0 8px rgba(255,90,20,0.3);
+  --shadow-glow-marker: 0 0 8px 2px rgba(255,90,20,0.4);
+  --shadow-glow-marker-hover: 0 0 10px 3px rgba(255,90,20,0.55);
+  --shadow-glow-meter: 0 0 8px rgba(255,100,24,0.3);
+  --shadow-sheen-shell: inset 0 1px 0 rgba(190,208,245,0.22), 0 6px 16px -8px rgba(10,12,18,0.7);
+  --shadow-sheen-agave: inset 0 1px 0 rgba(220,240,235,0.3), 0 6px 16px -8px rgba(20,36,34,0.6);
+  --shadow-raise: 0 14px 28px -18px rgba(0,0,0,0.7);
+  --shadow-raise-on-band: 0 1px 0 rgba(0,0,0,0.2), 0 18px 36px -20px rgba(0,0,0,0.75);
+  --shadow-well: inset 0 1px 2px rgba(0,0,0,0.6), 0 0 0 1px #2A2F3C;
+  --shadow-focus: 0 0 0 2px #101219, 0 0 0 4px #FFB13B;
+  color-scheme: dark;
+}
+
+/* Type styles as classes: .t-display-xl, .t-body, .t-eyebrow … (prefixed so they can't collide with other CSS). Display sizes step down under 640px (not in tokens.json; set here so headlines fit a phone). */
+.t-display-xl { font-family: var(--font-display); font-size: 60px; line-height: 1.0; font-weight: 500; letter-spacing: -0.01em; text-wrap: balance; }
+.t-display-l { font-family: var(--font-display); font-size: 52px; line-height: 1.0; font-weight: 500; letter-spacing: -0.01em; text-wrap: balance; }
+.t-display-m { font-family: var(--font-display); font-size: 42px; line-height: 1.05; font-weight: 500; letter-spacing: -0.01em; text-wrap: balance; }
+.t-heading-1 { font-family: var(--font-display); font-size: 34px; line-height: 1.06; font-weight: 500; letter-spacing: -0.01em; text-wrap: balance; }
+.t-heading-2 { font-family: var(--font-display); font-size: 28px; line-height: 1.1; font-weight: 500; letter-spacing: -0.01em; text-wrap: balance; }
+.t-heading-3 { font-family: var(--font-display); font-size: 22px; line-height: 1.18; font-weight: 500; letter-spacing: -0.01em; text-wrap: balance; }
+.t-number { font-family: var(--font-display); font-size: 30px; line-height: 1.0; font-weight: 500; letter-spacing: -0.01em; text-wrap: balance; }
+.t-body-l { font-family: var(--font-body); font-size: 17px; line-height: 1.6; font-weight: 400; }
+.t-body { font-family: var(--font-body); font-size: 15px; line-height: 1.55; font-weight: 400; }
+.t-body-s { font-family: var(--font-body); font-size: 13.5px; line-height: 1.5; font-weight: 400; }
+.t-body-strong { font-family: var(--font-body); font-size: 15px; line-height: 1.4; font-weight: 500; }
+.t-button { font-family: var(--font-mono); font-size: 11.5px; line-height: 1.0; font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase; }
+.t-eyebrow { font-family: var(--font-mono); font-size: 10.5px; line-height: 1.35; font-weight: 400; letter-spacing: 0.12em; text-transform: uppercase; }
+.t-chip { font-family: var(--font-mono); font-size: 10.5px; line-height: 1.0; font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase; }
+.t-data { font-family: var(--font-mono); font-size: 13px; line-height: 1.45; font-weight: 400; }
+@media (max-width: 640px) {
+  .t-display-xl { font-size: 40px; }
+  .t-display-l { font-size: 36px; }
+  .t-display-m { font-size: 32px; }
+  .t-heading-1 { font-size: 28px; }
+  .t-heading-2 { font-size: 24px; }
+  .t-heading-3 { font-size: 20px; }
+  .t-number { font-size: 26px; }
+}

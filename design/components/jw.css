@@ -1,0 +1,252 @@
+/* Javelina Works component styles (jw- classes). Load after tokens.css. The plain-HTML contract for every component is in its README. */
+/* Javelina Works components. Load after tokens.css. Set data-theme="light" (by day) or "dark" (at night) on <html>. */
+body { margin: 0; font-family: var(--font-body); font-size: 17px; line-height: 1.6; background: var(--bg); color: var(--text); }
+
+/* ---- utilities ---- */
+.jw-eyebrow { font-family: var(--font-mono); font-size: 10.5px; line-height: 1.35; letter-spacing: .12em; text-transform: uppercase; color: var(--label); }
+.jw-logo--dark { display: none; }
+[data-theme="dark"] .jw-logo--light { display: none; }
+[data-theme="dark"] .jw-logo--dark { display: block; }
+
+/* ---- button ----
+   By day the orange is sunlit (flat tip orange, lighter outline, top highlight).
+   The lit layer (::before) fades in on hover, focus and press. At night it is on at rest and brightens on hover. */
+.jw-btn { position: relative; isolation: isolate; display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); height: 44px; padding: 0 18px; box-sizing: border-box;
+  border-radius: var(--radius-sm); border: 1px solid rgba(0,0,0,0); background: none; font-family: var(--font-mono); font-size: 11.5px; line-height: 1; font-weight: 400;
+  letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; text-decoration: none; cursor: pointer;
+  transition: filter var(--duration-hover) ease, background-color var(--duration-hover) ease, border-color var(--duration-hover) ease, box-shadow var(--duration-hover) ease; }
+.jw-btn::after { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: url(../assets/textures/grain.png) 0 0 / 240px 240px; mix-blend-mode: soft-light; opacity: var(--grain-opacity); pointer-events: none; }
+.jw-btn__mark { width: 6px; height: 6px; border-radius: 1px; background: currentColor; flex: none; }
+.jw-btn--sm { height: 32px; padding: 0 12px; font-size: 10.5px; }
+.jw-btn:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+.jw-btn:disabled, .jw-btn[aria-disabled="true"] { opacity: .45; filter: saturate(.6); cursor: not-allowed; }
+
+.jw-btn--primary { --btn-fg: var(--on-action); background-color: var(--action); border-color: var(--action-outline); box-shadow: var(--shadow-action); }
+.jw-btn--primary::before { content: ""; position: absolute; inset: -1px; z-index: -1; border-radius: inherit; border: 1px solid var(--lit-edge); box-sizing: border-box;
+  background: radial-gradient(ellipse 80% 130% at 50% 50%, var(--lit-body) 0%, var(--lit-body-mid) 65%, var(--lit-body-edge) 100%);
+  box-shadow: var(--shadow-glow); opacity: 0; pointer-events: none;
+  transition: opacity calc(var(--duration-glow) * 1.5) ease-out, box-shadow calc(var(--duration-glow) * 1.5) ease-out; }
+.jw-btn--primary:hover::before, .jw-btn--primary.is-hover::before, .jw-btn--primary:focus-visible::before { opacity: 1; transition-duration: var(--duration-glow); }
+.jw-btn--primary:active::before, .jw-btn--primary.is-pressed::before { opacity: .85; }
+.jw-btn--primary:focus-visible { box-shadow: var(--shadow-focus); }
+[data-theme="dark"] .jw-btn--primary::before { opacity: .88; }
+[data-theme="dark"] .jw-btn--primary:hover::before, [data-theme="dark"] .jw-btn--primary.is-hover::before, [data-theme="dark"] .jw-btn--primary:focus-visible::before { opacity: 1; box-shadow: var(--shadow-glow-hover); transition-duration: var(--duration-glow); }
+[data-theme="dark"] .jw-btn--primary:active::before, [data-theme="dark"] .jw-btn--primary.is-pressed::before { opacity: .9; box-shadow: var(--shadow-glow); }
+.jw-btn--primary:disabled::before, .jw-btn--primary[aria-disabled="true"]::before { display: none; }
+/* flicker on: the lit layer stutters on like a lamp warming up. By day it then settles back to sunlit; at night it stays lit. */
+.jw-btn--primary.is-flickering::before { animation: jw-flicker-day var(--duration-flicker) linear 1 backwards; }
+[data-theme="dark"] .jw-btn--primary.is-flickering::before { animation-name: jw-flicker-night; }
+
+.jw-btn--burnt { --btn-fg: var(--on-action-strong); background-color: var(--action-strong); border-color: var(--action-strong-outline); box-shadow: var(--shadow-action-strong); }
+.jw-btn--burnt .jw-btn__mark { background: var(--tip-200); }
+.jw-btn--burnt:hover, .jw-btn--burnt.is-hover { filter: brightness(1.08); }
+.jw-btn--tint { --btn-fg: var(--on-action-tint); background-color: var(--action-tint); border-color: var(--action-tint-outline); }
+.jw-btn--tint::after, .jw-btn--ghost::after, .jw-btn--quiet::after { display: none; }
+.jw-btn--tint:hover, .jw-btn--tint.is-hover { border-color: var(--action-ghost-outline); }
+.jw-btn--ghost { --btn-fg: var(--action-ghost); background-color: rgba(0,0,0,0); border-color: var(--action-ghost-outline); }
+.jw-btn--ghost:hover, .jw-btn--ghost.is-hover { background-color: var(--action-tint); }
+.jw-btn--shell { --btn-fg: var(--on-shell); border-color: var(--shell-edge); background: linear-gradient(160deg, var(--shell-1) 0%, var(--shell-2) 42%, var(--shell-3) 100%); box-shadow: var(--shadow-sheen-shell); }
+.jw-btn--agave { --btn-fg: var(--on-agave); border-color: var(--agave-edge); background: linear-gradient(160deg, var(--agave-1) 0%, var(--agave-2) 45%, var(--agave-3) 100%); box-shadow: var(--shadow-sheen-agave); }
+.jw-btn--shell:hover, .jw-btn--shell.is-hover, .jw-btn--agave:hover, .jw-btn--agave.is-hover { filter: brightness(1.14); }
+.jw-btn--shell:active, .jw-btn--agave:active { filter: brightness(.92); }
+.jw-btn--quiet { --btn-fg: var(--text); background-color: rgba(0,0,0,0); border-color: var(--line-strong); }
+.jw-btn--quiet:hover, .jw-btn--quiet.is-hover { background-color: var(--surface); }
+/* Text color belongs to the button, in every state. Each variant sets --btn-fg; this rule holds it against any link or
+   page styles (a:hover, a:visited, nav a …), so a button's text can never take the page's color onto its own background. */
+.jw-btn.jw-btn, .jw-btn.jw-btn:link, .jw-btn.jw-btn:visited, .jw-btn.jw-btn:hover, .jw-btn.jw-btn:active, .jw-btn.jw-btn:focus, .jw-btn.jw-btn:focus-visible { color: var(--btn-fg, var(--text)); text-decoration: none; }
+
+/* sun glint (by day) */
+.jw-btn__glint { position: absolute; inset: 0; z-index: -1; border-radius: inherit; overflow: hidden; pointer-events: none; }
+.jw-btn__glint::before { content: ""; position: absolute; top: 0; bottom: 0; left: -60%; width: 40%;
+  background: linear-gradient(100deg, rgba(255,250,235,0) 0%, rgba(255,250,235,.6) 50%, rgba(255,250,235,0) 100%);
+  animation: jw-glint var(--duration-glint) ease-in-out infinite; will-change: transform; }
+[data-theme="dark"] .jw-glint--day .jw-btn__glint { display: none; }
+/* breathing glow (at night) */
+.jw-attn { position: relative; display: inline-flex; }
+.jw-attn > * { position: relative; z-index: 1; }
+.jw-attn::before { content: ""; position: absolute; inset: -5px -8px; border-radius: 14px; z-index: 0; background: radial-gradient(closest-side, var(--attn-glow), rgba(0,0,0,0));
+  filter: blur(7px); opacity: 0; pointer-events: none; }
+[data-theme="dark"] .jw-attn::before { opacity: .15; transform: scale(.96); animation: jw-breathe var(--duration-breathe) ease-in-out infinite; will-change: opacity, transform; }
+
+/* ---- chip ---- */
+.jw-chip { position: relative; display: inline-flex; align-items: center; gap: var(--space-2); height: 26px; padding: 0 10px; box-sizing: border-box; border-radius: var(--radius-sm);
+  border: 1px solid rgba(0,0,0,0); font-family: var(--font-mono); font-size: 10.5px; line-height: 1; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+.jw-chip__dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; }
+.jw-chip--treat { color: var(--on-chip-treat); background: var(--chip-treat); border-color: var(--chip-treat-outline); box-shadow: var(--shadow-glow-chip); }
+[data-theme="dark"] .jw-chip--treat { background: radial-gradient(ellipse 80% 130% at 50% 50%, var(--chip-treat), var(--chip-treat-2)); -webkit-backdrop-filter: blur(10px) saturate(150%); backdrop-filter: blur(10px) saturate(150%); }
+.jw-chip--shell { color: var(--on-shell); border-color: var(--shell-edge); background: linear-gradient(160deg, rgba(52,64,95,.88), rgba(18,20,27,.88)); -webkit-backdrop-filter: blur(10px) saturate(140%); backdrop-filter: blur(10px) saturate(140%); }
+.jw-chip--keep { color: var(--on-land-soft); background: var(--land-soft); }
+.jw-chip--queued { color: var(--text-muted); border-color: var(--line-strong); }
+.jw-chip--selected { color: var(--text); background: var(--surface); box-shadow: inset 0 0 0 2px var(--selected), 0 0 0 1px var(--selected-hairline); }
+.jw-chip--success, .jw-chip--warning, .jw-chip--error { border-color: var(--line); background: var(--surface); }
+.jw-chip--success { color: var(--success); } .jw-chip--warning { color: var(--warning); } .jw-chip--error { color: var(--error); }
+
+/* ---- photo, survey map, plant markers ---- */
+.jw-photo { position: relative; overflow: hidden; border-radius: var(--radius-md); }
+.jw-photo > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+[data-theme="dark"] .jw-photo > img { filter: brightness(var(--photo-brightness-dark)); }
+.jw-map__counts { position: absolute; left: 12px; bottom: 12px; z-index: 2; display: flex; flex-wrap: wrap; gap: 6px; }
+.jw-marker { position: absolute; z-index: 1; width: 18px; height: 18px; margin: -9px 0 0 -9px; padding: 0; border: 0; border-radius: var(--radius-round); cursor: pointer; appearance: none;
+  background: radial-gradient(circle, var(--marker-core) 0%, var(--marker-core) 38%, var(--marker-ring) 46%, var(--marker-ring-outer) 54%, rgba(0,0,0,0) 72%);
+  box-shadow: var(--shadow-glow-marker); transition: box-shadow calc(var(--duration-glow) * 1.5) ease-out; }
+.jw-marker::after { content: ""; position: absolute; inset: -6px; border-radius: inherit; border: 1.5px solid var(--marker-ping); animation: jw-ping var(--duration-ping) ease-out infinite; pointer-events: none; }
+.jw-marker:hover, .jw-marker:focus-visible, .jw-marker--selected { outline: none; box-shadow: var(--shadow-glow-marker-hover); transition-duration: var(--duration-glow);
+  background: radial-gradient(circle, var(--marker-core) 0%, var(--marker-core) 38%, var(--glow-100) 46%, var(--glow-400) 54%, rgba(0,0,0,0) 72%); }
+.jw-marker--selected::before { content: ""; position: absolute; inset: -5px; border-radius: inherit; box-shadow: inset 0 0 0 2px var(--selected), 0 0 0 1px var(--selected-hairline); pointer-events: none; }
+.jw-marker:focus-visible { box-shadow: var(--shadow-glow-marker-hover), 0 0 0 7px var(--focus); }
+.jw-marker--keep, .jw-marker--keep:hover, .jw-marker--keep:focus-visible, .jw-marker--keep.jw-marker--selected { background: radial-gradient(circle, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 40%, var(--juniper-100) 46%, var(--juniper-100) 56%, rgba(0,0,0,0) 62%); box-shadow: 0 0 0 1px rgba(26,11,5,.25); }
+.jw-marker--keep:hover { background: radial-gradient(circle, rgba(221,226,211,.25) 0%, rgba(221,226,211,.25) 40%, var(--juniper-50) 46%, var(--juniper-100) 56%, rgba(0,0,0,0) 62%); }
+.jw-marker--keep::after { display: none; }
+.jw-marker__tip { position: absolute; left: 50%; bottom: calc(100% + 10px); transform: translateX(-50%); padding: 4px 8px; border-radius: var(--radius-sm); background: var(--surface); color: var(--text);
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; box-shadow: var(--shadow-raise); opacity: 0; pointer-events: none; transition: opacity var(--duration-hover); }
+.jw-marker:hover .jw-marker__tip, .jw-marker:focus-visible .jw-marker__tip { opacity: 1; }
+
+/* ---- meter ---- */
+.jw-meter-block { display: flex; flex-direction: column; gap: 8px; }
+.jw-meter-block__line { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; color: var(--text-body); }
+.jw-meter { position: relative; height: 12px; border-radius: var(--radius-round); background: var(--surface-sunken); box-shadow: var(--shadow-well); }
+.jw-meter__fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: inherit; transition: width 900ms cubic-bezier(.2,.7,.2,1);
+  background: linear-gradient(180deg, var(--meter-rim) 0%, rgba(0,0,0,0) 45%), linear-gradient(90deg, var(--meter-start) 0%, var(--meter-mid) 55%, var(--meter-end) 100%); box-shadow: var(--shadow-glow-meter); }
+[data-theme="dark"] .jw-meter__fill { background: linear-gradient(180deg, var(--meter-rim) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 70%, var(--meter-rim) 100%), linear-gradient(90deg, var(--meter-start) 0%, var(--meter-mid) 55%, var(--meter-end) 100%); }
+
+/* ---- surfaces: cards, tint callouts, and sheen bands that hold them ---- */
+.jw-surface { position: relative; border-radius: var(--radius-md); }
+.jw-surface--card { color: var(--text); background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-raise); }
+.jw-surface--tint { color: var(--text); background: var(--action-tint); border: 1px solid var(--action-tint-outline); }
+a.jw-surface--card, a.jw-surface--tint { display: block; text-decoration: none; transition: border-color var(--duration-hover) ease; }
+a.jw-surface--card:hover { border-color: var(--line-strong); }
+a.jw-surface--tint:hover { border-color: var(--action-ghost-outline); }
+.jw-surface--band-shell, .jw-surface--band-agave { isolation: isolate; overflow: hidden; border-radius: var(--radius-lg); padding: var(--space-14) var(--space-6); }
+.jw-surface--band-shell { background: linear-gradient(155deg, var(--shell-band-1) 0%, var(--shell-band-2) 30%, var(--shell-band-3) 62%, var(--shell-band-4) 100%); box-shadow: inset 0 1px 0 var(--shell-highlight); }
+.jw-surface--band-agave { background: linear-gradient(155deg, var(--agave-band-1) 0%, var(--agave-band-2) 32%, var(--agave-2) 62%, var(--agave-band-4) 100%); box-shadow: inset 0 1px 0 var(--agave-highlight); }
+.jw-surface--band-shell::before, .jw-surface--band-agave::before { content: ""; position: absolute; z-index: -1; left: -20%; top: 18%; width: 140%; height: 22px; transform: rotate(-10deg); filter: blur(8px); pointer-events: none;
+  background: linear-gradient(90deg, rgba(0,0,0,0), var(--shell-streak), rgba(0,0,0,0)); }
+.jw-surface--band-agave::before { background: linear-gradient(90deg, rgba(0,0,0,0), var(--agave-streak), rgba(0,0,0,0)); }
+.jw-surface--band-shell::after, .jw-surface--band-agave::after { content: ""; position: absolute; inset: 0; z-index: -1; background: url(../assets/textures/grain.png) 0 0 / 240px 240px; mix-blend-mode: soft-light; opacity: var(--grain-opacity-ground); pointer-events: none; }
+.jw-surface--band-shell .jw-surface--card, .jw-surface--band-agave .jw-surface--card { border-color: rgba(0,0,0,0); box-shadow: var(--shadow-raise-on-band); }
+@media (min-width: 900px) { .jw-surface--band-shell, .jw-surface--band-agave { padding: var(--space-20) var(--space-10); } }
+
+/* ---- nav bar ---- */
+.jw-nav { position: relative; isolation: isolate; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3) var(--space-4); padding: var(--space-3) var(--space-5); background: var(--surface); border-bottom: 1px solid var(--line); }
+[data-theme="dark"] .jw-nav { background: linear-gradient(160deg, var(--shell-1) 0%, var(--shell-2) 42%, var(--shell-3) 100%); border-bottom-color: var(--shell-edge); }
+[data-theme="dark"] .jw-nav::after { content: ""; position: absolute; inset: 0; z-index: -1; background: url(../assets/textures/grain.png) 0 0 / 240px 240px; mix-blend-mode: soft-light; opacity: var(--grain-opacity); pointer-events: none; }
+.jw-nav__brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.jw-nav__links { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-4) var(--space-5); font-size: 15px; }
+.jw-nav__link { color: var(--text-body); text-decoration: none; }
+[data-theme="dark"] .jw-nav__link { color: var(--on-shell); opacity: .82; }
+.jw-nav__link:hover { color: var(--text); opacity: 1; }
+.jw-nav__link[aria-current="page"] { color: var(--land); opacity: 1; }
+.jw-nav__link:focus-visible, .jw-nav__menu:focus-visible { outline: none; border-radius: var(--radius-xs); box-shadow: var(--shadow-focus); }
+.jw-nav__menu { display: none; appearance: none; height: 32px; padding: 0 12px; border-radius: var(--radius-sm); border: 1px solid var(--line-strong); background: rgba(0,0,0,0); color: var(--text);
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; }
+[data-theme="dark"] .jw-nav__menu { color: var(--on-shell); border-color: var(--shell-edge); }
+@media (max-width: 640px) {
+  .jw-nav__menu { display: inline-flex; align-items: center; }
+  .jw-nav__links { display: none; width: 100%; flex-direction: column; align-items: flex-start; padding-top: var(--space-2); }
+  .jw-nav.is-open .jw-nav__links { display: flex; }
+}
+
+/* ---- field ---- */
+.jw-field { display: flex; flex-direction: column; gap: 6px; }
+.jw-field__label { font-size: 15px; font-weight: 500; line-height: 1.4; color: var(--text); }
+.jw-field__hint { font-size: 13.5px; line-height: 1.5; color: var(--text-muted); }
+.jw-field__error { font-size: 13.5px; line-height: 1.5; color: var(--error); }
+.jw-input-wrap { position: relative; display: flex; align-items: center; }
+.jw-input { width: 100%; height: 44px; padding: 0 12px; box-sizing: border-box; border-radius: var(--radius-sm); border: 1px solid var(--line-strong); background: var(--surface-input);
+  color: var(--text); font-family: var(--font-body); font-size: 16px; transition: border-color var(--duration-hover) ease, box-shadow var(--duration-hover) ease; }
+.jw-input::placeholder { color: var(--text-muted); }
+.jw-input--suffixed { padding-right: 48px; }
+.jw-input__suffix { position: absolute; right: 12px; font-family: var(--font-mono); font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); pointer-events: none; }
+.jw-input:focus { outline: none; border-color: var(--focus); box-shadow: var(--shadow-focus); }
+.jw-field--error .jw-input { border-color: var(--error); }
+
+/* ---- theme toggle ---- */
+.jw-toggle { display: inline-flex; gap: 3px; padding: 3px; border-radius: var(--radius-sm); background: var(--surface-sunken); box-shadow: var(--shadow-well); }
+.jw-toggle__opt { appearance: none; border: 0; display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px; border-radius: var(--radius-xs); background: rgba(0,0,0,0); color: var(--text-muted);
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; transition: background-color var(--duration-hover) ease, color var(--duration-hover) ease; }
+.jw-toggle__opt:hover { color: var(--text); }
+.jw-toggle__opt.is-on { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.14); }
+[data-theme="dark"] .jw-toggle__opt.is-on { background: linear-gradient(160deg, var(--shell-1) 0%, var(--shell-2) 42%, var(--shell-3) 100%); color: var(--on-shell); }
+.jw-toggle__opt:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+.jw-toggle__lamp { width: 7px; height: 7px; border-radius: 50%; background: var(--line-strong); transition: background-color var(--duration-glow) ease-out, box-shadow var(--duration-glow) ease-out; }
+.jw-toggle__opt--light.is-on .jw-toggle__lamp { background: var(--tip-500); }
+.jw-toggle__opt--dark.is-on .jw-toggle__lamp { background: var(--glow-500); box-shadow: 0 0 8px 2px rgba(255,120,30,.7); }
+
+/* ---- motion ---- */
+@keyframes jw-ping { 0% { transform: scale(.6); opacity: .9; } 100% { transform: scale(1.9); opacity: 0; } }
+@keyframes jw-breathe { 0%, 100% { opacity: .15; transform: scale(.96); } 50% { opacity: .55; transform: scale(1.03); } }
+@keyframes jw-flicker-day { 0% { opacity: 0; } 3.5% { opacity: .75; } 5.5% { opacity: .08; } 8.5% { opacity: .9; } 11% { opacity: .2; } 13.5% { opacity: .62; } 15.5% { opacity: .3; } 19% { opacity: 1; } 64% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes jw-flicker-night { 0% { opacity: 0; } 3.5% { opacity: .7; } 5.5% { opacity: .08; } 8.5% { opacity: .9; } 11% { opacity: .2; } 13.5% { opacity: .62; } 15.5% { opacity: .3; } 19% { opacity: 1; } 50% { opacity: 1; } 100% { opacity: .88; } }
+@keyframes jw-glint { 0%, 72% { transform: translateX(0); } 100% { transform: translateX(420%); } }
+@media (prefers-reduced-motion: reduce) {
+  .jw-marker::after, .jw-btn__glint::before, [data-theme="dark"] .jw-attn::before, .jw-btn--primary.is-flickering::before { animation: none; }
+  .jw-btn__glint { display: none; }
+  [data-theme="dark"] .jw-attn::before { opacity: .45; transform: none; }
+  .jw-meter__fill { transition: none; }
+}
+
+/* ---- preview frame helpers ---- */
+.jw-demo { padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-4); }
+.jw-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.jw-caption { font-family: var(--font-mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); }
+
+/* ---- lighting: walls, pools, cast shadows, rivets, the tube and the pilot lights (driven by JavelinaWorks.Lighting) ---- */
+.jw-wall { position: relative; isolation: isolate; overflow: hidden; background: #120A07; }
+.jw-wall__canvas { position: absolute; inset: 0; z-index: -2; display: block; width: 100%; height: 100%; }
+.jw-wall--static { background: radial-gradient(120% 90% at 20% 0%, #B5642B 0%, #7A3A18 55%, #4A2210 100%); }
+.jw-wall--static[data-jw-wall="corrugated"] { background: repeating-linear-gradient(90deg, #8C4220 0 24px, #B5642B 48px, #8C4220 96px); }
+[data-theme="dark"] .jw-wall--static { background: radial-gradient(120% 90% at 30% 0%, #3A1C10 0%, #1C0E08 45%, #0E0805 100%); }
+[data-theme="dark"] .jw-wall--static[data-jw-wall="corrugated"] { background: repeating-linear-gradient(90deg, #2A140B 0 24px, #4A2412 48px, #2A140B 96px); }
+
+[data-jw-pool] { position: relative; isolation: isolate; overflow: hidden; }
+.jw-pool { position: absolute; left: 0; top: 0; z-index: -1; width: 1100px; height: 1100px; opacity: 0; pointer-events: none; will-change: transform, opacity; }
+.jw-pool--screen { mix-blend-mode: screen; background: radial-gradient(circle closest-side, rgba(255,122,40,.34) 0%, rgba(255,112,34,.2) 14%, rgba(255,100,30,.09) 32%, rgba(255,95,28,.03) 56%, rgba(255,90,20,0) 100%); }
+.jw-pool--dodge { mix-blend-mode: color-dodge; background: radial-gradient(circle closest-side, rgba(255,152,74,.62) 0%, rgba(255,140,64,.36) 12%, rgba(255,126,52,.16) 28%, rgba(255,118,44,.05) 50%, rgba(255,110,40,0) 76%); }
+.jw-pool--ground.jw-pool--screen { background: radial-gradient(circle closest-side, rgba(255,120,40,.16) 0%, rgba(255,110,34,.08) 18%, rgba(255,100,30,.03) 40%, rgba(255,90,20,0) 70%); }
+
+.jw-lit { position: relative; z-index: 0; --rt: 0; --rb: 0; }
+.jw-lit > .jw-cast { position: absolute; inset: 6px; z-index: -1; border-radius: 6px; background: rgba(0,0,0,.92); filter: blur(16px); opacity: .3; transform: translate3d(0, 12px, 0); will-change: transform, opacity; pointer-events: none; }
+.jw-lit > .jw-cast + .jw-cast { opacity: 0; filter: blur(12px); }
+.jw-lit > .jw-surface--card { box-shadow: none; }
+.jw-lit > .jw-surface--card::before, .jw-lit > .jw-surface--card::after { content: ""; display: block; position: absolute; left: 0; right: 0; height: 46%; z-index: 0; border-radius: inherit; pointer-events: none; will-change: opacity; }
+.jw-lit > .jw-surface--card::before { top: 0; opacity: var(--rt); background: linear-gradient(180deg, rgba(255,140,62,.16) 0%, rgba(255,140,62,.05) 30%, rgba(255,140,62,0) 100%); box-shadow: inset 0 1px 0 rgba(255,170,96,.35); }
+.jw-lit > .jw-surface--card::after { bottom: 0; opacity: var(--rb); background: linear-gradient(0deg, rgba(255,140,62,.14) 0%, rgba(255,140,62,0) 100%); }
+.jw-lit > .jw-surface--card > :not(.jw-rivet) { position: relative; z-index: 1; }
+
+.jw-rivet { position: absolute; z-index: 3; width: 10px; height: 10px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle at 42% 38%, #9C7A35 0%, #7A5C24 45%, #4A3613 100%); box-shadow: inset 0 0 0 1px rgba(255,220,150,.14), 0 1px 1.5px rgba(0,0,0,.7); }
+.jw-rivet::before { content: ""; position: absolute; left: 2px; top: 2px; width: 3px; height: 3px; border-radius: 50%; background: rgba(200,215,255,.22); }
+.jw-rivet i { position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; opacity: 0; will-change: transform, opacity;
+  background: radial-gradient(circle, #FFF4DA 0%, rgba(255,214,140,.9) 30%, rgba(255,170,80,0) 72%); }
+.jw-rivet i + i { background: radial-gradient(circle, #FFE6CC 0%, rgba(255,140,70,.85) 30%, rgba(255,110,40,0) 72%); }
+.jw-rivet i + i + i { background: radial-gradient(circle, #E9FFF0 0%, rgba(120,220,150,.85) 30%, rgba(92,196,138,0) 72%); }
+.jw-rivet--tl { left: 9px; top: 9px; } .jw-rivet--tr { right: 9px; top: 9px; } .jw-rivet--bl { left: 9px; bottom: 9px; } .jw-rivet--br { right: 9px; bottom: 9px; }
+
+.jw-tube-block { display: flex; flex-direction: column; gap: var(--space-6); }
+.jw-tube { height: 40px; }
+.jw-tube__track { position: absolute; left: 26px; right: 26px; top: 13px; height: 14px; border-radius: var(--radius-round);
+  background: linear-gradient(180deg, rgba(255,255,255,.1), rgba(0,0,0,.35) 60%, rgba(255,255,255,.05)), #0B0907; box-shadow: inset 0 0 0 1px rgba(255,220,180,.18), 0 3px 5px rgba(0,0,0,.65); }
+.jw-tube__track::after { content: ""; position: absolute; left: 6px; right: 6px; top: 2px; height: 2px; border-radius: 2px; background: rgba(255,255,255,.16); pointer-events: none; }
+.jw-tube__fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: inherit; transition: width 1.4s cubic-bezier(.2,.7,.2,1);
+  background: linear-gradient(180deg, rgba(255,214,150,.95) 0%, rgba(255,160,70,0) 35%, rgba(255,160,70,0) 65%, rgba(255,214,150,.9) 100%), linear-gradient(90deg, #C2421A 0%, #F06A1E 55%, #FF8A2A 100%);
+  box-shadow: 0 0 9px 2px rgba(255,100,24,.42), 0 0 20px rgba(255,90,20,.16); }
+.jw-tube__clamp { position: absolute; top: 4px; width: 26px; height: 32px; border-radius: var(--radius-sm); background: linear-gradient(180deg, #A88433 0%, #8A6A2A 45%, #5E4418 100%);
+  box-shadow: inset 0 1px 0 rgba(255,230,170,.35), inset 0 -1px 0 rgba(0,0,0,.3), 0 3px 5px rgba(0,0,0,.6); }
+.jw-tube__clamp--l { left: 4px; } .jw-tube__clamp--r { right: 4px; }
+.jw-tube__clamp .jw-rivet { left: 8px; top: 11px; }
+.jw-plate { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; padding: 18px 28px; }
+.jw-plate__label { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+.jw-plate__value { font-family: var(--font-display); font-weight: 500; font-size: 30px; line-height: 1; font-variant-numeric: tabular-nums; }
+.jw-plate__value small { font-size: 16px; color: var(--text-muted); }
+
+.jw-pilot { position: absolute; left: 7px; top: 10px; width: 12px; height: 12px; border-radius: 50%; background: radial-gradient(circle at 45% 40%, #2C3A30 0%, #141B16 70%); box-shadow: 0 0 0 2px #5E4418, 0 0 0 3px rgba(255,230,170,.25); }
+.jw-pilot::before { content: ""; position: absolute; inset: 1px; border-radius: 50%; background: radial-gradient(circle at 42% 38%, #F0FFF4 0%, #9BE6B4 28%, #5CC48A 55%, #1F6B3A 100%);
+  box-shadow: 0 0 5px 1px rgba(92,196,138,.6), 0 0 11px rgba(92,196,138,.24); opacity: 0; transition: opacity .6s ease-out; }
+.jw-pilot.is-on::before { opacity: 1; }
+.jw-status { display: inline-flex; align-items: center; gap: 12px; padding: 8px 14px 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--shell-edge);
+  background: linear-gradient(160deg, var(--shell-1) 0%, var(--shell-2) 42%, var(--shell-3) 100%); box-shadow: var(--shadow-sheen-shell), 0 6px 18px rgba(0,0,0,.32); }
+/* text never sits straight on a wall: the label rides on its own shell plate, so it reads on any wall, by day or at night */
+.jw-pilot--status { position: relative; left: auto; top: auto; flex: none; width: 14px; height: 14px; }
+.jw-pilot--status::before { opacity: var(--blink, 1); transition: none; }
+.jw-status__label { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--on-shell); }
+@media (prefers-reduced-motion: reduce) { .jw-tube__fill { transition: none; } }
