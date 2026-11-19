@@ -92,19 +92,16 @@ const {
     import HSAccordion from "preline/plugins/accordion-non-auto";
 
     document.addEventListener("DOMContentLoaded", () => {
-      const accordions = document.querySelectorAll(".hs-accordion");
-
-      accordions?.forEach((accordion) => {
-        setTimeout(() => {
-          const { element } = HSAccordion.getInstance(
-            `#${accordion.getAttribute("id")}`,
-            true,
-          );
-
-          element.on("open", () => {
-            AOS.refresh();
-          });
-        }, 1000);
+      // Don't wait on GlobalScripts' per-part import: init here (autoInit
+      // skips accordions that already have an instance), then attach.
+      HSAccordion.autoInit();
+      document.querySelectorAll(".hs-accordion").forEach((accordion) => {
+        HSAccordion.getInstance(
+          `#${accordion.getAttribute("id")}`,
+          true,
+        )?.element?.on("open", () => {
+          AOS.refresh();
+        });
       });
     });
   </script>

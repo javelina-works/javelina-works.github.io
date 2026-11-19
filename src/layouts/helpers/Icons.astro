@@ -31,7 +31,9 @@ const escape = (value: unknown) =>
   String(value)
     .replace(/&/g, "&amp;")
     .replace(/"/g, "&quot;")
-    .replace(/</g, "&lt;");
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/'/g, "&#39;");
 
 const children = Array.isArray(node)
   ? node
