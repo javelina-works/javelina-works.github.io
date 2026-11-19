@@ -27,15 +27,17 @@ test.beforeEach(async ({ page }) => {
   );
 });
 
-test("first visit shows the banner; Accept all stores everything on", async ({
+test("first visit shows the short notice; OK stores everything on", async ({
   page,
 }) => {
   await page.goto("/");
   await expect(banner(page)).toBeVisible();
-  await expect(page.getByRole("button", { name: "Accept all" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Customize" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "OK", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Choices" })).toBeVisible();
 
-  await page.getByRole("button", { name: "Accept all" }).click();
+  await page.getByRole("button", { name: "OK", exact: true }).click();
   await expect(banner(page)).toBeHidden();
   expect(await stored(page)).toMatchObject({ analytics: true, replay: true });
 
@@ -50,11 +52,41 @@ test("closing the banner keeps the defaults on", async ({ page }) => {
   expect(await stored(page)).toMatchObject({ analytics: true, replay: true });
 });
 
-test("Customize lets the visitor keep analytics but drop recordings", async ({
+test("browsing to a second page closes the notice and keeps the defaults", async ({
   page,
 }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Customize" }).click();
+  await expect(banner(page)).toBeVisible();
+  expect(await stored(page)).toBeNull();
+
+  await page.goto("/privacy-policy/");
+  await expect(banner(page)).toBeHidden();
+  expect(await stored(page)).toMatchObject({ analytics: true, replay: true });
+});
+
+test("a reload or a later visit does not count as browsing on", async ({
+  browser,
+}) => {
+  const context = await browser.newContext({ timezoneId: "America/Chicago" });
+  const page = await context.newPage();
+  await page.goto("/");
+  await page.reload();
+  await expect(banner(page)).toBeVisible();
+  expect(await stored(page)).toBeNull();
+
+  // A new tab is a new visit: sessionStorage starts empty.
+  const later = await context.newPage();
+  await later.goto("/privacy-policy/");
+  await expect(banner(later)).toBeVisible();
+  expect(await stored(later)).toBeNull();
+  await context.close();
+});
+
+test("Choices lets the visitor keep analytics but drop recordings", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Choices" }).click();
   const analytics = page.locator("#cookie-opt-analytics");
   const replay = page.locator("#cookie-opt-replay");
   await expect(analytics).toBeChecked();
@@ -68,7 +100,7 @@ test("Customize lets the visitor keep analytics but drop recordings", async ({
 
 test("turning analytics off also turns recordings off", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Customize" }).click();
+  await page.getByRole("button", { name: "Choices" }).click();
   await page.locator("#cookie-opt-analytics").uncheck();
   await expect(page.locator("#cookie-opt-replay")).toBeDisabled();
   await expect(page.locator("#cookie-opt-replay")).not.toBeChecked();
@@ -128,11 +160,32 @@ test.describe("prior-consent regions", () => {
     });
   });
 
-  test("Customize starts with both switches off; Accept all turns them on", async ({
+  test("the notice stays on later pages until they answer", async ({
     page,
   }) => {
     await page.goto("/");
-    await page.getByRole("button", { name: "Customize" }).click();
+    await page.goto("/privacy-policy/");
+    await expect(banner(page)).toBeVisible();
+    expect(await stored(page)).toBeNull();
+  });
+
+  test("the notice asks for explicit consent: Accept all, not OK", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await expect(
+      page.getByRole("button", { name: "Accept all" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "OK", exact: true }),
+    ).toHaveCount(0);
+  });
+
+  test("Choices starts with both switches off; Accept all turns them on", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Choices" }).click();
     await expect(page.locator("#cookie-opt-analytics")).not.toBeChecked();
     await expect(page.locator("#cookie-opt-replay")).not.toBeChecked();
     await page.getByRole("button", { name: "Accept all" }).click();

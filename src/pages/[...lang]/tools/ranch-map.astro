@@ -279,7 +279,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
             </label>
           </div>
 
-          <div class="rm-sec">
+          <div class="rm-sec rm-sec-print">
             <h2>Print</h2>
             <div class="printrow">
               <select id="paper" aria-label="Paper size">
@@ -346,6 +346,9 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
               Print preview
             </button>
           </div>
+          <button type="button" class="rm-mprint" id="mPrintNow">
+            Print or save as PDF
+          </button>
           <div class="pgwrap" id="pgwrap" hidden>
             <div class="page" id="page" data-style="survey">
               <canvas id="pcanvas" aria-label="Print map"></canvas>
@@ -375,7 +378,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
                 id="map"
                 width="1688"
                 height="1288"
-                aria-label="Ranch map. Scroll or pinch to zoom, drag to pan."></canvas>
+                aria-label="Ranch map. Scroll or pinch to zoom, drag to pan. On a phone, use two fingers to move it."></canvas>
               <div class="zoom" aria-label="Map zoom">
                 <button type="button" id="zIn" aria-label="Zoom in">
                   +
@@ -393,6 +396,11 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
               <span class="zhint" id="zHint">
                 Scroll or pinch to zoom · drag to pan
               </span>
+              <script is:inline>
+                if (window.matchMedia("(pointer: coarse)").matches)
+                  document.getElementById("zHint").textContent =
+                    "Pinch to zoom · two fingers to move";
+              </script>
               <div class="loading" id="loading" hidden>
                 <ol id="steps"></ol>
               </div>
@@ -415,7 +423,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
           <p class="note" id="pageNote"></p>
         </main>
       </div>
-      <div class="toast" id="toast" hidden></div>
+      <div class="toast" id="toast" role="status" hidden></div>
     </div>
   </section>
 </Base>
@@ -457,6 +465,11 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
     .rm-tool {
       grid-template-columns: 1fr;
     }
+    /* Phones: the address box comes first, so it is on screen without
+       scrolling past the map (replays showed visitors hunting for it). */
+    .rm-panel {
+      order: -1;
+    }
   }
   .rm-mapcard {
     background: var(--color-light);
@@ -470,7 +483,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
   }
   @media (max-width: 900px) {
     #rmLookupMap {
-      height: 360px;
+      height: 320px;
     }
   }
   .rm-panel {
@@ -707,8 +720,37 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
   @media (max-width: 900px) {
     #rmStudio .rail {
       border-right: 0;
-      border-bottom: 1px solid var(--line);
+      border-top: 1px solid var(--line);
     }
+    /* Phones: the map comes first and Print sits right under it, instead
+       of below the whole list of styles and layers. */
+    #rmStudio .stage {
+      order: -1;
+    }
+    #rmStudio .rm-sec-print {
+      order: -1;
+    }
+  }
+  /* Phones: a Print button beside the view tabs, so it's on screen with
+     the map instead of below the legend. */
+  #rmStudio .rm-mprint {
+    display: none;
+  }
+  @media (max-width: 900px) {
+    #rmStudio .rm-mprint {
+      display: block;
+      min-height: 44px;
+      padding: 0 18px;
+      border-radius: 99px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: inherit;
+      font: 600 0.9rem var(--font-ui);
+      cursor: pointer;
+    }
+  }
+  #rmStudio {
+    scroll-margin-top: 90px;
   }
   #rmStudio .rail h2 {
     font-size: 0.72rem;
@@ -1076,6 +1118,11 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
     cursor: grab;
     touch-action: none;
   }
+  @media (pointer: coarse) {
+    #rmStudio .mapwrap canvas {
+      touch-action: pan-y;
+    }
+  }
   #rmStudio .mapwrap canvas.dragging {
     cursor: grabbing;
   }
@@ -1100,6 +1147,16 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
   }
   #rmStudio .zoom button:hover {
     background: #fff;
+  }
+  @media (pointer: coarse) {
+    #rmStudio .zoom {
+      gap: 8px;
+    }
+    #rmStudio .zoom button {
+      width: 44px;
+      height: 44px;
+      font-size: 22px;
+    }
   }
   #rmStudio .zhint {
     position: absolute;
@@ -1481,7 +1538,8 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
     border-radius: 10px;
     font-size: 0.82rem;
     max-width: min(520px, calc(100% - 32px));
-    z-index: 11;
+    /* Above the cookie banner (z 5000), which can sit at the bottom. */
+    z-index: 5001;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
   }
   @media (prefers-reduced-motion: no-preference) {
@@ -2102,7 +2160,14 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
     el("rmFind").addEventListener("submit", function (e) {
       e.preventDefault();
       var q = el("rmAddr").value.trim();
-      if (!q) return;
+      if (!q) {
+        say(
+          "Type an address, town, or GPS point first, or tap the map.",
+          "warn",
+        );
+        el("rmAddr").focus();
+        return;
+      }
       var ll = parseLatLng(q);
       say("Looking that up…");
       var t0 = Date.now();

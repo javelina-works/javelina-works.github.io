@@ -8,8 +8,6 @@
   document.addEventListener("DOMContentLoaded", async () => {
     // Each init is isolated so one failed chunk (e.g. deploy skew) does not
     // stop the rest of the page from becoming interactive.
-    await safeInit("lucide", initLucide);
-
     // Dynamic Preline imports
     await safeInit("preline", loadPrelineComponents);
 
@@ -65,69 +63,63 @@
       await init();
     } catch (error) {
       console.error(`Failed to initialize ${name}`, error);
-      // Keep the error visible to global error handlers (PostHog, Sentry).
+      // Keep the error visible to global error handlers (PostHog).
       globalThis.reportError?.(error);
     }
   }
 
-  // Lucide Icons
-  async function initLucide() {
-    const iconElems = document.querySelectorAll("[data-lucide]");
-    const lucideModule = await import("lucide");
-
-    iconElems.forEach((iconElem) => {
-      const iconName = iconElem.getAttribute("data-lucide");
-      if (!iconName) return;
-
-      // @ts-expect-error
-      const IconDef = lucideModule[iconName];
-      if (!IconDef) {
-        console.warn(`Lucide icon "${iconName}" not found`);
-        return;
-      }
-
-      const svg = lucideModule.createElement(IconDef, {
-        ...Object.fromEntries(
-          [...iconElem.attributes].map((attr) => [attr.name, attr.value]),
-        ),
-      });
-
-      iconElem.replaceWith(svg);
-    });
-  }
-
-  // Load Preline components dynamically based on DOM content
+  // Load only the Preline parts this page uses. Importing "preline" pulled
+  // in the whole kit (~440 KB unminified, ~90 KB over the wire) for one or
+  // two widgets; each part is its own small module. Each loaded part is also
+  // published on window, as the full bundle did (FormHandle reads
+  // window.HSSelect).
   async function loadPrelineComponents() {
-    const hasComponent = (selectors: string[]) =>
+    const has = (selectors: string[]) =>
       selectors.some((selector) => document.querySelector(selector));
-
-    const preline = await import("preline");
-
-    if (hasComponent([".hs-overlay", "[data-hs-overlay]"])) {
-      preline.HSOverlay?.autoInit();
-    }
-
-    if (hasComponent([".hs-select", "[data-hs-select]"])) {
-      preline.HSSelect?.autoInit();
-    }
-
-    if (
-      hasComponent([
-        "[data-hs-tab]",
-        ".hs-tab",
-        '[role="tablist"] [data-hs-tab]',
-      ])
-    ) {
-      preline.HSTabs?.autoInit();
-    }
-
-    if (hasComponent([".hs-accordion"])) {
-      preline.HSAccordion?.autoInit();
-    }
-
-    if (hasComponent([".hs-collapse", "[data-hs-collapse]"])) {
-      preline.HSCollapse?.autoInit();
-    }
+    const parts: [string[], () => Promise<{ default: any }>, string][] = [
+      [
+        [".hs-overlay", "[data-hs-overlay]"],
+        () => import("preline/plugins/overlay-non-auto"),
+        "HSOverlay",
+      ],
+      [
+        [".hs-select", "[data-hs-select]"],
+        () => import("preline/plugins/select-non-auto"),
+        "HSSelect",
+      ],
+      [
+        ["[data-hs-tab]", ".hs-tab", '[role="tablist"] [data-hs-tab]'],
+        () => import("preline/plugins/tabs-non-auto"),
+        "HSTabs",
+      ],
+      [
+        [".hs-accordion"],
+        () => import("preline/plugins/accordion-non-auto"),
+        "HSAccordion",
+      ],
+      [
+        [".hs-collapse", "[data-hs-collapse]"],
+        () => import("preline/plugins/collapse-non-auto"),
+        "HSCollapse",
+      ],
+    ];
+    await Promise.all(
+      parts
+        .filter(([selectors]) => has(selectors))
+        // Each part on its own, so one failed chunk doesn't leave the
+        // others uninitialized. reportError lets the stale-chunk reload and
+        // PostHog see the failure.
+        .map(async ([, load, name]) => {
+          try {
+            const Part = (await load()).default;
+            window[name] = Part;
+            Part?.autoInit();
+          } catch (error) {
+            console.error(`Failed to initialize Preline ${name}`, error);
+            globalThis.reportError?.(error);
+          }
+        }),
+    );
   }
 
   // Horizontal scroll with shift + wheel

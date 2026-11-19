@@ -20,12 +20,14 @@ const fonts = fontsJson.map((font) => ({
   cssVariable: font.cssVariable as any,
   preload: font.preload === true,
 }));
+import StaleChunkReload from "@/components/global/StaleChunkReload.astro";
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    {import.meta.env.PROD && <StaleChunkReload />}
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=5"

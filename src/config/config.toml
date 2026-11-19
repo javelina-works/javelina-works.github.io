@@ -1,14 +1,14 @@
 # Site Configuration
 [site]
   title            = "Javelina Works" # Shared title for SEO and OpenGraph
-  description      = "Drone brush management for West Texas ranches. Javelina Works maps every mesquite, cedar and juniper from the air and treats them one plant at a time, from Fort Davis, Texas." # Shared description for SEO and OpenGraph
-  tagline          = "Brush Management in West Texas"
+  description      = "Precision drone brush management for Texas ranches. Javelina Works maps every mesquite, cedar and juniper from the air and treats them one plant at a time, from Fort Davis, Texas." # Shared description for SEO and OpenGraph
+  tagline          = "Precision Brush Management for Texas Ranches"
   taglineSeparator = "" # default is " - "
   baseUrl          = "https://javelinaworks.com" # Base URL for the site and used in OpenGraph meta tags.
   logo             = "/images/logo.png" # Path to the site's logo (square, transparent)
   logoText         = "Javelina Works" # Text displayed next to the logo
-  logoWidth        = "2rem" # Width of the logo
-  logoHeight       = "2rem" # Height of the logo
+  logoWidth        = "2.5rem" # Width of the logo
+  logoHeight       = "2.5rem" # Height of the logo
 
   # Add a trailing slash at the end of URLs (e.g., https://example.com/, https://example.com/contact/)
   # Note: Manually restart your server when you change this value
