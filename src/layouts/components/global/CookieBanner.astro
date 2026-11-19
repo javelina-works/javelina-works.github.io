@@ -251,6 +251,23 @@
       el("cookie-accept").textContent = "Accept all";
     }
 
-    if (!read()) show("summary");
+    // Where the defaults are on, the notice shows on the first page only:
+    // going on to another page in the same visit keeps the defaults, like
+    // closing it. The marker holds the page the notice was shown on, in
+    // sessionStorage, so a reload or a later visit does not count. If the
+    // choice can't be saved, the notice shows again. Prior-consent visitors
+    // keep seeing it until they answer.
+    var SEEN_KEY = "cookie-banner-seen";
+    if (!read()) {
+      var shownOn = null;
+      try {
+        shownOn = sessionStorage.getItem(SEEN_KEY);
+        if (!shownOn) sessionStorage.setItem(SEEN_KEY, location.pathname);
+      } catch (e) {}
+      if (defaultsOn && shownOn && shownOn !== location.pathname) {
+        choose(defaults(), "continued");
+        if (!read()) show("summary");
+      } else show("summary");
+    }
   })();
 </script>
