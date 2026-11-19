@@ -21,8 +21,11 @@ interface Props {
 const { icon, ...restProps } = Astro.props;
 // Same default as Lucide's browser replace: decorative unless the caller
 // gives it accessibility semantics.
-const labelled = Object.keys(restProps).some(
-  (key) => key.startsWith("aria-") || key === "role" || key === "title",
+// A nullish value (a wrapper forwarding an unset prop) doesn't count.
+const labelled = Object.entries(restProps).some(
+  ([key, value]) =>
+    value != null &&
+    (key.startsWith("aria-") || key === "role" || key === "title"),
 );
 
 const node = (lucide as unknown as Record<string, IconNode | undefined>)[
