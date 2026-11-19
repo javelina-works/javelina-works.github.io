@@ -75,8 +75,11 @@
       var msg = (e.reason && e.reason.message) || "";
       if (importFailed(msg)) reloadOnce("import");
     });
-    window.addEventListener("vite:preloadError", function () {
-      reloadOnce("preload");
+    // Vite puts the failing error in e.payload; same URL rule as above.
+    window.addEventListener("vite:preloadError", function (e) {
+      var msg = (e && e.payload && e.payload.message) || "";
+      var url = msg.match(/https?:\/\/[^\s'"]+/);
+      if (!url || ours(url[0])) reloadOnce("preload");
     });
   })();
 </script>

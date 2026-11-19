@@ -199,7 +199,9 @@ const { embed = false } = Astro.props;
       disable_conversations: true,
       // Surveys load only on the tool pages, the one place we plan to run
       // them; elsewhere their script is never fetched.
-      disable_surveys: location.pathname.indexOf("/tools/") !== 0,
+      disable_surveys: !/^(\/[a-z]{2}(-[A-Za-z]+)?)?\/tools\//.test(
+        location.pathname,
+      ),
       loaded: function (ph) {
         // PostHog remembers its own opt-out from an earlier choice; a saved
         // acceptance (or no choice) must win over that. Only the loaded

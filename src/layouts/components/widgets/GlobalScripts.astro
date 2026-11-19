@@ -106,10 +106,18 @@
     await Promise.all(
       parts
         .filter(([selectors]) => has(selectors))
+        // Each part on its own, so one failed chunk doesn't leave the
+        // others uninitialized. reportError lets the stale-chunk reload and
+        // PostHog see the failure.
         .map(async ([, load, name]) => {
-          const Part = (await load()).default;
-          window[name] = Part;
-          Part?.autoInit();
+          try {
+            const Part = (await load()).default;
+            window[name] = Part;
+            Part?.autoInit();
+          } catch (error) {
+            console.error(`Failed to initialize Preline ${name}`, error);
+            globalThis.reportError?.(error);
+          }
         }),
     );
   }

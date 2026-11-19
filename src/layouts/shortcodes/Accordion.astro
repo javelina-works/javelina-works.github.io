@@ -75,11 +75,15 @@ const isExpanded = expanded === "true";
   import HSAccordion from "preline/plugins/accordion-non-auto";
 
   window.addEventListener("load", () => {
+    // GlobalScripts may not have run autoInit yet (it imports Preline
+    // per part); autoInit skips accordions that already have an instance.
+    HSAccordion.autoInit();
     const accordions = document.querySelectorAll(".hs-accordion");
 
     // Close other accordions when one is opened of the same group
     accordions.forEach((currentAccordion) => {
-      const { element } = HSAccordion.getInstance(currentAccordion, true);
+      const element = HSAccordion.getInstance(currentAccordion, true)?.element;
+      if (!element) return;
 
       element.on("open", () => {
         const group = currentAccordion.getAttribute("data-group");
@@ -91,12 +95,10 @@ const isExpanded = expanded === "true";
 
           accordions.forEach((accordion) => {
             if (accordion !== element.el) {
-              const { element: elem } = HSAccordion.getInstance(
+              HSAccordion.getInstance(
                 `#${accordion.getAttribute("id")}`,
                 true,
-              );
-
-              elem.hide();
+              )?.element?.hide();
             }
           });
         }
