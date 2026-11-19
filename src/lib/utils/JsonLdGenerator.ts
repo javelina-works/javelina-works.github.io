@@ -27,6 +27,7 @@ export type JSONLDProps = {
   headline?: string; // On-page title, used as the article/service name
   description?: string; // Description of the page
   image?: string; // Absolute image URL
+  logo?: string; // Absolute URL of the organization logo (defaults to config.site.logo)
   categories?: string[]; // Categories for articles
   author?: string; // Author name for articles
   pageType?: string; // Optional override: "home" | "article" | "service" | "faq" | "page"
@@ -106,6 +107,7 @@ export default function JsonLdGenerator(content: JSONLDProps, Astro: any) {
     headline = "",
     description = "",
     image = "",
+    logo = "",
     pageType = "",
     lang,
     alternateLangs = [], // Array of alternate language URLs
@@ -166,7 +168,7 @@ export default function JsonLdGenerator(content: JSONLDProps, Astro: any) {
     sameAs: social.main.filter((item) => item.enable).map((item) => item.url),
     logo: {
       "@type": "ImageObject",
-      url: absoluteUrl(config.site.logo, Astro),
+      url: logo || absoluteUrl(config.site.logo, Astro),
     },
   };
 

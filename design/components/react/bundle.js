@@ -1,6 +1,6 @@
 /* @ds-bundle: {"format":4,"namespace":"JavelinaWorks","components":[{"name":"Button"},{"name":"Chip"},{"name":"SurveyMap"},{"name":"Meter"},{"name":"Surface"},{"name":"NavBar"},{"name":"Field"},{"name":"ThemeToggle"},{"name":"LightScene"},{"name":"LampWall"},{"name":"LightTube"},{"name":"StatusLight"},{"name":"Rivet"}]} */
 (() => {
-  // project/components/src/lighting.js
+  // design/components/lighting.js
   var NOISE = [
     "vec3 mod289(vec3 x){return x-floor(x*(1.0/289.0))*289.0;}vec2 mod289(vec2 x){return x-floor(x*(1.0/289.0))*289.0;}vec3 permute(vec3 x){return mod289(((x*34.0)+1.0)*x);}",
     /* 2D simplex noise: Ian McEwan, Ashima Arts (MIT licence) */
@@ -74,6 +74,13 @@
       ["uH", "uRes", "uDpr", "uLp[0]", "uLc[0]", "uLr[0]", "uStyle", "uPeriod", "uAmp", "uDay", "uSun", "uSunC"].forEach((n) => {
         this.u[n] = gl.getUniformLocation(this.pL, n);
       });
+      this.key = "";
+      this.canvas.addEventListener("webglcontextlost", () => {
+        if (this.disposed || !S) return;
+        el.classList.add("jw-wall--static");
+        this.canvas.hidden = true;
+        S.walls.set(el, null);
+      });
     }
     resize() {
       const gl = this.gl, c = this.canvas, dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -82,6 +89,7 @@
       this.w = c.width = w;
       this.h = c.height = h;
       this.dpr = dpr;
+      this.key = "";
       gl.bindTexture(gl.TEXTURE_2D, this.tex);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -134,6 +142,7 @@
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
     dispose() {
+      this.disposed = true;
       const ext = this.gl.getExtension("WEBGL_lose_context");
       if (ext) ext.loseContext();
     }
@@ -151,6 +160,10 @@
       const v = parseFloat(cs.getPropertyValue(n));
       return Number.isFinite(v) ? v : d;
     };
+    const ms = (n, d) => {
+      const s = cs.getPropertyValue(n).trim(), v = parseFloat(s);
+      return Number.isFinite(v) && v > 0 ? /ms$/.test(s) ? v : v * 1e3 : d;
+    };
     S.colors = {
       lamp: hexToRgb(cs.getPropertyValue("--light-lamp"), [1, 0.639, 0.353]),
       tube: hexToRgb(cs.getPropertyValue("--light-tube"), [1, 0.455, 0.16]),
@@ -164,7 +177,8 @@
       tubeHeight: num("--tube-height", 18),
       statusReach: num("--status-reach", 130),
       statusHeight: num("--status-height", 8),
-      corrugation: num("--corrugation", 96)
+      corrugation: num("--corrugation", 96),
+      flicker: ms("--duration-flicker", 2800)
     };
     S.dayTarget = document.documentElement.getAttribute("data-theme") === "dark" ? 0 : 1;
   }
@@ -184,7 +198,6 @@
       let w = null;
       try {
         w = new Wall(el);
-        el.classList.remove("jw-wall--static");
       } catch (e) {
         el.classList.add("jw-wall--static");
         const c = el.querySelector(":scope > canvas.jw-wall__canvas");
@@ -197,27 +210,65 @@
         if (S.ro) S.ro.observe(w.canvas);
       }
     });
-    S.lights = q("[data-jw-light]").map((el) => {
-      const old = S.lightState.get(el) || { flickerStart: null, blinkT0: performance.now(), seen: false };
-      S.lightState.set(el, old);
-      if (el.hasAttribute("data-jw-flicker") && !old.watched) {
-        old.watched = true;
-        const io = new IntersectionObserver((es) => {
-          es.forEach((e) => {
-            if (e.isIntersecting && old.flickerStart === null) {
-              old.flickerStart = S.reduce ? -1e9 : performance.now();
-              io.disconnect();
-              if (!S.reduce) {
-                el.classList.add("is-flickering");
-                el.addEventListener("animationend", () => el.classList.remove("is-flickering"), { once: true });
-              }
-              request();
+    const stateOf = (el) => {
+      let st = S.lightState.get(el);
+      if (!st) {
+        st = { flickerStart: null, blinkT0: performance.now() };
+        S.lightState.set(el, st);
+      }
+      return st;
+    };
+    q("[data-jw-flicker]").forEach((el) => {
+      const st = stateOf(el);
+      if (st.watched) return;
+      st.watched = true;
+      const io = new IntersectionObserver((es) => {
+        es.forEach((e) => {
+          if (e.isIntersecting && st.flickerStart === null) {
+            st.flickerStart = S.reduce ? -1e9 : performance.now();
+            io.disconnect();
+            S.flickerIOs.delete(io);
+            if (!S.reduce) {
+              el.classList.add("is-flickering");
+              el.addEventListener("animationend", () => el.classList.remove("is-flickering"), { once: true });
             }
-          });
-        }, { threshold: 0.6 });
-        io.observe(el);
+            request();
+          }
+        });
+      }, { threshold: 0.6 });
+      io.observe(el);
+      S.flickerIOs.add(io);
+    });
+    S.lights = q("[data-jw-light]").map((el) => {
+      const st = stateOf(el);
+      st.reveal = el.closest("[data-jw-reveal]");
+      if (el.hasAttribute("data-jw-blink") && !S.blinkEls.has(el)) {
+        S.blinkEls.add(el);
+        S.io.observe(el);
       }
       return el;
+    });
+    S.blinkEls.forEach((el) => {
+      if (!el.isConnected || !el.hasAttribute("data-jw-blink")) {
+        S.blinkEls.delete(el);
+        S.io.unobserve(el);
+        S.visible.delete(el);
+      }
+    });
+    q("[data-jw-reveal]").forEach((el) => {
+      if (S.reveals.has(el)) return;
+      S.reveals.add(el);
+      if (S.reduce) return;
+      const r = el.getBoundingClientRect();
+      if (r.width && r.bottom > 0 && r.top < innerHeight) return;
+      el.classList.add("is-pending");
+      S.revealIO.observe(el);
+    });
+    S.reveals.forEach((el) => {
+      if (!el.isConnected) {
+        S.reveals.delete(el);
+        S.revealIO.unobserve(el);
+      }
     });
     q("[data-jw-pool]").forEach((sec) => {
       if (S.pools.has(sec)) return;
@@ -245,14 +296,16 @@
     const out = [], sources = [];
     const day = S.day, P = S.params, C = S.colors;
     S.lights.forEach((el) => {
-      const kind = el.getAttribute("data-jw-light"), st = S.lightState.get(el), r = el.getBoundingClientRect();
+      const kind = el.getAttribute("data-jw-light"), st = S.lightState.get(el);
+      if (st.reveal && st.reveal.classList.contains("is-pending")) return;
+      const r = el.getBoundingClientRect();
       if (!r.width && !r.height) return;
       if (kind === "lamp") {
         let lvl = 1;
         if (el.hasAttribute("data-jw-flicker")) {
           if (st.flickerStart === null) lvl = 0;
           else {
-            const t = (now - st.flickerStart) / 2800;
+            const t = (now - st.flickerStart) / P.flicker;
             lvl = t >= 1 ? 1 : flickAt(Math.max(0, t));
             if (t < 1) S.busy = true;
           }
@@ -284,22 +337,28 @@
         }
       } else {
         let v = 1;
-        if (el.hasAttribute("data-jw-blink") && !S.reduce) {
+        if (el.hasAttribute("data-jw-blink") && !S.reduce && S.visible.has(el)) {
           const t = (now - st.blinkT0) % 3e3;
           if (t < 250) {
             v = ease(t / 250);
-            S.busy = true;
+            S.blinking = true;
           } else if (t < 950) {
             v = 1;
             S.wakeIn = Math.min(S.wakeIn, 950 - t);
           } else if (t < 1400) {
             v = 1 - ease((t - 950) / 450);
-            S.busy = true;
+            S.blinking = true;
           } else {
             v = 0;
             S.wakeIn = Math.min(S.wakeIn, 3e3 - t);
           }
-          el.style.setProperty("--blink", v.toFixed(3));
+        }
+        if (el.hasAttribute("data-jw-blink") && !S.reduce) {
+          const b = v.toFixed(3);
+          if (st.blink !== b) {
+            st.blink = b;
+            el.style.setProperty("--blink", b);
+          }
         }
         const i = v * mix(1, 0.45, day) * (kind === "pilot" ? 0.75 : 1);
         const x = r.left + r.width / 2, y = r.top + r.height / 2;
@@ -312,6 +371,7 @@
   function frame(now) {
     S.queued = false;
     S.busy = false;
+    S.blinking = false;
     S.wakeIn = Infinity;
     S.day += (S.dayTarget - S.day) * 0.1;
     if (Math.abs(S.dayTarget - S.day) < 3e-3) S.day = S.dayTarget;
@@ -333,8 +393,14 @@
     });
     const rivets = S.rivets.filter((v) => v.el.isConnected).map((v) => [v, v.el.getBoundingClientRect()]).filter((a) => a[1].bottom > -50 && a[1].top < innerHeight + 50);
     walls.forEach(([w, r]) => {
-      const near = L.list.slice().sort((a, b) => Math.hypot(a.x - (r.left + r.width / 2), a.y - (r.top + r.height / 2)) - Math.hypot(b.x - (r.left + r.width / 2), b.y - (r.top + r.height / 2))).slice(0, 6);
+      const cx2 = r.left + r.width / 2, cy = r.top + r.height / 2;
+      const reach = (l) => Math.hypot(Math.max(r.left - l.x, 0, l.x - r.right), Math.max(r.top - l.y, 0, l.y - r.bottom)) < 3 * l.r;
+      const near = L.list.filter(reach).sort((a, b) => Math.hypot(a.x - cx2, a.y - cy) - Math.hypot(b.x - cx2, b.y - cy)).slice(0, 6);
+      const key2 = [r.left, r.top, r.width, r.height].map((v) => v.toFixed(1)).join(",") + "|" + day.toFixed(3) + "|" + S.colors.sun.join(",") + "|" + near.map((l) => [l.x, l.y, l.z, l.r].map((v) => v.toFixed(1)).join(",") + "," + l.c.map((v) => v.toFixed(4)).join(",")).join(";");
+      if (key2 === w.key) return;
+      w.key = key2;
       w.draw(near, r, day, S.colors.sun, S.params);
+      if (w.el.classList.contains("jw-wall--static")) w.el.classList.remove("jw-wall--static");
     });
     pools.forEach(([els, r]) => {
       els.forEach((p) => {
@@ -405,11 +471,10 @@
         g.style.opacity = Math.min(1, att * s.i * 1.5).toFixed(3);
       });
     });
+    clearTimeout(S.timer);
     if (S.busy) request();
-    else if (S.wakeIn < Infinity) {
-      clearTimeout(S.timer);
-      S.timer = setTimeout(request, S.wakeIn);
-    }
+    else if (S.blinking) S.timer = setTimeout(request, 33);
+    else if (S.wakeIn < Infinity) S.timer = setTimeout(request, S.wakeIn);
   }
   function request() {
     if (S && !S.queued) {
@@ -433,12 +498,24 @@
       lights: [],
       rivets: [],
       visible: /* @__PURE__ */ new Set(),
+      blinkEls: /* @__PURE__ */ new Set(),
+      reveals: /* @__PURE__ */ new Set(),
+      flickerIOs: /* @__PURE__ */ new Set(),
       day: 0,
       dayTarget: 0,
       queued: false,
       timer: null,
       reduce: !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
     };
+    S.revealIO = new IntersectionObserver((es) => {
+      es.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.classList.remove("is-pending");
+          S.revealIO.unobserve(e.target);
+          request();
+        }
+      });
+    }, { threshold: 0.6 });
     readTheme();
     S.day = S.dayTarget;
     S.ro = typeof ResizeObserver === "function" ? new ResizeObserver(() => {
@@ -486,7 +563,7 @@
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ["data-jw-light", "data-jw-wall", "data-jw-pool", "data-jw-shadow", "data-jw-flicker", "data-jw-blink"]
+      attributeFilter: ["data-jw-light", "data-jw-wall", "data-jw-pool", "data-jw-shadow", "data-jw-flicker", "data-jw-blink", "data-jw-reveal"]
     });
     scan();
     return api;
@@ -507,7 +584,13 @@
     S.io.disconnect();
     if (S.ro) S.ro.disconnect();
     clearTimeout(S.timer);
-    S.walls.forEach((w) => w && w.dispose());
+    S.revealIO.disconnect();
+    S.reveals.forEach((el) => el.classList.remove("is-pending"));
+    S.flickerIOs.forEach((io) => io.disconnect());
+    S.walls.forEach((w, el) => {
+      if (w) w.dispose();
+      el.classList.add("jw-wall--static");
+    });
     S = null;
   }
   function refresh() {
@@ -516,7 +599,7 @@
   var api = { mount, unmount, refresh };
   var lighting_default = api;
 
-  // project/components/src/index.jsx
+  // design/components/react/index.jsx
   var { useState, useEffect, useRef, useCallback } = React;
   var cx = (...a) => a.filter(Boolean).join(" ");
   var prefersReducedMotion = () => typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -602,17 +685,8 @@
   }
   function Meter({ value, max, label, unit = "ac", animate = true, className }) {
     const pct = max > 0 ? Math.max(0, Math.min(100, value / max * 100)) : 0;
-    const [shown, setShown] = useState(animate && !prefersReducedMotion() ? 0 : pct);
-    useEffect(() => {
-      if (!animate || prefersReducedMotion()) {
-        setShown(pct);
-        return;
-      }
-      const id = requestAnimationFrame(() => requestAnimationFrame(() => setShown(pct)));
-      return () => cancelAnimationFrame(id);
-    }, [pct, animate]);
     const fmt = (n) => Number(n).toLocaleString("en-US");
-    return /* @__PURE__ */ React.createElement("div", { className: cx("jw-meter-block", className) }, /* @__PURE__ */ React.createElement("div", { className: "jw-meter-block__line" }, /* @__PURE__ */ React.createElement("span", null, label), /* @__PURE__ */ React.createElement("span", null, fmt(value), " of ", fmt(max), " ", unit)), /* @__PURE__ */ React.createElement("div", { className: "jw-meter", role: "progressbar", "aria-label": label, "aria-valuemin": 0, "aria-valuemax": max, "aria-valuenow": value }, /* @__PURE__ */ React.createElement("div", { className: "jw-meter__fill", style: { width: `${shown}%` } })));
+    return /* @__PURE__ */ React.createElement("div", { className: cx("jw-meter-block", className), "data-jw-reveal": animate ? "" : void 0 }, /* @__PURE__ */ React.createElement("div", { className: "jw-meter-block__line" }, /* @__PURE__ */ React.createElement("span", null, label), /* @__PURE__ */ React.createElement("span", null, fmt(value), " of ", fmt(max), " ", unit)), /* @__PURE__ */ React.createElement("div", { className: "jw-meter", role: "progressbar", "aria-label": label, "aria-valuemin": 0, "aria-valuemax": max, "aria-valuenow": value }, /* @__PURE__ */ React.createElement("div", { className: "jw-meter__fill", style: { width: `${pct}%` } })));
   }
   function Surface({ variant = "card", href, as, castShadow = false, rivets = false, className, children, ...rest }) {
     const band = variant === "band-shell" || variant === "band-agave";
@@ -630,41 +704,88 @@
   }
   function LampWall({ texture = "flake", seed = 3, as = "section", className, children, ...rest }) {
     const Tag = as;
-    return /* @__PURE__ */ React.createElement(Tag, { className: cx("jw-wall", `jw-wall--${texture}`, className), "data-jw-wall": texture, "data-jw-seed": seed, ...rest }, /* @__PURE__ */ React.createElement("canvas", { className: "jw-wall__canvas", "aria-hidden": "true" }), children);
+    return /* @__PURE__ */ React.createElement(Tag, { className: cx("jw-wall", `jw-wall--${texture}`, "jw-wall--static", className), "data-jw-wall": texture, "data-jw-seed": seed, ...rest }, /* @__PURE__ */ React.createElement("canvas", { className: "jw-wall__canvas", "aria-hidden": "true" }), children);
   }
   function Rivet({ className, style }) {
     return /* @__PURE__ */ React.createElement("span", { className: cx("jw-rivet", className), style, "aria-hidden": "true" }, /* @__PURE__ */ React.createElement("i", null), /* @__PURE__ */ React.createElement("i", null), /* @__PURE__ */ React.createElement("i", null));
   }
-  function LightTube({ value, max, label, unit = "ac", pilot = true, plate = true, className }) {
+  function LightTube({ value, max, label, unit = "ac", pilot = true, plate = true, animate = true, className }) {
     const pct = max > 0 ? Math.max(0, Math.min(100, value / max * 100)) : 0;
-    const [on, setOn] = useState(false);
-    const ref = useRef(null);
-    useEffect(() => {
-      const el = ref.current;
-      if (prefersReducedMotion() || !el || typeof IntersectionObserver === "undefined") {
-        setOn(true);
-        return void 0;
-      }
-      const io = new IntersectionObserver((es) => {
-        if (es.some((e) => e.isIntersecting)) {
-          setOn(true);
-          io.disconnect();
-        }
-      }, { threshold: 0.6 });
-      io.observe(el);
-      return () => io.disconnect();
-    }, []);
     const fmt = (n) => Number(n).toLocaleString("en-US");
-    return /* @__PURE__ */ React.createElement("div", { className: cx("jw-tube-block", className) }, /* @__PURE__ */ React.createElement("div", { className: "jw-lit jw-tube", ref, "data-jw-shadow": "", role: "img", "aria-label": `${label}: ${fmt(value)} of ${fmt(max)} ${unit}` }, /* @__PURE__ */ React.createElement("span", { className: "jw-cast", "aria-hidden": "true" }), /* @__PURE__ */ React.createElement("span", { className: "jw-cast", "aria-hidden": "true" }), /* @__PURE__ */ React.createElement("div", { className: "jw-tube__track" }, /* @__PURE__ */ React.createElement("i", { className: "jw-tube__fill", "data-jw-light": "tube", style: { width: on ? `${pct}%` : "0%" } })), /* @__PURE__ */ React.createElement("span", { className: "jw-tube__clamp jw-tube__clamp--l", "aria-hidden": "true" }, pilot ? /* @__PURE__ */ React.createElement("span", { className: cx("jw-pilot", on && "is-on"), "data-jw-light": on ? "pilot" : void 0 }) : /* @__PURE__ */ React.createElement(Rivet, null)), /* @__PURE__ */ React.createElement("span", { className: "jw-tube__clamp jw-tube__clamp--r", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Rivet, null))), plate && /* @__PURE__ */ React.createElement(Surface, { variant: "card", castShadow: true, rivets: true, className: "jw-plate", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement("span", { className: "jw-plate__label" }, label), /* @__PURE__ */ React.createElement("span", { className: "jw-plate__value" }, fmt(value), " ", /* @__PURE__ */ React.createElement("small", null, "of ", fmt(max), " ", unit))));
+    return /* @__PURE__ */ React.createElement("div", { className: cx("jw-tube-block", className), "data-jw-reveal": animate ? "" : void 0 }, /* @__PURE__ */ React.createElement("div", { className: "jw-lit jw-tube", "data-jw-shadow": "", role: "img", "aria-label": `${label}: ${fmt(value)} of ${fmt(max)} ${unit}` }, /* @__PURE__ */ React.createElement("span", { className: "jw-cast", "aria-hidden": "true" }), /* @__PURE__ */ React.createElement("span", { className: "jw-cast", "aria-hidden": "true" }), /* @__PURE__ */ React.createElement("div", { className: "jw-tube__track" }, /* @__PURE__ */ React.createElement("i", { className: "jw-tube__fill", "data-jw-light": "tube", style: { width: `${pct}%` } })), /* @__PURE__ */ React.createElement("span", { className: "jw-tube__clamp jw-tube__clamp--l", "aria-hidden": "true" }, pilot ? /* @__PURE__ */ React.createElement("span", { className: "jw-pilot is-on", "data-jw-light": "pilot" }) : /* @__PURE__ */ React.createElement(Rivet, null)), /* @__PURE__ */ React.createElement("span", { className: "jw-tube__clamp jw-tube__clamp--r", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(Rivet, null))), plate && /* @__PURE__ */ React.createElement(Surface, { variant: "card", castShadow: true, rivets: true, className: "jw-plate", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement("span", { className: "jw-plate__label" }, label), /* @__PURE__ */ React.createElement("span", { className: "jw-plate__value" }, fmt(value), " ", /* @__PURE__ */ React.createElement("small", null, "of ", fmt(max), " ", unit))));
   }
   function StatusLight({ label, blink = true, className }) {
     const attrs = { "data-jw-light": "status" };
     if (blink) attrs["data-jw-blink"] = "";
     return /* @__PURE__ */ React.createElement("span", { className: cx("jw-status", className) }, /* @__PURE__ */ React.createElement("span", { className: "jw-pilot jw-pilot--status", "aria-hidden": "true", ...attrs }), /* @__PURE__ */ React.createElement("span", { className: "jw-status__label" }, label));
   }
-  function NavBar({ links = [], action, lamp = false, logos = LOGOS, homeHref = "/", className, children }) {
+  var navSeq = 0;
+  var FOLDED = "(max-width: 900px)";
+  var isFolded = () => typeof window !== "undefined" && !!window.matchMedia && window.matchMedia(FOLDED).matches;
+  function NavBar({ links = [], moreLinks = [], action, lamp = false, sticky = false, logos = LOGOS, homeHref = "/", id, className, children }) {
+    const base = useRef(id || `jw-nav-${++navSeq}`).current;
     const [open, setOpen] = useState(false);
-    return /* @__PURE__ */ React.createElement("nav", { className: cx("jw-nav", open && "is-open", className), "aria-label": "Main" }, /* @__PURE__ */ React.createElement("a", { className: "jw-nav__brand", href: homeHref }, /* @__PURE__ */ React.createElement("img", { className: "jw-logo--light", src: logos.light.mark, alt: "", style: { height: 24, width: "auto" } }), /* @__PURE__ */ React.createElement("img", { className: "jw-logo--dark", src: logos.dark.mark, alt: "", style: { height: 24, width: "auto" } }), /* @__PURE__ */ React.createElement("img", { className: "jw-logo--light", src: logos.light.wordmark, alt: "Javelina Works", style: { height: 13, width: "auto" } }), /* @__PURE__ */ React.createElement("img", { className: "jw-logo--dark", src: logos.dark.wordmark, alt: "Javelina Works", style: { height: 13, width: "auto" } })), /* @__PURE__ */ React.createElement("button", { type: "button", className: "jw-nav__menu", "aria-expanded": open, onClick: () => setOpen((o) => !o) }, open ? "Close" : "Menu"), /* @__PURE__ */ React.createElement("div", { className: "jw-nav__links" }, links.map((l) => /* @__PURE__ */ React.createElement("a", { key: l.href, className: "jw-nav__link", href: l.href, "aria-current": l.current ? "page" : void 0 }, l.label)), children, action && /* @__PURE__ */ React.createElement(Button, { size: lamp ? "md" : "sm", lamp, href: action.href }, action.label)));
+    const [menu, setMenu] = useState(null);
+    const [folded, setFolded] = useState(isFolded);
+    const navRef = useRef(null), menuRef = useRef(null);
+    useEffect(() => {
+      const away = (e) => {
+        if (navRef.current && !navRef.current.contains(e.target)) {
+          setMenu(null);
+          setOpen(false);
+        }
+      };
+      document.addEventListener("click", away);
+      return () => document.removeEventListener("click", away);
+    }, []);
+    useEffect(() => {
+      if (!window.matchMedia) return void 0;
+      const mq = window.matchMedia(FOLDED);
+      const change = () => {
+        setFolded(mq.matches);
+        setOpen(false);
+        setMenu(null);
+      };
+      mq.addEventListener("change", change);
+      return () => mq.removeEventListener("change", change);
+    }, []);
+    useEffect(() => {
+      if (menu === null && !open) return void 0;
+      const onKey = (e) => {
+        if (e.key !== "Escape" || e.defaultPrevented) return;
+        const at = document.activeElement;
+        const refocus = !at || at === document.body || navRef.current && navRef.current.contains(at);
+        if (menu !== null) {
+          const t = navRef.current && navRef.current.querySelector(`[aria-controls="${base}-menu-${menu}"]`);
+          setMenu(null);
+          if (t && refocus) t.focus();
+        } else {
+          setOpen(false);
+          if (menuRef.current && refocus) menuRef.current.focus();
+        }
+      };
+      document.addEventListener("keydown", onKey);
+      return () => document.removeEventListener("keydown", onKey);
+    }, [menu, open, base]);
+    const onBlur = (e) => {
+      const g = e.target.closest && e.target.closest(".jw-nav__group");
+      if (g && !g.contains(e.relatedTarget) && !isFolded()) setMenu(null);
+    };
+    const mark = (t) => ({ className: cx(`jw-logo--${t}`), src: logos[t].mark, alt: "", width: 32, height: 24, style: { height: 24, width: "auto" } });
+    const word = (t) => ({ className: cx(`jw-logo--${t}`, "jw-nav__wordmark"), src: logos[t].wordmark, alt: "Javelina Works", width: 152, height: 13, style: { height: 13, width: "auto" } });
+    const actionEl = action ? /* @__PURE__ */ React.createElement(Button, { key: "action", className: "jw-nav__action", size: lamp ? "md" : "sm", lamp, href: action.href }, action.label) : null;
+    return /* @__PURE__ */ React.createElement("nav", { ref: navRef, className: cx("jw-nav", sticky && "jw-nav--sticky", open && "is-open", className), "aria-label": "Main", onBlur }, /* @__PURE__ */ React.createElement("a", { className: "jw-nav__brand", href: homeHref }, /* @__PURE__ */ React.createElement("img", { ...mark("light") }), /* @__PURE__ */ React.createElement("img", { ...mark("dark") }), /* @__PURE__ */ React.createElement("img", { ...word("light") }), /* @__PURE__ */ React.createElement("img", { ...word("dark") })), /* @__PURE__ */ React.createElement("button", { ref: menuRef, type: "button", className: "jw-nav__menu", "aria-expanded": open, "aria-controls": `${base}-links`, onClick: () => setOpen((o) => !o) }, open ? "Close" : "Menu"), folded && actionEl, /* @__PURE__ */ React.createElement("div", { className: "jw-nav__links", id: `${base}-links`, key: "links" }, links.map((l, i) => l.items ? /* @__PURE__ */ React.createElement("div", { className: "jw-nav__group", key: l.label }, /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        type: "button",
+        className: cx("jw-nav__link", "jw-nav__trigger", l.current && "is-current"),
+        "aria-expanded": menu === i,
+        "aria-controls": `${base}-menu-${i}`,
+        onClick: () => setMenu((m) => m === i ? null : i)
+      },
+      l.label,
+      /* @__PURE__ */ React.createElement("span", { className: "jw-nav__caret", "aria-hidden": "true" })
+    ), /* @__PURE__ */ React.createElement("div", { className: cx("jw-navmenu", l.align === "end" && "jw-navmenu--end"), id: `${base}-menu-${i}`, hidden: menu !== i }, /* @__PURE__ */ React.createElement("ul", { className: "jw-navmenu__list" }, l.items.map((it) => /* @__PURE__ */ React.createElement("li", { key: it.href }, /* @__PURE__ */ React.createElement("a", { className: "jw-navmenu__item", href: it.href, "aria-current": it.current ? "page" : void 0 }, /* @__PURE__ */ React.createElement("span", { className: "jw-navmenu__label" }, it.label), it.description && /* @__PURE__ */ React.createElement("span", { className: "jw-navmenu__desc" }, it.description))))), l.all && /* @__PURE__ */ React.createElement("a", { className: "jw-navmenu__all", href: l.all.href, "aria-current": l.all.current ? "page" : void 0 }, l.all.label))) : /* @__PURE__ */ React.createElement("a", { key: l.href, className: "jw-nav__link", href: l.href, "aria-current": l.current ? "page" : void 0 }, l.label)), moreLinks.length > 0 && /* @__PURE__ */ React.createElement("div", { className: "jw-nav__more" }, moreLinks.map((l) => /* @__PURE__ */ React.createElement("a", { key: l.href, className: "jw-nav__link", href: l.href, "aria-current": l.current ? "page" : void 0 }, l.label))), children), !folded && actionEl);
   }
   var fieldSeq = 0;
   function Field({ id, label, hint, error, suffix, value, defaultValue, onChange, validate, inputMode, placeholder, type = "text", className }) {
@@ -696,7 +817,8 @@
       }
     ), suffix && /* @__PURE__ */ React.createElement("span", { className: "jw-input__suffix", "aria-hidden": "true" }, suffix)), hint && !shown && /* @__PURE__ */ React.createElement("span", { className: "jw-field__hint", id: `${autoId}-hint` }, hint), shown && /* @__PURE__ */ React.createElement("span", { className: "jw-field__error", id: `${autoId}-err` }, shown));
   }
-  function ThemeToggle({ value, onChange, target, labels = { light: "By day", dark: "By night" }, className }) {
+  var THEME_KEY = "jw-theme";
+  function ThemeToggle({ value, onChange, target, labels = { light: "By day", dark: "At night" }, storageKey = THEME_KEY, className }) {
     const root = () => target || (typeof document !== "undefined" ? document.documentElement : null);
     const read = () => {
       const r = root();
@@ -704,13 +826,50 @@
     };
     const [inner, setInner] = useState(read);
     const theme = value || inner;
-    const set = (t) => {
+    const lightRef = useRef(null), darkRef = useRef(null);
+    useEffect(() => {
+      const r = root();
+      if (!r || typeof MutationObserver === "undefined") return void 0;
+      const mo = new MutationObserver(() => setInner(read()));
+      mo.observe(r, { attributes: true, attributeFilter: ["data-theme"] });
+      return () => mo.disconnect();
+    }, [target]);
+    const set = (t, focus) => {
       if (!value) setInner(t);
       const r = root();
       if (r) r.setAttribute("data-theme", t);
+      if (storageKey) {
+        try {
+          localStorage.setItem(storageKey, t);
+        } catch (e) {
+        }
+      }
+      if (focus) {
+        const b = t === "dark" ? darkRef.current : lightRef.current;
+        if (b) b.focus();
+      }
       if (onChange) onChange(t);
     };
-    return /* @__PURE__ */ React.createElement("div", { className: cx("jw-toggle", className), role: "radiogroup", "aria-label": "Color mode" }, ["light", "dark"].map((t) => /* @__PURE__ */ React.createElement("button", { key: t, type: "button", role: "radio", "aria-checked": theme === t, className: cx("jw-toggle__opt", `jw-toggle__opt--${t}`, theme === t && "is-on"), onClick: () => set(t) }, /* @__PURE__ */ React.createElement("span", { className: "jw-toggle__lamp", "aria-hidden": "true" }), labels[t])));
+    const onKeyDown = (e) => {
+      if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].indexOf(e.key) < 0) return;
+      e.preventDefault();
+      set(theme === "dark" ? "light" : "dark", true);
+    };
+    return /* @__PURE__ */ React.createElement("div", { className: cx("jw-toggle", className), role: "radiogroup", "aria-label": "Color mode", onKeyDown }, ["light", "dark"].map((t) => /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        key: t,
+        ref: t === "dark" ? darkRef : lightRef,
+        type: "button",
+        role: "radio",
+        "aria-checked": theme === t,
+        tabIndex: theme === t ? 0 : -1,
+        className: cx("jw-toggle__opt", `jw-toggle__opt--${t}`, theme === t && "is-on"),
+        onClick: () => set(t)
+      },
+      /* @__PURE__ */ React.createElement("span", { className: "jw-toggle__lamp", "aria-hidden": "true" }),
+      labels[t]
+    )));
   }
   window.JavelinaWorks = { Button, Chip, SurveyMap, Meter, Surface, NavBar, Field, ThemeToggle, LightScene, LampWall, LightTube, StatusLight, Rivet, Lighting: lighting_default, LOGOS };
 })();

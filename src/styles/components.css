@@ -276,39 +276,8 @@
     @apply object-contain;
   }
 
-  &.has-hover-animation {
-    @apply prose-img:duration-300 prose-img:transform prose-img:transition prose-img:ease-in;
-
-    &:hover img {
-      @apply animate-spin;
-    }
-  }
-
   .logo-text {
     @apply text-h5 font-normal tracking-wider whitespace-nowrap;
-  }
-}
-
-/* Changelog Page Changes Badge */
-.changelog-badge {
-  &.changelog-badge-emerald {
-    @apply bg-green-400;
-  }
-
-  &.changelog-badge-indigo {
-    @apply bg-indigo-500;
-  }
-
-  &.changelog-badge-slate {
-    @apply bg-stone-300;
-  }
-
-  &.changelog-badge-crimson {
-    @apply bg-rose-500;
-  }
-
-  &.changelog-badge-amber {
-    @apply bg-orange-400;
   }
 }
 

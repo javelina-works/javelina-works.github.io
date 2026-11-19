@@ -294,6 +294,7 @@
 .t-heading-3 { font-family: var(--font-display); font-size: 22px; line-height: 1.18; font-weight: 500; letter-spacing: -0.01em; text-wrap: balance; }
 .t-number { font-family: var(--font-display); font-size: 30px; line-height: 1.0; font-weight: 500; letter-spacing: -0.01em; text-wrap: balance; }
 .t-body-l { font-family: var(--font-body); font-size: 17px; line-height: 1.6; font-weight: 400; }
+.t-body-prose { font-family: var(--font-body); font-size: 18px; line-height: 1.6; font-weight: 400; }
 .t-body { font-family: var(--font-body); font-size: 15px; line-height: 1.55; font-weight: 400; }
 .t-body-s { font-family: var(--font-body); font-size: 13.5px; line-height: 1.5; font-weight: 400; }
 .t-body-strong { font-family: var(--font-body); font-size: 15px; line-height: 1.4; font-weight: 500; }
@@ -309,4 +310,5 @@
   .t-heading-2 { font-size: 24px; }
   .t-heading-3 { font-size: 20px; }
   .t-number { font-size: 26px; }
+  .t-body-prose { font-size: 17px; }
 }

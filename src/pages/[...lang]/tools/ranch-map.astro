@@ -18,7 +18,8 @@ const meta = {
 const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
 ---
 
-<Base {...meta} sectionSpacing="md">
+{/* dayOnly: TEMPORARY until this page is rebuilt on the tokens (its own CSS hard-codes white panels). */}
+<Base {...meta} sectionSpacing="md" dayOnly>
   <section class="rm-hero">
     <div class="container">
       <p class="rm-eyebrow">Free &middot; printable</p>

@@ -1,0 +1,220 @@
+---
+/**
+ * NavBar (design/components/NavBar/README.md) with NavMenu panels (design/components/NavMenu/README.md).
+ * Child order: brand, Menu button, links (links, menus, moreLinks, the default slot e.g. <ThemeToggle />), then the action.
+ * At 900px and below the script moves the links after the action, so Tab goes Menu, lamp, then the open panel, as drawn.
+ * The action sits outside the links so the lamp stays in view at every width. The wordmark hides at 1023px and below; the
+ * links fold behind Menu at 900px and below. sticky: the bar sticks to the top, so it must be a direct child of <body>
+ * (or of a full-height wrapper), not of a short <header>.
+ * Current page: from currentPath (default Astro.url.pathname), matched with trailing slashes.
+ */
+import Button from "./Button.astro";
+import markLight from "../../../../design/assets/logos/javelina-rust.svg?url";
+import markDark from "../../../../design/assets/logos/javelina-white.svg?url";
+import wordLight from "../../../../design/assets/logos/wordmark-ink.svg?url";
+import wordDark from "../../../../design/assets/logos/wordmark-white.svg?url";
+
+export interface NavItem {
+  label: string;
+  href: string;
+  /** one line under the label in the open menu (wide screens only) */
+  description?: string;
+}
+export interface NavEntry {
+  label: string;
+  /** a plain link */
+  href?: string;
+  /** a menu: the trigger opens a NavMenu panel of these links */
+  items?: NavItem[];
+  /** the "all" link at the foot of a menu, e.g. { label: "All services", href: "/services/" } */
+  all?: { label: string; href: string };
+  /** end: the panel lines up with the trigger's right edge */
+  align?: "start" | "end";
+}
+interface Props {
+  links: NavEntry[];
+  /** shown only in the folded (Menu) panel; on wide screens these live in the footer */
+  moreLinks?: { label: string; href: string }[];
+  action?: { label: string; href: string };
+  /** the action becomes the page's lamp (primary, md, data-jw-light="lamp" data-jw-flicker) */
+  lamp?: boolean;
+  sticky?: boolean;
+  homeHref?: string;
+  /** base for the aria-controls ids (default "jw-nav") */
+  id?: string;
+  currentPath?: string;
+  logos?: { light: { mark: string; wordmark: string }; dark: { mark: string; wordmark: string } };
+  class?: string;
+}
+
+const {
+  links,
+  moreLinks = [],
+  action,
+  lamp = false,
+  sticky = false,
+  homeHref = "/",
+  id = "jw-nav",
+  currentPath = Astro.url.pathname,
+  logos = { light: { mark: markLight, wordmark: wordLight }, dark: { mark: markDark, wordmark: wordDark } },
+  class: className,
+} = Astro.props;
+
+const norm = (p: string) => {
+  const path = p.split(/[?#]/)[0] || "/";
+  return path.endsWith("/") ? path : path + "/";
+};
+const here = norm(currentPath);
+const isCurrent = (href?: string) => !!href && !href.includes("#") && norm(href) === here;
+const current = (href?: string) => (isCurrent(href) ? "page" : undefined);
+---
+
+<nav class:list={["jw-nav", sticky && "jw-nav--sticky", className]} aria-label="Main" data-jw-nav>
+  <a class="jw-nav__brand" href={homeHref}>
+    <img class="jw-logo--light" src={logos.light.mark} alt="" width="32" height="24" style="height:24px;width:auto" loading="lazy" decoding="async" />
+    <img class="jw-logo--dark" src={logos.dark.mark} alt="" width="32" height="24" style="height:24px;width:auto" loading="lazy" decoding="async" />
+    <img class="jw-logo--light jw-nav__wordmark" src={logos.light.wordmark} alt="Javelina Works" width="152" height="13" style="height:13px;width:auto" loading="lazy" decoding="async" />
+    <img class="jw-logo--dark jw-nav__wordmark" src={logos.dark.wordmark} alt="Javelina Works" width="152" height="13" style="height:13px;width:auto" loading="lazy" decoding="async" />
+  </a>
+  <button type="button" class="jw-nav__menu" aria-expanded="false" aria-controls={`${id}-links`}>Menu</button>
+  <div class="jw-nav__links" id={`${id}-links`}>
+    {
+      links.map((l, i) =>
+        l.items ? (
+          <div class="jw-nav__group">
+            <button
+              type="button"
+              class:list={["jw-nav__link", "jw-nav__trigger", (l.items.some((it) => isCurrent(it.href)) || isCurrent(l.all?.href)) && "is-current"]}
+              aria-expanded="false"
+              aria-controls={`${id}-menu-${i}`}>
+              {l.label}
+              <span class="jw-nav__caret" aria-hidden="true" />
+            </button>
+            <div class:list={["jw-navmenu", l.align === "end" && "jw-navmenu--end"]} id={`${id}-menu-${i}`} hidden>
+              <ul class="jw-navmenu__list">
+                {l.items.map((it) => (
+                  <li>
+                    <a class="jw-navmenu__item" href={it.href} aria-current={current(it.href)}>
+                      <span class="jw-navmenu__label">{it.label}</span>
+                      {it.description && <span class="jw-navmenu__desc">{it.description}</span>}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+              {l.all && (
+                <a class="jw-navmenu__all" href={l.all.href} aria-current={current(l.all.href)}>
+                  {l.all.label}
+                </a>
+              )}
+            </div>
+          </div>
+        ) : (
+          <a class="jw-nav__link" href={l.href} aria-current={current(l.href)}>
+            {l.label}
+          </a>
+        ),
+      )
+    }
+    {
+      moreLinks.length > 0 && (
+        <div class="jw-nav__more">
+          {moreLinks.map((l) => (
+            <a class="jw-nav__link" href={l.href} aria-current={current(l.href)}>
+              {l.label}
+            </a>
+          ))}
+        </div>
+      )
+    }
+    <slot />
+  </div>
+  {
+    action && (
+      <Button class="jw-nav__action" size={lamp ? "md" : "sm"} lamp={lamp} href={action.href}>
+        {action.label}
+      </Button>
+    )
+  }
+</nav>
+
+<script>
+  // Menu (folded panel) and NavMenu disclosures. Escape, wherever focus is, closes the open menu (focus back to its trigger),
+  // then the panel (focus back to Menu); a click outside closes both; on wide screens tabbing out of a menu closes it.
+  // Never opens on hover.
+  // Tab order follows what you see: folded, the lamp sits on the top row beside Menu and the panel opens below, so the
+  // links move after the action in the DOM (Menu, lamp, then the panel); on wide screens they move back before it. The
+  // links move, never the lamp, so its flicker and light carry on. Without JS the server order (links, then action) stands.
+  const folded = window.matchMedia("(max-width: 900px)");
+  document.querySelectorAll<HTMLElement>("[data-jw-nav]").forEach((nav) => {
+    const menuBtn = nav.querySelector<HTMLButtonElement>(".jw-nav__menu");
+    const linksEl = nav.querySelector<HTMLElement>(":scope > .jw-nav__links");
+    const actionEl = nav.querySelector<HTMLElement>(":scope > .jw-nav__action");
+    const placeLinks = () => {
+      if (!linksEl || !actionEl) return;
+      const after = folded.matches;
+      if (after === (actionEl.nextElementSibling === linksEl)) return;
+      const active = document.activeElement as HTMLElement | null;
+      if (after) actionEl.after(linksEl);
+      else actionEl.before(linksEl);
+      if (active && linksEl.contains(active) && document.activeElement !== active) active.focus({ preventScroll: true });
+    };
+    placeLinks();
+    const triggers = Array.from(nav.querySelectorAll<HTMLButtonElement>(".jw-nav__trigger"));
+    const isOpen = (t: Element) => t.getAttribute("aria-expanded") === "true";
+    const setGroup = (t: HTMLButtonElement, open: boolean) => {
+      t.setAttribute("aria-expanded", String(open));
+      const panel = document.getElementById(t.getAttribute("aria-controls") || "");
+      if (panel) panel.hidden = !open;
+    };
+    const closeGroups = (except?: Element) => triggers.forEach((t) => t !== except && isOpen(t) && setGroup(t, false));
+    const setPanel = (open: boolean) => {
+      nav.classList.toggle("is-open", open);
+      if (menuBtn) {
+        menuBtn.setAttribute("aria-expanded", String(open));
+        menuBtn.textContent = open ? "Close" : "Menu";
+      }
+      if (!open) closeGroups();
+    };
+    menuBtn?.addEventListener("click", () => setPanel(!nav.classList.contains("is-open")));
+    triggers.forEach((t) =>
+      t.addEventListener("click", () => {
+        const open = !isOpen(t);
+        closeGroups(t);
+        setGroup(t, open);
+      }),
+    );
+    // On the document, not the nav: a menu opened with the mouse leaves focus outside the nav in Safari (it does not focus
+    // a clicked button). Focus returns to the trigger or Menu only if it was in the nav or nowhere, never out of a field.
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape" || e.defaultPrevented) return;
+      const t = triggers.find(isOpen);
+      const panelOpen = nav.classList.contains("is-open");
+      if (!t && !panelOpen) return;
+      const at = document.activeElement;
+      const refocus = !at || at === document.body || nav.contains(at);
+      if (t) {
+        setGroup(t, false);
+        if (refocus) t.focus();
+      } else {
+        setPanel(false);
+        if (refocus) menuBtn?.focus();
+      }
+    });
+    nav.addEventListener("focusout", (e) => {
+      const to = e.relatedTarget as Node | null;
+      if (folded.matches || !to) return;
+      const g = (e.target as Element).closest(".jw-nav__group");
+      const t = g?.querySelector<HTMLButtonElement>(".jw-nav__trigger");
+      if (g && t && !g.contains(to)) setGroup(t, false);
+    });
+    document.addEventListener("click", (e) => {
+      if (nav.contains(e.target as Node)) return;
+      closeGroups();
+      if (nav.classList.contains("is-open")) setPanel(false);
+    });
+    folded.addEventListener("change", () => {
+      setPanel(false);
+      placeLinks();
+    });
+  });
+</script>

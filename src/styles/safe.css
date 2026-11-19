@@ -1,5 +1,4 @@
-@import "./buttons.css";
-@import "./utilities.css";
+/* LEGACY form and Preline select styles (imported by legacy.css into @layer components). */
 
 /* ----------------------------
    Form Styling

@@ -7,8 +7,14 @@
 <script>
 var J = window.JavelinaWorks, h = React.createElement;
 function Row(p) { return h('div', { className: 'jw-row', style: p.style }, p.children); }
-ReactDOM.createRoot(document.getElementById('root')).render(h(J.NavBar, { links: [{ label: 'How it works', href: '#how', current: true }, { label: 'Pricing', href: '#pricing' }, { label: 'About', href: '#about' }], action: { label: 'Ballpark', href: '#ballpark' } },
- h(J.ThemeToggle, null)
+var services = { label: 'Services', current: true, all: { label: 'All services', href: '#services' }, items: [
+  { label: 'Brush targeting', href: '#brush-targeting', description: 'Plant-by-plant treatment from the air.', current: true },
+  { label: 'Survey work', href: '#survey-work', description: 'Count and map every mesquite and cedar.' } ] };
+var tools = { label: 'Tools', items: [{ label: 'Free ballpark estimate', href: '#ballpark' }, { label: 'Free ranch map', href: '#ranch-map' }] };
+ReactDOM.createRoot(document.getElementById('root')).render(h(J.LightScene, null,
+ h(J.NavBar, { lamp: true, links: [services, tools, { label: 'Pricing', href: '#pricing' }, { label: 'Contact', href: '#contact' }],
+   moreLinks: [{ label: 'Company', href: '#company' }, { label: 'FAQ', href: '#faq' }], action: { label: 'Get a ballpark', href: '#ballpark' } },
+  h(J.ThemeToggle, { storageKey: '' }))
 ));
 </script>
 </body>

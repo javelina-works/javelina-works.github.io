@@ -1,0 +1,23 @@
+---
+/**
+ * LampWall (design/components/LampWall/README.md): flaky rust (hero), corrugated tin, smooth rust.
+ * Server-rendered with jw-wall--static, so it shows its static drawing until the lighting engine has drawn it (and keeps
+ * it without WebGL or JS). Put cards on it, never running text. Padding is the page's. One wall per screen height.
+ */
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends Omit<HTMLAttributes<"section">, "class"> {
+  texture?: "flake" | "corrugated" | "smooth";
+  /** changes the pattern so two walls of one texture differ */
+  seed?: number;
+  as?: string;
+  class?: string;
+}
+const { texture = "flake", seed = 3, as = "section", class: className, ...rest } = Astro.props;
+const Tag = as;
+---
+
+<Tag class:list={["jw-wall", `jw-wall--${texture}`, "jw-wall--static", className]} data-jw-wall={texture} data-jw-seed={seed} {...rest}>
+  <canvas class="jw-wall__canvas" aria-hidden="true"></canvas>
+  <slot />
+</Tag>

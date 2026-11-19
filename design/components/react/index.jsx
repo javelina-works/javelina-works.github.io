@@ -1,4 +1,7 @@
-/* Javelina Works components. React 18 is read from window.React; the result is window.JavelinaWorks. */
+/* Javelina Works components. React 18 is read from window.React; the result is window.JavelinaWorks.
+   After a change, rebuild bundle.js from the repo root (esbuild, which Vite already installs):
+     npx esbuild design/components/react/index.jsx --bundle --format=iife --target=es2019 --jsx=transform
+   then drop the leading "use strict"; line and keep the one-line @ds-bundle header at the top. */
 import Lighting from '../lighting.js';
 const { useState, useEffect, useRef, useCallback } = React;
 const cx = (...a) => a.filter(Boolean).join(' ');
@@ -93,20 +96,16 @@ function SurveyMap({ src, alt = 'Survey image', plants: initial = [], height = 2
 }
 
 /* ---------------------------------------------------------------- Meter */
+/* The fill's width is set once; with animate (default) the lighting engine holds a meter that is below the fold at load empty
+   (is-pending) and fills it by transform on first view. Without the engine, or with reduced motion, it simply shows full. */
 function Meter({ value, max, label, unit = 'ac', animate = true, className }) {
   const pct = max > 0 ? Math.max(0, Math.min(100, (value / max) * 100)) : 0;
-  const [shown, setShown] = useState(animate && !prefersReducedMotion() ? 0 : pct);
-  useEffect(() => {
-    if (!animate || prefersReducedMotion()) { setShown(pct); return; }
-    const id = requestAnimationFrame(() => requestAnimationFrame(() => setShown(pct)));
-    return () => cancelAnimationFrame(id);
-  }, [pct, animate]);
   const fmt = (n) => Number(n).toLocaleString('en-US');
   return (
-    <div className={cx('jw-meter-block', className)}>
+    <div className={cx('jw-meter-block', className)} data-jw-reveal={animate ? '' : undefined}>
       <div className="jw-meter-block__line"><span>{label}</span><span>{fmt(value)} of {fmt(max)} {unit}</span></div>
       <div className="jw-meter" role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={max} aria-valuenow={value}>
-        <div className="jw-meter__fill" style={{ width: `${shown}%` }} />
+        <div className="jw-meter__fill" style={{ width: `${pct}%` }} />
       </div>
     </div>
   );
@@ -131,11 +130,12 @@ function LightScene({ children }) {
   useEffect(() => { Lighting.mount(); return () => Lighting.unmount(); }, []);
   return children === undefined ? null : children;
 }
-/* A section wall that takes light: flaky rust, corrugated tin, or smooth rust. Put cards on it, never running text. */
+/* A section wall that takes light: flaky rust, corrugated tin, or smooth rust. Put cards on it, never running text.
+   It renders with jw-wall--static (the static drawing) and the engine removes that after the wall's first WebGL frame. */
 function LampWall({ texture = 'flake', seed = 3, as = 'section', className, children, ...rest }) {
   const Tag = as;
   return (
-    <Tag className={cx('jw-wall', `jw-wall--${texture}`, className)} data-jw-wall={texture} data-jw-seed={seed} {...rest}>
+    <Tag className={cx('jw-wall', `jw-wall--${texture}`, 'jw-wall--static', className)} data-jw-wall={texture} data-jw-seed={seed} {...rest}>
       <canvas className="jw-wall__canvas" aria-hidden="true" />
       {children}
     </Tag>
@@ -144,25 +144,18 @@ function LampWall({ texture = 'flake', seed = 3, as = 'section', className, chil
 function Rivet({ className, style }) {
   return <span className={cx('jw-rivet', className)} style={style} aria-hidden="true"><i /><i /><i /></span>;
 }
-/* A wall-mounted glowing tube that fills to a value when it comes into view; its light falls on the wall around it. */
-function LightTube({ value, max, label, unit = 'ac', pilot = true, plate = true, className }) {
+/* A wall-mounted glowing tube that fills to a value when it comes into view; its light falls on the wall around it.
+   The lighting engine does the filling (data-jw-reveal): below the fold at load it waits empty with the pilot off, and fills by
+   transform on first view. Already in view, without the engine, or with reduced motion: full, pilot on. */
+function LightTube({ value, max, label, unit = 'ac', pilot = true, plate = true, animate = true, className }) {
   const pct = max > 0 ? Math.max(0, Math.min(100, (value / max) * 100)) : 0;
-  const [on, setOn] = useState(false);
-  const ref = useRef(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (prefersReducedMotion() || !el || typeof IntersectionObserver === 'undefined') { setOn(true); return undefined; }
-    const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { setOn(true); io.disconnect(); } }, { threshold: 0.6 });
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
   const fmt = (n) => Number(n).toLocaleString('en-US');
   return (
-    <div className={cx('jw-tube-block', className)}>
-      <div className="jw-lit jw-tube" ref={ref} data-jw-shadow="" role="img" aria-label={`${label}: ${fmt(value)} of ${fmt(max)} ${unit}`}>
+    <div className={cx('jw-tube-block', className)} data-jw-reveal={animate ? '' : undefined}>
+      <div className="jw-lit jw-tube" data-jw-shadow="" role="img" aria-label={`${label}: ${fmt(value)} of ${fmt(max)} ${unit}`}>
         <span className="jw-cast" aria-hidden="true" /><span className="jw-cast" aria-hidden="true" />
-        <div className="jw-tube__track"><i className="jw-tube__fill" data-jw-light="tube" style={{ width: on ? `${pct}%` : '0%' }} /></div>
-        <span className="jw-tube__clamp jw-tube__clamp--l" aria-hidden="true">{pilot ? <span className={cx('jw-pilot', on && 'is-on')} data-jw-light={on ? 'pilot' : undefined} /> : <Rivet />}</span>
+        <div className="jw-tube__track"><i className="jw-tube__fill" data-jw-light="tube" style={{ width: `${pct}%` }} /></div>
+        <span className="jw-tube__clamp jw-tube__clamp--l" aria-hidden="true">{pilot ? <span className="jw-pilot is-on" data-jw-light="pilot" /> : <Rivet />}</span>
         <span className="jw-tube__clamp jw-tube__clamp--r" aria-hidden="true"><Rivet /></span>
       </div>
       {plate && (
@@ -186,24 +179,85 @@ function StatusLight({ label, blink = true, className }) {
 }
 
 /* ---------------------------------------------------------------- NavBar */
-function NavBar({ links = [], action, lamp = false, logos = LOGOS, homeHref = '/', className, children }) {
+/* links: [{ label, href, current }] or a menu [{ label, items: [{ label, href, description, current }], all: { label, href }, current, align: 'end' }].
+   moreLinks show only in the phone menu. The action sits outside the links, so the lamp stays in view on phones.
+   Folded (900px and below) the links render after the action, so Tab goes Menu, lamp, then the open panel, as drawn. */
+let navSeq = 0;
+const FOLDED = '(max-width: 900px)';
+const isFolded = () => typeof window !== 'undefined' && !!window.matchMedia && window.matchMedia(FOLDED).matches;
+function NavBar({ links = [], moreLinks = [], action, lamp = false, sticky = false, logos = LOGOS, homeHref = '/', id, className, children }) {
+  const base = useRef(id || `jw-nav-${++navSeq}`).current;
   const [open, setOpen] = useState(false);
+  const [menu, setMenu] = useState(null);
+  const [folded, setFolded] = useState(isFolded);
+  const navRef = useRef(null), menuRef = useRef(null);
+  useEffect(() => {
+    const away = (e) => { if (navRef.current && !navRef.current.contains(e.target)) { setMenu(null); setOpen(false); } };
+    document.addEventListener('click', away);
+    return () => document.removeEventListener('click', away);
+  }, []);
+  useEffect(() => {
+    if (!window.matchMedia) return undefined;
+    const mq = window.matchMedia(FOLDED);
+    const change = () => { setFolded(mq.matches); setOpen(false); setMenu(null); };
+    mq.addEventListener('change', change);
+    return () => mq.removeEventListener('change', change);
+  }, []);
+  /* Escape on the document while a menu or the panel is open: a menu opened with the mouse leaves focus outside the nav in
+     Safari. Focus goes back to the trigger or Menu only if it was in the nav or nowhere. */
+  useEffect(() => {
+    if (menu === null && !open) return undefined;
+    const onKey = (e) => {
+      if (e.key !== 'Escape' || e.defaultPrevented) return;
+      const at = document.activeElement;
+      const refocus = !at || at === document.body || (navRef.current && navRef.current.contains(at));
+      if (menu !== null) { const t = navRef.current && navRef.current.querySelector(`[aria-controls="${base}-menu-${menu}"]`); setMenu(null); if (t && refocus) t.focus(); }
+      else { setOpen(false); if (menuRef.current && refocus) menuRef.current.focus(); }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [menu, open, base]);
+  const onBlur = (e) => {
+    const g = e.target.closest && e.target.closest('.jw-nav__group');
+    if (g && !g.contains(e.relatedTarget) && !isFolded()) setMenu(null);
+  };
+  const mark = (t) => ({ className: cx(`jw-logo--${t}`), src: logos[t].mark, alt: '', width: 32, height: 24, style: { height: 24, width: 'auto' } });
+  const word = (t) => ({ className: cx(`jw-logo--${t}`, 'jw-nav__wordmark'), src: logos[t].wordmark, alt: 'Javelina Works', width: 152, height: 13, style: { height: 13, width: 'auto' } });
+  const actionEl = action ? <Button key="action" className="jw-nav__action" size={lamp ? 'md' : 'sm'} lamp={lamp} href={action.href}>{action.label}</Button> : null;
   return (
-    <nav className={cx('jw-nav', open && 'is-open', className)} aria-label="Main">
+    <nav ref={navRef} className={cx('jw-nav', sticky && 'jw-nav--sticky', open && 'is-open', className)} aria-label="Main" onBlur={onBlur}>
       <a className="jw-nav__brand" href={homeHref}>
-        <img className="jw-logo--light" src={logos.light.mark} alt="" style={{ height: 24, width: 'auto' }} />
-        <img className="jw-logo--dark" src={logos.dark.mark} alt="" style={{ height: 24, width: 'auto' }} />
-        <img className="jw-logo--light" src={logos.light.wordmark} alt="Javelina Works" style={{ height: 13, width: 'auto' }} />
-        <img className="jw-logo--dark" src={logos.dark.wordmark} alt="Javelina Works" style={{ height: 13, width: 'auto' }} />
+        <img {...mark('light')} /><img {...mark('dark')} /><img {...word('light')} /><img {...word('dark')} />
       </a>
-      <button type="button" className="jw-nav__menu" aria-expanded={open} onClick={() => setOpen((o) => !o)}>{open ? 'Close' : 'Menu'}</button>
-      <div className="jw-nav__links">
-        {links.map((l) => (
+      <button ref={menuRef} type="button" className="jw-nav__menu" aria-expanded={open} aria-controls={`${base}-links`} onClick={() => setOpen((o) => !o)}>{open ? 'Close' : 'Menu'}</button>
+      {folded && actionEl}
+      <div className="jw-nav__links" id={`${base}-links`} key="links">
+        {links.map((l, i) => (l.items ? (
+          <div className="jw-nav__group" key={l.label}>
+            <button type="button" className={cx('jw-nav__link', 'jw-nav__trigger', l.current && 'is-current')} aria-expanded={menu === i} aria-controls={`${base}-menu-${i}`}
+              onClick={() => setMenu((m) => (m === i ? null : i))}>{l.label}<span className="jw-nav__caret" aria-hidden="true" /></button>
+            <div className={cx('jw-navmenu', l.align === 'end' && 'jw-navmenu--end')} id={`${base}-menu-${i}`} hidden={menu !== i}>
+              <ul className="jw-navmenu__list">
+                {l.items.map((it) => (
+                  <li key={it.href}><a className="jw-navmenu__item" href={it.href} aria-current={it.current ? 'page' : undefined}>
+                    <span className="jw-navmenu__label">{it.label}</span>{it.description && <span className="jw-navmenu__desc">{it.description}</span>}
+                  </a></li>
+                ))}
+              </ul>
+              {l.all && <a className="jw-navmenu__all" href={l.all.href} aria-current={l.all.current ? 'page' : undefined}>{l.all.label}</a>}
+            </div>
+          </div>
+        ) : (
           <a key={l.href} className="jw-nav__link" href={l.href} aria-current={l.current ? 'page' : undefined}>{l.label}</a>
-        ))}
+        )))}
+        {moreLinks.length > 0 && (
+          <div className="jw-nav__more">
+            {moreLinks.map((l) => <a key={l.href} className="jw-nav__link" href={l.href} aria-current={l.current ? 'page' : undefined}>{l.label}</a>)}
+          </div>
+        )}
         {children}
-        {action && <Button size={lamp ? 'md' : 'sm'} lamp={lamp} href={action.href}>{action.label}</Button>}
       </div>
+      {!folded && actionEl}
     </nav>
   );
 }
@@ -234,20 +288,39 @@ function Field({ id, label, hint, error, suffix, value, defaultValue, onChange, 
 }
 
 /* ---------------------------------------------------------------- ThemeToggle */
-function ThemeToggle({ value, onChange, target, labels = { light: 'By day', dark: 'By night' }, className }) {
+/* A radio group: arrow keys move the choice, only the chosen option is a tab stop. It sets data-theme on <html> (the lighting
+   engine reads it there), saves the choice in localStorage under storageKey (the page's head script reads it before first
+   paint), and follows data-theme if something else changes it. */
+const THEME_KEY = 'jw-theme';
+function ThemeToggle({ value, onChange, target, labels = { light: 'By day', dark: 'At night' }, storageKey = THEME_KEY, className }) {
   const root = () => target || (typeof document !== 'undefined' ? document.documentElement : null);
   const read = () => { const r = root(); return r && r.getAttribute('data-theme') === 'dark' ? 'dark' : 'light'; };
   const [inner, setInner] = useState(read);
   const theme = value || inner;
-  const set = (t) => {
+  const lightRef = useRef(null), darkRef = useRef(null);
+  useEffect(() => {
+    const r = root();
+    if (!r || typeof MutationObserver === 'undefined') return undefined;
+    const mo = new MutationObserver(() => setInner(read()));
+    mo.observe(r, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => mo.disconnect();
+  }, [target]);
+  const set = (t, focus) => {
     if (!value) setInner(t);
     const r = root(); if (r) r.setAttribute('data-theme', t);
+    if (storageKey) { try { localStorage.setItem(storageKey, t); } catch (e) { /* private mode: the choice lasts this page */ } }
+    if (focus) { const b = t === 'dark' ? darkRef.current : lightRef.current; if (b) b.focus(); }
     if (onChange) onChange(t);
   };
+  const onKeyDown = (e) => {
+    if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].indexOf(e.key) < 0) return;
+    e.preventDefault(); set(theme === 'dark' ? 'light' : 'dark', true);
+  };
   return (
-    <div className={cx('jw-toggle', className)} role="radiogroup" aria-label="Color mode">
+    <div className={cx('jw-toggle', className)} role="radiogroup" aria-label="Color mode" onKeyDown={onKeyDown}>
       {['light', 'dark'].map((t) => (
-        <button key={t} type="button" role="radio" aria-checked={theme === t} className={cx('jw-toggle__opt', `jw-toggle__opt--${t}`, theme === t && 'is-on')} onClick={() => set(t)}>
+        <button key={t} ref={t === 'dark' ? darkRef : lightRef} type="button" role="radio" aria-checked={theme === t} tabIndex={theme === t ? 0 : -1}
+          className={cx('jw-toggle__opt', `jw-toggle__opt--${t}`, theme === t && 'is-on')} onClick={() => set(t)}>
           <span className="jw-toggle__lamp" aria-hidden="true" />{labels[t]}
         </button>
       ))}

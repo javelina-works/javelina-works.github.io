@@ -17,6 +17,8 @@
 
  */
 import { parseHTML } from "linkedom";
+// TEMPORARY: the tabs run on Preline (data-hs-tab), which Base no longer loads; LegacyPreline loads the tabs part.
+import LegacyPreline from "@/components/legacy/LegacyPreline.astro";
 
 // Render all the slot content
 const slotContent = await Astro.slots.render("default");
@@ -64,3 +66,5 @@ const tabElements = Array.from(
     }
   </div>
 </div>
+
+<LegacyPreline />

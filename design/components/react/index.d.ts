@@ -1,9 +1,10 @@
-/* Javelina Works components: window.JavelinaWorks. React 18 on the page; load tokens.css and bundle.css. */
+/* Javelina Works components: window.JavelinaWorks (components/react/bundle.js). React 18 on the page; load tokens/tokens.css and components/jw.css. */
 import type { ReactNode, CSSProperties } from 'react';
 
 export interface ButtonProps {
   /** primary: tip orange that lights up on hover by day and glows at night. */
   variant?: 'primary' | 'burnt' | 'tint' | 'ghost' | 'shell' | 'agave' | 'quiet';
+  /** sm is the compact button: tighter label and padding, still 44px tall. */
   size?: 'md' | 'sm';
   /** Renders an <a> when set; otherwise a <button type="button">. */
   href?: string;
@@ -39,7 +40,12 @@ export interface SurveyMapProps {
   className?: string;
   style?: CSSProperties;
 }
-export interface MeterProps { label: string; value: number; max: number; unit?: string; animate?: boolean; className?: string; }
+export interface MeterProps {
+  label: string; value: number; max: number; unit?: string;
+  /** Default true: emits data-jw-reveal, so the lighting engine fills it on first view when it starts below the fold. */
+  animate?: boolean;
+  className?: string;
+}
 export interface SurfaceProps {
   /** Bands hold cards and components, never running text. */
   variant?: 'card' | 'tint' | 'band-shell' | 'band-agave';
@@ -54,8 +60,17 @@ export interface SurfaceProps {
   children?: ReactNode;
 }
 export interface NavLink { label: string; href: string; current?: boolean; }
+export interface NavMenuItem { label: string; href: string; description?: string; current?: boolean; }
+/** A link with items is a menu: a trigger button that opens a NavMenu panel of links. */
+export interface NavMenuLink { label: string; items: NavMenuItem[]; all?: { label: string; href: string; current?: boolean }; current?: boolean; align?: 'start' | 'end'; }
 export interface NavBarProps {
-  links?: NavLink[];
+  links?: (NavLink | NavMenuLink)[];
+  /** Extra links shown only in the phone menu (they live in the footer on wider screens). */
+  moreLinks?: NavLink[];
+  /** The bar sticks to the top of the viewport, so the lamp keeps lighting the page while it scrolls. Its parent must be the page (body), not a short wrapper. */
+  sticky?: boolean;
+  /** Base for the ids that aria-controls points at. */
+  id?: string;
   action?: { label: string; href: string };
   /** The action becomes a full-size lamp Button that lights the page as it scrolls under the bar. */
   lamp?: boolean;
@@ -83,7 +98,10 @@ export interface ThemeToggleProps {
   onChange?: (theme: 'light' | 'dark') => void;
   /** Element that gets data-theme; defaults to <html>. */
   target?: Element;
+  /** Default { light: 'By day', dark: 'At night' }. */
   labels?: { light: string; dark: string };
+  /** localStorage key the choice is saved under (default 'jw-theme'); '' to not save. */
+  storageKey?: string;
 }
 
 /* ---- lighting ---- */
@@ -108,6 +126,8 @@ export interface LightTubeProps {
   pilot?: boolean;
   /** The riveted plate under the tube with the label and number. Default true. */
   plate?: boolean;
+  /** Default true: emits data-jw-reveal, so the lighting engine fills it on first view when it starts below the fold. */
+  animate?: boolean;
   className?: string;
 }
 export interface StatusLightProps { label: string; /** Slow blink; default true. Off for reduced motion. */ blink?: boolean; className?: string; }

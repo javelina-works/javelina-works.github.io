@@ -1,5 +1,7 @@
+/* LEGACY base styles for pages not yet rebuilt (imported by legacy.css into @layer base).
+   Removed for the design system: the html font-size shrink to 90% under 768px (body copy stays 17px), smooth scrolling,
+   the body font and colors (jw.css owns them), white <strong>, and the link color. */
 html {
-  @apply text-base-sm scroll-smooth md:text-base;
   -webkit-font-smoothing: antialiased; /* smooth, like Figma */
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -8,18 +10,12 @@ html {
     "kern" 1;
 }
 
-body {
-  @apply bg-body font-primary text-text-default leading-normal font-normal;
-}
-
-/* Global Section Spacing */
-main.has-section-spacing-md section,
-.has-call-to-action {
+/* Global Section Spacing, for the old sections only (rebuilt sections carry jw- classes and set their own) */
+main.has-section-spacing-md > section:not([class*="jw-"]) {
   @apply pt-20;
 }
 
-main.has-section-spacing-lg > section,
-.has-call-to-action {
+main.has-section-spacing-lg > section:not([class*="jw-"]) {
   @apply pt-20 md:pt-32;
 }
 
@@ -72,17 +68,8 @@ h6,
   @apply text-h6-sm md:text-h6-sm;
 }
 
-b,
-strong {
-  @apply text-white;
-}
-
 code {
   @apply after:border-none;
-}
-
-a {
-  @apply text-text-default;
 }
 
 p {
@@ -100,14 +87,12 @@ button:not(:disabled),
   @apply border-border-light;
 }
 
-/* Adds pointer cursor to buttons */
-@layer base {
-  button:not(:disabled),
-  [role="button"]:not(:disabled) {
-    cursor: pointer;
-  }
-}
-
 section:has([data-aos]) {
   @apply overflow-hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin {
+    animation: none;
+  }
 }

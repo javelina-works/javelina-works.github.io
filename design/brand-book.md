@@ -78,7 +78,7 @@ At night the page is lit by its own lights, and you can see where each one is fr
 
 ## Components
 
-The components are React 18 components in `components/bundle.js` as `window.JavelinaWorks` (Button, Chip, SurveyMap, Meter, Surface, NavBar, Field, ThemeToggle, and for lighting LightScene, LampWall, LightTube, StatusLight and Rivet). Each one renders the plain HTML and `jw-` classes in `components/bundle.css`, so a page without React (an Astro page, say) can use the same markup and classes directly. For the lighting on such a page, give the pieces their `data-jw-*` attributes and call `JavelinaWorks.Lighting.mount()` once (see LightScene).
+The components are React 18 components in `components/react/bundle.js` as `window.JavelinaWorks` (Button, Chip, SurveyMap, Meter, Surface, NavBar, Field, ThemeToggle, and for lighting LightScene, LampWall, LightTube, StatusLight and Rivet). Each one renders the plain HTML and `jw-` classes styled by `components/jw.css` (loaded after `tokens/tokens.css`), so a page without React (an Astro page, say) can use the same markup and classes directly. For the lighting on such a page, give the pieces their `data-jw-*` attributes and call `mount()` from `components/lighting.js` once (or `JavelinaWorks.Lighting.mount()` with the bundle; see LightScene). The site adds two pieces built from the same rules: NavMenu (the menus under the nav bar) and Prose (long-form text).
 
 ## Imagery
 

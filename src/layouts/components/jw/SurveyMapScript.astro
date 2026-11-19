@@ -1,0 +1,28 @@
+---
+/** The editable SurveyMap's behaviour. SurveyMap renders it only when editable, so static maps ship no JS. */
+---
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-jw-map="editable"]').forEach((map) => {
+    if (map.dataset.jwReady) return;
+    map.dataset.jwReady = "1";
+    map.addEventListener("click", (e) => {
+      const m = (e.target as Element).closest<HTMLButtonElement>(".jw-marker");
+      if (!m || !map.contains(m)) return;
+      map.querySelectorAll(".jw-marker--selected").forEach((x) => x.classList.remove("jw-marker--selected"));
+      m.classList.add("jw-marker--selected");
+      const keep = m.classList.toggle("jw-marker--keep");
+      const id = m.dataset.plant;
+      m.setAttribute("aria-pressed", String(!keep));
+      m.setAttribute("aria-label", `Plant ${id}: ${keep ? "keep" : "treat"}. Press to ${keep ? "treat" : "keep"} it.`);
+      const tip = m.querySelector(".jw-marker__tip");
+      if (tip) tip.textContent = `Plant ${id} · ${keep ? "Keep" : "Treat"}`;
+      const all = map.querySelectorAll(".jw-marker").length;
+      const kept = map.querySelectorAll(".jw-marker--keep").length;
+      const treat = map.querySelector(".jw-map__counts .jw-chip--treat");
+      const shell = map.querySelector(".jw-map__counts .jw-chip--shell");
+      if (treat?.lastChild) treat.lastChild.textContent = `Treat · ${all - kept}`;
+      if (shell) shell.textContent = `Keep · ${kept}`;
+    });
+  });
+</script>

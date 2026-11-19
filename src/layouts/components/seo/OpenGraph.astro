@@ -1,5 +1,5 @@
 ---
-import { absoluteUrl } from "@/lib/utils/absoluteUrl";
+import { shareImageUrl } from "@/lib/utils/shareImage";
 import config from ".astro/config.generated.json";
 import { plainify, removeWhitespace } from "@/lib/utils/textConverter";
 
@@ -31,6 +31,9 @@ description = plainify(
 
 description = removeWhitespace(description);
 
+// The share image as an absolute URL to a real built file (content paths under /images/ often live in src/assets)
+const imageUrl = await shareImageUrl(image, Astro);
+
 // Generate the full URL for the current page
 const pageUrl = new URL(Astro.url.pathname, Astro.site);
 
@@ -46,7 +49,7 @@ if (!disableTagline) {
 <!-------------------------
     Standard Open Graph
 --------------------------->{
-  image && <meta property="og:image" content={absoluteUrl(image, Astro)} />
+  imageUrl && <meta property="og:image" content={imageUrl} />
 }
 {title && <meta property="og:title" content={removeWhitespace(title)} />}
 {
@@ -77,4 +80,4 @@ if (!disableTagline) {
   )
 }
 {twitterCard && <meta name="twitter:card" content={twitterCard} />}
-{image && <meta name="twitter:image" content={absoluteUrl(image, Astro)} />}
+{imageUrl && <meta name="twitter:image" content={imageUrl} />}

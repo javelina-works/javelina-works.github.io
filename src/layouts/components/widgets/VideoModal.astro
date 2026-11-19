@@ -1,4 +1,5 @@
 ---
+import LegacyPreline from "@/components/legacy/LegacyPreline.astro";
 import Icons from "@/helpers/Icons.astro";
 import type { VideoConfig } from "@/types";
 
@@ -164,3 +165,6 @@ const embedSrc =
     modal.querySelector("video.video-player")?.pause();
   });
 </script>
+
+<!-- TEMPORARY: Base no longer loads Preline; this old component loads the part it uses. -->
+<LegacyPreline />

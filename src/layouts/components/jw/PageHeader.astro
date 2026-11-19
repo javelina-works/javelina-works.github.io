@@ -1,0 +1,55 @@
+---
+/**
+ * PageHeader (design/components/PageHeader/README.md): the top of an inner page: eyebrow, the page's one <h1>, an
+ * intro, and anything in the default slot (buttons, a date line). On the ground by default. wall: on a LampWall, the
+ * words sit on a card (text never sits on a wall), and the card's shadow moves with the lamp.
+ * title and intro are plain text; for markup use the "title" and "intro" slots instead.
+ */
+import LampWall from "./LampWall.astro";
+import Surface from "./Surface.astro";
+
+interface Props {
+  title?: string;
+  eyebrow?: string;
+  intro?: string;
+  /** put the header on a wall (flake, corrugated or smooth); default: the page ground */
+  wall?: "flake" | "corrugated" | "smooth";
+  seed?: number;
+  /** id for the h1 (aria-labelledby targets) */
+  titleId?: string;
+  class?: string;
+}
+const { title, eyebrow, intro, wall, seed, titleId, class: className } = Astro.props;
+const hasIntroSlot = Astro.slots.has("intro");
+const hasTitleSlot = Astro.slots.has("title");
+---
+
+{
+  wall ? (
+    <LampWall as="header" texture={wall} seed={seed} class:list={["jw-pagehead", "jw-pagehead--wall", className]}>
+      <div class="jw-container">
+        <div class="jw-pagehead__frame">
+        <Surface castShadow class="jw-pagehead__card">
+          <div class="jw-pagehead__body">
+            {eyebrow && <p class="jw-eyebrow jw-pagehead__eyebrow">{eyebrow}</p>}
+            <h1 class="t-display-m jw-pagehead__title" id={titleId}>{hasTitleSlot ? <slot name="title" /> : title}</h1>
+            {hasIntroSlot ? <div class="jw-pagehead__intro"><slot name="intro" /></div> : intro && <p class="jw-pagehead__intro">{intro}</p>}
+            <slot />
+          </div>
+        </Surface>
+        </div>
+      </div>
+    </LampWall>
+  ) : (
+    <header class:list={["jw-pagehead", className]}>
+      <div class="jw-container">
+        <div class="jw-pagehead__body">
+          {eyebrow && <p class="jw-eyebrow jw-pagehead__eyebrow">{eyebrow}</p>}
+          <h1 class="t-display-m jw-pagehead__title" id={titleId}>{hasTitleSlot ? <slot name="title" /> : title}</h1>
+          {hasIntroSlot ? <div class="jw-pagehead__intro"><slot name="intro" /></div> : intro && <p class="jw-pagehead__intro">{intro}</p>}
+          <slot />
+        </div>
+      </div>
+    </header>
+  )
+}

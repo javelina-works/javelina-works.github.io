@@ -1,0 +1,47 @@
+---
+/**
+ * LightTube (design/components/LightTube/README.md). Put it on a LampWall; one tube per section.
+ * animate (default): data-jw-reveal, so the lighting engine holds it empty below the fold and fills it on first view.
+ * The tube reads as one image ("label: value of max unit"); the plate is aria-hidden.
+ */
+import Rivet from "./Rivet.astro";
+
+interface Props {
+  label: string;
+  value: number;
+  max: number;
+  unit?: string;
+  /** the green pilot on the left clamp (default true); off → a rivet there */
+  pilot?: boolean;
+  /** the riveted plate under the tube with the label and number (default true) */
+  plate?: boolean;
+  animate?: boolean;
+  class?: string;
+}
+const { label, value, max, unit = "ac", pilot = true, plate = true, animate = true, class: className } = Astro.props;
+const pct = max > 0 ? Math.max(0, Math.min(100, (value / max) * 100)) : 0;
+const fmt = (n: number) => Number(n).toLocaleString("en-US");
+const corners = ["tl", "tr", "bl", "br"] as const;
+---
+
+<div class:list={["jw-tube-block", className]} data-jw-reveal={animate ? "" : undefined}>
+  <div class="jw-lit jw-tube" data-jw-shadow="" role="img" aria-label={`${label}: ${fmt(value)} of ${fmt(max)} ${unit}`}>
+    <span class="jw-cast" aria-hidden="true"></span><span class="jw-cast" aria-hidden="true"></span>
+    <div class="jw-tube__track"><i class="jw-tube__fill" data-jw-light="tube" style={`width: ${pct}%`}></i></div>
+    <span class="jw-tube__clamp jw-tube__clamp--l" aria-hidden="true">{pilot ? <span class="jw-pilot is-on" data-jw-light="pilot" /> : <Rivet />}</span>
+    <span class="jw-tube__clamp jw-tube__clamp--r" aria-hidden="true"><Rivet /></span>
+  </div>
+  {
+    plate && (
+      <div class="jw-lit" data-jw-shadow="">
+        <span class="jw-cast" aria-hidden="true" />
+        <span class="jw-cast" aria-hidden="true" />
+        <div class="jw-surface jw-surface--card jw-plate" aria-hidden="true">
+          <span class="jw-plate__label">{label}</span>
+          <span class="jw-plate__value">{fmt(value)} <small>of {fmt(max)} {unit}</small></span>
+          {corners.map((c) => <Rivet corner={c} />)}
+        </div>
+      </div>
+    )
+  }
+</div>

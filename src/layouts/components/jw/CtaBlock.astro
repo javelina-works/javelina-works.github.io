@@ -1,0 +1,72 @@
+---
+/**
+ * CtaBlock (design/components/CtaBlock/README.md): the closing ask of a page, on a smooth-rust wall: a card (its shadow
+ * moves with the lamp) with a heading, a few lines, and up to two actions. Neither action glows: the header lamp is the
+ * page's one glowing action. primary is burnt (solid tip orange, no glow); secondary is a ghost.
+ * Clicks on either action send PostHog "cta_button_clicked" { label, url }, as the old CallToAction did; the section keeps
+ * the "call-to-action" class.
+ * The text is the default slot (paragraphs), or `html` (trusted markup such as markdownify output).
+ */
+import LampWall from "./LampWall.astro";
+import Surface from "./Surface.astro";
+import Button from "./Button.astro";
+
+interface Action {
+  label: string;
+  href: string;
+}
+interface Props {
+  title: string;
+  eyebrow?: string;
+  /** trusted HTML for the text (e.g. markdownify(description, true)); otherwise use the default slot */
+  html?: string;
+  primary?: Action;
+  secondary?: Action;
+  texture?: "flake" | "corrugated" | "smooth";
+  seed?: number;
+  id?: string;
+  class?: string;
+}
+const { title, eyebrow, html, primary, secondary, texture = "smooth", seed = 9, id = "cta", class: className } = Astro.props;
+const titleId = `${id}-title`;
+---
+
+<LampWall texture={texture} seed={seed} class:list={["jw-section", "call-to-action", className]} id={id} aria-labelledby={titleId}>
+  <div class="jw-container">
+    <div class="jw-ask__frame">
+    <Surface castShadow class="jw-ask">
+      {eyebrow && <p class="jw-eyebrow">{eyebrow}</p>}
+      <h2 class="t-heading-1 jw-ask__title" id={titleId}>{title}</h2>
+      {html ? <div class="jw-ask__text" set:html={html} /> : <div class="jw-ask__text"><slot /></div>}
+      {
+        (primary || secondary) && (
+          <div class="jw-ask__actions">
+            {primary && (
+              <Button variant="burnt" href={primary.href} data-cta>
+                {primary.label}
+              </Button>
+            )}
+            {secondary && (
+              <Button variant="ghost" href={secondary.href} data-cta>
+                {secondary.label}
+              </Button>
+            )}
+          </div>
+        )
+      }
+    </Surface>
+    </div>
+  </div>
+</LampWall>
+
+<script>
+  // PostHog: the event the old CallToAction sent from its button, now from each action in the block.
+  document.querySelectorAll<HTMLAnchorElement>(".call-to-action [data-cta]").forEach((a) =>
+    a.addEventListener("click", () => {
+      window.posthog?.capture("cta_button_clicked", {
+        label: a.textContent?.trim() || undefined,
+        url: a.getAttribute("href") || undefined,
+      });
+    }),
+  );
+</script>

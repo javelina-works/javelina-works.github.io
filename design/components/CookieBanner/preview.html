@@ -1,0 +1,37 @@
+<!-- @dsCard group="Forms" height=560 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Cookie banner</title></head>
+<body>
+<!-- Both panes, shown in place (on the page the banner is fixed at the foot of the screen). -->
+<div class="jw-demo">
+  <div class="jw-row" style="align-items: flex-start; gap: 24px">
+    <div class="jw-consent" role="dialog" aria-label="Notice" style="position: relative; left: auto; right: auto; bottom: auto; width: 420px">
+      <button type="button" class="jw-consent__close" aria-label="Close">✕</button>
+      <div class="jw-consent__summary">
+        <p class="jw-consent__text">We use cookies and record visits to improve the site. <a href="#privacy-policy">Privacy policy</a></p>
+        <div class="jw-consent__actions">
+          <button type="button" class="jw-btn jw-btn--quiet jw-btn--sm">Choices</button>
+          <button type="button" class="jw-btn jw-btn--shell jw-btn--sm">OK</button>
+        </div>
+      </div>
+    </div>
+    <div class="jw-consent" role="dialog" aria-label="Choices" style="position: relative; left: auto; right: auto; bottom: auto; width: 420px">
+      <button type="button" class="jw-consent__close" aria-label="Close">✕</button>
+      <div class="jw-consent__options">
+        <fieldset class="jw-consent__fieldset">
+          <legend class="jw-consent__legend">Choose what we may use</legend>
+          <label class="jw-check"><input type="checkbox" class="jw-check__box" checked disabled><span class="jw-check__text"><strong>Essential</strong> — keeps the site working and protects the estimate tools from abuse. Always on.</span></label>
+          <label class="jw-check"><input type="checkbox" class="jw-check__box" checked><span class="jw-check__text"><strong>Analytics</strong> — which pages and tools get used, so we can improve them.</span></label>
+          <label class="jw-check"><input type="checkbox" class="jw-check__box"><span class="jw-check__text"><strong>Session recordings</strong> — a replay of your visit, so we can see what broke and fix it. What you type is masked, except the address you search for on our estimate tools.</span></label>
+        </fieldset>
+        <div class="jw-consent__actions">
+          <button type="button" class="jw-btn jw-btn--quiet jw-btn--sm">Save choices</button>
+          <button type="button" class="jw-btn jw-btn--shell jw-btn--sm">Accept all</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

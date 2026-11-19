@@ -26,7 +26,8 @@ const steps = [
 const pad = (n: number) => String(n).padStart(2, "0");
 ---
 
-<Base {...entry?.data} sectionSpacing="md">
+{/* dayOnly: TEMPORARY until this page is rebuilt on the tokens (its own CSS hard-codes white panels). */}
+<Base {...entry?.data} sectionSpacing="md" dayOnly>
   <div class="pr">
     <header class="pr-hero container">
       <div class="pr-hero-copy">

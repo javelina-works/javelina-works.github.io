@@ -11,13 +11,14 @@ body { margin: 0; font-family: var(--font-body); font-size: 17px; line-height: 1
 /* ---- button ----
    By day the orange is sunlit (flat tip orange, lighter outline, top highlight).
    The lit layer (::before) fades in on hover, focus and press. At night it is on at rest and brightens on hover. */
-.jw-btn { position: relative; isolation: isolate; display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); height: 44px; padding: 0 18px; box-sizing: border-box;
+.jw-btn { position: relative; isolation: isolate; display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); height: 44px; min-width: 44px; padding: 0 18px; box-sizing: border-box;
   border-radius: var(--radius-sm); border: 1px solid rgba(0,0,0,0); background: none; font-family: var(--font-mono); font-size: 11.5px; line-height: 1; font-weight: 400;
   letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; text-decoration: none; cursor: pointer;
   transition: filter var(--duration-hover) ease, background-color var(--duration-hover) ease, border-color var(--duration-hover) ease, box-shadow var(--duration-hover) ease; }
 .jw-btn::after { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: url(../assets/textures/grain.png) 0 0 / 240px 240px; mix-blend-mode: soft-light; opacity: var(--grain-opacity); pointer-events: none; }
 .jw-btn__mark { width: 6px; height: 6px; border-radius: 1px; background: currentColor; flex: none; }
-.jw-btn--sm { height: 32px; padding: 0 12px; font-size: 10.5px; }
+/* sm is the compact button: a tighter label and padding, but still 44px tall (and at least 44px wide, for a short label such as OK), because every tap target is at least 44px */
+.jw-btn--sm { height: 44px; padding: 0 12px; font-size: 10.5px; }
 .jw-btn:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
 .jw-btn:disabled, .jw-btn[aria-disabled="true"] { opacity: .45; filter: saturate(.6); cursor: not-allowed; }
 
@@ -33,9 +34,12 @@ body { margin: 0; font-family: var(--font-body); font-size: 17px; line-height: 1
 [data-theme="dark"] .jw-btn--primary:hover::before, [data-theme="dark"] .jw-btn--primary.is-hover::before, [data-theme="dark"] .jw-btn--primary:focus-visible::before { opacity: 1; box-shadow: var(--shadow-glow-hover); transition-duration: var(--duration-glow); }
 [data-theme="dark"] .jw-btn--primary:active::before, [data-theme="dark"] .jw-btn--primary.is-pressed::before { opacity: .9; box-shadow: var(--shadow-glow); }
 .jw-btn--primary:disabled::before, .jw-btn--primary[aria-disabled="true"]::before { display: none; }
-/* flicker on: the lit layer stutters on like a lamp warming up. By day it then settles back to sunlit; at night it stays lit. */
-.jw-btn--primary.is-flickering::before { animation: jw-flicker-day var(--duration-flicker) linear 1 backwards; }
-[data-theme="dark"] .jw-btn--primary.is-flickering::before { animation-name: jw-flicker-night; }
+/* flicker on: the lit layer stutters on like a lamp warming up. By day it then settles back to sunlit; at night it stays lit.
+   One animation for both themes: the keyframes read the theme's values from these properties, so switching day or night
+   in the middle of a flicker carries it on to the new ending instead of restarting it (never flicker on a theme switch). */
+.jw-btn--primary { --flicker-first: .75; --flicker-hold: 1; --flicker-end: 0; }
+[data-theme="dark"] .jw-btn--primary { --flicker-first: .7; --flicker-hold: .9664; --flicker-end: .88; }
+.jw-btn--primary.is-flickering::before { animation: jw-flicker var(--duration-flicker) linear 1 backwards; }
 
 .jw-btn--burnt { --btn-fg: var(--on-action-strong); background-color: var(--action-strong); border-color: var(--action-strong-outline); box-shadow: var(--shadow-action-strong); }
 .jw-btn--burnt .jw-btn__mark { background: var(--tip-200); }
@@ -92,7 +96,9 @@ body { margin: 0; font-family: var(--font-body); font-size: 17px; line-height: 1
 .jw-marker::after { content: ""; position: absolute; inset: -6px; border-radius: inherit; border: 1.5px solid var(--marker-ping); animation: jw-ping var(--duration-ping) ease-out infinite; pointer-events: none; }
 .jw-marker:hover, .jw-marker:focus-visible, .jw-marker--selected { outline: none; box-shadow: var(--shadow-glow-marker-hover); transition-duration: var(--duration-glow);
   background: radial-gradient(circle, var(--marker-core) 0%, var(--marker-core) 38%, var(--glow-100) 46%, var(--glow-400) 54%, rgba(0,0,0,0) 72%); }
-.jw-marker--selected::before { content: ""; position: absolute; inset: -5px; border-radius: inherit; box-shadow: inset 0 0 0 2px var(--selected), 0 0 0 1px var(--selected-hairline); pointer-events: none; }
+/* ::before is the marker's 44px tap area (the dot stays 18px); the marigold selected ring is drawn on the same layer */
+.jw-marker::before { content: ""; position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; }
+.jw-marker--selected::before { background: radial-gradient(circle closest-side, rgba(0,0,0,0) 11.5px, var(--selected) 12px, var(--selected) 14px, var(--selected-hairline) 14px, var(--selected-hairline) 15px, rgba(0,0,0,0) 15.5px); }
 .jw-marker:focus-visible { box-shadow: var(--shadow-glow-marker-hover), 0 0 0 7px var(--focus); }
 .jw-marker--keep, .jw-marker--keep:hover, .jw-marker--keep:focus-visible, .jw-marker--keep.jw-marker--selected { background: radial-gradient(circle, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 40%, var(--juniper-100) 46%, var(--juniper-100) 56%, rgba(0,0,0,0) 62%); box-shadow: 0 0 0 1px rgba(26,11,5,.25); }
 .jw-marker--keep:hover { background: radial-gradient(circle, rgba(221,226,211,.25) 0%, rgba(221,226,211,.25) 40%, var(--juniper-50) 46%, var(--juniper-100) 56%, rgba(0,0,0,0) 62%); }
@@ -105,9 +111,12 @@ body { margin: 0; font-family: var(--font-body); font-size: 17px; line-height: 1
 .jw-meter-block { display: flex; flex-direction: column; gap: 8px; }
 .jw-meter-block__line { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; color: var(--text-body); }
 .jw-meter { position: relative; height: 12px; border-radius: var(--radius-round); background: var(--surface-sunken); box-shadow: var(--shadow-well); }
-.jw-meter__fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: inherit; transition: width 900ms cubic-bezier(.2,.7,.2,1);
+/* The fill's width is set once (inline). It fills by transform only: the lighting engine holds a [data-jw-reveal] block that is
+   below the fold at load in is-pending (scaleX(0)) and lets it grow to full on first view. */
+.jw-meter__fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: inherit; transform-origin: 0 50%; transition: transform 900ms cubic-bezier(.2,.7,.2,1);
   background: linear-gradient(180deg, var(--meter-rim) 0%, rgba(0,0,0,0) 45%), linear-gradient(90deg, var(--meter-start) 0%, var(--meter-mid) 55%, var(--meter-end) 100%); box-shadow: var(--shadow-glow-meter); }
 [data-theme="dark"] .jw-meter__fill { background: linear-gradient(180deg, var(--meter-rim) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 70%, var(--meter-rim) 100%), linear-gradient(90deg, var(--meter-start) 0%, var(--meter-mid) 55%, var(--meter-end) 100%); }
+[data-jw-reveal].is-pending .jw-meter__fill { transform: scaleX(0); }
 
 /* ---- surfaces: cards, tint callouts, and sheen bands that hold them ---- */
 .jw-surface { position: relative; border-radius: var(--radius-md); }
@@ -130,21 +139,49 @@ a.jw-surface--tint:hover { border-color: var(--action-ghost-outline); }
 .jw-nav { position: relative; isolation: isolate; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3) var(--space-4); padding: var(--space-3) var(--space-5); background: var(--surface); border-bottom: 1px solid var(--line); }
 [data-theme="dark"] .jw-nav { background: linear-gradient(160deg, var(--shell-1) 0%, var(--shell-2) 42%, var(--shell-3) 100%); border-bottom-color: var(--shell-edge); }
 [data-theme="dark"] .jw-nav::after { content: ""; position: absolute; inset: 0; z-index: -1; background: url(../assets/textures/grain.png) 0 0 / 240px 240px; mix-blend-mode: soft-light; opacity: var(--grain-opacity); pointer-events: none; }
-.jw-nav__brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+/* Child order: brand, Menu button, links (links, menus, the slot such as the ThemeToggle), then the action. The action (the lamp)
+   sits outside the links, so it stays in view on phones and keeps lighting the page while the links fold behind Menu. */
+.jw-nav--sticky { position: sticky; top: 0; z-index: 40; }
+html:has(.jw-nav--sticky) { scroll-padding-top: calc(44px + 2 * var(--space-3) + 1px + var(--space-4)); }
+.jw-nav__brand { display: flex; align-items: center; gap: 10px; min-height: 44px; margin-right: auto; text-decoration: none; }
+.jw-nav__brand:focus-visible { outline: none; border-radius: var(--radius-xs); box-shadow: var(--shadow-focus); }
 .jw-nav__links { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-4) var(--space-5); font-size: 15px; }
-.jw-nav__link { color: var(--text-body); text-decoration: none; }
-[data-theme="dark"] .jw-nav__link { color: var(--on-shell); opacity: .82; }
-.jw-nav__link:hover { color: var(--text); opacity: 1; }
-.jw-nav__link[aria-current="page"] { color: var(--land); opacity: 1; }
+.jw-nav__action { margin-left: var(--space-1); }
+/* links and menu triggers are 44px tall (tap rule); text color is held against page link styles in every state */
+.jw-nav__link { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 44px; box-sizing: border-box; text-decoration: none; }
+.jw-nav .jw-nav__link { color: var(--text-body); }
+[data-theme="dark"] .jw-nav .jw-nav__link { color: var(--on-shell); opacity: .82; }
+.jw-nav .jw-nav__link:hover { color: var(--text); opacity: 1; }
+.jw-nav .jw-nav__link[aria-current="page"], .jw-nav .jw-nav__link.is-current { color: var(--land); opacity: 1; }
 .jw-nav__link:focus-visible, .jw-nav__menu:focus-visible { outline: none; border-radius: var(--radius-xs); box-shadow: var(--shadow-focus); }
-.jw-nav__menu { display: none; appearance: none; height: 32px; padding: 0 12px; border-radius: var(--radius-sm); border: 1px solid var(--line-strong); background: rgba(0,0,0,0); color: var(--text);
+.jw-nav__trigger { appearance: none; margin: 0; padding: 0; border: 0; background: none; font: inherit; cursor: pointer; }
+.jw-nav__caret { width: 7px; height: 7px; box-sizing: border-box; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: translateY(-2px) rotate(45deg); transition: transform var(--duration-hover) ease; }
+.jw-nav__trigger[aria-expanded="true"] .jw-nav__caret { transform: translateY(2px) rotate(225deg); }
+.jw-nav__group { position: relative; display: flex; align-items: center; }
+.jw-nav__more { display: none; }
+.jw-nav__menu { display: none; appearance: none; height: 44px; padding: 0 14px; border-radius: var(--radius-sm); border: 1px solid var(--line-strong); background: rgba(0,0,0,0); color: var(--text);
   font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; }
 [data-theme="dark"] .jw-nav__menu { color: var(--on-shell); border-color: var(--shell-edge); }
-@media (max-width: 640px) {
-  .jw-nav__menu { display: inline-flex; align-items: center; }
-  .jw-nav__links { display: none; width: 100%; flex-direction: column; align-items: flex-start; padding-top: var(--space-2); }
-  .jw-nav.is-open .jw-nav__links { display: flex; }
+/* As the bar narrows the wordmark goes first (1023px and below), then the links fold behind Menu (900px and below). With two
+   menus, two links and the theme toggle the bar needs about 950px with the wordmark and 760px without it. */
+@media (max-width: 1023px) {
+  /* the wordmark stays the link's name for screen readers; only the mark shows */
+  .jw-nav__wordmark { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 }
+@media (max-width: 900px) {
+  .jw-nav__menu { display: inline-flex; align-items: center; order: 1; }
+  .jw-nav__action { order: 2; margin-left: 0; }
+  .jw-nav__links { display: none; order: 3; width: 100%; flex-direction: column; align-items: stretch; gap: 0; padding-top: var(--space-2);
+    max-height: calc(100vh - 69px); max-height: calc(100dvh - 69px); overflow-y: auto; overscroll-behavior: contain; }
+  .jw-nav.is-open .jw-nav__links { display: flex; }
+  .jw-nav__group { flex-direction: column; align-items: stretch; }
+  .jw-nav__trigger { justify-content: space-between; text-align: left; }
+  .jw-nav__more { display: flex; flex-direction: column; margin-top: var(--space-2); padding-top: var(--space-2); border-top: 1px solid var(--line); }
+  [data-theme="dark"] .jw-nav__more { border-top-color: var(--shell-edge); }
+  .jw-nav__links > .jw-toggle { align-self: flex-start; margin: var(--space-4) 0 var(--space-2); }
+}
+@media (max-width: 640px) { .jw-nav { gap: var(--space-2); padding: var(--space-3) var(--space-4); } }
+@media (max-width: 360px) { .jw-nav__action { padding: 0 12px; } }
 
 /* ---- field ---- */
 .jw-field { display: flex; flex-direction: column; gap: 6px; }
@@ -162,8 +199,10 @@ a.jw-surface--tint:hover { border-color: var(--action-ghost-outline); }
 
 /* ---- theme toggle ---- */
 .jw-toggle { display: inline-flex; gap: 3px; padding: 3px; border-radius: var(--radius-sm); background: var(--surface-sunken); box-shadow: var(--shadow-well); }
-.jw-toggle__opt { appearance: none; border: 0; display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px; border-radius: var(--radius-xs); background: rgba(0,0,0,0); color: var(--text-muted);
+.jw-toggle__opt { position: relative; appearance: none; border: 0; display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px; border-radius: var(--radius-xs); background: rgba(0,0,0,0); color: var(--text-muted);
   font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; transition: background-color var(--duration-hover) ease, color var(--duration-hover) ease; }
+/* each option looks 30px tall but takes taps over 44px (::before reaches 7px above and below) */
+.jw-toggle__opt::before { content: ""; position: absolute; left: 0; right: 0; top: -7px; bottom: -7px; }
 .jw-toggle__opt:hover { color: var(--text); }
 .jw-toggle__opt.is-on { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.14); }
 [data-theme="dark"] .jw-toggle__opt.is-on { background: linear-gradient(160deg, var(--shell-1) 0%, var(--shell-2) 42%, var(--shell-3) 100%); color: var(--on-shell); }
@@ -175,14 +214,14 @@ a.jw-surface--tint:hover { border-color: var(--action-ghost-outline); }
 /* ---- motion ---- */
 @keyframes jw-ping { 0% { transform: scale(.6); opacity: .9; } 100% { transform: scale(1.9); opacity: 0; } }
 @keyframes jw-breathe { 0%, 100% { opacity: .15; transform: scale(.96); } 50% { opacity: .55; transform: scale(1.03); } }
-@keyframes jw-flicker-day { 0% { opacity: 0; } 3.5% { opacity: .75; } 5.5% { opacity: .08; } 8.5% { opacity: .9; } 11% { opacity: .2; } 13.5% { opacity: .62; } 15.5% { opacity: .3; } 19% { opacity: 1; } 64% { opacity: 1; } 100% { opacity: 0; } }
-@keyframes jw-flicker-night { 0% { opacity: 0; } 3.5% { opacity: .7; } 5.5% { opacity: .08; } 8.5% { opacity: .9; } 11% { opacity: .2; } 13.5% { opacity: .62; } 15.5% { opacity: .3; } 19% { opacity: 1; } 50% { opacity: 1; } 100% { opacity: .88; } }
+/* by day: full from 19% to 64%, then back to sunlit (0). At night: full to 50%, then settles to .88 (.9664 is that line at 64%). */
+@keyframes jw-flicker { 0% { opacity: 0; } 3.5% { opacity: var(--flicker-first); } 5.5% { opacity: .08; } 8.5% { opacity: .9; } 11% { opacity: .2; } 13.5% { opacity: .62; } 15.5% { opacity: .3; } 19% { opacity: 1; } 50% { opacity: 1; } 64% { opacity: var(--flicker-hold); } 100% { opacity: var(--flicker-end); } }
 @keyframes jw-glint { 0%, 72% { transform: translateX(0); } 100% { transform: translateX(420%); } }
 @media (prefers-reduced-motion: reduce) {
   .jw-marker::after, .jw-btn__glint::before, [data-theme="dark"] .jw-attn::before, .jw-btn--primary.is-flickering::before { animation: none; }
   .jw-btn__glint { display: none; }
   [data-theme="dark"] .jw-attn::before { opacity: .45; transform: none; }
-  .jw-meter__fill { transition: none; }
+  .jw-meter__fill, .jw-nav__caret { transition: none; }
 }
 
 /* ---- preview frame helpers ---- */
@@ -193,6 +232,10 @@ a.jw-surface--tint:hover { border-color: var(--action-ghost-outline); }
 /* ---- lighting: walls, pools, cast shadows, rivets, the tube and the pilot lights (driven by JavelinaWorks.Lighting) ---- */
 .jw-wall { position: relative; isolation: isolate; overflow: hidden; background: #120A07; }
 .jw-wall__canvas { position: absolute; inset: 0; z-index: -2; display: block; width: 100%; height: 100%; }
+/* Server-render jw-wall--static so a wall shows its static drawing before the engine runs (and with no JS). The engine removes the
+   class after the wall's first WebGL frame; until then, or if WebGL fails, the canvas stays hidden (an undrawn canvas is black). */
+.jw-wall--static > .jw-wall__canvas { visibility: hidden; }
+.jw-wall__canvas[hidden] { display: none; }
 .jw-wall--static { background: radial-gradient(120% 90% at 20% 0%, #B5642B 0%, #7A3A18 55%, #4A2210 100%); }
 .jw-wall--static[data-jw-wall="corrugated"] { background: repeating-linear-gradient(90deg, #8C4220 0 24px, #B5642B 48px, #8C4220 96px); }
 [data-theme="dark"] .jw-wall--static { background: radial-gradient(120% 90% at 30% 0%, #3A1C10 0%, #1C0E08 45%, #0E0805 100%); }
@@ -227,7 +270,8 @@ a.jw-surface--tint:hover { border-color: var(--action-ghost-outline); }
 .jw-tube__track { position: absolute; left: 26px; right: 26px; top: 13px; height: 14px; border-radius: var(--radius-round);
   background: linear-gradient(180deg, rgba(255,255,255,.1), rgba(0,0,0,.35) 60%, rgba(255,255,255,.05)), #0B0907; box-shadow: inset 0 0 0 1px rgba(255,220,180,.18), 0 3px 5px rgba(0,0,0,.65); }
 .jw-tube__track::after { content: ""; position: absolute; left: 6px; right: 6px; top: 2px; height: 2px; border-radius: 2px; background: rgba(255,255,255,.16); pointer-events: none; }
-.jw-tube__fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: inherit; transition: width 1.4s cubic-bezier(.2,.7,.2,1);
+/* like the meter: width set once inline, filled by transform; is-pending (lighting engine, below the fold at load) holds it empty */
+.jw-tube__fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: inherit; transform-origin: 0 50%; transition: transform 1.4s cubic-bezier(.2,.7,.2,1);
   background: linear-gradient(180deg, rgba(255,214,150,.95) 0%, rgba(255,160,70,0) 35%, rgba(255,160,70,0) 65%, rgba(255,214,150,.9) 100%), linear-gradient(90deg, #C2421A 0%, #F06A1E 55%, #FF8A2A 100%);
   box-shadow: 0 0 9px 2px rgba(255,100,24,.42), 0 0 20px rgba(255,90,20,.16); }
 .jw-tube__clamp { position: absolute; top: 4px; width: 26px; height: 32px; border-radius: var(--radius-sm); background: linear-gradient(180deg, #A88433 0%, #8A6A2A 45%, #5E4418 100%);
@@ -243,6 +287,8 @@ a.jw-surface--tint:hover { border-color: var(--action-ghost-outline); }
 .jw-pilot::before { content: ""; position: absolute; inset: 1px; border-radius: 50%; background: radial-gradient(circle at 42% 38%, #F0FFF4 0%, #9BE6B4 28%, #5CC48A 55%, #1F6B3A 100%);
   box-shadow: 0 0 5px 1px rgba(92,196,138,.6), 0 0 11px rgba(92,196,138,.24); opacity: 0; transition: opacity .6s ease-out; }
 .jw-pilot.is-on::before { opacity: 1; }
+[data-jw-reveal].is-pending .jw-tube__fill { transform: scaleX(0); }
+[data-jw-reveal].is-pending .jw-pilot::before { opacity: 0; }
 .jw-status { display: inline-flex; align-items: center; gap: 12px; padding: 8px 14px 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--shell-edge);
   background: linear-gradient(160deg, var(--shell-1) 0%, var(--shell-2) 42%, var(--shell-3) 100%); box-shadow: var(--shadow-sheen-shell), 0 6px 18px rgba(0,0,0,.32); }
 /* text never sits straight on a wall: the label rides on its own shell plate, so it reads on any wall, by day or at night */
@@ -250,3 +296,273 @@ a.jw-surface--tint:hover { border-color: var(--action-ghost-outline); }
 .jw-pilot--status::before { opacity: var(--blink, 1); transition: none; }
 .jw-status__label { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--on-shell); }
 @media (prefers-reduced-motion: reduce) { .jw-tube__fill { transition: none; } }
+
+/* =======================================================================================================================
+   Site pieces: designs added while rebuilding javelinaworks.com, derived from the system rules (mono labels, radius-sm/md,
+   line and line-strong edges, shadow-focus, the contrast rules). Each has a README.md and preview.html in its own folder.
+   ======================================================================================================================= */
+
+/* ---- nav menu (NavMenu): the panel under a NavBar menu trigger, such as Services or Tools ----
+   A disclosure, not an ARIA menu: <button class="jw-nav__link jw-nav__trigger" aria-expanded aria-controls> opens
+   <div class="jw-navmenu" hidden> holding plain links. Paper card by day and at night (text never sits on the night sheen). */
+.jw-navmenu { position: absolute; z-index: 10; top: calc(100% + var(--space-3) + 1px); left: calc(-1 * (var(--space-2) + var(--space-3))); width: max-content; min-width: 280px; max-width: min(380px, calc(100vw - 2 * var(--space-4)));
+  box-sizing: border-box; padding: var(--space-2); border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow-raise); }
+.jw-navmenu[hidden] { display: none; }
+.jw-navmenu--end { left: auto; right: calc(-1 * (var(--space-2) + var(--space-3))); }
+.jw-navmenu__list { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.jw-navmenu__item, .jw-navmenu__all { display: flex; box-sizing: border-box; min-height: 44px; padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); text-decoration: none; }
+.jw-navmenu__item { flex-direction: column; justify-content: center; gap: 2px; }
+.jw-navmenu .jw-navmenu__item { color: var(--text); }
+.jw-navmenu .jw-navmenu__item:hover { color: var(--text); background: var(--surface-sunken); }
+.jw-navmenu__label { font-size: 16px; font-weight: 500; line-height: 1.3; color: var(--text); }
+.jw-navmenu__desc { font-size: 16px; line-height: 1.4; color: var(--text-muted); }
+.jw-navmenu__item[aria-current="page"] .jw-navmenu__label { color: var(--land); }
+.jw-navmenu__all { align-items: center; margin-top: var(--space-2); border-top: 1px solid var(--line); border-radius: 0 0 var(--radius-sm) var(--radius-sm); font-size: 15px; font-weight: 500; }
+.jw-navmenu .jw-navmenu__all { color: var(--land); }
+.jw-navmenu .jw-navmenu__all:hover { color: var(--text); background: var(--surface-sunken); }
+.jw-navmenu .jw-navmenu__all[aria-current="page"] { color: var(--land); }
+.jw-navmenu__item:focus-visible, .jw-navmenu__all:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+/* folded (900px and below): inside the open NavBar panel the menu is an indented list of nav links on the bar (no card, no descriptions) */
+@media (max-width: 900px) {
+  .jw-navmenu { position: static; width: auto; min-width: 0; max-width: none; padding: 0 0 var(--space-2) var(--space-4); border: 0; border-radius: 0; background: none; box-shadow: none; }
+  .jw-navmenu__item, .jw-navmenu__all { padding: 0; margin: 0; border: 0; }
+  .jw-navmenu .jw-navmenu__item:hover, .jw-navmenu .jw-navmenu__all:hover { background: none; }
+  .jw-navmenu__desc { display: none; }
+  .jw-navmenu__label { font-size: 15px; font-weight: 400; color: var(--text-body); }
+  .jw-navmenu .jw-navmenu__all { font-size: 15px; font-weight: 400; }
+  [data-theme="dark"] .jw-navmenu__label { color: var(--on-shell); }
+  [data-theme="dark"] .jw-navmenu .jw-navmenu__all { color: var(--on-shell); }
+  .jw-navmenu__item:hover .jw-navmenu__label { color: var(--text); }
+  .jw-navmenu__item[aria-current="page"] .jw-navmenu__label { color: var(--land); }
+}
+
+/* ---- prose (Prose): long-form text such as articles, legal pages and service bodies ----
+   18px reading text (17px on phones, the body-prose type style), about 66 characters a line, headings from the type scale,
+   links in land with an underline, tables that wrap instead of scrolling the page, and a Sources list whose long URLs wrap.
+   Put it on the page ground or on a card, never on a wall or a sheen. */
+.jw-prose { max-width: 66ch; font-family: var(--font-body); font-size: 18px; line-height: 1.6; color: var(--text-body); overflow-wrap: break-word; }
+.jw-prose--full { max-width: none; }
+.jw-prose > :first-child { margin-top: 0; }
+.jw-prose > :last-child { margin-bottom: 0; }
+.jw-prose p, .jw-prose ul, .jw-prose ol, .jw-prose dl, .jw-prose blockquote, .jw-prose table, .jw-prose pre { margin: 0 0 var(--space-5); }
+.jw-prose h2, .jw-prose h3, .jw-prose h4, .jw-prose h5, .jw-prose h6 { color: var(--text); font-weight: 500; letter-spacing: -0.01em; text-wrap: balance; }
+.jw-prose h2 { margin: var(--space-10) 0 var(--space-4); font-family: var(--font-display); font-size: 28px; line-height: 1.1; }
+.jw-prose h3 { margin: var(--space-8) 0 var(--space-3); font-family: var(--font-display); font-size: 22px; line-height: 1.18; }
+.jw-prose h4, .jw-prose h5, .jw-prose h6 { margin: var(--space-6) 0 var(--space-2); font-family: var(--font-body); font-size: 18px; line-height: 1.4; letter-spacing: 0; }
+.jw-prose h2 + h3 { margin-top: var(--space-4); }
+.jw-prose strong, .jw-prose b { font-weight: 500; color: var(--text); }
+.jw-prose a, .jw-prose a:link, .jw-prose a:visited { color: var(--land); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .2em; }
+.jw-prose a:hover { color: var(--text); text-decoration-thickness: 2px; }
+.jw-prose a:focus-visible { outline: none; border-radius: var(--radius-xs); box-shadow: var(--shadow-focus); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.jw-prose .external-link-icon { display: inline-block; width: .8em; height: .8em; margin-left: .2em; vertical-align: -.05em; }
+.jw-prose .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.jw-prose ul, .jw-prose ol { padding-left: 1.4em; }
+/* markers are declared, not left to the browser: a CSS reset (Tailwind preflight on the site) removes list-style */
+.jw-prose ul { list-style: disc; }
+.jw-prose ol { list-style: decimal; }
+.jw-prose ul ul { list-style: circle; }
+.jw-prose li { margin: 0 0 var(--space-2); padding-left: .15em; }
+.jw-prose li::marker { color: var(--text-muted); }
+.jw-prose li > p { margin: 0 0 var(--space-2); }
+.jw-prose li > ul, .jw-prose li > ol { margin: var(--space-2) 0 0; }
+.jw-prose blockquote { margin-left: 0; margin-right: 0; padding: var(--space-1) 0 var(--space-1) var(--space-5); border-left: 3px solid var(--line-strong); color: var(--text); }
+.jw-prose blockquote > :last-child { margin-bottom: 0; }
+.jw-prose hr { height: 0; margin: var(--space-10) 0; border: 0; border-top: 1px solid var(--line); }
+/* tables wrap their cells to fit (no sideways scroll); figures are tabular */
+.jw-prose table { width: 100%; border-collapse: collapse; font-size: 16px; line-height: 1.45; font-variant-numeric: tabular-nums; }
+.jw-prose caption { margin-bottom: var(--space-2); text-align: start; color: var(--text-muted); }
+.jw-prose th, .jw-prose td { padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--line); text-align: start; vertical-align: top; overflow-wrap: anywhere; }
+.jw-prose th { color: var(--text); font-weight: 500; border-bottom-color: var(--line-strong); }
+.jw-prose th:first-child, .jw-prose td:first-child { padding-left: 0; }
+.jw-prose th:last-child, .jw-prose td:last-child { padding-right: 0; }
+.jw-prose figure { margin: var(--space-8) 0; }
+.jw-prose img { display: block; max-width: 100%; height: auto; border-radius: var(--radius-md); }
+[data-theme="dark"] .jw-prose img { filter: brightness(var(--photo-brightness-dark)); }
+.jw-prose figcaption { margin-top: var(--space-2); font-size: 16px; line-height: 1.5; color: var(--text-muted); }
+.jw-prose code { padding: .1em .35em; border-radius: var(--radius-xs); background: var(--surface-sunken); color: var(--text); font-family: var(--font-mono); font-size: max(16px, .88em); }
+.jw-prose pre { padding: var(--space-4); overflow-x: auto; border-radius: var(--radius-md); background: var(--surface-sunken); font-size: 16px; line-height: 1.5; }
+.jw-prose pre code { padding: 0; background: none; font-size: inherit; }
+/* Shiki writes inline colors for a light theme; hold the block on the system's well, and keep it readable at night */
+.jw-prose pre.astro-code { background-color: var(--surface-sunken) !important; }
+[data-theme="dark"] .jw-prose pre.astro-code, [data-theme="dark"] .jw-prose pre.astro-code span { color: var(--text) !important; }
+/* footnote references and the Sources list (GFM footnotes) */
+.jw-prose sup { font-size: .75em; line-height: 0; vertical-align: super; }
+.jw-prose sup a { padding: 0 .1em; text-underline-offset: .15em; }
+.jw-prose .footnotes { margin-top: var(--space-14); padding-top: var(--space-6); border-top: 1px solid var(--line); font-size: 16px; line-height: 1.5; }
+.jw-prose .footnotes h2 { margin: 0 0 var(--space-4); font-size: 22px; line-height: 1.18; }
+.jw-prose .footnotes ol { margin: 0; padding-left: 1.6em; }
+.jw-prose .footnotes li { margin: 0 0 var(--space-3); }
+.jw-prose .footnotes p { margin: 0; }
+.jw-prose .footnotes a { overflow-wrap: anywhere; }
+.jw-prose .data-footnote-backref { margin-left: .2em; text-decoration: none; }
+@media (max-width: 640px) {
+  .jw-prose { font-size: 17px; }
+  .jw-prose h2 { margin-top: var(--space-8); font-size: 24px; }
+  .jw-prose h3 { font-size: 20px; }
+  .jw-prose h4, .jw-prose h5, .jw-prose h6 { font-size: 17px; }
+  .jw-prose .footnotes h2 { font-size: 20px; }
+}
+
+/* ---- page layout (PageLayout): Container and Section ----
+   The container centers content at the page width with the side gutters (16px on phones, 24px from 641px, never under
+   the safe-area inset). A section is one band of the page with the system's rhythm: space-20 (space-14 on phones). */
+.jw-container { box-sizing: border-box; width: 100%; max-width: calc(1200px + 2 * var(--space-6)); margin-left: auto; margin-right: auto;
+  padding-left: max(var(--space-4), env(safe-area-inset-left)); padding-right: max(var(--space-4), env(safe-area-inset-right)); }
+.jw-container--narrow { max-width: calc(760px + 2 * var(--space-6)); }
+.jw-container--wide { max-width: calc(1280px + 2 * var(--space-6)); }
+.jw-section { padding-top: var(--space-14); padding-bottom: var(--space-14); }
+.jw-section--tight { padding-top: var(--space-8); padding-bottom: var(--space-8); }
+.jw-section--none { padding-top: 0; padding-bottom: 0; }
+/* a sheen band as a page section: full width and square, its gutters from the container inside */
+.jw-section.jw-section--band { border-radius: 0; padding-left: 0; padding-right: 0; }
+@media (min-width: 641px) {
+  .jw-container { padding-left: max(var(--space-6), env(safe-area-inset-left)); padding-right: max(var(--space-6), env(safe-area-inset-right)); }
+  .jw-section { padding-top: var(--space-20); padding-bottom: var(--space-20); }
+  .jw-section--tight { padding-top: var(--space-10); padding-bottom: var(--space-10); }
+  .jw-section--none { padding-top: 0; padding-bottom: 0; }
+}
+
+/* ---- skip link (SkipLink): first in the tab order, out of sight until it has focus, then a small shell plate ---- */
+.jw-skip { position: fixed; z-index: 60; left: var(--space-4); top: var(--space-2); display: inline-flex; align-items: center; min-height: 44px; padding: 0 var(--space-4);
+  box-sizing: border-box; border-radius: var(--radius-sm); border: 1px solid var(--shell-edge); background: linear-gradient(160deg, var(--shell-1) 0%, var(--shell-2) 42%, var(--shell-3) 100%);
+  font-family: var(--font-mono); font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; text-decoration: none;
+  transform: translateY(calc(-100% - var(--space-4))); }
+.jw-skip, .jw-skip:link, .jw-skip:visited, .jw-skip:hover { color: var(--on-shell); }
+.jw-skip:focus, .jw-skip:focus-visible { transform: none; outline: none; box-shadow: var(--shadow-sheen-shell), var(--shadow-focus); }
+
+/* ---- checkbox (Checkbox): the whole row is the tap target; the box fills with ink when checked ---- */
+.jw-check { display: flex; align-items: flex-start; gap: var(--space-3); min-height: 44px; box-sizing: border-box; padding: 10px 0; margin: 0;
+  font-family: var(--font-body); font-size: 16px; line-height: 1.5; color: var(--text-body); cursor: pointer; }
+.jw-check__box { appearance: none; -webkit-appearance: none; position: relative; flex: none; width: 20px; height: 20px; margin: 2px 0 0; box-sizing: border-box;
+  border: 1px solid var(--line-strong); border-radius: var(--radius-xs); background: var(--surface-input); cursor: pointer; }
+.jw-check__box::before { content: ""; position: absolute; left: 6px; top: 2px; width: 5px; height: 10px; border: solid var(--surface); border-width: 0 2px 2px 0; transform: rotate(45deg); opacity: 0; }
+.jw-check__box:checked { background: var(--text); border-color: var(--text); }
+.jw-check__box:checked::before { opacity: 1; }
+.jw-check__box:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+.jw-check__box:disabled { opacity: .55; cursor: not-allowed; }
+.jw-check:has(.jw-check__box:disabled) { cursor: default; }
+.jw-check__text strong { font-weight: 500; color: var(--text); }
+.jw-check__text a, .jw-check__text a:link, .jw-check__text a:visited { color: var(--land); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .2em; }
+.jw-check__text a:hover { color: var(--text); text-decoration-thickness: 2px; }
+.jw-check__text a:focus-visible { outline: none; border-radius: var(--radius-xs); box-shadow: var(--shadow-focus); }
+/* A link inside a line of label or notice text takes a 44px-tall tap: an invisible strip centred on the words, so a near
+   miss above or below opens the link instead of ticking the box. The line, the underline and the focus ring stay as they are. */
+.jw-check__text a, .jw-consent__text a { position: relative; white-space: nowrap; }
+.jw-check__text a::after, .jw-consent__text a::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 44px; margin-top: -22px; }
+
+/* ---- cookie banner (CookieBanner): a card at the foot of the screen. No glowing button: the header lamp stays the one
+   glowing action, so the banner's actions are shell (OK, Accept all) and quiet (Choices, Save choices).
+   The site script shows and hides it with the `hidden` class, and its two panes with the hidden attribute.
+   z-index 5000: above the sticky bar (40) and above third-party widgets that set their own stacking (Leaflet maps go to 1000),
+   so the notice can always be read and answered. ---- */
+.jw-consent { position: fixed; z-index: 5000; left: var(--space-2); right: var(--space-2); bottom: var(--space-2); box-sizing: border-box;
+  max-height: calc(100vh - 2 * var(--space-2)); max-height: calc(100dvh - 2 * var(--space-2)); overflow-y: auto; overscroll-behavior: contain;
+  padding: var(--space-4); border-radius: var(--radius-md); border: 1px solid var(--line-strong); background: var(--surface); color: var(--text-body);
+  box-shadow: var(--shadow-raise-on-band); font-family: var(--font-body); }
+.jw-consent.hidden, .jw-consent [hidden] { display: none; }
+.jw-consent__close { position: absolute; top: 4px; right: 4px; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin: 0; padding: 0;
+  border: 0; border-radius: var(--radius-sm); background: rgba(0,0,0,0); color: var(--text-muted); font-family: var(--font-body); font-size: 16px; line-height: 1; cursor: pointer; }
+.jw-consent .jw-consent__close:hover { color: var(--text); background: var(--surface-sunken); }
+.jw-consent__close:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+.jw-consent__summary { display: flex; flex-direction: column; gap: var(--space-3); padding-right: 36px; }
+.jw-consent__text { margin: 0; font-size: 16px; line-height: 1.5; color: var(--text-body); }
+.jw-consent__text a, .jw-consent__text a:link, .jw-consent__text a:visited { color: var(--land); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .2em; }
+.jw-consent__text a:hover { color: var(--text); text-decoration-thickness: 2px; }
+.jw-consent__text a:focus-visible { outline: none; border-radius: var(--radius-xs); box-shadow: var(--shadow-focus); }
+.jw-consent__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.jw-consent__options { display: flex; flex-direction: column; gap: var(--space-3); }
+.jw-consent__fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+.jw-consent__legend { padding: 0 44px var(--space-1) 0; font-size: 16px; font-weight: 500; line-height: 1.4; color: var(--text); }
+@media (min-width: 641px) {
+  .jw-consent { left: var(--space-4); right: auto; bottom: var(--space-4); width: 448px; max-width: calc(100vw - 2 * var(--space-4)); padding: var(--space-5); }
+}
+
+/* ---- page header (PageHeader): eyebrow, the page's h1 and an intro. On a wall, the words sit on a card. ---- */
+.jw-pagehead { padding-top: var(--space-14); padding-bottom: var(--space-10); }
+.jw-pagehead--wall { padding-bottom: var(--space-14); }
+.jw-pagehead__frame { max-width: 760px; }
+.jw-pagehead__card { padding: var(--space-5); }
+.jw-pagehead__body { display: flex; flex-direction: column; gap: var(--space-3); max-width: 760px; }
+.jw-pagehead__eyebrow, .jw-pagehead__title { margin: 0; }
+.jw-pagehead__title { color: var(--text); }
+.jw-pagehead__intro { max-width: 60ch; margin: var(--space-1) 0 0; font-size: 17px; line-height: 1.6; color: var(--text-body); }
+.jw-pagehead__intro > * { margin: 0 0 var(--space-3); }
+.jw-pagehead__intro > :last-child { margin-bottom: 0; }
+@media (min-width: 641px) {
+  .jw-pagehead { padding-top: var(--space-20); padding-bottom: var(--space-14); }
+  .jw-pagehead--wall { padding-bottom: var(--space-20); }
+  .jw-pagehead__card { padding: var(--space-8); }
+}
+
+/* ---- the ask (CtaBlock): a card on a smooth-rust wall with a heading, a few lines and up to two actions (burnt and
+   ghost: neither glows, the header lamp is the page's one glowing action) ---- */
+.jw-ask__frame { max-width: 640px; }
+.jw-ask { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-5); }
+.jw-ask__title { margin: 0; color: var(--text); }
+.jw-ask__text { font-size: 17px; line-height: 1.6; color: var(--text-body); }
+.jw-ask__text > * { margin: 0 0 var(--space-3); }
+.jw-ask__text > :last-child { margin-bottom: 0; }
+.jw-ask__text a, .jw-ask__text a:link, .jw-ask__text a:visited { color: var(--land); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .2em; }
+.jw-ask__text a:hover { color: var(--text); text-decoration-thickness: 2px; }
+.jw-ask__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-2); }
+@media (min-width: 641px) { .jw-ask { padding: var(--space-8); } }
+
+/* ---- figure (Figure): a photo or diagram with a caption; photos dim at night, diagrams (jw-figure--nodim) don't ---- */
+.jw-figure { margin: 0; }
+.jw-figure__media { position: relative; overflow: hidden; border-radius: var(--radius-md); background: var(--surface-sunken); }
+.jw-figure__media img { display: block; width: 100%; height: auto; }
+.jw-figure--crop .jw-figure__media img { height: 100%; object-fit: cover; }
+[data-theme="dark"] .jw-figure:not(.jw-figure--nodim) .jw-figure__media img { filter: brightness(var(--photo-brightness-dark)); }
+.jw-figure__caption { margin-top: var(--space-2); font-size: 16px; line-height: 1.5; color: var(--text-muted); }
+
+/* ---- site footer (SiteFooter): on the ground; brand and newsletter, link columns, contact, then the footer line on a
+   shell plate (dark by day and at night) with the status light, the copyright and the legal links ---- */
+.jw-footer { padding: var(--space-14) 0 var(--space-6); border-top: 1px solid var(--line); background: var(--bg); color: var(--text-body); font-family: var(--font-body); font-size: 16px; line-height: 1.5; }
+.jw-footer__grid { display: grid; gap: var(--space-10) var(--space-8); grid-template-columns: minmax(0, 1fr); grid-template-areas: "brand" "nav" "contact"; }
+.jw-footer__brand { grid-area: brand; }
+.jw-footer__nav { grid-area: nav; display: grid; gap: var(--space-8) var(--space-6); grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; }
+.jw-footer__contact { grid-area: contact; }
+.jw-footer__home { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; text-decoration: none; }
+.jw-footer__home:focus-visible { outline: none; border-radius: var(--radius-xs); box-shadow: var(--shadow-focus); }
+.jw-footer__about { max-width: 44ch; margin: var(--space-2) 0 var(--space-8); color: var(--text-body); }
+.jw-footer__title { margin: 0 0 var(--space-2); font-family: var(--font-mono); font-size: 10.5px; font-weight: 400; line-height: 1.35; letter-spacing: .12em; text-transform: uppercase; color: var(--label); }
+.jw-footer__links { margin: 0; padding: 0; list-style: none; }
+.jw-footer__link { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; }
+.jw-footer .jw-footer__link, .jw-footer .jw-footer__link:link, .jw-footer .jw-footer__link:visited { color: var(--text-body); }
+.jw-footer .jw-footer__link:hover { color: var(--text); text-decoration: underline; text-underline-offset: .2em; }
+.jw-footer .jw-footer__link[aria-current="page"] { color: var(--land); }
+.jw-footer__link:focus-visible { outline: none; border-radius: var(--radius-xs); box-shadow: var(--shadow-focus); }
+.jw-footer__details { display: grid; gap: var(--space-3); margin: var(--space-3) 0 var(--space-2); }
+.jw-footer__details dt { font-family: var(--font-mono); font-size: 10.5px; line-height: 1.35; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+.jw-footer__details dd { margin: 0; color: var(--text-body); overflow-wrap: anywhere; }
+.jw-footer__details dd .jw-footer__link { min-height: 44px; }
+/* newsletter */
+.jw-subscribe { position: relative; display: flex; flex-direction: column; gap: var(--space-2); max-width: 420px; margin: 0; }
+.jw-subscribe__row { display: flex; align-items: flex-end; gap: var(--space-2); }
+.jw-subscribe__field { flex: 1 1 auto; min-width: 0; }
+.jw-subscribe__trap { position: absolute; left: -9999px; width: 1px; height: 1px; margin: 0; overflow: hidden; }
+.jw-subscribe__msg { font-size: 16px; line-height: 1.5; color: var(--text); }
+.jw-subscribe__msg--error { color: var(--error); }
+/* the footer line */
+.jw-footer__line { position: relative; isolation: isolate; overflow: hidden; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 var(--space-5);
+  margin-top: var(--space-10); padding: var(--space-1) var(--space-4); border-radius: var(--radius-md); border: 1px solid var(--shell-edge);
+  background: linear-gradient(160deg, var(--shell-1) 0%, var(--shell-2) 42%, var(--shell-3) 100%); box-shadow: var(--shadow-sheen-shell); color: var(--on-shell); }
+.jw-footer__line::after { content: ""; position: absolute; inset: 0; z-index: -1; background: url(../assets/textures/grain.png) 0 0 / 240px 240px; mix-blend-mode: soft-light; opacity: var(--grain-opacity); pointer-events: none; }
+/* the status light rides on the line's own plate, so it drops its separate plate here */
+.jw-footer__line .jw-status { min-height: 44px; padding: 0; border: 0; background: none; box-shadow: none; }
+.jw-footer__legal { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--space-5); }
+.jw-footer__copy { margin: var(--space-2) 0; color: var(--on-shell); }
+.jw-footer__legal-links { display: flex; flex-wrap: wrap; gap: 0 var(--space-4); margin: 0; padding: 0; list-style: none; }
+.jw-footer__legal-links a, .jw-footer__legal-links button { display: inline-flex; align-items: center; min-height: 44px; margin: 0; padding: 0; border: 0; background: none;
+  font: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .2em; cursor: pointer; }
+.jw-footer__legal-links a, .jw-footer__legal-links a:link, .jw-footer__legal-links a:visited, .jw-footer__legal-links a:hover, .jw-footer__legal-links button, .jw-footer__legal-links button:hover { color: var(--on-shell); }
+.jw-footer__legal-links a:hover, .jw-footer__legal-links button:hover { text-decoration-thickness: 2px; }
+.jw-footer__legal-links a:focus-visible, .jw-footer__legal-links button:focus-visible { outline: none; border-radius: var(--radius-xs); box-shadow: var(--shadow-focus); }
+@media (min-width: 641px) {
+  .jw-footer { padding-top: var(--space-20); }
+  .jw-footer__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: "brand contact" "nav nav"; }
+  .jw-footer__nav { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 1024px) {
+  .jw-footer__grid { grid-template-columns: minmax(0, 4fr) minmax(0, 6fr) minmax(0, 2.6fr); grid-template-areas: "brand nav contact"; }
+}

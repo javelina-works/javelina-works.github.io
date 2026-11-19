@@ -1,0 +1,60 @@
+---
+/**
+ * ThemeToggle (design/components/ThemeToggle/README.md): "By day" / "At night".
+ * Sets data-theme on <html>, saves the choice in localStorage "jw-theme" (ThemeInit reads it before first paint), arrow keys
+ * move the choice, only the chosen option is a tab stop, and it follows data-theme if something else changes it.
+ * The inline line right after the markup sets the lit option before first paint.
+ */
+interface Props {
+  labels?: { light: string; dark: string };
+  class?: string;
+}
+const { labels = { light: "By day", dark: "At night" }, class: className } = Astro.props;
+---
+
+<div class:list={["jw-toggle", className]} role="radiogroup" aria-label="Color mode" data-jw-theme-toggle>
+  <button type="button" role="radio" aria-checked="true" tabindex="0" class="jw-toggle__opt jw-toggle__opt--light is-on"><span class="jw-toggle__lamp" aria-hidden="true"></span>{labels.light}</button>
+  <button type="button" role="radio" aria-checked="false" tabindex="-1" class="jw-toggle__opt jw-toggle__opt--dark"><span class="jw-toggle__lamp" aria-hidden="true"></span>{labels.dark}</button>
+</div>
+<script is:inline>(function(s){var g=s&&s.previousElementSibling;if(!g)return;var d=document.documentElement.getAttribute("data-theme")==="dark";[].forEach.call(g.querySelectorAll("[role=radio]"),function(b){var on=b.classList.contains("jw-toggle__opt--dark")===d;b.classList.toggle("is-on",on);b.setAttribute("aria-checked",on?"true":"false");b.tabIndex=on?0:-1})})(document.currentScript)</script>
+
+<script>
+  const KEY = "jw-theme";
+  const root = document.documentElement;
+  const groups = Array.from(document.querySelectorAll<HTMLElement>("[data-jw-theme-toggle]"));
+  const isDark = (b: Element) => b.classList.contains("jw-toggle__opt--dark");
+  const sync = () => {
+    const dark = root.getAttribute("data-theme") === "dark";
+    groups.forEach((g) =>
+      g.querySelectorAll<HTMLButtonElement>("[role=radio]").forEach((b) => {
+        const on = isDark(b) === dark;
+        b.classList.toggle("is-on", on);
+        b.setAttribute("aria-checked", on ? "true" : "false");
+        b.tabIndex = on ? 0 : -1;
+      }),
+    );
+  };
+  const set = (theme: "light" | "dark", focusIn?: HTMLElement) => {
+    root.setAttribute("data-theme", theme);
+    try {
+      localStorage.setItem(KEY, theme);
+    } catch (e) {
+      /* private mode: the choice lasts this page */
+    }
+    sync();
+    if (focusIn) focusIn.querySelector<HTMLElement>('[aria-checked="true"]')?.focus();
+  };
+  groups.forEach((g) => {
+    g.addEventListener("click", (e) => {
+      const b = (e.target as Element).closest("[role=radio]");
+      if (b) set(isDark(b) ? "dark" : "light");
+    });
+    g.addEventListener("keydown", (e) => {
+      if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) return;
+      e.preventDefault();
+      set(root.getAttribute("data-theme") === "dark" ? "light" : "dark", g);
+    });
+  });
+  new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+  sync();
+</script>

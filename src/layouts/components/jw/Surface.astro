@@ -1,0 +1,47 @@
+---
+/**
+ * Surface (design/components/Surface/README.md): card, tint, band-shell, band-agave.
+ * Cards have no padding of their own: set it from the tokens (space-5/space-6, space-4 on phones).
+ * Bands render <section> and hold cards, never running text. pool → data-jw-pool (the lamp's light pools across it).
+ */
+import type { HTMLAttributes } from "astro/types";
+import Rivet from "./Rivet.astro";
+
+interface Props extends Omit<HTMLAttributes<"div">, "class"> {
+  variant?: "card" | "tint" | "band-shell" | "band-agave";
+  /** card or tint only: renders an <a> */
+  href?: string;
+  /** element; default section for bands, div otherwise */
+  as?: string;
+  /** card or tint only: the shadow moves with the lights (wraps it in .jw-lit[data-jw-shadow]) */
+  castShadow?: boolean;
+  /** card or tint only: a brass rivet in each corner (one or two cards a page) */
+  rivets?: boolean;
+  pool?: "band" | "ground";
+  class?: string;
+}
+const { variant = "card", href, as, castShadow = false, rivets = false, pool, class: className, ...rest } = Astro.props;
+const band = variant === "band-shell" || variant === "band-agave";
+const Tag = href && !band ? "a" : as || (band ? "section" : "div");
+const cls = ["jw-surface", `jw-surface--${variant}`, href && !band && "jw-surface--link", className];
+const attrs = { ...rest, href: band ? undefined : href, "data-jw-pool": pool };
+const corners = ["tl", "tr", "bl", "br"] as const;
+---
+
+{
+  castShadow && !band ? (
+    <div class="jw-lit" data-jw-shadow="">
+      <span class="jw-cast" aria-hidden="true" />
+      <span class="jw-cast" aria-hidden="true" />
+      <Tag class:list={cls} {...attrs}>
+        <slot />
+        {rivets && corners.map((c) => <Rivet corner={c} />)}
+      </Tag>
+    </div>
+  ) : (
+    <Tag class:list={cls} {...attrs}>
+      <slot />
+      {rivets && !band && corners.map((c) => <Rivet corner={c} />)}
+    </Tag>
+  )
+}

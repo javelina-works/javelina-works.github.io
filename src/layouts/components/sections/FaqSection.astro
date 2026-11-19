@@ -1,4 +1,5 @@
 ---
+import LegacyPreline from "@/components/legacy/LegacyPreline.astro";
 import { getEntryCTM } from "@/lib/contentParser.astro";
 import overrideObjects from "@/lib/utils/overrideObjects.ts";
 import type { FAQCategory, Section } from "@/types";
@@ -157,3 +158,6 @@ if (!enable) return;
     </section>
   )
 }
+
+<!-- TEMPORARY: Base no longer loads Preline; this old component loads the part it uses. -->
+<LegacyPreline />

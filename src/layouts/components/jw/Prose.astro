@@ -1,0 +1,18 @@
+---
+/**
+ * Prose (design/components/Prose/README.md): long-form text such as articles, legal pages and service bodies.
+ * 18px (17px on phones), ~66ch measure, land links with an underline, wrapping tables, footnotes and a Sources list.
+ * On the page ground or a card, never on a wall or sheen. full: no 66ch measure.
+ */
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends Omit<HTMLAttributes<"div">, "class"> {
+  as?: string;
+  full?: boolean;
+  class?: string;
+}
+const { as = "div", full = false, class: className, ...rest } = Astro.props;
+const Tag = as;
+---
+
+<Tag class:list={["jw-prose", full && "jw-prose--full", className]} {...rest}><slot /></Tag>

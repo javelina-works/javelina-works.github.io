@@ -13,14 +13,18 @@ Seven buttons: the tip-orange primary for the one thing the page is for, burnt f
 - `tint` and `ghost`: lighter orange actions: See pricing, Download map.
 - `shell` / `agave`: secondary actions. Shell is the default; agave fits land and plant topics.
 - `quiet`: an outline in `line-strong`. Log in, Cancel.
-- `size: 'sm'` (32px): nav bars and dense tools only.
+- `size: 'sm'`: the compact button for nav bars and dense tools: a smaller label and tighter padding, but still 44px tall, because every tap target is at least 44px. Every button is also at least 44px wide, so a short label such as OK still makes a 44px target.
 
 ## Props (React)
 `variant`, `size`, `href` (renders an `<a>`; otherwise a `<button>`), `mark`, `lamp` (a primary only: the button becomes the page’s lamp, flickers on the first time it comes into view and lights the walls around it; needs a LightScene), `attention` (`'flicker'` | `'glint'` | `'breathe'`, see Attention), `disabled`, `children`. Other props pass through.
 
 ## Plain HTML
 ```html
-<a class="jw-btn jw-btn--primary" href="/ballpark"><span class="jw-btn__mark"></span>Get a ballpark</a>
+<a class="jw-btn jw-btn--primary" href="/ballpark"><span class="jw-btn__mark" aria-hidden="true"></span>Get a ballpark</a>
+<!-- the page's lamp (once, in the NavBar): -->
+<a class="jw-btn jw-btn--primary" href="/tools/ballpark/" data-jw-light="lamp" data-jw-flicker><span class="jw-btn__mark" aria-hidden="true"></span>Get a ballpark</a>
+<!-- a <button> sets its type; React defaults to type="button" -->
+<button type="submit" class="jw-btn jw-btn--burnt"><span class="jw-btn__mark" aria-hidden="true"></span>Send</button>
 ```
 
 ## Rules

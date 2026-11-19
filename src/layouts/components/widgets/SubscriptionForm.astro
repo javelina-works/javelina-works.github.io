@@ -1,11 +1,16 @@
 ---
 import { useTranslations } from "@/lib/utils/i18nUtils";
 import { markdownify } from "@/lib/utils/textConverter";
+import Field from "@/components/jw/Field.astro";
+import Button from "@/components/jw/Button.astro";
+import Checkbox from "@/components/jw/Checkbox.astro";
 const t = await useTranslations(Astro.currentLocale as string);
 
-// Heading above the form. Comes from config.toml [settings.subscription] title,
-// falling back to the i18n label. Submissions go to Netlify Forms via
-// netlify/functions/subscribe.mts (no mailing provider is wired up yet).
+// The footer's newsletter sign-up. Heading from config.toml [settings.subscription] title, else the i18n label.
+// Submissions go to Netlify Forms via netlify/functions/subscribe.mts (no mailing provider is wired up yet).
+// Kept as they were: the hidden Netlify detection form, the field names (email, privacy-consent, bot-field), the ids
+// (#subscription-form, #sub-email, #sub-submit, #privacy-consent, #sub-error-response, #sub-success-response), the
+// JSON body and the endpoint. Restyled with the design system's Field, Checkbox and Button.
 interface Props {
   title?: string;
 }
@@ -22,72 +27,34 @@ const heading = Astro.props.title || t("subscription.label");
   <input name="bot-field" />
 </form>
 
-{heading && (
-  <h3 class="text-dark mb-3 text-xl" set:html={markdownify(heading)} />
-)}
-
-<form id="subscription-form" method="post" class="relative mb-0">
-  <div class="relative">
-    <label for="sub-email" class="sr-only">
-      Email
-    </label>
-    <input
-      required
+<form id="subscription-form" method="post" class="jw-subscribe">
+  {heading && <h2 class="jw-footer__title" set:html={markdownify(heading)} />}
+  <div class="jw-subscribe__row">
+    <Field
+      class="jw-subscribe__field"
+      label="Email"
+      id="sub-email"
       type="email"
       name="email"
-      id="sub-email"
+      required
       aria-required="true"
+      autocomplete="email"
       placeholder={t("common.emailPlaceholder")}
-      class="border-border-light focus:ring-primary/4 size-full rounded-lg bg-white py-4 pl-5 shadow-none outline-0 placeholder:opacity-90 focus:ring-4"
     />
-    <button
-      type="submit"
-      id="sub-submit"
-      class="absolute top-1 right-1 flex h-[calc(100%-0.5rem)] w-10 items-center justify-center rounded-lg">
-      <span class="sr-only">Subscribe</span>
-      <svg
-        class="text-2xl"
-        stroke="currentColor"
-        fill="currentColor"
-        stroke-width="0"
-        viewBox="0 0 448 512"
-        height="1em"
-        width="1em"
-        xmlns="http://www.w3.org/2000/svg">
-        <path d="M446.7 98.6l-67.6 318.8c-5.1 22.5-18.4 28.1-37.3 17.5l-103-75.9-49.7 47.8c-5.5 5.5-10.1 10.1-20.7 10.1l7.4-104.9 190.9-172.5c8.3-7.4-1.8-11.5-12.9-4.1L117.8 284 16.2 252.2c-22.1-6.9-22.5-22.1 4.6-32.7L418.2 66.4c18.4-6.9 34.5 4.1 28.5 32.2z"></path>
-      </svg>
-    </button>
+    <Button type="submit" variant="shell" id="sub-submit">Subscribe</Button>
   </div>
-  <p style="position: absolute; left: -312.5rem;" aria-hidden="true">
+  <p class="jw-subscribe__trap" aria-hidden="true">
     <label>
       Don't fill this out:
-      <input name="bot-field" tabindex="-1" />
+      <input name="bot-field" tabindex="-1" autocomplete="off" />
     </label>
   </p>
-  <div class="form-check mt-4">
-    <input
-      class="form-checkbox"
-      type="checkbox"
-      required
-      name="privacy-consent"
-      id="privacy-consent"
-    />
-    <label
-      for="privacy-consent"
-      set:html={markdownify(t("subscription.term"))}
-    />
-  </div>
-  <div
-    id="sub-responses"
-    class="clear absolute top-[105%] left-0 w-full text-sm opacity-60">
-    <div
-      class="message message-error"
-      id="sub-error-response"
-      style="display: none"></div>
-    <div
-      class="message message-success"
-      id="sub-success-response"
-      style="display: none"></div>
+  <Checkbox required name="privacy-consent" id="privacy-consent">
+    <Fragment set:html={markdownify(t("subscription.term"))} />
+  </Checkbox>
+  <div id="sub-responses" class="jw-subscribe__responses" role="status" aria-live="polite">
+    <div class="jw-subscribe__msg jw-subscribe__msg--error" id="sub-error-response" style="display: none"></div>
+    <div class="jw-subscribe__msg" id="sub-success-response" style="display: none"></div>
   </div>
 </form>
 <script>
@@ -127,7 +94,7 @@ const heading = Astro.props.title || t("subscription.label");
         const data = await response.json();
 
         if (data.success) {
-          successContainer.textContent = "Thank you for subscribing!";
+          successContainer.textContent = "Thank you for subscribing.";
           successContainer.style.display = "block";
           form.reset();
         } else {

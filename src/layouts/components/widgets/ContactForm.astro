@@ -1,4 +1,5 @@
 ---
+import LegacyPreline from "@/components/legacy/LegacyPreline.astro";
 import { markdownify, toLowerCase } from "@/lib/utils/textConverter";
 import CustomButton from "@/components/CustomButton.astro";
 import type { z } from "astro/zod";
@@ -403,3 +404,6 @@ const noteStyles = {
     });
   });
 </script>
+
+<!-- TEMPORARY: Base no longer loads Preline; this old component loads the part it uses. -->
+<LegacyPreline />

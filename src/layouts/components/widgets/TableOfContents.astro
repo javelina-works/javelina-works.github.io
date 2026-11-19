@@ -1,4 +1,5 @@
 ---
+import LegacyPreline from "@/components/legacy/LegacyPreline.astro";
 import type { TocHeading } from "@/types";
 import RecursiveToc from "@/layouts/components/widgets/RecursiveToc.astro";
 import Icons from "@/helpers/Icons.astro";
@@ -80,3 +81,6 @@ const { toc, className, marker = true, ...rest } = Astro.props;
       });
   });
 </script>
+
+<!-- TEMPORARY: Base no longer loads Preline; this old component loads the part it uses. -->
+<LegacyPreline />

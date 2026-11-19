@@ -1,5 +1,5 @@
 ---
-import { absoluteUrl } from "@/lib/utils/absoluteUrl";
+import { shareImageUrl } from "@/lib/utils/shareImage";
 import JsonLdGenerator from "@/lib/utils/JsonLdGenerator";
 import { supportedLanguages } from "@/lib/utils/i18nUtils";
 import config from ".astro/config.generated.json";
@@ -35,7 +35,9 @@ const alternateLangs =  config.settings.multilingual.enable ? supportedLanguages
 description = metaDescription ? metaDescription : description;
 canonical = canonical ? canonical : Astro.url.href;
 lang = Astro.currentLocale;
-image = absoluteUrl(image, Astro);
+// Absolute URLs to real built files (content image paths often live in src/assets, not public/)
+image = await shareImageUrl(image, Astro);
+const logo = await shareImageUrl(config.site.logo, Astro, { keepFormat: true });
 
 // Generate JSON-LD dynamically. The output goes into a <script> as raw HTML,
 // so "<" is escaped below: no value can close the script tag.
@@ -47,6 +49,7 @@ const jsonLdData = JsonLdGenerator(
     headline,
     description,
     image,
+    logo,
     canonical,
     config,
     author,

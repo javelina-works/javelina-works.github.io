@@ -15,3 +15,13 @@ A section wall that takes light from the lamp, tubes and status lights near it: 
 
 ## Props (React)
 `texture` (`'flake'` | `'corrugated'` | `'smooth'`), `seed`, `as` (default `section`), plus style and other props. Needs a LightScene on the page.
+
+## Plain HTML
+Render the wall with `jw-wall--static`: it shows its static drawing (in its own day and night colors) until the engine has drawn its first WebGL frame, and keeps it without WebGL or JavaScript. The engine removes the class once the wall is lit; until then the canvas stays hidden, so a wall is never black while the page loads.
+```html
+<section class="jw-wall jw-wall--flake jw-wall--static" data-jw-wall="flake" data-jw-seed="3">
+  <canvas class="jw-wall__canvas" aria-hidden="true"></canvas>
+  …cards…
+</section>
+```
+The wall sets no padding; the page does. A change to `data-jw-seed` or the texture of an existing wall is not picked up; replace the element.

@@ -1,15 +1,24 @@
 ---
+/**
+ * The site footer (design/components/SiteFooter/README.md): brand, description and newsletter; link columns; the
+ * contact details; and the footer line on a shell plate with the status light, the copyright, the legal links and the
+ * Cookie preferences button (#cookie-preferences-link, wired by CookieBanner.astro; the e2e tests find it by name).
+ * Contact details come from src/i18n/en.json (also used by the JSON-LD). The street address is deliberately without a
+ * house number: never "complete" it. Emails stay plain mailto: links (Cloudflare obfuscates them in production).
+ */
 import social from "@/config/social.json";
-import Logo from "@/components/global/Logo.astro";
 import config from ".astro/config.generated.json";
-import { markdownify } from "@/lib/utils/textConverter";
-import SocialComponent from "@/components/social/Social.astro";
+import { useTranslations } from "@/lib/utils/i18nUtils";
 import SubscriptionForm from "@/components/widgets/SubscriptionForm.astro";
-import { useTranslations, getLocaleUrlCTM } from "@/lib/utils/i18nUtils";
+import { footerColumns, legalLinks } from "@/config/siteNav";
+import markLight from "../../../../design/assets/logos/javelina-rust.svg?url";
+import markDark from "../../../../design/assets/logos/javelina-white.svg?url";
+import wordLight from "../../../../design/assets/logos/wordmark-ink.svg?url";
+import wordDark from "../../../../design/assets/logos/wordmark-white.svg?url";
 
 const t = await useTranslations(Astro.currentLocale as string);
 
-let { copyright, footerDescription, subscription, brandName } = config.settings;
+let { copyright, footerDescription, subscription } = config.settings;
 
 // Contact details as real links
 const phone = t("contactInfo.phone");
@@ -23,173 +32,104 @@ const copyrightText = (copyright.text || t("footer.copyright")).replace(
   /©\s*\d{4}/,
   `© ${new Date().getFullYear()}`,
 );
+
+// The enabled social links (YouTube, GitHub), named for people rather than by their config keys
+const socialNames: Record<string, string> = { youtube: "YouTube", github: "GitHub", facebook: "Facebook", twitter: "X", instagram: "Instagram", linkedin: "LinkedIn" };
+const socials = social.main
+  .filter((s) => s.enable)
+  .map((s) => ({ label: socialNames[s.label] || s.label, href: s.url }));
+
+const here = Astro.url.pathname.replace(/\/?$/, "/");
+const current = (href: string) => (href === here ? "page" : undefined);
 ---
 
-<footer class="relative">
-  <div class="container space-y-8 md:space-y-16">
-    <div class="grid gap-y-12 lg:grid-cols-2 xl:grid-cols-3">
-      <div class="space-y-8 xl:pe-20">
-        <Logo />
-        {footerDescription && <p set:html={markdownify(footerDescription)} />}
-
-        {subscription && subscription.enable && (
-          <SubscriptionForm {...subscription} />
-        )}
+<footer class="jw-footer">
+  <div class="jw-container">
+    <div class="jw-footer__grid">
+      <div class="jw-footer__brand">
+        <a class="jw-footer__home" href="/">
+          <img class="jw-logo--light" src={markLight} alt="" width="32" height="24" style="height:24px;width:auto" loading="lazy" decoding="async" />
+          <img class="jw-logo--dark" src={markDark} alt="" width="32" height="24" style="height:24px;width:auto" loading="lazy" decoding="async" />
+          <img class="jw-logo--light" src={wordLight} alt="Javelina Works" width="152" height="13" style="height:13px;width:auto" loading="lazy" decoding="async" />
+          <img class="jw-logo--dark" src={wordDark} alt="Javelina Works" width="152" height="13" style="height:13px;width:auto" loading="lazy" decoding="async" />
+        </a>
+        {footerDescription && <p class="jw-footer__about">{footerDescription}</p>}
+        {subscription && subscription.enable && <SubscriptionForm {...subscription} />}
       </div>
 
-      <div class="col-span-2 grid gap-y-10 md:grid-cols-3 xl:pl-56">
-        <div>
-          {t("footer.colTitleOne") && (
-            <h3
-              class="text-dark mb-4 text-xl md:mb-6"
-              set:html={t("footer.colTitleOne")}
-            />
-          )}
-          <ul class="flex flex-col gap-y-1.5">
-            {t("footerMenuOne")
-              ?.filter((menu: { enable?: boolean }) => menu.enable !== false)
-              .map((menu: { name: string; url: string }) => (
+      <nav class="jw-footer__nav" aria-label="Footer">
+        {
+          footerColumns.map((col) => (
+            <div class="jw-footer__col">
+              <h2 class="jw-footer__title">{col.title}</h2>
+              <ul class="jw-footer__links">
+                {col.links.map((l) => (
+                  <li>
+                    <a class="jw-footer__link" href={l.href} aria-current={current(l.href)}>
+                      {l.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </nav>
+
+      <div class="jw-footer__col jw-footer__contact">
+        <h2 class="jw-footer__title">{t("footer.colTitleThree")}</h2>
+        <dl class="jw-footer__details">
+          <div>
+            <dt>{t("contactInfo.locationLabel") || "Location"}</dt>
+            <dd>{t("contactInfo.location")}</dd>
+          </div>
+          <div>
+            <dt>{t("contactInfo.phoneLabel") || "Phone Number"}</dt>
+            <dd><a class="jw-footer__link" href={telHref}>{phone}</a></dd>
+          </div>
+          <div>
+            <dt>{t("contactInfo.emailLabel") || "Email"}</dt>
+            <dd><a class="jw-footer__link" href={"mailto:" + email}>{email}</a></dd>
+          </div>
+        </dl>
+        {
+          socials.length > 0 && (
+            <ul class="jw-footer__links jw-footer__social">
+              {socials.map((s) => (
                 <li>
-                  <a
-                    class="has-underline-anim inline-block py-px text-inherit"
-                    href={getLocaleUrlCTM(menu.url, Astro.currentLocale)}>
-                    {menu.name}
+                  <a class="jw-footer__link" href={s.href} target="_blank" rel="noopener noreferrer nofollow">
+                    {s.label}
+                    <span class="sr-only"> (opens in a new tab)</span>
                   </a>
                 </li>
               ))}
-          </ul>
-        </div>
-
-        <div>
-          {t("footer.colTitleTwo") && (
-            <h3
-              class="text-dark mb-4 text-xl md:mb-6"
-              set:html={t("footer.colTitleTwo")}
-            />
-          )}
-          <ul class="flex flex-col gap-2">
-            {t("footerMenuTwo")
-              .filter((menu: { enable?: boolean }) => menu.enable !== false)
-              .map((menu: { name: string; url: string }) => (
-                <li class="inline-block">
-                  <a
-                    class="has-underline-anim inline-block py-px text-inherit"
-                    href={getLocaleUrlCTM(menu.url, Astro.currentLocale)}
-                    set:html={menu.name}
-                  />
-                </li>
-              ))}
-            <li class="inline-block">
-              {/* Reopens the consent pane (CookieBanner.astro). */}
-              <button
-                type="button"
-                id="cookie-preferences-link"
-                class="has-underline-anim inline-block py-px text-inherit">
-                Cookie preferences
-              </button>
-            </li>
-          </ul>
-        </div>
-        <div>
-          {t("footer.colTitleThree") && (
-            <h3
-              class="text-dark mb-4 text-xl md:mb-6"
-              set:html={t("footer.colTitleThree")}
-            />
-          )}
-
-          <ul class="flex flex-col gap-3">
-            <li>
-              <span class="text-dark/65 mb-1.5 inline-block text-sm/none font-medium -tracking-tighter">
-                {t("contactInfo.locationLabel") || "Location"}:
-              </span>
-              <span class="text-base-sm block md:text-base">
-                {t("contactInfo.location")}
-              </span>
-            </li>
-            <li>
-              <span class="text-dark/65 mb-1.5 inline-block text-sm/none font-medium -tracking-tighter">
-                {t("contactInfo.phoneLabel") || "Phone Number"}:
-              </span>
-              <a
-                class="text-base-sm hover:text-primary block transition-colors md:text-base"
-                href={telHref}>
-                {phone}
-              </a>
-            </li>
-            <li>
-              <span class="text-dark/65 mb-1.5 inline-block text-sm/none font-medium -tracking-tighter">
-                {t("contactInfo.emailLabel") || "Email"}:
-              </span>
-              <a
-                class="text-base-sm hover:text-primary block transition-colors md:text-base"
-                href={"mailto:" + email}>
-                {email}
-              </a>
-            </li>
-          </ul>
-        </div>
+            </ul>
+          )
+        }
       </div>
     </div>
 
-    <div class="flex flex-wrap justify-between gap-x-8 gap-y-6 border-t py-8">
-      {config.settings.copyright && config.settings.copyright.enable && (
-        <div
-          class="prose-styles opacity-80"
-          set:html={markdownify(copyrightText, true)}
-        />
-      )}
-      <SocialComponent
-        layout="minimal"
-        class="*:h-6 *:w-6"
-        linkType="follow"
-        list={social.main.filter((social) => social.enable)}
-      />
+    <div class="jw-footer__line">
+      <span class="jw-status jw-footer__status">
+        <span class="jw-pilot jw-pilot--status" aria-hidden="true" data-jw-light="status" data-jw-blink></span>
+        <span class="jw-status__label">Taking new surveys</span>
+      </span>
+      <div class="jw-footer__legal">
+        {copyright && copyright.enable && <p class="jw-footer__copy">{copyrightText}</p>}
+        <ul class="jw-footer__legal-links">
+          {
+            legalLinks.map((l) => (
+              <li>
+                <a href={l.href} aria-current={current(l.href)}>{l.label}</a>
+              </li>
+            ))
+          }
+          <li>
+            {/* Reopens the consent pane (CookieBanner.astro wires it and sets window.openCookiePreferences). */}
+            <button type="button" id="cookie-preferences-link">Cookie preferences</button>
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
-
-  <!-- Brand Name -->
-  {brandName && (
-    <div class="relative overflow-hidden text-[clamp(1rem,90%,25rem)]">
-      <div
-        class="text-primary responsive-brand-text mx-auto text-center text-[7.2vw] leading-[0.8] whitespace-nowrap uppercase max-md:py-5"
-        set:html={brandName}
-      />
-    </div>
-  )}
-  <script>
-    // Detect if the page has a call to action section and add a class to the footer accordingly.
-    // This approach adds a section gap between the last section of main tag & footer.
-
-    const ctaSection = document.querySelector(".cta-section");
-    const footer = document.querySelector("footer") as HTMLElement;
-
-    if (!ctaSection) {
-      footer.classList.add("has-call-to-action");
-    }
-
-    function fitText(el: any, { minSize = 12, maxSize = 500 } = {}) {
-      const parent = el.parentElement;
-
-      function resize() {
-        // Reset first so scrollWidth is measured at default size
-        el.style.fontSize = `${maxSize}px`;
-
-        // Calculate scale based on parent width vs. text width
-        const scale = parent.clientWidth / el.scrollWidth;
-
-        // Apply new size (with limits)
-        const newSize = Math.max(minSize, Math.min(maxSize, maxSize * scale));
-        el.style.fontSize = `${newSize}px`;
-      }
-
-      window.addEventListener("resize", resize);
-      resize();
-    }
-
-    // Usage
-    document
-      .querySelectorAll(".responsive-brand-text")
-      .forEach((el) => fitText(el, { minSize: 20, maxSize: 800 }));
-  </script>
 </footer>

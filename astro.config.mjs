@@ -4,17 +4,13 @@ import sitemap from "@astrojs/sitemap";
 import AutoImport from "astro-auto-import";
 import { defineConfig } from "astro/config";
 import tailwindcss from "@tailwindcss/vite";
-import fontsJson from "./src/config/fonts.json";
 import rehypeExternalLinks from "rehype-external-links";
 import { enabledLanguages } from "./src/lib/utils/i18nUtils.ts";
 import remarkParseContent from "./src/lib/utils/remarkParseContent.ts";
 import config from "./.astro/config.generated.json";
-import { generateAstroFontsConfig } from "./src/lib/utils/AstroFont.ts";
 
 import netlify from "@astrojs/netlify";
 import sentry from "@sentry/astro";
-
-const fonts = generateAstroFontsConfig(fontsJson);
 
 // Dev-only same-origin proxy for the ballpark page: `astro dev` doesn't
 // honor vite's server.proxy, so forward /api/ballpark-staging/* to the
@@ -111,8 +107,6 @@ export default defineConfig({
   image: {
     layout: "constrained",
   },
-
-  fonts,
 
   i18n: {
     locales: enabledLanguages,

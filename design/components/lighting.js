@@ -9,11 +9,18 @@
    - Pools:    data-jw-pool="band|ground" on a section without a wall: a warm pool follows the lamp across it
    - Shadows:  <div class="jw-lit" data-jw-shadow><span class="jw-cast"></span><span class="jw-cast"></span> card </div>
    - Rivets:   <span class="jw-rivet"><i></i><i></i><i></i></span>
+   - Flicker:  data-jw-flicker on any element (a primary Button): it gets is-flickering once, the first time it comes into view
+   - Reveal:   data-jw-reveal on a Meter or LightTube block: if it is below the fold when the page loads it waits in is-pending
+               (empty) and fills on first view; if it is already in view it is simply shown full
 
-   Cost: each wall's relief is drawn once per size; after that one lighting pass per wall per frame, and frames only run while
-   something changes (scroll, resize, hover, a flicker, a blink fade, a tube filling, the day/night switch). Pools, shadows and
-   glints only move by transform and fade by opacity. Reduced motion: no flicker or blink, lights simply on. No WebGL: walls fall
-   back to a static drawing. */
+   Server-render walls with jw-wall--static: they show their static drawing until their first WebGL frame (and keep it without
+   WebGL or JS).
+
+   Cost: each wall's relief is drawn once per size; after that a wall is lit again only when the light falling on it changes, and
+   frames only run while something changes (scroll, resize, hover, a flicker, a blink fade, a tube filling, the day/night switch).
+   A status light blinks only while it is near the screen, and its fades run at about 30 frames a second. Pools, shadows and
+   glints only move by transform and fade by opacity. Reduced motion: no flicker or blink, lights simply on, nothing waits to
+   fill. No WebGL: walls keep the static drawing. */
 
 const NOISE = [
   'vec3 mod289(vec3 x){return x-floor(x*(1.0/289.0))*289.0;}vec2 mod289(vec2 x){return x-floor(x*(1.0/289.0))*289.0;}vec3 permute(vec3 x){return mod289(((x*34.0)+1.0)*x);}',
@@ -83,12 +90,18 @@ class Wall {
     this.tex = gl.createTexture(); this.fb = gl.createFramebuffer();
     this.lp = new Float32Array(18); this.lc = new Float32Array(18); this.lr = new Float32Array(6);
     this.u = {}; ['uH', 'uRes', 'uDpr', 'uLp[0]', 'uLc[0]', 'uLr[0]', 'uStyle', 'uPeriod', 'uAmp', 'uDay', 'uSun', 'uSunC'].forEach((n) => { this.u[n] = gl.getUniformLocation(this.pL, n); });
+    this.key = '';
+    // a lost context leaves a black canvas: fall back to the static drawing instead
+    this.canvas.addEventListener('webglcontextlost', () => {
+      if (this.disposed || !S) return;
+      el.classList.add('jw-wall--static'); this.canvas.hidden = true; S.walls.set(el, null);
+    });
   }
   resize() {
     const gl = this.gl, c = this.canvas, dpr = Math.min(window.devicePixelRatio || 1, 2);
     const w = Math.max(1, Math.round(c.clientWidth * dpr)), h = Math.max(1, Math.round(c.clientHeight * dpr));
     if (w === this.w && h === this.h && dpr === this.dpr) return;
-    this.w = c.width = w; this.h = c.height = h; this.dpr = dpr;
+    this.w = c.width = w; this.h = c.height = h; this.dpr = dpr; this.key = '';
     gl.bindTexture(gl.TEXTURE_2D, this.tex);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -114,7 +127,7 @@ class Wall {
     gl.uniform1f(u.uDay, day); gl.uniform3f(u.uSun, SUN[0], SUN[1], SUN[2]); gl.uniform3f(u.uSunC, sunC[0], sunC[1], sunC[2]);
     gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
-  dispose() { const ext = this.gl.getExtension('WEBGL_lose_context'); if (ext) ext.loseContext(); }
+  dispose() { this.disposed = true; const ext = this.gl.getExtension('WEBGL_lose_context'); if (ext) ext.loseContext(); }
 }
 
 function hexToRgb(v, fallback) {
@@ -128,6 +141,7 @@ let S = null; // engine state while mounted
 function readTheme() {
   const cs = getComputedStyle(document.documentElement);
   const num = (n, d) => { const v = parseFloat(cs.getPropertyValue(n)); return Number.isFinite(v) ? v : d; };
+  const ms = (n, d) => { const s = cs.getPropertyValue(n).trim(), v = parseFloat(s); return Number.isFinite(v) && v > 0 ? (/ms$/.test(s) ? v : v * 1000) : d; };
   S.colors = {
     lamp: hexToRgb(cs.getPropertyValue('--light-lamp'), [1, 0.639, 0.353]),
     tube: hexToRgb(cs.getPropertyValue('--light-tube'), [1, 0.455, 0.16]),
@@ -137,6 +151,7 @@ function readTheme() {
   S.params = {
     lampReach: num('--lamp-reach', 300), lampHeight: num('--lamp-height', 56), tubeReach: num('--tube-reach', 150), tubeHeight: num('--tube-height', 18),
     statusReach: num('--status-reach', 130), statusHeight: num('--status-height', 8), corrugation: num('--corrugation', 96),
+    flicker: ms('--duration-flicker', 2800),
   };
   S.dayTarget = document.documentElement.getAttribute('data-theme') === 'dark' ? 0 : 1;
 }
@@ -150,23 +165,38 @@ function scan() {
   wallEls.forEach((el) => {
     if (S.walls.has(el)) return;
     let w = null;
-    try { w = new Wall(el); el.classList.remove('jw-wall--static'); } catch (e) { el.classList.add('jw-wall--static'); const c = el.querySelector(':scope > canvas.jw-wall__canvas'); if (c) c.hidden = true; }
+    // the wall keeps jw-wall--static (and its canvas stays hidden) until its first frame is drawn, so it never shows black
+    try { w = new Wall(el); } catch (e) { el.classList.add('jw-wall--static'); const c = el.querySelector(':scope > canvas.jw-wall__canvas'); if (c) c.hidden = true; }
     S.walls.set(el, w); S.io.observe(el); if (w) { w.resize(); if (S.ro) S.ro.observe(w.canvas); }
+  });
+  const stateOf = (el) => { let st = S.lightState.get(el); if (!st) { st = { flickerStart: null, blinkT0: performance.now() }; S.lightState.set(el, st); } return st; };
+  // flicker once on first view: the lamp (its light level follows the flicker) or any primary Button with data-jw-flicker
+  q('[data-jw-flicker]').forEach((el) => {
+    const st = stateOf(el); if (st.watched) return; st.watched = true;
+    const io = new IntersectionObserver((es) => { es.forEach((e) => { if (e.isIntersecting && st.flickerStart === null) {
+      st.flickerStart = S.reduce ? -1e9 : performance.now(); io.disconnect(); S.flickerIOs.delete(io);
+      if (!S.reduce) { el.classList.add('is-flickering'); el.addEventListener('animationend', () => el.classList.remove('is-flickering'), { once: true }); }
+      request(); } }); }, { threshold: 0.6 });
+    io.observe(el); S.flickerIOs.add(io);
   });
   // lights
   S.lights = q('[data-jw-light]').map((el) => {
-    const old = S.lightState.get(el) || { flickerStart: null, blinkT0: performance.now(), seen: false };
-    S.lightState.set(el, old);
-    if (el.hasAttribute('data-jw-flicker') && !old.watched) {
-      old.watched = true;
-      const io = new IntersectionObserver((es) => { es.forEach((e) => { if (e.isIntersecting && old.flickerStart === null) {
-        old.flickerStart = S.reduce ? -1e9 : performance.now(); io.disconnect();
-        if (!S.reduce) { el.classList.add('is-flickering'); el.addEventListener('animationend', () => el.classList.remove('is-flickering'), { once: true }); }
-        request(); } }); }, { threshold: 0.6 });
-      io.observe(el);
-    }
+    const st = stateOf(el);
+    st.reveal = el.closest('[data-jw-reveal]');
+    // a blinking light only blinks while it is near the screen (S.visible), so it never keeps frames running off-screen
+    if (el.hasAttribute('data-jw-blink') && !S.blinkEls.has(el)) { S.blinkEls.add(el); S.io.observe(el); }
     return el;
   });
+  S.blinkEls.forEach((el) => { if (!el.isConnected || !el.hasAttribute('data-jw-blink')) { S.blinkEls.delete(el); S.io.unobserve(el); S.visible.delete(el); } });
+  // reveals (Meter, LightTube): below the fold at load → is-pending until 60% in view; in view at load → left full, no jump
+  q('[data-jw-reveal]').forEach((el) => {
+    if (S.reveals.has(el)) return; S.reveals.add(el);
+    if (S.reduce) return;
+    const r = el.getBoundingClientRect();
+    if (r.width && r.bottom > 0 && r.top < innerHeight) return;
+    el.classList.add('is-pending'); S.revealIO.observe(el);
+  });
+  S.reveals.forEach((el) => { if (!el.isConnected) { S.reveals.delete(el); S.revealIO.unobserve(el); } });
   // pools
   q('[data-jw-pool]').forEach((sec) => {
     if (S.pools.has(sec)) return;
@@ -184,13 +214,15 @@ function lightsNow(now) {
   const out = [], sources = [];
   const day = S.day, P = S.params, C = S.colors;
   S.lights.forEach((el) => {
-    const kind = el.getAttribute('data-jw-light'), st = S.lightState.get(el), r = el.getBoundingClientRect();
+    const kind = el.getAttribute('data-jw-light'), st = S.lightState.get(el);
+    if (st.reveal && st.reveal.classList.contains('is-pending')) return; // a tube or pilot still waiting to fill gives no light
+    const r = el.getBoundingClientRect();
     if (!r.width && !r.height) return;
     if (kind === 'lamp') {
       let lvl = 1;
       if (el.hasAttribute('data-jw-flicker')) {
         if (st.flickerStart === null) lvl = 0;
-        else { const t = (now - st.flickerStart) / 2800; lvl = t >= 1 ? 1 : flickAt(Math.max(0, t)); if (t < 1) S.busy = true; }
+        else { const t = (now - st.flickerStart) / P.flicker; lvl = t >= 1 ? 1 : flickAt(Math.max(0, t)); if (t < 1) S.busy = true; }
       }
       st.boost = st.boost || 0; let fv = false; try { fv = el.matches(':focus-visible'); } catch (e) { fv = el.matches(':focus'); }
       const target = (el.matches(':hover') || fv) ? 1 : 0;
@@ -208,12 +240,13 @@ function lightsNow(now) {
       }
     } else {
       let v = 1;
-      if (el.hasAttribute('data-jw-blink') && !S.reduce) {
+      // the slow blink runs only while the light is near the screen; off-screen it is simply on and asks for no frames
+      if (el.hasAttribute('data-jw-blink') && !S.reduce && S.visible.has(el)) {
         const t = (now - st.blinkT0) % 3000;
-        if (t < 250) { v = ease(t / 250); S.busy = true; } else if (t < 950) { v = 1; S.wakeIn = Math.min(S.wakeIn, 950 - t); }
-        else if (t < 1400) { v = 1 - ease((t - 950) / 450); S.busy = true; } else { v = 0; S.wakeIn = Math.min(S.wakeIn, 3000 - t); }
-        el.style.setProperty('--blink', v.toFixed(3));
+        if (t < 250) { v = ease(t / 250); S.blinking = true; } else if (t < 950) { v = 1; S.wakeIn = Math.min(S.wakeIn, 950 - t); }
+        else if (t < 1400) { v = 1 - ease((t - 950) / 450); S.blinking = true; } else { v = 0; S.wakeIn = Math.min(S.wakeIn, 3000 - t); }
       }
+      if (el.hasAttribute('data-jw-blink') && !S.reduce) { const b = v.toFixed(3); if (st.blink !== b) { st.blink = b; el.style.setProperty('--blink', b); } }
       const i = v * mix(1, 0.45, day) * (kind === 'pilot' ? 0.75 : 1);
       const x = r.left + r.width / 2, y = r.top + r.height / 2;
       if (i > 0.01) out.push({ x, y, z: P.statusHeight, c: C.ok.map((c) => c * 0.62 * i), r: kind === 'pilot' ? 95 : P.statusReach });
@@ -224,7 +257,7 @@ function lightsNow(now) {
 }
 
 function frame(now) {
-  S.queued = false; S.busy = false; S.wakeIn = Infinity;
+  S.queued = false; S.busy = false; S.blinking = false; S.wakeIn = Infinity;
   S.day += (S.dayTarget - S.day) * 0.1; if (Math.abs(S.dayTarget - S.day) < 0.003) S.day = S.dayTarget; else S.busy = true;
   const day = S.day;
   const L = lightsNow(now);
@@ -236,8 +269,16 @@ function frame(now) {
   const rivets = S.rivets.filter((v) => v.el.isConnected).map((v) => [v, v.el.getBoundingClientRect()]).filter((a) => a[1].bottom > -50 && a[1].top < innerHeight + 50);
   // then write
   walls.forEach(([w, r]) => {
-    const near = L.list.slice().sort((a, b) => Math.hypot(a.x - (r.left + r.width / 2), a.y - (r.top + r.height / 2)) - Math.hypot(b.x - (r.left + r.width / 2), b.y - (r.top + r.height / 2))).slice(0, 6);
-    w.draw(near, r, day, S.colors.sun, S.params);
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    // lights farther than 3x their reach from the wall add nothing visible (under 0.003%); leave them out
+    const reach = (l) => Math.hypot(Math.max(r.left - l.x, 0, l.x - r.right), Math.max(r.top - l.y, 0, l.y - r.bottom)) < 3 * l.r;
+    const near = L.list.filter(reach).sort((a, b) => Math.hypot(a.x - cx, a.y - cy) - Math.hypot(b.x - cx, b.y - cy)).slice(0, 6);
+    // redraw only when the light on this wall changed (a blink far away, or a hover elsewhere, leaves it alone)
+    const key = [r.left, r.top, r.width, r.height].map((v) => v.toFixed(1)).join(',') + '|' + day.toFixed(3) + '|' + S.colors.sun.join(',') + '|' +
+      near.map((l) => [l.x, l.y, l.z, l.r].map((v) => v.toFixed(1)).join(',') + ',' + l.c.map((v) => v.toFixed(4)).join(',')).join(';');
+    if (key === w.key) return;
+    w.key = key; w.draw(near, r, day, S.colors.sun, S.params);
+    if (w.el.classList.contains('jw-wall--static')) w.el.classList.remove('jw-wall--static');
   });
   pools.forEach(([els, r]) => {
     els.forEach((p) => {
@@ -276,8 +317,11 @@ function frame(now) {
       g.style.transform = `translate3d(${(hx / hl * 3.2).toFixed(2)}px,${(hy / hl * 3.2).toFixed(2)}px,0)`; g.style.opacity = Math.min(1, att * s.i * 1.5).toFixed(3);
     });
   });
+  clearTimeout(S.timer);
   if (S.busy) request();
-  else if (S.wakeIn < Infinity) { clearTimeout(S.timer); S.timer = setTimeout(request, S.wakeIn); }
+  // a blink fade on its own steps at about 30 frames a second: smooth enough for a 14px light, and well under 50 frames in 3 s
+  else if (S.blinking) S.timer = setTimeout(request, 33);
+  else if (S.wakeIn < Infinity) S.timer = setTimeout(request, S.wakeIn);
 }
 
 function request() { if (S && !S.queued) { S.queued = true; requestAnimationFrame(frame); } }
@@ -285,7 +329,9 @@ function request() { if (S && !S.queued) { S.queued = true; requestAnimationFram
 export function mount(root) {
   if (S) { S.count++; scan(); return api; }
   S = { count: 1, root: root || document, walls: new Map(), pools: new Map(), shadows: new Map(), lightState: new WeakMap(), lights: [], rivets: [], visible: new Set(),
+    blinkEls: new Set(), reveals: new Set(), flickerIOs: new Set(),
     day: 0, dayTarget: 0, queued: false, timer: null, reduce: !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) };
+  S.revealIO = new IntersectionObserver((es) => { es.forEach((e) => { if (e.isIntersecting) { e.target.classList.remove('is-pending'); S.revealIO.unobserve(e.target); request(); } }); }, { threshold: 0.6 });
   readTheme(); S.day = S.dayTarget;
   S.ro = typeof ResizeObserver === 'function' ? new ResizeObserver(() => { S.walls.forEach((w) => w && w.resize()); request(); }) : null;
   S.io = new IntersectionObserver((es) => { es.forEach((e) => { if (e.isIntersecting) S.visible.add(e.target); else S.visible.delete(e.target); }); request(); }, { rootMargin: '200px 0px' });
@@ -302,7 +348,7 @@ export function mount(root) {
   let pending = null;
   S.domObs = new MutationObserver(() => { clearTimeout(pending); pending = setTimeout(() => { if (S) scan(); }, 60); });
   S.domObs.observe(S.root === document ? document.body : S.root, { childList: true, subtree: true, attributes: true,
-    attributeFilter: ['data-jw-light', 'data-jw-wall', 'data-jw-pool', 'data-jw-shadow', 'data-jw-flicker', 'data-jw-blink'] });
+    attributeFilter: ['data-jw-light', 'data-jw-wall', 'data-jw-pool', 'data-jw-shadow', 'data-jw-flicker', 'data-jw-blink', 'data-jw-reveal'] });
   scan();
   return api;
 }
@@ -315,7 +361,8 @@ export function unmount() {
   document.removeEventListener('focusin', S.onPointer); document.removeEventListener('focusout', S.onPointer);
   document.removeEventListener('transitionrun', S.onPointer, true); document.removeEventListener('transitionend', S.onPointer, true);
   S.themeObs.disconnect(); S.domObs.disconnect(); S.io.disconnect(); if (S.ro) S.ro.disconnect(); clearTimeout(S.timer);
-  S.walls.forEach((w) => w && w.dispose());
+  S.revealIO.disconnect(); S.reveals.forEach((el) => el.classList.remove('is-pending')); S.flickerIOs.forEach((io) => io.disconnect());
+  S.walls.forEach((w, el) => { if (w) w.dispose(); el.classList.add('jw-wall--static'); });
   S = null;
 }
 

@@ -1,16 +1,18 @@
 ---
-import "aos/dist/aos.css";
+// The design system, once for every page: tokens (colors, type, space, @font-face), then the jw- component styles.
+// Imported here, unlayered, so they win over the Tailwind layout utilities in global.css.
+import "../../design/tokens/tokens.css";
+import "../../design/components/jw.css";
 import "@/styles/global.css";
 import Head from "@/components/global/Head.astro";
 import Footer from "@/components/global/Footer.astro";
-import Header from "@/components/global/header/Header.astro";
+import SiteHeader from "@/components/global/SiteHeader.astro";
 import CookieBanner from "@/components/global/CookieBanner.astro";
+import SkipLink from "@/components/jw/SkipLink.astro";
+import LightScene from "@/components/jw/LightScene.astro";
 import type { JSONLDProps } from "@/lib/utils/JsonLdGenerator";
-import PageLoader from "./components/utilities/PageLoader.astro";
-import GlobalScripts from "./components/widgets/GlobalScripts.astro";
 
 import config from ".astro/config.generated.json";
-import BreakpointIndicator from "./components/widgets/BreakpointIndicator.astro";
 
 type Props = JSONLDProps & {
   className?: string;
@@ -26,31 +28,38 @@ type Props = JSONLDProps & {
   keywords?: string[]; // Array of strings
   disableTagline?: boolean;
   structuredData?: Props;
+  /** Top padding for the old (not yet rebuilt) sections. Rebuilt sections (jw- classes) set their own. */
   sectionSpacing?: "md" | "lg";
+  /**
+   * TEMPORARY, for old pages whose own CSS hard-codes white panels (pricing and the three tools). The page always shows
+   * by day: no theme script, no ThemeToggle in the header, and a day-only theme-color. A saved night choice is kept for
+   * the other pages. Remove it when the page is rebuilt on the tokens.
+   */
+  dayOnly?: boolean;
 };
 
 // destructure frontmatter
-let { sectionSpacing = "lg", structuredData } = Astro.props;
+let { sectionSpacing = "lg", structuredData, dayOnly = false } = Astro.props;
 
-// Section spacing class
+// Section spacing class (applies only to old sections; see src/styles/base.css)
 const sectionSpacingClass =
   sectionSpacing === "md" ? "has-section-spacing-md" : "has-section-spacing-lg";
 ---
 
 <!doctype html>
-<html lang={config.settings.multilingual.defaultLanguage || "en"}>
-  <Head {...Astro.props} structuredData={structuredData} />
+<html lang={config.settings.multilingual.defaultLanguage || "en"} data-theme="light">
+  <Head {...Astro.props} structuredData={structuredData} dayOnly={dayOnly}>
+    <slot name="head" slot="head" />
+  </Head>
   <body>
-    {!Astro.props.homepage && <PageLoader />}
-    <Header {...Astro.props} />
-    <main class:list={[sectionSpacingClass, Astro.props.class]}>
+    <SkipLink />
+    <!-- The nav bar must stay a direct child of <body>: it is sticky, and carries the lamp down the page. -->
+    <SiteHeader themeToggle={!dayOnly} />
+    <main id="main" tabindex="-1" class:list={[sectionSpacingClass, Astro.props.class]}>
       <slot />
     </main>
     <Footer />
-
-    <GlobalScripts />
-    <BreakpointIndicator />
     <CookieBanner />
-
+    <LightScene />
   </body>
 </html>

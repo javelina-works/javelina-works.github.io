@@ -1,0 +1,11 @@
+---
+/** Rivet (design/components/Rivet/README.md). Sits inside a positioned element; brass in one or two places a page. */
+interface Props {
+  corner?: "tl" | "tr" | "bl" | "br";
+  class?: string;
+  style?: string;
+}
+const { corner, class: className, style } = Astro.props;
+---
+
+<span class:list={["jw-rivet", corner && `jw-rivet--${corner}`, className]} style={style} aria-hidden="true"><i></i><i></i><i></i></span>
