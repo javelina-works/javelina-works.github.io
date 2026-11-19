@@ -1,0 +1,89 @@
+---
+/**
+ * Slider (design/components/Slider/README.md): a range input on the system. A mono label and the value readout
+ * (<output>, Barlow) above; an 8px well filled in ink up to the thumb; a 24px thumb that takes taps over 44px and wears the
+ * marigold selected ring when focused or held. Optional end labels under it (minLabel, maxLabel).
+ *   label, id, min, max, value (required); step (default 1); name; unit (a short unit after the readout: ac, %, $).
+ *   prefix: before the number ("$"). decimals: digits after the point in the readout (default 0; thousands get commas).
+ *   hint: a line under the slider (13.5px, like a Field hint).
+ * Its script keeps the fill, the readout and aria-valuetext in step as the thumb moves. Without JavaScript the slider
+ * still works and submits; the readout and fill keep their first values.
+ * Other props go on the <input> (data-*, aria-*, disabled, form…).
+ */
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends Omit<HTMLAttributes<"input">, "class" | "id" | "type" | "min" | "max" | "value" | "step"> {
+  label: string;
+  id: string;
+  min: number;
+  max: number;
+  value: number;
+  step?: number | "any";
+  unit?: string;
+  prefix?: string;
+  decimals?: number;
+  minLabel?: string;
+  maxLabel?: string;
+  hint?: string;
+  class?: string;
+}
+const { label, id, min, max, value, step = 1, unit, prefix = "", decimals = 0, minLabel, maxLabel, hint, class: className, ...rest } = Astro.props;
+const p = max > min ? Math.min(1, Math.max(0, (value - min) / (max - min))) : 0;
+const fmt = (n: number) => prefix + n.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+const valueText = `${fmt(value)}${unit ? " " + unit : ""}`;
+---
+
+<div class:list={["jw-slider", className]} data-jw-slider data-prefix={prefix || undefined} data-decimals={decimals || undefined} data-unit={unit || undefined}>
+  <div class="jw-slider__head">
+    <label class="jw-slider__label" for={id}>{label}</label>
+    <output class="jw-slider__value" for={id} id={`${id}-out`} aria-hidden="true"><span data-jw-slider-text>{fmt(value)}</span>{unit && <span class="jw-slider__unit">{unit}</span>}</output>
+  </div>
+  <input
+    type="range"
+    class="jw-slider__input"
+    id={id}
+    min={min}
+    max={max}
+    step={step}
+    value={value}
+    aria-valuetext={valueText}
+    aria-describedby={hint ? `${id}-hint` : undefined}
+    style={`--jw-p: ${p.toFixed(4)}`}
+    {...rest}
+  />
+  {
+    (minLabel || maxLabel) && (
+      <div class="jw-slider__scale" aria-hidden="true">
+        <span>{minLabel}</span>
+        <span>{maxLabel}</span>
+      </div>
+    )
+  }
+  {hint && <span class="jw-slider__hint" id={`${id}-hint`}>{hint}</span>}
+</div>
+
+<script>
+  // Keep the fill (--jw-p), the readout and aria-valuetext in step with the thumb. Runs for every .jw-slider on the page,
+  // including ones a page script changes: set input.value, then dispatch "input".
+  const sync = (input: HTMLInputElement) => {
+    const root = input.closest<HTMLElement>("[data-jw-slider]");
+    if (!root) return;
+    const min = Number(input.min) || 0;
+    const max = Number(input.max);
+    const v = Number(input.value);
+    const p = max > min ? Math.min(1, Math.max(0, (v - min) / (max - min))) : 0;
+    input.style.setProperty("--jw-p", p.toFixed(4));
+    const d = Number(root.dataset.decimals) || 0;
+    const text = (root.dataset.prefix || "") + v.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
+    const out = root.querySelector("[data-jw-slider-text]");
+    if (out) out.textContent = text;
+    input.setAttribute("aria-valuetext", root.dataset.unit ? `${text} ${root.dataset.unit}` : text);
+  };
+  document.addEventListener("input", (e) => {
+    const t = e.target as HTMLInputElement;
+    if (t instanceof HTMLInputElement && t.classList.contains("jw-slider__input")) sync(t);
+  });
+  // a restored form (back button) can come back with other values
+  document.querySelectorAll<HTMLInputElement>(".jw-slider__input").forEach(sync);
+  window.addEventListener("pageshow", () => document.querySelectorAll<HTMLInputElement>(".jw-slider__input").forEach(sync));
+</script>

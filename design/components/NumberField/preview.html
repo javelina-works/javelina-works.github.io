@@ -1,0 +1,34 @@
+<!-- @dsCard group="Forms" height=320 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Number field</title></head>
+<body>
+<!-- Plain HTML with the same small script the site uses. The labels and hint are the brush return calculator's. -->
+<div class="jw-demo" style="max-width: 420px">
+  <div class="jw-field">
+    <label class="jw-field__label" for="pv-acres">Acres to treat</label>
+    <div class="jw-number" data-jw-number>
+      <button type="button" class="jw-number__step jw-number__step--down" data-step="-1" aria-label="Decrease Acres to treat" aria-controls="pv-acres"></button>
+      <div class="jw-input-wrap"><input class="jw-input jw-number__input jw-input--suffixed" id="pv-acres" type="number" min="1" step="1" value="640"><span class="jw-input__suffix" aria-hidden="true">ac</span></div>
+      <button type="button" class="jw-number__step jw-number__step--up" data-step="1" aria-label="Increase Acres to treat" aria-controls="pv-acres"></button>
+    </div>
+  </div>
+  <div class="jw-field">
+    <label class="jw-field__label" for="pv-ppa">Plants per acre to treat</label>
+    <div class="jw-number">
+      <div class="jw-input-wrap"><input class="jw-input jw-number__input" id="pv-ppa" type="number" min="1" aria-describedby="pv-ppa-hint"></div>
+    </div>
+    <span class="jw-field__hint" id="pv-ppa-hint">Sets the EQIP individual-plant tier: 50–200 or 201–400 plants.</span>
+  </div>
+</div>
+<script>
+document.addEventListener('click', function (e) {
+  var b = e.target.closest('.jw-number__step'); if (!b) return;
+  var i = b.closest('.jw-number').querySelector('.jw-number__input'), s = Number(i.step) || 1;
+  var min = i.min === '' ? -Infinity : Number(i.min), max = i.max === '' ? Infinity : Number(i.max);
+  i.value = String(Math.min(max, Math.max(min, (Number(i.value) || 0) + Number(b.dataset.step) * s)));
+  i.dispatchEvent(new Event('input', { bubbles: true })); i.dispatchEvent(new Event('change', { bubbles: true }));
+});
+</script>
+</body>
+</html>

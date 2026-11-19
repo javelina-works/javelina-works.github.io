@@ -1,22 +1,27 @@
 ---
+// Benefits on the design system: a section heading, then IconCards in a grid (one column on phones, two from 641px,
+// three from 1024px), then the content's button. Content and props are unchanged: the default is
+// src/content/sections/english/why-us.md, and `content` overrides it (company values, service pillars and uses, career).
+// Gone: AnimatedText (motion), AOS fades, the text-flip button. The button is a ghost (the header lamp is the page's
+// one glowing action).
 import type { Section } from "@/types";
 import type { z } from "astro/zod";
 import { getEntryCTM } from "@/lib/contentParser.astro";
 import { markdownify } from "@/lib/utils/textConverter";
 import overrideObjects from "@/lib/utils/overrideObjects.ts";
 import type { benefitsSectionSchema } from "@/sections.schema";
-import Icons from "@/helpers/Icons.astro";
-import AnimatedText from "../widgets/AnimatedText.astro";
-import CustomButton from "../CustomButton.astro";
+import Container from "@/components/jw/Container.astro";
+import SectionHead from "@/components/jw/SectionHead.astro";
+import IconCard from "@/components/jw/IconCard.astro";
+import ContentButton from "@/components/shared/ContentButton.astro";
 
-// Type
 type benefitsSectionType = Section & z.infer<typeof benefitsSectionSchema>;
 type Props = {
   content?: benefitsSectionType;
+  /** the section's id (for anchors and aria-labelledby); default "benefits" plus a slug of the title */
+  id?: string;
 };
-type LucideIconName = keyof typeof import("lucide");
 
-// Default content fetch
 let defaultContent = (
   await getEntryCTM("sections", "why-us", Astro.currentLocale)
 )?.data as benefitsSectionType;
@@ -34,53 +39,48 @@ let {
 } = actualContent as benefitsSectionType;
 
 if (!enable) return;
+
+const slug = (s: string) => s.toLowerCase().replace(/<[^>]*>|[*_]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
+const sectionId = Astro.props.id || (title ? `benefits-${slug(title)}` : undefined);
+const titleId = sectionId ? `${sectionId}-title` : undefined;
+const titleHtml = title ? ((await markdownify(title)) as string) : undefined;
+const cards = await Promise.all(
+  (benefits || []).map(async (item: any) => ({
+    icon: item.icon as string | undefined,
+    titleHtml: item.title ? ((await markdownify(item.title)) as string) : undefined,
+    textHtml: item.description ? ((await markdownify(item.description)) as string) : undefined,
+  })),
+);
+const cols3 = cards.length !== 2 && cards.length !== 4;
 ---
 
-<section>
-  <div class="container space-y-10 md:space-y-16">
-    {title && (
-      <div class="mx-auto max-w-2xl text-center">
-        <h2 class="has-italic-text capitalize">
-          <AnimatedText
-            delay={0.2}
-            stagger={0.09}
-            content={markdownify(title)}
-          />
-        </h2>
-      </div>
-    )}
-
-    {benefits && (
-      <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-        {benefits.map((item, index) => (
-          <div
-            data-aos="fade-up-sm"
-            data-aos-delay={(index + 1) * 50}
-            data-aos-duration={900}
-            class="flex flex-col gap-4 border p-5 md:p-8">
-            <Icons class="text-3xl" icon={item.icon as LucideIconName} />
-            <div class="mt-4 space-y-3">
-              {item.title && (
-                <h3
-                  class="text-h5-sm md:text-h5"
-                  set:html={markdownify(item.title)}
-                />
-              )}
-              {item.description && (
-                <p
-                  class="opacity-80"
-                  set:html={markdownify(item.description)}
-                />
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-    )}
-    {button && button.enable !== false && button.label && (
-      <div class="text-center">
-        <CustomButton variant="outline" hoverEffect="text-flip" {...button} />
-      </div>
-    )}
-  </div>
+<section class="jw-section benefits-section" id={sectionId} aria-labelledby={titleHtml ? titleId : undefined}>
+  <Container>
+    {titleHtml && <SectionHead titleHtml={titleHtml} titleId={titleId} />}
+    {
+      cards.length > 0 && (
+        <ul class:list={["jw-cardgrid", cols3 && "jw-cardgrid--3"]} role="list">
+          {cards.map((c) => (
+            <li>
+              <IconCard icon={c.icon} titleHtml={c.titleHtml} textHtml={c.textHtml} />
+            </li>
+          ))}
+        </ul>
+      )
+    }
+    {
+      button && (button as any).enable !== false && (button as any).label && (
+        <div class="benefits-section__action">
+          <ContentButton button={button as any} variant="ghost" />
+        </div>
+      )
+    }
+  </Container>
 </section>
+
+<style>
+  .benefits-section__action {
+    display: flex;
+    margin-top: var(--space-8);
+  }
+</style>

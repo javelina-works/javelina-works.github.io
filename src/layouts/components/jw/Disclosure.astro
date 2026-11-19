@@ -1,0 +1,44 @@
+---
+/**
+ * Disclosure (design/components/Disclosure/README.md): a native <details>/<summary>, a question and its answer.
+ * Inside an Accordion the rows share one paper card; on its own (solo) it is its own card.
+ * name: details that share a name form an exclusive group (opening one closes the others; the Accordion script covers
+ * browsers without that). The summary is plain text (summary) or the "summary" slot; the answer is the default slot,
+ * or `html` (trusted markup such as markdownify output), set in Prose unless prose={false}.
+ * No JavaScript of its own: it works without any.
+ */
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends Omit<HTMLAttributes<"details">, "class" | "name"> {
+  summary?: string;
+  /** trusted HTML for the answer; otherwise the default slot */
+  html?: string;
+  name?: string;
+  open?: boolean;
+  /** its own card (not inside an Accordion) */
+  solo?: boolean;
+  /** wrap the answer in Prose (default true) */
+  prose?: boolean;
+  class?: string;
+}
+const { summary, html, name, open = false, solo = false, prose = true, class: className, ...rest } = Astro.props;
+const hasSummarySlot = Astro.slots.has("summary");
+---
+
+<details class:list={["jw-disclosure", solo && "jw-disclosure--solo", className]} name={name} open={open || undefined} {...rest}>
+  <summary class="jw-disclosure__summary">
+    <span class="jw-disclosure__title">{hasSummarySlot ? <slot name="summary" /> : summary}</span>
+    <span class="jw-disclosure__icon" aria-hidden="true"></span>
+  </summary>
+  <div class="jw-disclosure__body">
+    {
+      prose ? (
+        html ? <div class="jw-prose jw-prose--full" set:html={html} /> : <div class="jw-prose jw-prose--full"><slot /></div>
+      ) : html ? (
+        <Fragment set:html={html} />
+      ) : (
+        <slot />
+      )
+    }
+  </div>
+</details>

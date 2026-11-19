@@ -1,0 +1,57 @@
+---
+/**
+ * ResultsPanel (design/components/ResultsPanel/README.md): the answer card of a calculator or estimate. A paper card with
+ * an eyebrow, the headline figure (Barlow), one line under it, then the default slot (a RangeBar, a Meter…), the facts
+ * behind the figure as label–value rows, a note, and the next steps (the "actions" slot: shell, burnt or ghost buttons;
+ * never the glowing primary).
+ *   eyebrow, value (the headline figure as text), sub (the line under it), facts: [{ label, value }], note.
+ *   valueId / factsId: ids for a page script that fills them in. live: announce changes (aria-live="polite").
+ *   castShadow: on a wall, the card's shadow moves with the lamp.
+ */
+import Surface from "./Surface.astro";
+
+interface Fact {
+  label: string;
+  value: string;
+  id?: string;
+}
+interface Props {
+  eyebrow?: string;
+  value?: string;
+  sub?: string;
+  facts?: Fact[];
+  note?: string;
+  valueId?: string;
+  factsId?: string;
+  live?: boolean;
+  castShadow?: boolean;
+  /** heading level for the figure (default: a <p>; pass 2 or 3 to make it the section's heading) */
+  headingLevel?: 2 | 3;
+  id?: string;
+  class?: string;
+}
+const { eyebrow, value, sub, facts, note, valueId, factsId, live = false, castShadow = false, headingLevel, id, class: className } = Astro.props;
+const V: any = headingLevel ? `h${headingLevel}` : "p";
+const hasActions = Astro.slots.has("actions");
+---
+
+<Surface castShadow={castShadow} class:list={["jw-results", className]} id={id} aria-live={live ? "polite" : undefined}>
+  {eyebrow && <p class="jw-eyebrow jw-results__eyebrow">{eyebrow}</p>}
+  {value !== undefined && <V class="t-display-m jw-results__value" id={valueId}>{value}</V>}
+  {sub && <p class="jw-results__sub">{sub}</p>}
+  <slot />
+  {
+    facts && facts.length > 0 && (
+      <dl class="jw-results__facts" id={factsId}>
+        {facts.map((f) => (
+          <>
+            <dt>{f.label}</dt>
+            <dd id={f.id}>{f.value}</dd>
+          </>
+        ))}
+      </dl>
+    )
+  }
+  {note && <p class="jw-results__note">{note}</p>}
+  {hasActions && <div class="jw-results__actions"><slot name="actions" /></div>}
+</Surface>

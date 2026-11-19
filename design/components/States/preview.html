@@ -1,0 +1,24 @@
+<!-- @dsCard group="Data" height=480 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>States</title></head>
+<body>
+<!-- Plain HTML. The lines are the site's (the ranch map's empty and sample messages, the ballpark's scan note); the titles
+     and the "Loading" label are examples for the design. -->
+<div class="jw-demo" style="max-width: 640px">
+  <div class="jw-state jw-state--empty">
+    <p class="jw-state__title">No ground picked yet</p>
+    <p class="jw-state__text">Type an address, town, or GPS point first, or tap the map.</p>
+  </div>
+  <div class="jw-state jw-state--loading" role="status">
+    <span class="jw-state__label"><span class="jw-state__dot" aria-hidden="true"></span>Loading</span>
+    <p class="jw-state__text">Usually under a minute.</p>
+  </div>
+  <div class="jw-state jw-state--error" role="alert">
+    <p class="jw-state__title">The sample didn't load</p>
+    <p class="jw-state__text">Refresh and try again.</p>
+    <div class="jw-state__actions"><button type="button" class="jw-btn jw-btn--quiet">Try again</button></div>
+  </div>
+</div>
+</body>
+</html>

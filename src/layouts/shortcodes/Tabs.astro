@@ -1,70 +1,44 @@
 ---
 /**
- * Example Usage
+ * Tabs shortcode (MDX), on the design system's Tabs (design/components/Tabs/README.md). Same use as before: put <Tab name>
+ * blocks in the slot; each becomes a tab and its panel (set in Prose). Keyboard: arrow keys, Home, End. Without
+ * JavaScript every panel shows under its name. No Preline.
 
   <Tabs>
     <Tab name="Overview">
       #### How Can We Assist You?
-
-      We offer personalized consultations to help you achieve your personal and professional goals. Choose a tab below to explore our services.
-
-      - Personal Coaching
-      - Career Counseling
-      - Conflict Resolution
-      - Life Advice
+      …
     </Tab>
   </Tabs>
-
  */
 import { parseHTML } from "linkedom";
-// TEMPORARY: the tabs run on Preline (data-hs-tab), which Base no longer loads; LegacyPreline loads the tabs part.
-import LegacyPreline from "@/components/legacy/LegacyPreline.astro";
+import JwTabs from "@/components/jw/Tabs.astro";
 
-// Render all the slot content
 const slotContent = await Astro.slots.render("default");
-
-// Parse the rendered content
 const { document } = parseHTML(`<div id="__tabs__">${slotContent}</div>`);
-const tabElements = Array.from(
-  document.querySelectorAll("#__tabs__ [data-tab]"),
-) as Element[];
+const tabElements = Array.from(document.querySelectorAll("#__tabs__ [data-tab]")) as Element[];
+
+// ids unique per Tabs on the page (the old ones were panel-0, panel-1… for every instance)
+const key =
+  "tabs-" +
+  (tabElements.map((t) => t.getAttribute("data-name") || "").join("-").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 32) || "x");
+const panes = tabElements.map((tab, i) => ({
+  id: `${key}-panel-${i}`,
+  label: tab.getAttribute("data-name") || `Tab ${i + 1}`,
+  html: tab.innerHTML,
+}));
+const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 ---
 
-<div class="flex flex-col bg-white/5">
-  <nav
-    class="inline-flex flex-wrap divide-x border-x"
-    aria-label="Tabs"
-    role="tablist"
-    aria-orientation="horizontal">
-    {
-      tabElements.map((tab, index) => (
-        <button
-          type="button"
-          class={`tab-button [&.active]:bg-theme-light w-fit flex-1 border-t px-8 py-2.5 [&.active]:text-black ${index === 0 ? "active" : ""}`}
-          id={`tab-${index}`}
-          aria-controls={`panel-${index}`}
-          role="tab"
-          aria-selected={index === 0 ? "true" : "false"}
-          data-hs-tab={`#panel-${index}`}>
-          {(tab as Element).getAttribute("data-name") || `Tab ${index + 1}`}
-        </button>
-      ))
-    }
-  </nav>
-
-  <div class="border p-4">
-    {
-      tabElements.map((tab, index) => (
-        <div
-          id={`panel-${index}`}
-          class={`prose-styles tab-panel ${index === 0 ? "" : "hidden"}`}
-          role="tabpanel"
-          aria-labelledby={`tab-${index}`}
-          set:html={(tab as Element).innerHTML}
-        />
-      ))
-    }
-  </div>
-</div>
-
-<LegacyPreline />
+{
+  panes.length > 0 && (
+    <JwTabs tabs={panes.map((p) => ({ id: p.id, label: esc(p.label) }))} class="not-prose">
+      {panes.map((p) => (
+        <div class="jw-tabs__panel" role="tabpanel" id={p.id} aria-labelledby={`${p.id}-tab`} tabindex="0">
+          <p class="jw-tabs__panel-title t-heading-3" set:html={esc(p.label)} />
+          <div class="jw-prose jw-prose--full" set:html={p.html} />
+        </div>
+      ))}
+    </JwTabs>
+  )
+}

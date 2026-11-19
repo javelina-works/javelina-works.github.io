@@ -1,6 +1,12 @@
 ---
-import LegacyPreline from "@/components/legacy/LegacyPreline.astro";
-import Icons from "@/helpers/Icons.astro";
+// The video modal on the design system's Dialog (a native <dialog>, design/components/Dialog/README.md), with no Preline
+// or AOS. Same props (video: { id, src, provider, poster, autoplay, type }) and the same privacy behaviour: nothing loads
+// from YouTube or Vimeo until a visitor chooses to watch. The player (privacy-enhanced youtube-nocookie.com, or Vimeo with
+// dnt=1) is built only after the dialog opens, one frame after the click so the dialog paints first, and is removed on
+// close, which stops playback. A dialog closed before its player was built never builds one.
+// Openers: any element with data-jw-dialog-open="<id>" (new markup), and the old triggers that still carry
+// data-hs-overlay="#<id>" with the video-modal-toggle class (the home hero and the ImageItem shortcode).
+import Dialog from "@/components/jw/Dialog.astro";
 import type { VideoConfig } from "@/types";
 
 interface Props {
@@ -11,10 +17,6 @@ const { video } = Astro.props;
 let { src, provider = "youtube", poster, autoplay = true, type, id } = video;
 
 const isNativeVideo = provider === "html5";
-
-// Embeds load only when someone opens the modal (the iframe is created on
-// click), in privacy-enhanced mode, so nothing reaches YouTube or Vimeo before
-// a visitor chooses to watch.
 const autoplayParam = autoplay === true ? "autoplay=1&" : "";
 const embedSrc =
   provider === "vimeo"
@@ -22,149 +24,84 @@ const embedSrc =
     : `https://www.youtube-nocookie.com/embed/${src}?${autoplayParam}rel=0&playsinline=1`;
 ---
 
-{src && (
-  <div
-    id={id}
-    class="hs-overlay pointer-events-none fixed start-0 top-0 z-60 hidden size-full overflow-x-hidden overflow-y-auto"
-    role="dialog"
-    tabindex="-1">
-    <div class="hs-overlay-animation-target hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 mt-0 flex min-h-[calc(100%-3.5rem)] items-center opacity-0 transition-[margin,opacity] ease-out sm:mx-auto sm:w-full sm:max-w-4xl">
-      <div class="has-video-player pointer-events-auto container flex flex-col">
-        <button
-          type="button"
-          aria-label="Close"
-          data-hs-overlay={`#${id}`}
-          data-hs-overlay-options={`{"emulateScrollbarSpace" : true}`}
-          class="mb-2 ml-auto flex h-10 w-10 items-center justify-center rounded-full bg-white ring-0 ring-white/50 duration-300 hover:rotate-90 hover:ring-4">
-          <span class="sr-only">Close</span>
-          <Icons icon="X" class="text-dark/80 h-6 w-6" />
-        </button>
+{
+  src && id && (
+    <Dialog id={id} title="Video" hideTitle size="media" class="video-modal">
+      <div class="jw-dialog__frame">
         {isNativeVideo ? (
-          <video
-            class="video-player w-full rounded-lg bg-black"
-            controls
-            playsinline
-            preload="none"
-            poster={poster || undefined}
-            data-autoplay={autoplay === true ? "true" : "false"}>
+          <video class="video-player" controls playsinline preload="none" poster={poster || undefined} data-autoplay={autoplay === true ? "true" : "false"}>
             <source src={src} type={type} />
           </video>
         ) : (
-          <div
-            class="video-frame aspect-video w-full overflow-hidden rounded-lg bg-black"
-            data-embed-src={embedSrc}
-          />
+          <div class="video-frame" data-embed-src={embedSrc} />
         )}
       </div>
-    </div>
-  </div>
-)}
+    </Dialog>
+  )
+}
 
 <script>
-  // @ts-nocheck
-  import AOS from "aos";
+  // Old triggers (data-hs-overlay="#id" + .video-modal-toggle) open the same dialog.
+  document.addEventListener("click", (e) => {
+    const t = (e.target as HTMLElement).closest<HTMLElement>(".video-modal-toggle[data-hs-overlay]");
+    if (!t) return;
+    const dlg = document.querySelector(t.getAttribute("data-hs-overlay") || "");
+    if (!(dlg instanceof HTMLDialogElement) || !dlg.classList.contains("video-modal") || dlg.open) return;
+    e.preventDefault();
+    dlg.showModal();
+    t.setAttribute("aria-expanded", "true");
+    dlg.dispatchEvent(new CustomEvent("jw-dialog-open", { detail: { opener: t } }));
+    dlg.addEventListener("close", () => t.setAttribute("aria-expanded", "false"), { once: true });
+  });
 
-  const videoButtons = document.querySelectorAll(
-    "[data-hs-overlay].video-modal-toggle",
-  );
-
-  /**
-   * Observes when the "aos-animate" class is added to an element and removes
-   * the `data-aos` and `data-aos-delay` attributes after a 500ms delay.
-   *
-   * Use case: This function is useful when you want to remove certain AOS-specific
-   * attributes after the element has finished its animation, triggered by the `aos-animate` class. Currently, fixing an issue with preline overlay (video modal) not working if * any nearest parent of it has aos animation. This is a temporary solution until the issue is fixed in preline.
-   */
-  function removeAosAttributesAfterAnimation() {
-    // Function to handle mutations and remove AOS attributes
-    const handleAosAnimateClass = (mutationsList: MutationRecord[]) => {
-      mutationsList.forEach((mutation: MutationRecord) => {
-        // Check if the "aos-animate" class was added to the element
-        if (
-          mutation.type === "attributes" &&
-          mutation.target.classList.contains("aos-animate")
-        ) {
-          // Set a timeout to remove the AOS attributes after 500ms
-          setTimeout(() => {
-            mutation.target.removeAttribute("data-aos");
-            mutation.target.removeAttribute("data-aos-delay");
-          }, 1000); // Delay before removing the attributes
-        }
-      });
-    };
-
-    // Select the element to observe
-    const content = document.querySelector(".has-video-modal");
-
-    if (content) {
-      // Create a MutationObserver to detect class changes
-      const observer = new MutationObserver(handleAosAnimateClass);
-
-      // Configure the observer to watch for class attribute changes
-      observer.observe(content, {
-        attributes: true, // Observe attribute changes (for class changes)
-        attributeFilter: ["class"], // Only monitor the 'class' attribute
-      });
-    }
-  }
-
-  // Call the function when you need to monitor the element with the "content" class.
-  removeAosAttributesAfterAnimation();
-
-  // Open: create the embed iframe on the click (a user gesture, so autoplay
-  // is allowed) or start the native video. Close: remove the iframe, which
-  // stops playback and frees the player, or pause the video.
-  // Each opening of a modal gets a number; closing bumps it. A player
-  // scheduled by an opening that was closed before it ran is not built.
-  const openings = new WeakMap();
-
-  videoButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      const overlaySelector = button.getAttribute("data-hs-overlay");
-      const modal = overlaySelector && document.querySelector(overlaySelector);
-      if (!modal) return;
-
-      const frame = modal.querySelector(".video-frame");
+  // Build the player after the dialog has painted; tear it down on close.
+  const openings = new WeakMap<HTMLDialogElement, number>();
+  document.querySelectorAll<HTMLDialogElement>("dialog.video-modal").forEach((dlg) => {
+    dlg.addEventListener("jw-dialog-open", (e) => {
+      const opener = (e as CustomEvent).detail?.opener as HTMLElement | undefined;
+      const title = opener?.textContent?.trim() || opener?.getAttribute("title") || "Video";
+      dlg.setAttribute("aria-label", title);
+      const frame = dlg.querySelector<HTMLElement>(".video-frame");
       if (frame && !frame.querySelector("iframe")) {
-        // Let the overlay paint first, then build the player. Building the
-        // YouTube iframe inside the click made the click take ~350 ms to
-        // show anything (the site's slowest interaction). The click still
-        // counts as the user gesture that allows autoplay.
-        const title = button.textContent?.trim() || "Video";
-        const opening = (openings.get(modal) || 0) + 1;
-        openings.set(modal, opening);
+        const opening = (openings.get(dlg) || 0) + 1;
+        openings.set(dlg, opening);
         requestAnimationFrame(() =>
           setTimeout(() => {
-            if (openings.get(modal) === opening) buildPlayer(frame, title);
+            if (openings.get(dlg) === opening && dlg.open) buildPlayer(frame, title);
           }, 0),
         );
       }
-
-      const video = modal.querySelector("video.video-player");
+      const video = dlg.querySelector<HTMLVideoElement>("video.video-player");
       if (video?.dataset.autoplay === "true") video.play().catch(() => {});
+    });
+    dlg.addEventListener("close", () => {
+      openings.set(dlg, (openings.get(dlg) || 0) + 1);
+      dlg.querySelector(".video-frame")?.replaceChildren();
+      dlg.querySelector<HTMLVideoElement>("video.video-player")?.pause();
     });
   });
 
-  function buildPlayer(frame, title) {
+  function buildPlayer(frame: HTMLElement, title: string) {
     if (frame.querySelector("iframe")) return;
     const iframe = document.createElement("iframe");
-    iframe.src = frame.dataset.embedSrc;
+    iframe.src = frame.dataset.embedSrc || "";
     iframe.title = title;
     iframe.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
     iframe.allowFullscreen = true;
     iframe.referrerPolicy = "strict-origin-when-cross-origin";
-    iframe.className = "size-full";
     frame.replaceChildren(iframe);
   }
-
-  document.addEventListener("close.hs.overlay", (event) => {
-    const modal = event.detail?.payload;
-    if (!(modal instanceof HTMLElement)) return;
-    openings.set(modal, (openings.get(modal) || 0) + 1);
-    modal.querySelector(".video-frame")?.replaceChildren();
-    modal.querySelector("video.video-player")?.pause();
-  });
 </script>
 
-<!-- TEMPORARY: Base no longer loads Preline; this old component loads the part it uses. -->
-<LegacyPreline />
+<style>
+  .video-modal :global(.video-frame) {
+    position: absolute;
+    inset: 0;
+  }
+  .video-modal :global(.video-frame > iframe) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+</style>

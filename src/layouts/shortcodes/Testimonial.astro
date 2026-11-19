@@ -1,25 +1,19 @@
 ---
 /**
- * Example Usage
+ * Testimonial shortcode (MDX), on the design system: a paper card holding the words as a quote (in Prose), then who
+ * said it: name, role, company, with their photo and the company logo when given. Same props as before
+ * (class, customerImage, customerName, customerRole, customerCompanyLogo, customerCompanyName); the quote is the slot.
+ * Use it only for a real customer's own words, with their permission (the site's rules forbid invented testimonials).
+ * The old card always drew five stars, a rating nobody gave; it no longer does. generateStars stays exported for the
+ * code that imports it (ContactSection, TestimonialCard).
 
-  <Testimonial
-    customerImage="/images/customers/avatar/1.jpg"
-    customerName="Sarah Jones"
-    customerRole="CEO, Founder"
-    customerCompanyLogo="/images/customers/company-logo/acme.png"
-    customerCompanyName="Acme Inc."
-  >
-    Our partnership with Javelina Works demonstrates the power of a well-executed customer
-    engagement strategy. By integrating advanced technologies and data-driven
-    insights, we helped them achieve a more personalized, consistent, and
-    rewarding customer experience. At Javelina Works, we are committed to helping
-    businesses like Oloyon revolutionize their customer engagement and drive
-    long-term success.
+  <Testimonial customerName="…" customerRole="…" customerCompanyName="…">
+    Their words, as they said them.
   </Testimonial>
-
  */
 import { markdownify } from "@/lib/utils/textConverter";
 import OptimizedImage from "@/components/utilities/OptimizedImage.astro";
+import Surface from "@/components/jw/Surface.astro";
 
 interface Props {
   class?: string;
@@ -30,14 +24,7 @@ interface Props {
   customerCompanyName?: string;
 }
 
-const {
-  class: className,
-  customerImage,
-  customerName,
-  customerRole,
-  customerCompanyLogo,
-  customerCompanyName,
-} = Astro.props;
+const { class: className, customerImage, customerName, customerRole, customerCompanyLogo, customerCompanyName } = Astro.props;
 
 export const generateStars = (rating: any) => {
   const fullStars = Math.floor(rating);
@@ -48,78 +35,81 @@ export const generateStars = (rating: any) => {
   }));
 };
 
-let rating = new Array(5).fill(null);
+const nameHtml = customerName ? ((await markdownify(customerName)) as string) : undefined;
+const roleHtml = customerRole ? ((await markdownify(customerRole)) as string) : undefined;
+const companyHtml = customerCompanyName ? ((await markdownify(customerCompanyName)) as string) : undefined;
 ---
 
-<div
-  class:list={[
-    "testimonial-component not-prose relative flex w-full bg-white/5 p-6 " +
-      className,
-  ]}>
-  <div class="flex flex-col justify-between space-y-8">
-    <div class="space-y-8">
-      {
-        customerCompanyName && (
-          <div class="flex flex-wrap-reverse items-center justify-between gap-3 opacity-70">
-            <div class="flex items-center gap-2">
-              {customerCompanyLogo && (
-                <OptimizedImage
-                  class="w-6"
-                  height={24}
-                  src={customerCompanyLogo}
-                  alt={customerCompanyName}
-                />
-              )}
-              {customerCompanyName && (
-                <div
-                  class="whitespace-nowrap"
-                  set:html={markdownify(customerCompanyName)}
-                />
-              )}
-            </div>
-          </div>
-        )
-      }
-      <div class="prose-styles">
-        <slot />
-      </div>
-    </div>
-    {
-      customerName && (
-        <div class="flex flex-wrap-reverse items-center justify-between gap-x-2 gap-y-10">
-          <div class="flex items-center gap-4">
-            {customerImage && (
-              <OptimizedImage
-                class="h-12 w-12 rounded-full"
-                width={48}
-                height={48}
-                src={customerImage}
-                alt={customerName}
-              />
-            )}
-            <div>
-              {customerName && <div set:html={markdownify(customerName)} />}
-              {customerRole && (
-                <p class="text-sm" set:html={markdownify(customerRole)} />
-              )}
-            </div>
-          </div>
-          <div class="flex items-center gap-2 rounded-full px-3 py-1.5">
-            {rating && (
-              <div class="bg-theme-light inline-flex gap-2 rounded-sm px-2.5 py-1.5">
-                {generateStars(rating).map((_) => (
-                  <svg
-                    class="h-3 w-3 fill-current text-yellow-500"
-                    viewBox="0 0 20 20"
-                    fill="currentColor">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )
-    }
-  </div>
-</div>
+<Surface as="figure" class:list={["testimonial", "not-prose", className]}>
+  <blockquote class="testimonial__quote jw-prose jw-prose--full">
+    <slot />
+  </blockquote>
+  {
+    (nameHtml || companyHtml) && (
+      <figcaption class="testimonial__who">
+        {customerImage && <OptimizedImage class="testimonial__photo" width={48} height={48} src={customerImage} alt="" />}
+        <span class="testimonial__names">
+          {nameHtml && <span class="testimonial__name" set:html={nameHtml} />}
+          {roleHtml && <span class="testimonial__role" set:html={roleHtml} />}
+          {companyHtml && (
+            <span class="testimonial__company">
+              {customerCompanyLogo && <OptimizedImage class="testimonial__logo" height={24} width={24} src={customerCompanyLogo} alt="" />}
+              <span set:html={companyHtml} />
+            </span>
+          )}
+        </span>
+      </figcaption>
+    )
+  }
+</Surface>
+
+<style>
+  .testimonial {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    margin: 0 0 var(--space-5);
+    padding: var(--space-6);
+  }
+  .testimonial__quote {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .testimonial__who {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--line);
+    font-size: 16px;
+    line-height: 1.45;
+  }
+  .testimonial__who :global(.testimonial__photo) {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  .testimonial__names {
+    display: flex;
+    flex-direction: column;
+  }
+  .testimonial__name {
+    font-weight: 500;
+    color: var(--text);
+  }
+  .testimonial__role,
+  .testimonial__company {
+    color: var(--text-muted);
+  }
+  .testimonial__company {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .testimonial__company :global(.testimonial__logo) {
+    width: 20px;
+    height: 20px;
+  }
+</style>

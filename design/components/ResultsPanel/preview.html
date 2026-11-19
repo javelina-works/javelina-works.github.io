@@ -1,0 +1,37 @@
+<!-- @dsCard group="Data" height=620 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Results panel</title></head>
+<body>
+<!-- Plain HTML. Labels and the note are the ballpark's; the figures are the design system's example ranch, not site data.
+     The second panel sits on a shell band. -->
+<div class="jw-demo" style="max-width: 940px">
+  <div style="display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))">
+    <div class="jw-surface jw-surface--card jw-results" aria-live="polite">
+      <p class="jw-eyebrow jw-results__eyebrow">Brush to treat</p>
+      <p class="t-display-m jw-results__value">212 ac</p>
+      <p class="jw-results__sub">Of 640 ac inside the fence.</p>
+      <div class="jw-range" style="--jw-lo: 30%; --jw-hi: 80%; --jw-at: 50.67%">
+        <div class="jw-range__track" role="img" aria-label="180 ac to 240 ac"><span class="jw-range__band"></span><span class="jw-range__marker"></span></div>
+        <div class="jw-range__ends"><p class="jw-range__end"><span class="jw-range__end-value">180 ac</span></p><p class="jw-range__end"><span class="jw-range__end-value">240 ac</span></p></div>
+      </div>
+      <dl class="jw-results__facts">
+        <dt>Area inside the fence</dt><dd>640 ac</dd>
+        <dt>Brush coverage</dt><dd>33.1%</dd>
+        <dt>Time on the ranch</dt><dd>1–2 weeks</dd>
+      </dl>
+      <p class="jw-results__note">This is a planning range, not a bid — a firm quote takes a scheduled survey flight over your ground.</p>
+      <div class="jw-results__actions"><a class="jw-btn jw-btn--shell" href="#adjust">Adjust the brush level</a><a class="jw-btn jw-btn--ghost" href="#restart">Start over with new ground</a></div>
+    </div>
+    <section class="jw-surface jw-surface--band-shell" style="padding: 24px">
+      <div class="jw-surface jw-surface--card jw-results">
+        <p class="jw-eyebrow jw-results__eyebrow">Treatment plan</p>
+        <p class="t-display-m jw-results__value">3 plants to treat</p>
+        <p class="jw-results__sub">41 kept. You approve the plan before anything flies.</p>
+        <div class="jw-results__actions"><span class="jw-chip jw-chip--keep">Keep · 41</span></div>
+      </div>
+    </section>
+  </div>
+</div>
+</body>
+</html>

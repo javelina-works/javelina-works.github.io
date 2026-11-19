@@ -1,0 +1,61 @@
+---
+/**
+ * RadioGroup (design/components/RadioGroup/README.md): one choice from a few, as a fieldset with a legend and
+ * Checkbox-style rows (each row is the 44px tap target). The dot is neutral ink, never orange or green.
+ *   name, legend (required); options: [{ value, label, hint?, disabled? }]; value: the checked one.
+ *   inline: rows side by side (wrapping). hint / error under the legend and the rows.
+ *   idPrefix: input ids are "<idPrefix>-<value>" (default the name).
+ * Any other prop goes on the <fieldset> (id, data-*, aria-*).
+ */
+import type { HTMLAttributes } from "astro/types";
+
+interface Option {
+  value: string;
+  label: string;
+  hint?: string;
+  disabled?: boolean;
+}
+interface Props extends Omit<HTMLAttributes<"fieldset">, "class"> {
+  name: string;
+  legend: string;
+  options: Option[];
+  value?: string;
+  required?: boolean;
+  inline?: boolean;
+  hint?: string;
+  error?: string;
+  idPrefix?: string;
+  class?: string;
+}
+const { name, legend, options, value, required, inline = false, hint, error, idPrefix, class: className, ...rest } = Astro.props;
+const base = idPrefix || name;
+const describedBy = [hint && `${base}-hint`, error && `${base}-err`].filter(Boolean).join(" ") || undefined;
+---
+
+<fieldset class:list={["jw-radios", inline && "jw-radios--inline", error && "jw-field--error", className]} aria-describedby={describedBy} {...rest}>
+  <legend class="jw-radios__legend">{legend}</legend>
+  {hint && <span class="jw-radios__hint" id={`${base}-hint`}>{hint}</span>}
+  <div class="jw-radios__list">
+    {
+      options.map((o) => (
+        <label class="jw-check jw-radio">
+          <input
+            type="radio"
+            class="jw-radio__dot"
+            id={`${base}-${o.value}`}
+            name={name}
+            value={o.value}
+            checked={o.value === value}
+            disabled={o.disabled}
+            required={required}
+          />
+          <span class="jw-check__text">
+            {o.label}
+            {o.hint && <span class="jw-radios__hint">{o.hint}</span>}
+          </span>
+        </label>
+      ))
+    }
+  </div>
+  {error && <span class="jw-field__error" id={`${base}-err`}>{error}</span>}
+</fieldset>

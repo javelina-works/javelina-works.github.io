@@ -1,0 +1,19 @@
+<!-- @dsCard group="Forms" height=380 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Textarea</title></head>
+<body>
+<!-- Plain HTML. The labels are the contact form's and the ballpark lead form's. -->
+<div class="jw-demo" style="max-width: 520px">
+  <div class="jw-field">
+    <label class="jw-field__label" for="pv-message">What can we do for you?</label>
+    <textarea class="jw-input jw-textarea" id="pv-message" rows="4" placeholder="Let us know what we can do for you"></textarea>
+  </div>
+  <div class="jw-field jw-field--error">
+    <label class="jw-field__label" for="pv-notes">Anything we should know?</label>
+    <textarea class="jw-input jw-textarea" id="pv-notes" rows="3" aria-invalid="true" aria-describedby="pv-notes-err">The south pasture has a stock tank we want left alone.</textarea>
+    <span class="jw-field__error" id="pv-notes-err">Keep it under 2,000 characters.</span>
+  </div>
+</div>
+</body>
+</html>

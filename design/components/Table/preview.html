@@ -1,0 +1,29 @@
+<!-- @dsCard group="Content" height=520 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Table</title></head>
+<body>
+<!-- Plain HTML. Row labels are the ballpark's "What we measured"; the figures are the design system's example ranch
+     (Pasture 4, 640 ac), not site data. Narrow the window under 640px to see it stack. -->
+<div class="jw-demo" style="max-width: 760px">
+  <div class="jw-table-wrap">
+    <table class="jw-table jw-table--stack" role="table">
+      <caption>What we measured (example figures)</caption>
+      <thead role="rowgroup"><tr role="row"><th scope="col" role="columnheader">Measure</th><th scope="col" role="columnheader" class="jw-table__num">Pasture 4</th><th scope="col" role="columnheader" class="jw-table__num">North trap</th></tr></thead>
+      <tbody role="rowgroup">
+        <tr role="row"><th scope="row" role="rowheader">Area inside the fence</th><td role="cell" data-label="Pasture 4" class="jw-table__num">640 ac</td><td role="cell" data-label="North trap" class="jw-table__num">212 ac</td></tr>
+        <tr role="row" class="is-selected" aria-selected="true"><th scope="row" role="rowheader">Brush to treat</th><td role="cell" data-label="Pasture 4" class="jw-table__num">212 ac</td><td role="cell" data-label="North trap" class="jw-table__num">41 ac</td></tr>
+        <tr role="row"><th scope="row" role="rowheader">Time on the ranch</th><td role="cell" data-label="Pasture 4" class="jw-table__num">1–2 weeks</td><td role="cell" data-label="North trap" class="jw-table__num">3–5 days</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <span class="jw-caption">On a card, one cell chosen</span>
+  <div class="jw-table-wrap jw-table-wrap--card">
+    <table class="jw-table">
+      <thead><tr><th scope="col">Plants</th><th scope="col" class="jw-table__num">Treat</th><th scope="col" class="jw-table__num">Keep</th></tr></thead>
+      <tbody><tr><th scope="row">Pasture 4</th><td class="jw-table__num is-selected">3</td><td class="jw-table__num">41</td></tr></tbody>
+    </table>
+  </div>
+</div>
+</body>
+</html>

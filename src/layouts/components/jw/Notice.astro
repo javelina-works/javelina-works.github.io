@@ -1,0 +1,25 @@
+---
+/**
+ * Notice (design/components/Notice/README.md): a callout on paper with a 3px rule on its left. tone: neutral (default,
+ * line-strong), info (land), success, warning, error (rule and title in the status color). Words only, never a light.
+ *   title (optional, plain text; or the "title" slot); the body is the default slot (paragraphs, lists, links).
+ *   live: "polite" (role=status) or "assertive" (role=alert) when the notice appears after the page loads; otherwise it
+ *   is a plain note (role=note).
+ */
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends Omit<HTMLAttributes<"aside">, "class"> {
+  tone?: "neutral" | "info" | "success" | "warning" | "error";
+  title?: string;
+  live?: "polite" | "assertive";
+  class?: string;
+}
+const { tone = "neutral", title, live, class: className, ...rest } = Astro.props;
+const role = live === "assertive" ? "alert" : live === "polite" ? "status" : "note";
+const hasTitleSlot = Astro.slots.has("title");
+---
+
+<aside class:list={["jw-notice", tone !== "neutral" && `jw-notice--${tone}`, className]} role={role} {...rest}>
+  {(title || hasTitleSlot) && <p class="jw-notice__title">{hasTitleSlot ? <slot name="title" /> : title}</p>}
+  <div class="jw-notice__body"><slot /></div>
+</aside>

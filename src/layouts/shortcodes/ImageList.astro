@@ -1,31 +1,13 @@
 ---
 /**
- * Example Usage
+ * ImageList shortcode (MDX): a six-column grid of <ImageItem>s (full, half or third width each; full width on phones).
+ * Same props as before (class).
 
   <ImageList>
-    <ImageItem
-      imageSrc="/images/ImageList/1.jpg"
-      imageAlt="example alt text"
-      videoSrc="rFVpSwgCkCo"
-    />
-    <ImageItem
-      imageSrc="/images/ImageList/2.jpg"
-      imageAlt="example alt text"
-      videoSrc="/videos/test-video.mp4"
-      videoProvider="html5"
-    />
-    <ImageItem
-      width="1/2"
-      imageSrc="/images/ImageList/3.jpg"
-      imageAlt="example alt text"
-    />
-    <ImageItem
-      width="1/2"
-      imageSrc="/images/ImageList/4.jpg"
-      imageAlt="example alt text"
-    />
+    <ImageItem imageSrc="/images/about/loading-drone.jpeg" imageAlt="…" videoSrc="oBrUMVt6W5Q" />
+    <ImageItem width="1/2" imageSrc="/images/…" imageAlt="…" />
+    <ImageItem width="1/2" imageSrc="/images/…" imageAlt="…" />
   </ImageList>
-
  */
 
 interface Props {
@@ -35,6 +17,15 @@ interface Props {
 const { class: className } = Astro.props;
 ---
 
-<div class:list={["image-list-component grid grid-cols-6 gap-3", className]}>
+<div class:list={["image-list", "not-prose", className]}>
   <slot />
 </div>
+
+<style>
+  .image-list {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: var(--space-3);
+    margin: 0 0 var(--space-5);
+  }
+</style>

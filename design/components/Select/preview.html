@@ -1,0 +1,30 @@
+<!-- @dsCard group="Forms" height=300 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Select</title></head>
+<body>
+<!-- Plain HTML. The labels and options are the contact form's. -->
+<div class="jw-demo" style="max-width: 420px">
+  <div class="jw-field">
+    <label class="jw-field__label" for="pv-subject">Why are you reaching out today?</label>
+    <div class="jw-select-wrap">
+      <select class="jw-input jw-select" id="pv-subject" name="Contact Subject">
+        <option value="Services and Quotes" selected>Services and Quotes</option>
+        <option value="General Inquiry">General Inquiry</option>
+        <option value="Partnership">Partnership</option>
+        <option value="Support">Support</option>
+      </select>
+    </div>
+  </div>
+  <div class="jw-field jw-field--error">
+    <label class="jw-field__label" for="pv-site">Range site</label>
+    <div class="jw-select-wrap">
+      <select class="jw-input jw-select" id="pv-site" aria-invalid="true" aria-describedby="pv-site-err">
+        <option value="">Choose</option>
+      </select>
+    </div>
+    <span class="jw-field__error" id="pv-site-err">Choose the range site.</span>
+  </div>
+</div>
+</body>
+</html>

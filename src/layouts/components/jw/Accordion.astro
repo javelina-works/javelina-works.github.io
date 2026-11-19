@@ -1,0 +1,63 @@
+---
+/**
+ * Accordion (design/components/Disclosure/README.md): Disclosure rows on one paper card, split by line rules.
+ * Either pass items ([{ summary, html, open?, id? }]) or put <Disclosure> children in the slot.
+ * exclusive (default true): every row gets name={group}, so opening one closes the others (native in current browsers;
+ * the small script below does it where `name` on <details> is not supported). The script also opens a row that the
+ * address bar's #hash points at. It is bundled once per page.
+ */
+import type { HTMLAttributes } from "astro/types";
+import Disclosure from "./Disclosure.astro";
+
+interface Item {
+  summary: string;
+  /** trusted HTML for the answer */
+  html: string;
+  open?: boolean;
+  id?: string;
+}
+interface Props extends Omit<HTMLAttributes<"div">, "class"> {
+  items?: Item[];
+  /** the shared name for the exclusive group; default a unique one */
+  group?: string;
+  exclusive?: boolean;
+  class?: string;
+}
+const { items, group, exclusive = true, class: className, ...rest } = Astro.props;
+// a stable default name (same build, same HTML): from the first question
+const slug = (s: string) => s.toLowerCase().replace(/<[^>]*>/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
+const name = exclusive ? group || (items?.[0] ? `acc-${slug(items[0].summary)}` : undefined) : undefined;
+---
+
+<div class:list={["jw-accordion", className]} data-jw-accordion {...rest}>
+  {items ? items.map((item) => <Disclosure id={item.id} name={name} open={item.open} summary={item.summary} html={item.html} />) : <slot />}
+</div>
+
+<script>
+  // Exclusive groups where <details name> isn't supported yet, and #hash → open that row.
+  const supportsName = "name" in HTMLDetailsElement.prototype;
+  if (!supportsName) {
+    document.addEventListener(
+      "toggle",
+      (e) => {
+        const d = e.target as HTMLDetailsElement;
+        if (!(d instanceof HTMLDetailsElement) || !d.open) return;
+        const name = d.getAttribute("name");
+        if (!name) return;
+        document.querySelectorAll<HTMLDetailsElement>(`details[name="${CSS.escape(name)}"]`).forEach((o) => {
+          if (o !== d) o.open = false;
+        });
+      },
+      true,
+    );
+  }
+  const openFromHash = () => {
+    const id = decodeURIComponent(location.hash.slice(1));
+    if (!id) return;
+    const el = document.getElementById(id);
+    const d = el?.closest<HTMLDetailsElement>(".jw-accordion details, details.jw-disclosure");
+    if (d && !d.open) d.open = true;
+  };
+  openFromHash();
+  window.addEventListener("hashchange", openFromHash);
+</script>
