@@ -251,6 +251,18 @@
       el("cookie-accept").textContent = "Accept all";
     }
 
-    if (!read()) show("summary");
+    // Where the defaults are on, the notice shows on the first page only:
+    // browsing on to a second page keeps the defaults, like closing it.
+    // Prior-consent visitors keep seeing it until they answer.
+    var SEEN_KEY = "cookie-banner-seen";
+    if (!read()) {
+      var seen = false;
+      try {
+        seen = localStorage.getItem(SEEN_KEY) === "1";
+        localStorage.setItem(SEEN_KEY, "1");
+      } catch (e) {}
+      if (defaultsOn && seen) choose(defaults(), "continued");
+      else show("summary");
+    }
   })();
 </script>

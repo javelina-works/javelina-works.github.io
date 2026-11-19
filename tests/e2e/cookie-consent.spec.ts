@@ -52,6 +52,18 @@ test("closing the banner keeps the defaults on", async ({ page }) => {
   expect(await stored(page)).toMatchObject({ analytics: true, replay: true });
 });
 
+test("browsing to a second page closes the notice and keeps the defaults", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(banner(page)).toBeVisible();
+  expect(await stored(page)).toBeNull();
+
+  await page.goto("/privacy-policy/");
+  await expect(banner(page)).toBeHidden();
+  expect(await stored(page)).toMatchObject({ analytics: true, replay: true });
+});
+
 test("Choices lets the visitor keep analytics but drop recordings", async ({
   page,
 }) => {
@@ -128,6 +140,15 @@ test.describe("prior-consent regions", () => {
       analytics: false,
       replay: false,
     });
+  });
+
+  test("the notice stays on later pages until they answer", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await page.goto("/privacy-policy/");
+    await expect(banner(page)).toBeVisible();
+    expect(await stored(page)).toBeNull();
   });
 
   test("the notice asks for explicit consent: Accept all, not OK", async ({
