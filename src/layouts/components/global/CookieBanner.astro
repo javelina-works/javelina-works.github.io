@@ -252,17 +252,22 @@
     }
 
     // Where the defaults are on, the notice shows on the first page only:
-    // browsing on to a second page keeps the defaults, like closing it.
-    // Prior-consent visitors keep seeing it until they answer.
+    // going on to another page in the same visit keeps the defaults, like
+    // closing it. The marker holds the page the notice was shown on, in
+    // sessionStorage, so a reload or a later visit does not count. If the
+    // choice can't be saved, the notice shows again. Prior-consent visitors
+    // keep seeing it until they answer.
     var SEEN_KEY = "cookie-banner-seen";
     if (!read()) {
-      var seen = false;
+      var shownOn = null;
       try {
-        seen = localStorage.getItem(SEEN_KEY) === "1";
-        localStorage.setItem(SEEN_KEY, "1");
+        shownOn = sessionStorage.getItem(SEEN_KEY);
+        if (!shownOn) sessionStorage.setItem(SEEN_KEY, location.pathname);
       } catch (e) {}
-      if (defaultsOn && seen) choose(defaults(), "continued");
-      else show("summary");
+      if (defaultsOn && shownOn && shownOn !== location.pathname) {
+        choose(defaults(), "continued");
+        if (!read()) show("summary");
+      } else show("summary");
     }
   })();
 </script>

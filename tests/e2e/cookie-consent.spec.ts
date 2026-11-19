@@ -64,6 +64,24 @@ test("browsing to a second page closes the notice and keeps the defaults", async
   expect(await stored(page)).toMatchObject({ analytics: true, replay: true });
 });
 
+test("a reload or a later visit does not count as browsing on", async ({
+  browser,
+}) => {
+  const context = await browser.newContext({ timezoneId: "America/Chicago" });
+  const page = await context.newPage();
+  await page.goto("/");
+  await page.reload();
+  await expect(banner(page)).toBeVisible();
+  expect(await stored(page)).toBeNull();
+
+  // A new tab is a new visit: sessionStorage starts empty.
+  const later = await context.newPage();
+  await later.goto("/privacy-policy/");
+  await expect(banner(later)).toBeVisible();
+  expect(await stored(later)).toBeNull();
+  await context.close();
+});
+
 test("Choices lets the visitor keep analytics but drop recordings", async ({
   page,
 }) => {
