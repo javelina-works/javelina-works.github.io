@@ -2,7 +2,7 @@
 
 One choice from two to five short options, side by side: "This kind of year: Dry, Normal, Wet", a ladder's ranch size, a map's view. New for the site; derived from the ThemeToggle's well.
 
-- **Well** (`jw-seg__track`): `surface-sunken` with `shadow-well`, `radius-sm`, 3px padding; options wrap onto a second row on a narrow phone rather than overflow.
+- **Well** (`jw-seg__track`): `surface-sunken` with `shadow-well`, `radius-sm`, 3px padding; options wrap onto a second row on a narrow phone rather than overflow. When five options wrap on a phone, lay the track out as an even grid of three columns (`grid-template-columns: repeat(3, minmax(0, 1fr))`) so the second row lines up under the first; /pricing/ and /tools/brush-roi/ do this with a container query.
 - **Option** (`jw-seg__label`): 44px tall (at least 44px wide), IBM Plex Mono 11.5px uppercase in `text-body`; hover `text`.
 - **Chosen:** a paper plate (`surface`, `text`) with the marigold `selected` ring (2px, inside) and its `selected-hairline` outside. Never orange, never a lamp.
 - **Focus:** `shadow-focus` on the option; the chosen one keeps its ring inside the focus ring.
