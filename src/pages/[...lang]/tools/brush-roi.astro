@@ -408,7 +408,6 @@ const start = { ...DEFAULTS, ...SCENARIOS[0].inputs };
     font: inherit;
     text-align: start;
     cursor: pointer;
-    transition: border-color var(--duration-hover) ease;
   }
   .roi-scn strong {
     font-size: 17px;
@@ -652,11 +651,6 @@ const start = { ...DEFAULTS, ...SCENARIOS[0].inputs };
     }
     .roi-method-grid {
       gap: var(--space-8);
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .roi-scn {
-      transition: none;
     }
   }
 </style>
