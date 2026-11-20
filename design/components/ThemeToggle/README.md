@@ -4,7 +4,7 @@ A two-way switch between By day and At night that sets `data-theme` on `<html>` 
 
 - The lit option shows a small lamp: tip orange by day, a glowing ember at night.
 - It is a radio group: only the chosen option is a tab stop, and the arrow keys move the choice (and focus) to the other option. Screen readers hear one choice, "Color mode".
-- Each option looks 30px tall but takes taps over 44px (a clear `::before` reaches 7px above and below).
+- Each option looks 30px tall but takes taps over 44px (a clear `::before` reaches 7px above and below, and across the well's edges and the gap between the options, so every tap on the switch picks an option). A scan that reads `getBoundingClientRect()` still reports 30px; `elementFromPoint` finds the option across 44px.
 - It saves the choice in `localStorage` under `jw-theme` (`light` or `dark`), inside try/catch. A tiny inline script in `<head>` reads it before first paint (falling back to `prefers-color-scheme`), so there is no flash of the wrong theme.
 - It follows `data-theme` if something else changes it.
 - The lighting engine reads `data-theme` on `<html>` only, so always set it there.

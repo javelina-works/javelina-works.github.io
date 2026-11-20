@@ -218,8 +218,11 @@ html:has(.jw-nav--sticky) { scroll-padding-top: calc(44px + 2 * var(--space-3) +
 .jw-toggle { display: inline-flex; gap: 3px; padding: 3px; border-radius: var(--radius-sm); background: var(--surface-sunken); box-shadow: var(--shadow-well); }
 .jw-toggle__opt { position: relative; appearance: none; border: 0; display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px; border-radius: var(--radius-xs); background: rgba(0,0,0,0); color: var(--text-muted);
   font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; transition: background-color var(--duration-hover) ease, color var(--duration-hover) ease; }
-/* each option looks 30px tall but takes taps over 44px (::before reaches 7px above and below) */
-.jw-toggle__opt::before { content: ""; position: absolute; left: 0; right: 0; top: -7px; bottom: -7px; }
+/* each option looks 30px tall but takes taps over 44px (::before reaches 7px above and below), and across the well's 3px
+   edges and the gap between the options, so no tap on the switch falls between them */
+.jw-toggle__opt::before { content: ""; position: absolute; left: -2px; right: -2px; top: -7px; bottom: -7px; }
+.jw-toggle__opt:first-child::before { left: -3px; }
+.jw-toggle__opt:last-child::before { right: -3px; }
 .jw-toggle__opt:hover { color: var(--text); }
 .jw-toggle__opt.is-on { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.14); }
 [data-theme="dark"] .jw-toggle__opt.is-on { background: linear-gradient(160deg, var(--shell-1) 0%, var(--shell-2) 42%, var(--shell-3) 100%); color: var(--on-shell); }
