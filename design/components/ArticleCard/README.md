@@ -4,7 +4,7 @@ An article in a list: the article index, its second page, and "Keep reading" und
 
 - **Card:** a paper card (`jw-surface jw-surface--card`). On a sheen band it takes the band's card shadow, like any card.
 - **Picture:** the article's picture cropped to 16:9 (`object-fit: cover`; the page may set `object-position` so the crop keeps the subject). A photo (`jw-article-card__media--photo`) dims to `photo-brightness-dark` at night; a survey image or map (`--diagram`) keeps its colors. Its alt text says what it shows, never the article's title.
-- **Words:** the category as a `jw-eyebrow`; the title at `heading-3` (`heading-2` on the wide card) in `text`; the excerpt at 17px in `text-body`; the date at 16px in `text-muted`; a "Read more" cue in `land`, in the button type, with a drawn arrow.
+- **Words:** the category as a `jw-eyebrow`; the title at `heading-3` (`heading-2` on the wide card) in `text`; the excerpt at 17px in `text-body`; the date at 16px in `text-muted`; a "Read more" cue in `land` in body type (`t-body-strong`) with a 20px right arrow (Lucide ArrowRight): the same cue as the service cards' "Learn more" (ImageCard), since both lead to pages on this site.
 - **One link:** the title's link is stretched over the whole card (`::after`), so the card is one big tap target and one tab stop. The "Read more" cue is `aria-hidden`: the link's name is the title. Hover underlines the title (2px) and firms the card's edge to `line-strong`; focus puts `shadow-focus` around the card.
 - **Wide** (`jw-article-card--wide`): the featured article at the top of the list. From 900px the picture fills the left side and the words sit beside it.
 - Nothing in it glows or moves.
@@ -21,7 +21,7 @@ An article in a list: the article index, its second page, and "Keep reading" und
     <p class="jw-article-card__excerpt">The honest water answer for 12 to 18 inch country: …</p>
     <div class="jw-article-card__foot">
       <time class="jw-article-card__date" datetime="2026-10-25T17:00:00.000Z">Oct 25, 2026</time>
-      <span class="t-button jw-article-card__more" aria-hidden="true">Read More <svg>…</svg></span>
+      <span class="t-body-strong jw-article-card__more" aria-hidden="true">Read more <svg>…lucide ArrowRight, 20px…</svg></span>
     </div>
   </div>
 </article>
