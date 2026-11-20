@@ -4,7 +4,7 @@
  *   Header (PageHeader on the ground): the categories as the eyebrow, the title as the page's one h1, the excerpt, and
  *   the byline (author photo, name, role, date).
  *   Then a reading column (up to 760px) with the hero picture shown whole (never cropped; a tall picture is held to the
- *   screen's height) and its caption, and the text in Prose (ArticleBody). Beside it from 1024px, the table of contents,
+ *   screen's height and centred in the column) and its caption, and the text in Prose (ArticleBody). Beside it from 1024px, the table of contents,
  *   sticky under the nav bar and marking the section being read; below 1024px the same list sits in a closed card
  *   above the text.
  * Hero alt text and captions come from articles/articleImages.ts. The page around it (Keep reading, the ask, the
@@ -84,9 +84,18 @@ const heroTall = hero ? hero.height > hero.width : false;
     min-width: 0;
     max-width: 760px;
   }
-  /* the hero, whole: full column width, or for a tall picture as tall as the screen allows, its frame hugging it */
+  /* the hero, whole: full column width, or for a tall picture as tall as the screen allows, its frame hugging it and
+     the figure centred in the column; its caption (if any) wraps to the picture's width and doesn't widen the figure */
   .article__main :global(.article__hero) {
     margin: 0 0 var(--space-10);
+  }
+  .article__main :global(.article__hero--tall) {
+    width: fit-content;
+    max-width: 100%;
+    margin-inline: auto;
+  }
+  .article__main :global(.article__hero--tall .jw-figure__caption) {
+    contain: inline-size;
   }
   .article__main :global(.article__hero--tall .jw-figure__media) {
     width: fit-content;
