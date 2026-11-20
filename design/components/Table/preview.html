@@ -1,4 +1,4 @@
-<!-- @dsCard group="Content" height=520 -->
+<!-- @dsCard group="Content" height=680 -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><title>Table</title></head>
@@ -22,6 +22,15 @@
     <table class="jw-table">
       <thead><tr><th scope="col">Plants</th><th scope="col" class="jw-table__num">Treat</th><th scope="col" class="jw-table__num">Keep</th></tr></thead>
       <tbody><tr><th scope="row">Pasture 4</th><td class="jw-table__num is-selected">3</td><td class="jw-table__num">41</td></tr></tbody>
+    </table>
+  </div>
+  <span class="jw-caption">Text labels, for column labels a reader needs</span>
+  <div class="jw-table-wrap">
+    <table class="jw-table jw-table--stack jw-table--text-labels" role="table">
+      <thead role="rowgroup"><tr role="row"><th scope="col" role="columnheader">Measure</th><th scope="col" role="columnheader" class="jw-table__num">Pasture 4, inside the fence</th><th scope="col" role="columnheader" class="jw-table__num">North trap, inside the fence</th></tr></thead>
+      <tbody role="rowgroup">
+        <tr role="row"><th scope="row" role="rowheader">Brush to treat</th><td role="cell" data-label="Pasture 4, inside the fence" class="jw-table__num">212 ac</td><td role="cell" data-label="North trap, inside the fence" class="jw-table__num">41 ac</td></tr>
+      </tbody>
     </table>
   </div>
 </div>

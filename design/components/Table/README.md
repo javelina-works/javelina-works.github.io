@@ -9,6 +9,7 @@ A data table: what a tool measured, how methods compare, a grid of figures. New 
 - **Chosen** cell or row (`is-selected`): a `surface` fill and the marigold `selected` ring with its `selected-hairline`, the system's one way of saying "this one".
 - **Caption:** above the table, 16px `text-muted`.
 - **Card** (`jw-table-wrap--card` on the wrapper): the table on its own paper card, for a table that stands alone in a section.
+- **Text labels** (`jw-table--text-labels` on the table): when the column labels are phrases a reader needs, such as an article's "Practice 314 scenario (FY2025, Texas statewide)", they read as 16px Figtree 500 in `text-muted`, sentence case, instead of the mono label. The stacked labels on phones follow. With Astro, pass `class="jw-table--text-labels"`.
 
 ## Plain HTML
 ```html

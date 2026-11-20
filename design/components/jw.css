@@ -824,6 +824,9 @@ html:has(.jw-dialog:modal) { overflow: hidden; scrollbar-gutter: stable; }
 /* a table on its own paper card: the card is the wrapper (a collapsed table ignores padding) */
 .jw-table-wrap--card { padding: var(--space-2) var(--space-5) var(--space-3); border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); box-shadow: var(--shadow-raise); }
 .jw-table-wrap--card caption { padding-top: var(--space-3); }
+/* jw-table--text-labels: column labels that are phrases a reader needs (an article's "Practice 314 scenario (FY2025, Texas
+   statewide)") read as 16px text in text-muted, sentence case, not the 11.5px mono label; stacked labels on phones too */
+.jw-table--text-labels thead th { font-family: var(--font-body); font-size: 16px; font-weight: 500; line-height: 1.4; letter-spacing: 0; text-transform: none; }
 @media (max-width: 640px) {
   .jw-table--stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .jw-table--stack, .jw-table--stack caption, .jw-table--stack tbody, .jw-table--stack tr, .jw-table--stack td, .jw-table--stack tbody th { display: block; }
@@ -835,6 +838,7 @@ html:has(.jw-dialog:modal) { overflow: hidden; scrollbar-gutter: stable; }
   .jw-table--stack tr.is-selected:first-child, .jw-table--stack tr.is-selected:last-child { padding-left: var(--space-3); padding-right: var(--space-3); }
   .jw-table--stack td { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-4); text-align: end; }
   .jw-table--stack td::before { content: attr(data-label); flex: 0 1 50%; font-family: var(--font-mono); font-size: 11.5px; line-height: 1.35; letter-spacing: .08em; text-transform: uppercase; text-align: start; color: var(--text-muted); }
+  .jw-table--text-labels.jw-table--stack td::before { font-family: var(--font-body); font-size: 16px; font-weight: 500; line-height: 1.4; letter-spacing: 0; text-transform: none; }
   .jw-table--stack td.is-selected { padding: var(--space-1) var(--space-2); }
   .jw-table-wrap--card { padding: var(--space-2) var(--space-4); }
   .jw-table--stack tbody tr:last-child { border-bottom: 0; }
