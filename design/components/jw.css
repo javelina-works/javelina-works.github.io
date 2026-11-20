@@ -20,7 +20,6 @@ body { margin: 0; font-family: var(--font-body); font-size: 17px; line-height: 1
 /* sm is the compact button: a tighter label and padding, but still 44px tall (and at least 44px wide, for a short label such as OK), because every tap target is at least 44px */
 .jw-btn--sm { height: 44px; padding: 0 12px; font-size: 10.5px; }
 .jw-btn:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
-.jw-btn:disabled, .jw-btn[aria-disabled="true"] { opacity: .45; filter: saturate(.6); cursor: not-allowed; }
 
 .jw-btn--primary { --btn-fg: var(--on-action); background-color: var(--action); border-color: var(--action-outline); box-shadow: var(--shadow-action); }
 .jw-btn--primary::before { content: ""; position: absolute; inset: -1px; z-index: -1; border-radius: inherit; border: 1px solid var(--lit-edge); box-sizing: border-box;
@@ -55,6 +54,13 @@ body { margin: 0; font-family: var(--font-body); font-size: 17px; line-height: 1
 .jw-btn--shell:active, .jw-btn--agave:active { filter: brightness(.92); }
 .jw-btn--quiet { --btn-fg: var(--text); background-color: rgba(0,0,0,0); border-color: var(--line-strong); }
 .jw-btn--quiet:hover, .jw-btn--quiet.is-hover { background-color: var(--surface); }
+/* Disabled, in every variant: a flat sunken button with text-muted words and a line-strong edge (4.6:1 by day, 6.5:1 at
+   night). Never a fade: a faded button took its words to 2:1 (RULES: all text 4.5:1 in every state). No glow, no grain,
+   no hover change. */
+.jw-btn:disabled, .jw-btn:disabled:hover, .jw-btn[aria-disabled="true"], .jw-btn[aria-disabled="true"]:hover {
+  --btn-fg: var(--text-muted); background: var(--surface-sunken); border-color: var(--line-strong); box-shadow: none; filter: none; cursor: not-allowed; }
+.jw-btn:disabled::after, .jw-btn[aria-disabled="true"]::after { display: none; }
+.jw-btn:disabled .jw-btn__mark, .jw-btn[aria-disabled="true"] .jw-btn__mark { background: currentColor; }
 /* Text color belongs to the button, in every state. Each variant sets --btn-fg; this rule holds it against any link or
    page styles (a:hover, a:visited, nav a …), so a button's text can never take the page's color onto its own background. */
 .jw-btn.jw-btn, .jw-btn.jw-btn:link, .jw-btn.jw-btn:visited, .jw-btn.jw-btn:hover, .jw-btn.jw-btn:active, .jw-btn.jw-btn:focus, .jw-btn.jw-btn:focus-visible { color: var(--btn-fg, var(--text)); text-decoration: none; }
@@ -1066,7 +1072,7 @@ a.jw-pages__num:focus-visible { outline: none; box-shadow: var(--shadow-focus); 
 }
 
 /* ==== ChoiceRow (added by ballpark) ====
-   One way to do something, as a full-width row: a title (16px Figtree 500), a line under it (15px, text-muted) and an
+   One way to do something, as a full-width row: a title (16px Figtree 500), a line under it (16px, text-muted) and an
    optional icon. A paper row with a line-strong edge, sunken on hover; a <button>, an <a> or a <label> for a file input.
    jw-choice--shell is the shell plate for the one choice to point out (the ballpark's live demo), with a tip-orange play
    mark. It never glows. Stack rows in jw-choice-list. */
@@ -1078,7 +1084,7 @@ a.jw-pages__num:focus-visible { outline: none; box-shadow: var(--shadow-focus); 
 .jw-choice__icon { flex: none; width: 16px; height: 16px; color: var(--text-body); }
 .jw-choice__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .jw-choice__title { font-size: 16px; font-weight: 500; line-height: 1.35; color: var(--text); }
-.jw-choice__sub { font-size: 15px; line-height: 1.45; color: var(--text-muted); }
+.jw-choice__sub { font-size: 16px; line-height: 1.45; color: var(--text-muted); }
 .jw-choice--shell { border-color: var(--shell-edge); background: linear-gradient(160deg, var(--shell-1) 0%, var(--shell-2) 42%, var(--shell-3) 100%); box-shadow: var(--shadow-sheen-shell); }
 .jw-choice--shell:hover { background: linear-gradient(160deg, var(--shell-1) 0%, var(--shell-2) 42%, var(--shell-3) 100%); filter: brightness(1.14); }
 .jw-choice--shell .jw-choice__title, .jw-choice--shell .jw-choice__sub, .jw-choice--shell .jw-choice__icon { color: var(--on-shell); }
@@ -1095,7 +1101,7 @@ a.jw-pages__num:focus-visible { outline: none; box-shadow: var(--shadow-focus); 
   padding: var(--space-2) var(--space-3); border: 0; border-top: 1px solid var(--line); background: none; color: var(--text); font-family: var(--font-body); font-size: 16px; line-height: 1.35;
   text-align: left; cursor: pointer; }
 .jw-listbox__option:first-child { border-top: 0; }
-.jw-listbox__option small { font-size: 15px; color: var(--text-muted); }
+.jw-listbox__option small { font-size: 16px; color: var(--text-muted); }
 .jw-listbox__option:hover { background: var(--surface-sunken); }
 .jw-listbox__option[aria-selected="true"] { background: var(--surface); box-shadow: inset 0 0 0 2px var(--selected), inset 0 0 0 3px var(--selected-hairline); }
 .jw-listbox__option:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--focus); }

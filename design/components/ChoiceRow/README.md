@@ -3,7 +3,7 @@
 One way to do something, as a full-width row with a title and a line under it: the ballpark's "See it work on Fox Canyon", "Upload a boundary file", "Draw the fence line on the map". New for the site (the ballpark tool); derived from the system rules. Use it where a Button's short uppercase label can't carry the explanation the choice needs.
 
 - A paper row (`surface`) with a `line-strong` edge and `radius-sm` corners, padding `space-3` / `space-4`, at least 44px tall. It turns `surface-sunken` on hover and takes `shadow-focus` on keyboard focus.
-- **Title**: 16px Figtree 500 in `text`. **Line under it**: 15px Figtree in `text-muted` (a card's secondary line). An optional 16px icon (`jw-choice__icon`, Lucide line icon) sits before the words in `text-body`.
+- **Title**: 16px Figtree 500 in `text`. **Line under it**: 16px Figtree in `text-muted`: a visitor reads it to choose, so it keeps the body-copy floor (RULES: body copy at least 16px). An optional 16px icon (`jw-choice__icon`, Lucide line icon) sits before the words in `text-body`.
 - **jw-choice--shell**: the shell plate (the Button's shell gradient, `shell-edge`, `shadow-sheen-shell`) for the one choice to point out, such as the live demo. Its words are `on-shell`. It brightens on hover like a shell button. `jw-choice__play` gives it a round tip-orange (`action`) play mark with an `on-action` triangle.
 - It never glows; the page's lit action stays the header lamp.
 - Stack rows in `jw-choice-list` (`space-2` apart).

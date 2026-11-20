@@ -13,6 +13,7 @@ Seven buttons: the tip-orange primary for the one thing the page is for, burnt f
 - `tint` and `ghost`: lighter orange actions: See pricing, Download map.
 - `shell` / `agave`: secondary actions. Shell is the default; agave fits land and plant topics.
 - `quiet`: an outline in `line-strong`. Log in, Cancel.
+- **Disabled** (`disabled`, or `aria-disabled="true"` on a link), in every variant: a flat `surface-sunken` button with `text-muted` words and a `line-strong` edge, with no glow, grain or hover change. It never fades: its words keep 4.5:1 like any text.
 - `size: 'sm'`: the compact button for nav bars and dense tools: a smaller label and tighter padding, but still 44px tall, because every tap target is at least 44px. Every button is also at least 44px wide, so a short label such as OK still makes a 44px target.
 
 ## Props (React)

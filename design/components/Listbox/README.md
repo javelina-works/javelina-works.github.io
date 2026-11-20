@@ -3,7 +3,7 @@
 Suggestions under a text field: an address typeahead, or "A few matches — pick yours:" after a search. New for the site (the ballpark tool); derived from the system rules and the Field.
 
 - One box in the input color (`surface-input`) with a `line-strong` edge and `radius-sm` corners, `space-2` under the field.
-- Option rows at least 44px tall, split by `line` rules: the name in 16px Figtree `text`, a second line (`<small>`) in 15px `text-muted`.
+- Option rows at least 44px tall, split by `line` rules: the name in 16px Figtree `text`, a second line (`<small>`) in 16px `text-muted` (the body-copy floor: a visitor reads it to pick).
 - **Hover**: `surface-sunken`. **Highlighted** (`aria-selected="true"`, moved with the arrow keys): `surface` with the marigold `selected` ring and its `selected-hairline` drawn inside the row. **Keyboard focus**: a 2px `focus` ring inside the row.
 - Words only: no icons, no color coding.
 
