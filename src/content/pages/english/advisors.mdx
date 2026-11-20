@@ -15,6 +15,9 @@ keywords:
 draft: false
 ---
 
+import AdvisorsFigure from "@/components/company/AdvisorsFigure.astro";
+import brushRead from "../../../assets/images/advisors/ballpark-brush-read.png";
+
 Most of the ranches we work on came to us through someone the owner already listened to: the biologist who wrote the wildlife plan, the broker who sold the place, the county agent who ran the field day. This page is for you. It's written so you can decide whether we're worth mentioning, and so you can explain us accurately without having to call us first.
 
 ## If you remember one sentence
@@ -41,9 +44,9 @@ _A survey under way. The aircraft flies the pasture on a grid; the crew and the 
 
 Type a client's ranch address into the [instant ballpark](/tools/ballpark/), or draw the fence line, and in about a minute you have the acreage, the brush coverage, a rough plant count and a budget range for clearing it, read from public lidar and infrared imagery. It's free, it doesn't ask for anyone's contact information, and it doesn't put anyone on a list. Use the number in your plan, your listing or your loan file. When the owner wants a real bid, we fly it.
 
-![A map of one West Texas ranch with every patch of likely brush picked out in green on a blank background, thick along the draws and thin on the open ground](../../../assets/images/advisors/ballpark-brush-read.png)
-
-_The ballpark's read of one West Texas ranch: the brush it can pick out of public lidar and infrared, before anybody flies anything. Thick in the draws, thin on the flat. [Watch it run](/tools/ballpark/) on the demo ranch, then try it on a client's place. A flown survey is the sharper version of this — individual plants, sorted by species._
+<AdvisorsFigure image={brushRead} alt="A map of one West Texas ranch with every patch of likely brush picked out in green on a blank background, thick along the draws and thin on the open ground">
+The ballpark's read of one West Texas ranch: the brush it can pick out of public lidar and infrared, before anybody flies anything. Thick in the draws, thin on the flat. [Watch it run](/tools/ballpark/) on the demo ranch, then try it on a client's place. A flown survey is the sharper version of this — individual plants, sorted by species.
+</AdvisorsFigure>
 
 ## What a drive down the fence line can't tell you
 
@@ -56,9 +59,9 @@ Brush decisions usually start with a windshield survey and an acreage estimate. 
 
 A survey replaces the estimate with a map: the woody plants marked individually, labeled by species, and the plants that should stay marked as such.
 
-![Two drawings of the same pasture, one above the other. In the top one, only the brush inside a wedge near the road is drawn in and the rest of the pasture is faded out and labeled as estimated. In the bottom one, every woody plant is marked individually, filled circles for mesquite and open circles for juniper, thick along the draw and thin on the open flat](/images/advisors/windshield-vs-flown.svg)
-
-_The same pasture, twice. From the fence line you see the wedge the road gives you, and the rest becomes one number. Flown, every woody plant is marked where it stands and labeled by species — filled circles mesquite, open circles juniper — and the brush turns out to be piled up in the draw rather than spread evenly across the acreage. A drawing, not survey data._
+<AdvisorsFigure diagram="windshield-vs-flown" alt="Two drawings of the same pasture, one above the other. In the top one, only the brush inside a wedge near the road is drawn in and the rest of the pasture is faded out and labeled as estimated. In the bottom one, every woody plant is marked individually, filled circles for mesquite and open circles for juniper, thick along the draw and thin on the open flat">
+The same pasture, twice. From the fence line you see the wedge the road gives you, and the rest becomes one number. Flown, every woody plant is marked where it stands and labeled by species — filled circles mesquite, open circles juniper — and the brush turns out to be piled up in the draw rather than spread evenly across the acreage. A drawing, not survey data.
+</AdvisorsFigure>
 
 ## The trees that stay
 
@@ -66,9 +69,9 @@ Finding what to treat is half the job. The other half is marking what has to sta
 
 Before we fly, we settle with the owner which trees are off the table. Those get flagged on the same map the treatment works from, plant by plant, rather than described in a note at the bottom of a report. Waterways, sensitive ground and desired trees all get a risk review before anything is treated.
 
-![A drawing of one patch of brush country. Most plants are small marks set down for treatment, filled circles for mesquite and open circles for juniper. Five larger trees are ringed and marked to be left standing, each with clear space around it, and a creek running through the patch is flagged](/images/advisors/trees-that-stay.svg)
-
-_Both kinds of mark live on one map: the plants to treat, the trees the owner wants kept — ringed, with room left around them — and the waterway flagged before anything is treated. A drawing, not survey data._
+<AdvisorsFigure diagram="trees-that-stay" alt="A drawing of one patch of brush country. Most plants are small marks set down for treatment, filled circles for mesquite and open circles for juniper. Five larger trees are ringed and marked to be left standing, each with clear space around it, and a creek running through the patch is flagged">
+Both kinds of mark live on one map: the plants to treat, the trees the owner wants kept — ringed, with room left around them — and the waterway flagged before anything is treated. A drawing, not survey data.
+</AdvisorsFigure>
 
 If you've ever watched a treatment take something nobody meant to take, this is the part of the work aimed at that.
 

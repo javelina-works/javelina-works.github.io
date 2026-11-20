@@ -1,0 +1,83 @@
+---
+// A drawing or a map on /advisors/ (src/content/pages/english/advisors.mdx): a Figure (design/components/Figure) whose
+// colours carry meaning, so it doesn't dim at night (jw-figure--nodim). From 641px it is capped at 480px, so the words in
+// the drawings stay smaller than the page's own headings and the mostly empty brush map doesn't fill the whole column.
+//   diagram: one of the generated drawings (scripts/gen-advisors-diagrams.mjs). It is inlined rather than an <img>, so
+//     its colours come from the design tokens by day and at night, and its words are set in the page's Barlow and
+//     Figtree. Its accessible name is `alt`.
+//   image: an imported image (the ballpark's brush map), served by jw Figure (AVIF and WebP).
+//   The caption is the slot (words from the page's markdown).
+import type { ImageMetadata } from "astro";
+import Figure from "@/components/jw/Figure.astro";
+import windshieldVsFlown from "@/assets/images/advisors/windshield-vs-flown.svg?raw";
+import treesThatStay from "@/assets/images/advisors/trees-that-stay.svg?raw";
+
+const DIAGRAMS = {
+  "windshield-vs-flown": windshieldVsFlown,
+  "trees-that-stay": treesThatStay,
+} as const;
+
+interface Props {
+  diagram?: keyof typeof DIAGRAMS;
+  image?: ImageMetadata;
+  alt: string;
+}
+const { diagram, image, alt } = Astro.props;
+
+const escAttr = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+// The page's alt text names the drawing; the file's own <title>/<desc> are for when it is opened on its own.
+const svg = diagram
+  ? DIAGRAMS[diagram]
+      .replace(/<title[^>]*>[\s\S]*?<\/title>\s*/, "")
+      .replace(/<desc[^>]*>[\s\S]*?<\/desc>\s*/, "")
+      .replace(/<svg\b([^>]*?)\saria-labelledby="[^"]*"/, "<svg$1")
+      .replace(/<svg\b/, `<svg aria-label="${escAttr(alt)}"`)
+  : undefined;
+---
+
+{
+  svg ? (
+    <figure class="jw-figure jw-figure--nodim adv-figure">
+      <div class="adv-figure__drawing" set:html={svg} />
+      <figcaption class="jw-figure__caption adv-figure__caption">
+        <slot />
+      </figcaption>
+    </figure>
+  ) : (
+    image && (
+      <Figure
+        src={image}
+        alt={alt}
+        dim={false}
+        class="adv-figure"
+        sizes="(min-width: 641px) 480px, calc(100vw - 32px)"
+        widths={[360, 480, 720, 960]}
+      >
+        <Fragment slot="caption">
+          <slot />
+        </Fragment>
+      </Figure>
+    )
+  )
+}
+
+<style>
+  @media (min-width: 641px) {
+    :global(.adv-figure) {
+      max-width: 480px;
+    }
+  }
+  .adv-figure__drawing :global(svg) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  /* the caption's words arrive as a paragraph from the markdown */
+  :global(.adv-figure .jw-figure__caption > p) {
+    margin: 0;
+  }
+  /* jw-prose dims every image at night; a map whose colours carry meaning keeps them (jw-figure--nodim) */
+  :global([data-theme="dark"] .jw-prose .adv-figure.jw-figure--nodim img) {
+    filter: none;
+  }
+</style>
