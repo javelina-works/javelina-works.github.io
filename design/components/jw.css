@@ -1077,7 +1077,7 @@ a.jw-pages__num:focus-visible { outline: none; box-shadow: var(--shadow-focus); 
    ring on its number; a done step (is-done) is filled in ink; a step that can't be reached is disabled and reads text-muted.
    Never orange: a step is a place, not the action. On phones only the current step shows its words (the rest stay for
    screen readers), so the row fits one line. */
-.jw-steps { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--space-1); margin: 0; padding: 0; list-style: none; }
+.jw-steps { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--space-1); margin: 0; padding: 0; list-style: none; container-type: inline-size; }
 .jw-steps > li { display: flex; align-items: center; gap: var(--space-1); }
 .jw-steps > li + li::before { content: ""; width: 6px; height: 6px; margin: 0 var(--space-1); border-right: 1.5px solid var(--line-strong); border-top: 1.5px solid var(--line-strong); transform: rotate(45deg); }
 .jw-steps__step { appearance: none; position: relative; display: inline-flex; align-items: center; gap: var(--space-2); min-height: 44px; min-width: 44px; margin: 0; padding: 0 var(--space-1);
@@ -1092,6 +1092,12 @@ a.jw-pages__num:focus-visible { outline: none; box-shadow: var(--shadow-focus); 
 .jw-steps__step:not(:disabled):hover { color: var(--text); text-decoration: underline; text-underline-offset: .25em; }
 .jw-steps__step:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
 @media (max-width: 640px) {
+  .jw-steps__step:not([aria-current="step"]) { justify-content: center; }
+  .jw-steps__step:not([aria-current="step"]) .jw-steps__label { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
+/* and wherever the row itself is narrower than its labels need (a stepper in a narrow column on a wide screen). 440px is
+   what the ballpark's three labels need on one line; another label set sets its own width with its own container query. */
+@container (max-width: 440px) {
   .jw-steps__step:not([aria-current="step"]) { justify-content: center; }
   .jw-steps__step:not([aria-current="step"]) .jw-steps__label { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 }
