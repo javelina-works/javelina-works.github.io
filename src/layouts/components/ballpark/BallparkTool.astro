@@ -126,17 +126,21 @@ const brushLevels = [
       <div id="bpStepLocate">
         <h2 class="t-heading-2 bp-h">Where&rsquo;s the ranch?</h2>
         <p class="bp-panelsub">We&rsquo;ll pull the property lines for you.</p>
-        <div class="bp-addr">
-          <input
-            type="text"
-            id="bpAddrInput"
-            class="jw-input"
-            data-ph-unmask
-            aria-label="Ranch address, town, or GPS coordinates"
-            placeholder="Address, town, or GPS (lat, long)"
-            autocomplete="street-address"
-          />
-          <Button variant="burnt" id="bpBtnFind"><span class="bp-btnlabel">Find it</span></Button>
+        <!-- A visible label (the field's accessible name, as before) and no
+             placeholder: beside "Find it" on a phone a placeholder was cut
+             off after a few words, and it was the field's only visible name. -->
+        <div class="jw-field bp-addrfield">
+          <label class="jw-field__label" for="bpAddrInput">Ranch address, town, or GPS coordinates</label>
+          <div class="bp-addr">
+            <input
+              type="text"
+              id="bpAddrInput"
+              class="jw-input"
+              data-ph-unmask
+              autocomplete="street-address"
+            />
+            <Button variant="burnt" id="bpBtnFind"><span class="bp-btnlabel">Find it</span></Button>
+          </div>
         </div>
         <p class="bp-filemsg" id="bpAddrMsg" hidden></p>
         <div
@@ -1010,6 +1014,25 @@ const brushLevels = [
     margin: calc(-1 * var(--space-2)) 0 var(--space-4);
     padding: 0 0 var(--space-2);
     border-bottom: 1px solid var(--line);
+    container: bp-steps / inline-size;
+  }
+  /* The three labels need 432px on one line. When the panel is narrower
+     (beside the map from 901px to about 1270px, and in a partner's iframe of
+     that width), only the current step shows its words, as the Stepper does
+     on phones; the others keep them for screen readers. */
+  @container bp-steps (max-width: 440px) {
+    .bp-steps .jw-steps__step:not([aria-current="step"]) {
+      justify-content: center;
+    }
+    .bp-steps .jw-steps__step:not([aria-current="step"]) .jw-steps__label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
   }
 
   /* address row; its suggestions are a jw-listbox */
