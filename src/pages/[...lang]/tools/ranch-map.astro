@@ -161,7 +161,7 @@ const styles = [
         <Field
           label="Name on the map (optional)"
           id="rmName"
-          placeholder="Your Ranch"
+          placeholder="Your ranch"
           maxlength={60}
         />
         <Button variant="burnt" id="rmBuild" class="rm-build" disabled>
@@ -973,9 +973,10 @@ const styles = [
       if (fit) map.fitBounds(outline.getBounds().pad(0.3));
       var acres = turf.area(u) / ACRE_M2;
       st.acres = acres;
+      var whole = Math.round(acres);
       el("rmAcres").textContent =
-        Math.round(acres).toLocaleString() +
-        " acres · " +
+        whole.toLocaleString() +
+        (whole === 1 ? " acre · " : " acres · ") +
         n +
         (n === 1 ? " parcel" : " parcels") +
         (st.county ? " · " + st.county + " County" : "");
@@ -1251,7 +1252,7 @@ const styles = [
             return engine()
               .showRanch(bundle, {
                 id: done.id,
-                title: el("rmName").value.trim() || "Your Ranch",
+                title: el("rmName").value.trim() || "Your ranch",
                 county: st.county ? st.county + " County, Texas" : "",
                 boundaryLabel:
                   n > 1 ? "Ranch parcels (" + n + ")" : "Ranch parcel",
