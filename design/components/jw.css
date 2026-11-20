@@ -970,7 +970,7 @@ a.jw-pages__num:focus-visible { outline: none; box-shadow: var(--shadow-focus); 
 .jw-article-card__foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-4); margin-top: auto; padding-top: var(--space-2); }
 .jw-article-card__date { font-size: 16px; line-height: 1.5; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .jw-article-card__more { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--land); }
-.jw-article-card__more svg { flex: none; }
+.jw-article-card__more svg { flex: none; width: 20px; height: 20px; }
 @media (max-width: 640px) { .jw-article-card__body { padding: var(--space-4); } }
 @media (min-width: 900px) {
   .jw-article-card--wide { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
