@@ -1,6 +1,6 @@
 ---
 // /testimonial/ is a draft (src/content/testimonial/english/-index.md: Stella theme filler, invented quotes). While it
-// is a draft, the URL serves the "Page Not Found" body, as production did before (handleDraftPage's 404 made Astro
+// is a draft, the URL serves the "Page not found" body, as production did before (handleDraftPage's 404 made Astro
 // render the 404 page here, and Netlify served that file with status 200). It now renders that body itself, in dev
 // too, with robots "noindex, follow" (was "index, follow"). Title, description and JSON-LD are the same as before.
 // If the entry is ever published, the list renders as before.
@@ -26,7 +26,7 @@ const isDraft = !!testimonialListPage?.data?.draft;
 
 {
   isDraft ? (
-    <Base title="Page Not Found" disableTagline={true} robots="noindex, follow">
+    <Base title="Page not found" disableTagline={true} robots="noindex, follow">
       <NotFound />
     </Base>
   ) : (
