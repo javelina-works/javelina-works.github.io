@@ -1,11 +1,20 @@
 ---
 // The Ballpark estimate tool itself: markup, styles and scripts. Rendered by
-// the public page (tools/ballpark.astro, inside the site chrome) and by the
-// chrome-free partner embed (embed/ballpark.astro). `embed` turns on partner
-// attribution (?partner=), parent-window postMessage events, and the
-// fixed-height map that an auto-sizing iframe needs (vh units would feed
-// back into the iframe's own height).
+// the public page (tools/ballpark.astro, inside the site chrome, on an agave
+// band) and by the chrome-free partner embed (embed/ballpark.astro). `embed`
+// turns on partner attribution (?partner=), parent-window postMessage events,
+// and the fixed-height map that an auto-sizing iframe needs (vh units would
+// feed back into the iframe's own height).
+//
+// Built on the design system (design/): tokens for every color and size, jw-
+// component markup for buttons, fields, radios, the slider, the segmented
+// view switch and the table. The map card and the panel are paper cards.
 import "@/styles/leafletVendor.css";
+import Button from "@/components/jw/Button.astro";
+import Disclosure from "@/components/jw/Disclosure.astro";
+import RadioGroup from "@/components/jw/RadioGroup.astro";
+import NumberField from "@/components/jw/NumberField.astro";
+import Icons from "@/helpers/Icons.astro";
 
 interface Props {
   embed?: boolean;
@@ -16,327 +25,318 @@ const { embed = false } = Astro.props;
 // never lives in git (GitHub secret scanning flags every Mapbox JWT, pk or
 // not). Absent token = typeahead silently off, submit lookup still works.
 const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
+
+const brushLevels = [
+  { value: "sat", label: "Measure it from the imagery" },
+  { value: "light", label: "Light" },
+  { value: "medium", label: "Medium" },
+  { value: "heavy", label: "Heavy" },
+];
 ---
 
-<section class:list={["bp-toolwrap", { "bp-embed": embed }]}>
-  <div class="container">
-    <ol class="bp-steps" id="bpSteps" aria-label="Progress">
-      <li>
-        <button type="button" class="bp-step" id="bpStep1" disabled>
-          <span class="bp-step-n">1</span>Find your ranch
-        </button>
-      </li>
-      <li>
-        <button type="button" class="bp-step" id="bpStep2" disabled>
-          <span class="bp-step-n">2</span>Analysis
-        </button>
-      </li>
-      <li>
-        <button type="button" class="bp-step" id="bpStep3" disabled>
-          <span class="bp-step-n">3</span>Get ballpark
-        </button>
-      </li>
-    </ol>
-    <div class="bp-tool">
-      <div class="bp-mapcard" id="bpMapCard">
-        <div id="bpMap"></div>
-        <div class="bp-flash" id="bpFlash"></div>
-        <div class="bp-scan" id="bpScan" hidden></div>
-        <div class="bp-viewpanel" id="bpViewbar" hidden>
-          <div class="bp-views" id="bpViews"></div>
-          <div class="bp-viewlegend" id="bpViewLegend" hidden>
-            <span id="bpVlL"></span>
-            <i id="bpVlBar"></i>
-            <span id="bpVlR"></span>
-          </div>
-        </div>
-        <div class="bp-lt" id="bpLt">
-          <div class="bp-lt-line" id="bpLtLine"></div>
-          <div class="bp-lt-ramp" id="bpLtRamp" hidden>
-            <span id="bpLtRampL"></span>
-            <i id="bpLtRampBar"></i>
-            <span id="bpLtRampR"></span>
-          </div>
-          <span class="bp-lt-chip" id="bpLtChip"></span>
-        </div>
-        <div class="bp-mapcaption">
-          <span id="bpMapMsg">
-            Scroll and zoom, or just tell us the address
-          </span>
-          <span id="bpImgCredit"></span>
+<div class:list={["bp-toolwrap", { "bp-embed": embed }]}>
+  <div class="bp-tool">
+    <div class="bp-mapcard jw-surface jw-surface--card" id="bpMapCard">
+      <div id="bpMap"></div>
+      <div class="bp-flash" id="bpFlash"></div>
+      <div class="bp-scan" id="bpScan" hidden></div>
+      <div class="bp-viewpanel jw-seg" id="bpViewbar" hidden>
+        <div class="bp-views jw-seg__track" id="bpViews"></div>
+        <div class="bp-viewlegend" id="bpViewLegend" hidden>
+          <span id="bpVlL"></span>
+          <i id="bpVlBar"></i>
+          <span id="bpVlR"></span>
         </div>
       </div>
+      <div class="bp-lt" id="bpLt">
+        <div class="bp-lt-line" id="bpLtLine"></div>
+        <div class="bp-lt-ramp" id="bpLtRamp" hidden>
+          <span id="bpLtRampL"></span>
+          <i id="bpLtRampBar"></i>
+          <span id="bpLtRampR"></span>
+        </div>
+        <span class="bp-lt-chip" id="bpLtChip"></span>
+      </div>
+      <div class="bp-mapcaption">
+        <span id="bpMapMsg">Scroll and zoom, or just tell us the address</span>
+        <span id="bpImgCredit"></span>
+      </div>
 
-      <div class="bp-panel">
-        <div id="bpStepLocate">
-          <h2>Where&rsquo;s the ranch?</h2>
-          <p class="bp-panelsub">
-            We&rsquo;ll pull the property lines for you.
-          </p>
+      <!-- The choice sheet greets every visitor over the map (the address
+           input lives below the fold on phones, and unguided visitors poke the
+           map instead of finding it). Collapsed, it leaves the dock bar. -->
+      <div class="bp-sheetwrap open" id="bpSheetWrap">
+        <div class="bp-sheet">
+          <button type="button" class="bp-sheet-x" data-act="collapse" aria-label="Collapse"></button>
+          <h2 class="t-heading-3 bp-sheet-title">How do you want to find your ranch?</h2>
+          <div class="bp-sheet-actions">
+            <Button variant="burnt" mark={false} class="bp-wide" data-act="type">
+              <Icons icon="Search" class="bp-ico" />Type the address
+            </Button>
+            <Button variant="quiet" class="bp-wide" data-act="here">
+              <Icons icon="LocateFixed" class="bp-ico" />I&rsquo;m standing on it
+            </Button>
+          </div>
+          <div class="bp-sheet-or"><span>no ranch handy?</span></div>
+          <button type="button" class="bp-option jw-choice jw-choice--shell" data-act="demo">
+            <span class="jw-choice__play" aria-hidden="true"></span>
+            <span class="jw-choice__text">
+              <span class="jw-choice__title">Watch a live demo</span>
+              <small class="jw-choice__sub">Fox Canyon &mdash; a real 180-acre West Texas ranch</small>
+            </span>
+          </button>
+          <Disclosure summary="More ways" prose={false} class="bp-more bp-sheet-more">
+            <div class="jw-choice-list">
+              <button type="button" class="bp-option jw-choice" data-act="upload">
+                <Icons icon="Upload" class="jw-choice__icon" />
+                <span class="jw-choice__text"><span class="jw-choice__title">Upload a boundary file</span></span>
+              </button>
+              <button type="button" class="bp-option jw-choice" data-act="draw">
+                <Icons icon="PenLine" class="jw-choice__icon" />
+                <span class="jw-choice__text"><span class="jw-choice__title">Draw the fence line</span></span>
+              </button>
+            </div>
+          </Disclosure>
+        </div>
+      </div>
+      <button type="button" class="bp-dockbar" id="bpDock">
+        Find your ranch &mdash; address, GPS, demo &amp; more<span class="bp-dock-caret" aria-hidden="true"></span>
+      </button>
+    </div>
+
+    <div class="bp-panel jw-surface jw-surface--card">
+      <ol class="bp-steps jw-steps" id="bpSteps" aria-label="Progress">
+        <li>
+          <button type="button" class="bp-step jw-steps__step" id="bpStep1" disabled>
+            <span class="bp-step-n jw-steps__n">1</span><span class="bp-step-l jw-steps__label">Find your ranch</span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="bp-step jw-steps__step" id="bpStep2" disabled>
+            <span class="bp-step-n jw-steps__n">2</span><span class="bp-step-l jw-steps__label">Analysis</span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="bp-step jw-steps__step" id="bpStep3" disabled>
+            <span class="bp-step-n jw-steps__n">3</span><span class="bp-step-l jw-steps__label">Get ballpark</span>
+          </button>
+        </li>
+      </ol>
+
+      <div id="bpStepLocate">
+        <h2 class="t-heading-2 bp-h">Where&rsquo;s the ranch?</h2>
+        <p class="bp-panelsub">We&rsquo;ll pull the property lines for you.</p>
+        <!-- A visible label (the field's accessible name, as before) and no
+             placeholder: beside "Find it" on a phone a placeholder was cut
+             off after a few words, and it was the field's only visible name. -->
+        <div class="jw-field bp-addrfield">
+          <label class="jw-field__label" for="bpAddrInput">Ranch address, town, or GPS coordinates</label>
           <div class="bp-addr">
             <input
               type="text"
               id="bpAddrInput"
+              class="jw-input"
               data-ph-unmask
-              aria-label="Ranch address, town, or GPS coordinates"
-              placeholder="Address, town, or GPS (lat, long)"
               autocomplete="street-address"
             />
-            <button class="bp-cta bp-cta-slim" id="bpBtnFind">
-              Find it
-            </button>
-          </div>
-          <p class="bp-filemsg" id="bpAddrMsg" hidden></p>
-          <div
-            class="bp-suggest"
-            id="bpSuggest"
-            role="listbox"
-            aria-label="Address suggestions"
-            hidden></div>
-          <button class="bp-cta" id="bpBtnHere" style="margin-top:10px;">
-            📍&ensp;I&rsquo;m standing on it
-          </button>
-          <button class="bp-btn" id="bpBtnSample" style="margin-top:10px;">
-            See it work on Fox Canyon
-            <small>a 180-acre slice of West Texas canyon country</small>
-          </button>
-          <details class="bp-more">
-            <summary>More ways</summary>
-            <div class="bp-btnrow" style="margin-top:8px;">
-              <label class="bp-btn" tabindex="0" role="button" id="bpFileLabel">
-                Upload a boundary file
-                <small>KMZ or KML from Google Earth, or GeoJSON</small>
-                <input
-                  type="file"
-                  id="bpFileInput"
-                  accept=".kmz,.kml,.geojson,.json"
-                  hidden
-                />
-              </label>
-              <button class="bp-btn" id="bpBtnDraw">
-                Draw the fence line on the map
-                <small>Click the corners, then finish</small>
-              </button>
-            </div>
-          </details>
-          <p class="bp-filemsg" id="bpFileMsg" hidden></p>
-          <div id="bpDrawTools" hidden style="margin-top:14px;">
-            <button class="bp-cta" id="bpBtnFinish" disabled>
-              Finish the boundary
-            </button>
-            <button class="bp-ghost" id="bpBtnClearDraw">
-              Start over
-            </button>
+            <Button variant="burnt" id="bpBtnFind"><span class="bp-btnlabel">Find it</span></Button>
           </div>
         </div>
-
-        <div id="bpStepConfirm" hidden>
-          <h2>Is this the place?</h2>
-          <span class="bp-acrepill" id="bpAcrePill"></span>
-          <p class="bp-panelsub" id="bpConfirmHint"></p>
-          <div class="bp-ring" id="bpRingCtl" hidden>
-            <label style="font-size:0.85rem;">
-              Size the circle to your ground
+        <p class="bp-filemsg" id="bpAddrMsg" hidden></p>
+        <div
+          class="bp-suggest jw-listbox"
+          id="bpSuggest"
+          role="listbox"
+          aria-label="Address suggestions"
+          hidden>
+        </div>
+        <Button variant="quiet" id="bpBtnHere" class="bp-wide bp-gap">
+          <Icons icon="LocateFixed" class="bp-ico" />I&rsquo;m standing on it
+        </Button>
+        <button type="button" class="bp-option jw-choice bp-gap" id="bpBtnSample">
+          <span class="jw-choice__text">
+            <span class="jw-choice__title">See it work on Fox Canyon</span>
+            <small class="jw-choice__sub">a 180-acre slice of West Texas canyon country</small>
+          </span>
+        </button>
+        <Disclosure summary="More ways" prose={false} class="bp-more">
+          <div class="jw-choice-list">
+            <label class="bp-option jw-choice" tabindex="0" role="button" id="bpFileLabel">
+              <span class="jw-choice__text">
+                <span class="jw-choice__title">Upload a boundary file</span>
+                <small class="jw-choice__sub">KMZ or KML from Google Earth, or GeoJSON</small>
+              </span>
               <input
-                type="range"
-                id="bpRingRange"
-                min="150"
-                max="3000"
-                value="700"
+                type="file"
+                id="bpFileInput"
+                accept=".kmz,.kml,.geojson,.json"
+                hidden
               />
             </label>
+            <button type="button" class="bp-option jw-choice" id="bpBtnDraw">
+              <span class="jw-choice__text">
+                <span class="jw-choice__title">Draw the fence line on the map</span>
+                <small class="jw-choice__sub">Click the corners, then finish</small>
+              </span>
+            </button>
           </div>
-          <button class="bp-cta" id="bpBtnEstimate">
-            Run the analysis on this land →
-          </button>
-          <details class="bp-more">
-            <summary>Advanced: tell us about the brush</summary>
-            <div
-              class="bp-seg"
-              role="radiogroup"
-              aria-label="Brush level"
-              style="margin-top:8px;">
-              <label>
-                <input type="radio" name="bpBrush" value="sat" checked />
-                Measure it from the imagery
-              </label>
-              <label>
-                <input type="radio" name="bpBrush" value="light" />
-                Light
-              </label>
-              <label>
-                <input type="radio" name="bpBrush" value="medium" />
-                Medium
-              </label>
-              <label>
-                <input type="radio" name="bpBrush" value="heavy" />
-                Heavy
-              </label>
-            </div>
-            <p class="bp-ppa">
-              <label>
-                Plants per acre, if you know it
-                <input
-                  type="number"
-                  id="bpPpaInput"
-                  min="1"
-                  max="500"
-                  placeholder="—"
-                />
-              </label>
-            </p>
-          </details>
-          <button class="bp-ghost" id="bpBtnBack1">
-            &larr; Different place
-          </button>
+        </Disclosure>
+        <p class="bp-filemsg" id="bpFileMsg" hidden></p>
+        <div id="bpDrawTools" class="bp-btnrow" hidden>
+          <Button variant="burnt" id="bpBtnFinish" disabled>Finish the boundary</Button>
+          <Button variant="quiet" id="bpBtnClearDraw">Start over</Button>
         </div>
+      </div>
 
-        <div id="bpStepScan" hidden>
-          <h2 id="bpScanTitle">Reading your country&hellip;</h2>
-          <div class="bp-bar">
-            <div id="bpBarFill"></div>
+      <div id="bpStepConfirm" hidden>
+        <h2 class="t-heading-2 bp-h">Is this the place?</h2>
+        <span class="bp-acrepill" id="bpAcrePill"></span>
+        <p class="bp-panelsub" id="bpConfirmHint"></p>
+        <div class="bp-ring" id="bpRingCtl" hidden>
+          <div class="jw-slider">
+            <div class="jw-slider__head">
+              <label class="jw-slider__label" for="bpRingRange">Size the circle to your ground</label>
+            </div>
+            <input
+              type="range"
+              class="jw-slider__input"
+              id="bpRingRange"
+              min="150"
+              max="3000"
+              value="700"
+              style="--jw-p: 0.1930"
+            />
           </div>
-          <ul class="bp-stages" id="bpStageList"></ul>
-          <div class="bp-acts" id="bpActs" hidden>
-            <div class="bp-act" id="bpActTerrain">
-              <strong>Terrain</strong>— the lidar scan
-              <span class="bp-actstat" id="bpActTerrainStat"></span>
-            </div>
-            <div class="bp-act" id="bpActCanopy">
-              <strong>Canopy height</strong>— what&rsquo;s standing
-              <span class="bp-actstat" id="bpActCanopyStat"></span>
-            </div>
-            <div class="bp-act" id="bpActInfra">
-              <strong>Infrared</strong>— what&rsquo;s alive
-              <span class="bp-actstat" id="bpActInfraStat"></span>
-            </div>
-            <div class="bp-act" id="bpActGreen">
-              <strong>Living vegetation</strong>— the brush itself
-              <span class="bp-actstat" id="bpActGreenStat"></span>
-            </div>
+        </div>
+        <Button variant="burnt" id="bpBtnEstimate" class="bp-wide">
+          Run the analysis on this land &rarr;
+        </Button>
+        <Disclosure summary="Advanced: tell us about the brush" prose={false} class="bp-more">
+          <div class="bp-advanced">
+            <RadioGroup name="bpBrush" legend="Brush level" options={brushLevels} value="sat" idPrefix="bpBrush" />
+            <NumberField
+              label="Plants per acre, if you know it"
+              id="bpPpaInput"
+              min={1}
+              max={500}
+              placeholder="—"
+              steppers={false}
+              class="bp-ppa"
+            />
           </div>
-          <p class="bp-scannote" id="bpScanNote">
-            Usually under a minute.
+        </Disclosure>
+        <div class="bp-btnrow">
+          <Button variant="quiet" id="bpBtnBack1">&larr; Different place</Button>
+        </div>
+      </div>
+
+      <div id="bpStepScan" hidden>
+        <h2 class="t-heading-2 bp-h" id="bpScanTitle">Reading your country&hellip;</h2>
+        <div class="bp-bar">
+          <div id="bpBarFill"></div>
+        </div>
+        <ul class="bp-stages" id="bpStageList"></ul>
+        <div class="bp-acts" id="bpActs" hidden>
+          <div class="bp-act" id="bpActTerrain">
+            <strong>Terrain</strong> &mdash; the lidar scan
+            <span class="bp-actstat" id="bpActTerrainStat"></span>
+          </div>
+          <div class="bp-act" id="bpActCanopy">
+            <strong>Canopy height</strong> &mdash; what&rsquo;s standing
+            <span class="bp-actstat" id="bpActCanopyStat"></span>
+          </div>
+          <div class="bp-act" id="bpActInfra">
+            <strong>Infrared</strong> &mdash; what&rsquo;s alive
+            <span class="bp-actstat" id="bpActInfraStat"></span>
+          </div>
+          <div class="bp-act" id="bpActGreen">
+            <strong>Living vegetation</strong> &mdash; the brush itself
+            <span class="bp-actstat" id="bpActGreenStat"></span>
+          </div>
+        </div>
+        <p class="bp-scannote" id="bpScanNote">Usually under a minute.</p>
+        <p class="bp-filemsg" id="bpScanErr" hidden></p>
+      </div>
+
+      <div id="bpStepResult" hidden>
+        <h2 class="t-heading-2 bp-h">Your ballpark</h2>
+        <div class="bp-band">
+          <span class="bp-band-big t-display-m" id="bpPriceBand"></span>
+          <p id="bpPerAcre"></p>
+        </div>
+        <table class="jw-table bp-rows">
+          <caption>What we measured</caption>
+          <tbody>
+            <tr>
+              <th scope="row">Area inside the fence</th>
+              <td class="jw-table__num" id="bpRAcres"></td>
+            </tr>
+            <tr>
+              <th scope="row">Brush coverage</th>
+              <td class="jw-table__num" id="bpRCover"></td>
+            </tr>
+            <tr>
+              <th scope="row">Brush to treat</th>
+              <td class="jw-table__num" id="bpRCanopy"></td>
+            </tr>
+            <tr>
+              <th scope="row" id="bpRPlantsLabel">Rough plant count</th>
+              <td class="jw-table__num" id="bpRPlants"></td>
+            </tr>
+            <tr>
+              <th scope="row">Time on the ranch</th>
+              <td class="jw-table__num" id="bpRDays"></td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="bp-confnote">
+          Use the map views to explore what we saw. This is a planning range,
+          not a bid &mdash; a firm quote takes a scheduled survey flight over
+          your ground.
+        </p>
+        <div class="bp-lead" id="bpDemoCta" hidden>
+          <h3 class="t-heading-3">That&rsquo;s the machine at work.</h3>
+          <p>
+            Everything you just watched was computed from real public data
+            over that canyon. Now point it at your own ground.
           </p>
-          <p class="bp-filemsg" id="bpScanErr" hidden></p>
+          <Button variant="burnt" id="bpBtnOwn" class="bp-wide">Read my ranch &rarr;</Button>
         </div>
-
-        <div id="bpStepResult" hidden>
-          <h2>Your ballpark</h2>
-          <div class="bp-band">
-            <span class="bp-band-big" id="bpPriceBand"></span>
-            <p id="bpPerAcre"></p>
-          </div>
-          <table class="bp-rows">
-            <tbody>
-              <tr class="bp-rows-head">
-                <td colspan="2">What we measured</td>
-              </tr>
-              <tr>
-                <td>Area inside the fence</td>
-                <td id="bpRAcres"></td>
-              </tr>
-              <tr>
-                <td>Brush coverage</td>
-                <td id="bpRCover"></td>
-              </tr>
-              <tr>
-                <td>Brush to treat</td>
-                <td id="bpRCanopy"></td>
-              </tr>
-              <tr>
-                <td id="bpRPlantsLabel">Rough plant count</td>
-                <td id="bpRPlants"></td>
-              </tr>
-              <tr>
-                <td>Time on the ranch</td>
-                <td id="bpRDays"></td>
-              </tr>
-            </tbody>
-          </table>
-          <p class="bp-confnote">
-            Use the map views to explore what we saw. This is a planning range,
-            not a bid &mdash; a firm quote takes a scheduled survey flight over
-            your ground.
+        <div class="bp-lead" id="bpLeadBlock">
+          <h3 class="t-heading-3">Like these numbers?</h3>
+          <p>
+            Leave your name, phone, and email &mdash; we&rsquo;ll reach out to
+            schedule a survey flight over your ground. That&rsquo;s what turns
+            this range into a firm quote.
           </p>
-          <div class="bp-lead" id="bpDemoCta" hidden>
-            <h3>That&rsquo;s the machine at work.</h3>
-            <p>
-              Everything you just watched was computed from real public data
-              over that canyon. Now point it at your own ground.
-            </p>
-            <button class="bp-cta" id="bpBtnOwn">
-              Read my ranch &rarr;
-            </button>
+          <div class="jw-field bp-field">
+            <label class="jw-field__label" for="bpLeadName">Full name<span class="bp-req" aria-hidden="true">*</span></label>
+            <input class="jw-input" type="text" id="bpLeadName" maxlength="200" autocomplete="name" required />
           </div>
-          <div class="bp-lead" id="bpLeadBlock">
-            <h3>Like these numbers?</h3>
-            <p>
-              Leave your name, phone, and email &mdash; we&rsquo;ll reach out to
-              schedule a survey flight over your ground. That&rsquo;s what turns
-              this range into a firm quote.
-            </p>
-            <label class="bp-field">
-              <span>
-                Full name<b aria-hidden="true">*</b>
-              </span>
-              <input
-                type="text"
-                id="bpLeadName"
-                maxlength="200"
-                autocomplete="name"
-                required
-              />
-            </label>
-            <label class="bp-field">
-              <span>
-                Phone<b aria-hidden="true">*</b>
-              </span>
-              <input
-                type="tel"
-                id="bpLeadPhone"
-                maxlength="40"
-                autocomplete="tel"
-                required
-              />
-            </label>
-            <label class="bp-field">
-              <span>
-                Email<b aria-hidden="true">*</b>
-              </span>
-              <input
-                type="email"
-                id="bpLeadEmail"
-                maxlength="254"
-                autocomplete="email"
-                required
-              />
-            </label>
-            <label class="bp-field">
-              <span>
-                Anything we should know?<em>(optional)</em>
-              </span>
-              <textarea id="bpLeadNotes" maxlength="2000"></textarea>
-            </label>
-            <div class="bp-turnstile" id="bpTurnstile"></div>
-            <button class="bp-cta" id="bpLeadSend">
-              Request a firm quote
-            </button>
-            <p class="bp-leadmsg" id="bpLeadMsg" hidden></p>
+          <div class="jw-field bp-field">
+            <label class="jw-field__label" for="bpLeadPhone">Phone<span class="bp-req" aria-hidden="true">*</span></label>
+            <input class="jw-input" type="tel" id="bpLeadPhone" maxlength="40" autocomplete="tel" required />
           </div>
-          <div class="bp-resultactions">
-            <button class="bp-ghost" id="bpBtnAdjust">
-              Adjust the brush level
-            </button>
-            <button class="bp-ghost" id="bpBtnRestart">
-              Start over with new ground
-            </button>
+          <div class="jw-field bp-field">
+            <label class="jw-field__label" for="bpLeadEmail">Email<span class="bp-req" aria-hidden="true">*</span></label>
+            <input class="jw-input" type="email" id="bpLeadEmail" maxlength="254" autocomplete="email" required />
           </div>
+          <div class="jw-field bp-field">
+            <label class="jw-field__label" for="bpLeadNotes">Anything we should know?<span class="bp-opt">(optional)</span></label>
+            <textarea class="jw-input jw-textarea" id="bpLeadNotes" maxlength="2000" rows="3"></textarea>
+          </div>
+          <div class="bp-turnstile" id="bpTurnstile"></div>
+          <Button variant="burnt" id="bpLeadSend" class="bp-wide">Request a firm quote</Button>
+          <p class="bp-leadmsg" id="bpLeadMsg" hidden></p>
+        </div>
+        <div class="bp-resultactions">
+          <Button variant="quiet" id="bpBtnAdjust">Adjust the brush level</Button>
+          <Button variant="quiet" id="bpBtnRestart">Start over with new ground</Button>
         </div>
       </div>
     </div>
   </div>
-</section>
+</div>
 
 <!-- Map styles are vendored into the page bundle (leafletVendor.css) so
      first paint never blocks on a second origin; the scripts below still
@@ -344,51 +344,72 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
 
 <style is:global>
-  /* Ballpark tool — namespaced .bp-*; colors from the site theme tokens. */
-  .bp-hero h1 {
-    margin-top: 0.5rem;
-  }
-  .bp-eyebrow {
-    font-size: 0.75rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--color-primary);
-    font-weight: 700;
-  }
-  .bp-sub {
-    color: var(--color-text-default);
-    max-width: 66ch;
-    margin-top: 1rem;
+  /* Ballpark tool, namespaced .bp-*. Every color, size and duration comes
+     from design/tokens/tokens.css; component parts use the jw- classes from
+     design/components/jw.css. The only literal colors left are the data
+     ramps of the server's layer images (canopy, infrared, greenness), which
+     have to match those images. Global (not scoped) because the scripts and
+     Leaflet build much of this markup at run time. */
+  .bp-toolwrap [hidden] {
+    display: none !important;
   }
   .bp-tool {
     display: grid;
     grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr);
-    gap: 20px;
+    gap: var(--space-5);
     align-items: start;
   }
   @media (max-width: 900px) {
     .bp-tool {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-4);
     }
   }
+
+  /* ---- the map card ---- */
   .bp-mapcard {
-    background: var(--color-light);
-    border: 1px solid var(--color-border-light);
-    border-radius: 8px;
     overflow: hidden;
-    position: relative;
-    /* Leaflet panes reach z-index 1000; contain them so the map can
-       never ride over the sticky site header. */
+    /* Leaflet panes reach z-index 1000; contain them so the map never rides
+       over the sticky nav bar or the cookie notice. */
     isolation: isolate;
   }
-  /* In pseudo-fullscreen the whole card must beat the sticky header —
-     the fixed map container cannot escape the isolation context. */
+  /* Pseudo-fullscreen: the map fills the screen under the sticky nav bar
+     (the bar, z 40, and the cookie notice, z 5000, stay on top). The card
+     and its section step above the rest of the page, below the bar. The
+     band keeps its clipping: the map is position: fixed and the band makes
+     no containing block, so nothing cuts it off, while the band's 1100px
+     light pools stay inside the page (no sideways scroll). */
   .bp-mapcard:has(.leaflet-pseudo-fullscreen) {
-    z-index: 900;
+    z-index: 30;
     overflow: visible;
+  }
+  .bp-stage:has(.leaflet-pseudo-fullscreen) {
+    z-index: 30;
+  }
+  /* The band clips its light pools without becoming a scroll container
+     (clip, not hidden), so the map card can stay in view beside a long
+     panel (below). Browsers without clip keep hidden. */
+  .jw-section.bp-stage {
+    overflow: clip;
+  }
+  /* From 901px, when the screen is tall enough to hold it, the map card stays
+     beside the panel while the results and the lead form scroll by, so "use
+     the map views" never points at a map that has scrolled away. 69px is the
+     sticky nav bar's height, as below. */
+  @media (min-width: 901px) and (min-height: 760px) {
+    .bp-toolwrap:not(.bp-embed) .bp-mapcard {
+      position: sticky;
+      top: calc(44px + 2 * var(--space-3) + 1px + var(--space-4));
+    }
+  }
+  html:has(.jw-nav--sticky) .bp-mapcard .leaflet-container.leaflet-pseudo-fullscreen {
+    /* 69px: the nav bar's height (44px controls, space-3 above and below, a 1px rule), as in jw.css */
+    top: calc(44px + 2 * var(--space-3) + 1px) !important;
+    height: calc(100% - 44px - 2 * var(--space-3) - 1px) !important;
   }
   #bpMap {
     height: 620px;
+    background: var(--surface-sunken);
   }
   @media (max-width: 900px) {
     #bpMap {
@@ -401,36 +422,190 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
   }
   .bp-mapcaption {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
-    gap: 12px;
-    padding: 8px 14px;
-    font-size: 0.78rem;
-    color: var(--color-text-default);
-    border-top: 1px solid var(--color-border-light);
+    align-items: baseline;
+    gap: var(--space-1) var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    border-top: 1px solid var(--line);
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--text-muted);
   }
-  /* directed-show chrome on the map */
+  /* the status line is instructions ("County parcel records didn't answer
+     ..."), so it is body size; only the image credit stays small */
+  #bpMapMsg {
+    font-size: 16px;
+  }
+  /* Survey imagery is a photo: it dims a little at night, like every photo. */
+  [data-theme="dark"] .bp-mapcard .leaflet-tile-pane {
+    filter: brightness(var(--photo-brightness-dark));
+  }
+  /* While the show plays, the imagery steps back so the layers read. */
   .bp-dim .leaflet-tile-pane {
     filter: saturate(0.25) brightness(0.72);
   }
-  .leaflet-tile-pane {
-    transition: filter 1.2s ease;
+  [data-theme="dark"] .bp-dim .leaflet-tile-pane {
+    filter: saturate(0.25) brightness(calc(0.72 * var(--photo-brightness-dark)));
   }
+
+  /* Leaflet's own controls, on the system: 44px paper buttons with ink
+     symbols, a paper attribution and scale. */
+  .bp-mapcard .leaflet-container {
+    font-family: var(--font-body);
+  }
+  .bp-mapcard .leaflet-container .leaflet-bar {
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    box-shadow: var(--shadow-raise);
+  }
+  .bp-mapcard .leaflet-container .leaflet-bar a {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    line-height: 44px;
+    border-bottom: 1px solid var(--line);
+    background-color: var(--surface);
+    color: var(--text);
+    font: 500 22px/44px var(--font-body);
+    text-decoration: none;
+  }
+  .bp-mapcard .leaflet-container .leaflet-bar a:first-child {
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  }
+  .bp-mapcard .leaflet-container .leaflet-bar a:last-child {
+    border-bottom: 0;
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  }
+  .bp-mapcard .leaflet-container .leaflet-bar a:hover {
+    background-color: var(--surface-sunken);
+    color: var(--text);
+  }
+  .bp-mapcard .leaflet-container .leaflet-bar a:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+    z-index: 1;
+  }
+  .bp-mapcard .leaflet-container .leaflet-bar a.leaflet-disabled {
+    background-color: var(--surface);
+    color: var(--text-muted);
+  }
+  /* The full-screen button draws its corners in the ink color (the stock
+     sprite is black, which would vanish at night). */
+  .bp-mapcard .leaflet-container .leaflet-bar a.fullscreen-icon {
+    background-image: none;
+  }
+  .bp-mapcard .leaflet-container .leaflet-bar a.fullscreen-icon::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    background: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5'/%3E%3C/svg%3E") center / 20px 20px no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5'/%3E%3C/svg%3E") center / 20px 20px no-repeat;
+  }
+  .bp-mapcard .leaflet-container .leaflet-bar a.fullscreen-icon.leaflet-fullscreen-on::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5'/%3E%3C/svg%3E");
+  }
+  .bp-mapcard .leaflet-container .leaflet-control-attribution {
+    background: var(--surface);
+    color: var(--text-body);
+    font-size: 12px;
+    line-height: 1.6;
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-sm) 0 0 0;
+  }
+  .bp-mapcard .leaflet-container .leaflet-control-attribution a,
+  .bp-mapcard .leaflet-container .leaflet-control-attribution a:visited {
+    color: var(--land);
+  }
+  .bp-mapcard .leaflet-container .leaflet-control-attribution a:hover {
+    color: var(--text);
+  }
+  .bp-mapcard .leaflet-container .leaflet-control-scale-line {
+    border-color: var(--text);
+    background: var(--surface);
+    color: var(--text);
+    text-shadow: none;
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+  .bp-mapcard .leaflet-container .leaflet-popup-content-wrapper,
+  .bp-mapcard .leaflet-container .leaflet-popup-tip {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--shadow-raise);
+  }
+  .bp-mapcard .leaflet-container .leaflet-popup-content-wrapper {
+    border-radius: var(--radius-md);
+    border: 1px solid var(--line);
+  }
+  .bp-mapcard .leaflet-container .leaflet-popup-content {
+    margin: var(--space-3) var(--space-10) var(--space-3) var(--space-3);
+  }
+  .bp-mapcard .leaflet-container a.leaflet-popup-close-button {
+    width: 44px;
+    height: 44px;
+    font: 400 22px/44px var(--font-body);
+    color: var(--text-muted);
+  }
+  .bp-mapcard .leaflet-container a.leaflet-popup-close-button:hover {
+    color: var(--text);
+  }
+  .bp-mapcard .leaflet-container .leaflet-tooltip {
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    box-shadow: var(--shadow-raise);
+  }
+  .bp-mapcard .leaflet-container .leaflet-tooltip-top::before {
+    border-top-color: var(--surface);
+  }
+  .bp-mapcard .leaflet-container .leaflet-tooltip-bottom::before {
+    border-bottom-color: var(--surface);
+  }
+  .bp-mapcard .leaflet-container .leaflet-tooltip-left::before {
+    border-left-color: var(--surface);
+  }
+  .bp-mapcard .leaflet-container .leaflet-tooltip-right::before {
+    border-right-color: var(--surface);
+  }
+
+  /* ---- the show's chrome on the map ---- */
   .bp-flash {
     position: absolute;
     inset: 0;
-    background: #fff;
+    background: var(--light-sun);
     opacity: 0;
     z-index: 720;
     pointer-events: none;
   }
+  /* "What am I looking at": words on a shell plate, never straight on the
+     imagery. */
   .bp-lt {
     position: absolute;
-    left: 16px;
-    right: 16px;
+    left: var(--space-4);
     bottom: 46px;
     z-index: 710;
-    color: #fff3e6;
-    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+    max-width: min(34rem, calc(100% - 2 * var(--space-4)));
+    box-sizing: border-box;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--shell-edge);
+    border-radius: var(--radius-sm);
+    background: linear-gradient(160deg, var(--shell-1) 0%, var(--shell-2) 42%, var(--shell-3) 100%);
+    box-shadow: var(--shadow-sheen-shell);
+    color: var(--on-shell);
     opacity: 0;
     transition: opacity 0.6s;
     pointer-events: none;
@@ -439,458 +614,39 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
     opacity: 1;
   }
   .bp-lt-line {
-    font-family: Georgia, serif;
-    font-size: 1.25rem;
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 500;
     line-height: 1.2;
     max-width: 34ch;
   }
   .bp-lt-chip {
     display: inline-block;
-    margin-top: 8px;
-    background: rgba(197, 44, 3, 0.92);
-    border-radius: 999px;
-    padding: 3px 12px;
-    font-size: 0.8rem;
-    font-weight: 700;
-  }
-  .bp-panel {
-    background: var(--color-light);
-    border: 1px solid var(--color-border-light);
-    border-radius: 8px;
-    padding: 22px;
-  }
-  .bp-panel h2 {
-    font-size: var(--text-h5);
-    margin: 0 0 4px;
-  }
-  .bp-panelsub {
-    color: var(--color-text-default);
-    opacity: 0.75;
-    font-size: 0.9rem;
-    margin: 0 0 14px;
-  }
-  .bp-addr {
-    display: flex;
-    gap: 8px;
-  }
-  .bp-addr input {
-    flex: 1;
-    font: inherit;
-    padding: 12px 12px;
-    border: 1.5px solid var(--color-border-light);
-    border-radius: 8px;
-    background: #fff;
-    color: var(--color-dark);
-    min-width: 0;
-  }
-  .bp-btnrow {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .bp-btn {
-    font: inherit;
-    font-weight: 600;
-    text-align: left;
-    border: 1.5px solid var(--color-border-light);
-    border-radius: 8px;
-    background: var(--color-light);
-    color: var(--color-dark);
-    padding: 12px 16px;
-    cursor: pointer;
-    width: 100%;
-    display: block;
-    line-height: 1.45;
-  }
-  .bp-btn:hover {
-    border-color: var(--color-primary);
-  }
-  .bp-btn small {
-    display: block;
-    font-weight: 400;
-    opacity: 0.7;
-    font-size: 0.82rem;
-  }
-  .bp-cta {
-    font: inherit;
-    font-weight: 700;
-    font-size: 1.05rem;
-    background: var(--color-primary);
-    color: var(--color-light);
-    border: none;
-    border-radius: 8px;
-    padding: 14px 20px;
-    cursor: pointer;
-    width: 100%;
-  }
-  .bp-cta-slim {
-    width: auto;
-    padding: 12px 18px;
-    font-size: 0.95rem;
-  }
-  .bp-cta:hover {
-    background: color-mix(in srgb, var(--color-primary) 85%, black);
-  }
-  .bp-cta:disabled {
-    opacity: 0.5;
-    cursor: default;
-  }
-  .bp-ghost {
-    font: inherit;
-    background: none;
-    border: none;
-    color: var(--color-text-default);
-    text-decoration: underline;
-    cursor: pointer;
-    padding: 8px 0 0;
-    font-size: 0.88rem;
-  }
-  .bp-more {
-    margin-top: 12px;
-  }
-  .bp-more summary {
-    cursor: pointer;
-    font-size: 0.88rem;
-    font-weight: 600;
-    color: var(--color-text-default);
-    opacity: 0.85;
-  }
-  .bp-filemsg {
-    font-size: 0.85rem;
-    color: var(--color-error);
-    margin: 8px 0 0;
-  }
-  .bp-filemsg.bp-ok {
-    color: var(--color-success);
-  }
-  .bp-acrepill {
-    display: inline-block;
-    background: color-mix(
-      in srgb,
-      var(--color-success) 14%,
-      var(--color-light)
-    );
-    border-radius: 999px;
-    padding: 6px 14px;
-    font-weight: 700;
-    font-size: 0.95rem;
-    margin-bottom: 10px;
-    font-variant-numeric: tabular-nums;
-  }
-  .bp-ring {
-    margin: 4px 0 12px;
-  }
-  .bp-ring input[type="range"] {
-    width: 100%;
-    accent-color: var(--color-primary);
-  }
-  .bp-seg {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin: 0 0 12px;
-  }
-  .bp-seg label {
-    display: flex;
-    gap: 10px;
-    align-items: baseline;
-    border: 1.5px solid var(--color-border-light);
-    border-radius: 8px;
-    padding: 10px 14px;
-    cursor: pointer;
-    font-size: 0.94rem;
-  }
-  .bp-seg label:has(input:checked) {
-    border-color: var(--color-primary);
-    background: color-mix(in srgb, var(--color-primary) 7%, var(--color-light));
-  }
-  .bp-seg input {
-    accent-color: var(--color-primary);
-  }
-  .bp-ppa {
-    margin: 0 0 6px;
-    font-size: 0.9rem;
-  }
-  .bp-ppa input[type="number"] {
-    font: inherit;
-    width: 90px;
-    padding: 6px 8px;
-    margin-left: 8px;
-    border: 1.5px solid var(--color-border-light);
-    border-radius: 6px;
-    background: #fff;
-    color: var(--color-dark);
-  }
-  .bp-stages {
-    list-style: none;
-    margin: 8px 0 0;
-    padding: 10px 12px;
-    background: #0f130f;
-    border: 1px solid #273023;
-    border-radius: 8px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.78rem;
-    line-height: 1.5;
-    color: #9ecf9a;
-    min-height: 150px;
-    max-height: 210px;
-    overflow-y: auto;
-  }
-  .bp-stages li {
-    padding: 1px 0;
-  }
-  .bp-stages li .bp-tprompt {
-    color: #55804f;
-    user-select: none;
-  }
-  .bp-stages li.bp-done {
-    opacity: 0.6;
-  }
-  .bp-stages li.bp-current {
-    color: #cfe8c9;
-  }
-  .bp-stages .bp-tok {
-    color: #d9ef86;
-  }
-  .bp-cursor {
-    display: inline-block;
-    width: 0.55em;
-    height: 1em;
-    margin-left: 2px;
-    vertical-align: -0.15em;
-    background: #9ecf9a;
-    animation: bpBlink 1s steps(1) infinite;
-  }
-  @keyframes bpBlink {
-    50% {
-      opacity: 0;
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .bp-cursor {
-      animation: none;
-    }
-  }
-  .bp-acts {
-    margin: 10px 0 4px;
-  }
-  .bp-act {
-    border-left: 3px solid var(--color-border-light);
-    padding: 6px 0 6px 12px;
-    margin: 6px 0;
-    font-size: 0.88rem;
-    opacity: 0.3;
-    transition:
-      opacity 0.5s,
-      border-color 0.5s;
-  }
-  .bp-act.bp-on {
-    opacity: 1;
-    border-color: var(--color-primary);
-  }
-  .bp-actstat {
-    display: block;
-    font-size: 0.8rem;
-    opacity: 0.75;
-    font-variant-numeric: tabular-nums;
-  }
-  .bp-scannote {
-    font-size: 0.85rem;
-    opacity: 0.75;
-  }
-  .bp-bar {
-    height: 8px;
-    border-radius: 4px;
-    background: var(--color-border-light);
-    overflow: hidden;
-    margin: 14px 0 10px;
-  }
-  .bp-bar div {
-    height: 100%;
-    width: 0%;
-    background: var(--color-primary);
-    transition: width 0.2s linear;
-  }
-  .bp-band {
-    background: color-mix(
-      in srgb,
-      var(--color-success) 10%,
-      var(--color-light)
-    );
-    border: 1.5px solid var(--color-success);
-    border-radius: 8px;
-    padding: 16px 18px;
-    margin: 4px 0 18px;
-  }
-  .bp-band-big {
-    font-size: clamp(28px, 4vw, 38px);
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    color: var(--color-dark);
-    line-height: 1.1;
-  }
-  .bp-band p {
-    margin: 4px 0 0;
-    font-size: 0.85rem;
-    opacity: 0.8;
-  }
-  .bp-rows {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.9rem;
-    font-variant-numeric: tabular-nums;
-  }
-  .bp-rows td {
-    padding: 7px 0;
-    border-bottom: 1px solid var(--color-border-light);
-  }
-  .bp-rows td:last-child {
-    text-align: right;
-    font-weight: 600;
-    white-space: nowrap;
-  }
-  .bp-rows tr.bp-rows-head td {
-    font-size: 0.72rem;
+    margin-top: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    line-height: 1.35;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    border-bottom: none;
-    padding-top: 14px;
-    font-weight: 700;
-    opacity: 0.7;
+    color: var(--on-shell);
   }
-  .bp-confnote {
-    font-size: 0.85rem;
-    opacity: 0.75;
-    margin: 14px 0 18px;
-  }
-  .bp-lead {
-    border-top: 1.5px solid var(--color-border-light);
-    margin-top: 6px;
-    padding-top: 14px;
-  }
-  .bp-lead h3 {
-    margin: 0 0 4px;
-    font-size: 1rem;
-  }
-  .bp-lead p {
-    margin: 0 0 10px;
-    font-size: 0.85rem;
-    opacity: 0.75;
-  }
-  .bp-field {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    margin: 0 0 8px;
-    font-size: 0.78rem;
-    font-weight: 600;
-  }
-  .bp-field b {
-    color: #d64545;
-  }
-  .bp-field em {
-    font-weight: 400;
-    font-style: normal;
-    opacity: 0.65;
-  }
-  .bp-lead input,
-  .bp-lead textarea {
-    font: inherit;
-    width: 100%;
-    box-sizing: border-box;
-    padding: 8px 10px;
-    margin: 0;
-    font-weight: 400;
-    border: 1.5px solid var(--color-border-light);
-    border-radius: 6px;
-    background: #fff;
-    color: var(--color-dark);
-  }
-  .bp-lead textarea {
-    resize: vertical;
-    min-height: 54px;
-  }
-  .bp-leadmsg {
-    font-size: 0.85rem;
-    margin: 6px 0 0;
-  }
-  .bp-leadmsg.bp-ok {
-    color: var(--color-success);
-    font-weight: 600;
-  }
-  .bp-leadmsg.bp-err {
-    color: var(--color-error);
-  }
-  .bp-resultactions {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-top: 14px;
-  }
-  /* step indicator */
-  .bp-steps {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px;
-    list-style: none;
-    margin: 0 0 14px;
-    padding: 0;
-  }
-  .bp-steps li {
+  .bp-lt-ramp {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
   }
-  .bp-steps li + li::before {
-    content: "›";
-    color: var(--color-text-default);
-    opacity: 0.45;
-    font-size: 1.05rem;
-    line-height: 1;
+  .bp-lt-ramp i {
+    flex: 0 0 92px;
+    height: 8px;
+    border-radius: var(--radius-round);
+    border: 1px solid var(--shell-edge);
   }
-  .bp-step {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    border: 0;
-    background: none;
-    color: var(--color-text-default);
-    padding: 2px;
-    font: inherit;
-    font-size: 0.85rem;
-    opacity: 0.5;
-  }
-  .bp-step-n {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 1.5px solid currentColor;
-    font-weight: 700;
-    font-size: 0.75rem;
-  }
-  .bp-step.bp-active {
-    opacity: 1;
-    color: var(--color-primary);
-    font-weight: 600;
-  }
-  .bp-step.bp-active .bp-step-n,
-  .bp-step.bp-done .bp-step-n {
-    background: var(--color-primary);
-    border-color: var(--color-primary);
-    color: #fff;
-  }
-  .bp-step.bp-click {
-    opacity: 0.85;
-    cursor: pointer;
-  }
-  .bp-step.bp-click:hover {
-    text-decoration: underline;
-  }
-  /* satellite sweep while the analysis runs */
+  /* satellite sweep while the analysis runs (transform only) */
   .bp-scan {
     position: absolute;
     inset: 0;
@@ -903,70 +659,114 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
     position: absolute;
     left: 0;
     right: 0;
+    top: 0;
     height: 16%;
-    top: -20%;
     background: linear-gradient(
       180deg,
       transparent,
-      rgba(170, 255, 160, 0.14) 55%,
-      rgba(255, 255, 255, 0.32) 97%,
+      color-mix(in srgb, var(--light-sun) 14%, transparent) 55%,
+      color-mix(in srgb, var(--light-sun) 34%, transparent) 97%,
       transparent
     );
-    animation: bpScanSweep 2.8s linear infinite;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .bp-scan::after {
-      animation: none;
-    }
+    transform: translateY(-125%);
+    animation: bpScanSweep var(--duration-flicker) linear infinite;
+    will-change: transform;
   }
   @keyframes bpScanSweep {
     to {
-      top: 104%;
+      transform: translateY(650%);
     }
   }
-  /* layer wash-in: a feathered wipe down the map, sharpening as it lands */
+  /* layer wash-in: an opacity fade up to the layer's own opacity */
   @keyframes bpReveal {
     from {
-      -webkit-mask-position: 0% 100%;
-      mask-position: 0% 100%;
-      filter: blur(5px);
-    }
-    to {
-      -webkit-mask-position: 0% 0%;
-      mask-position: 0% 0%;
-      filter: blur(0);
+      opacity: 0;
     }
   }
   img.bp-reveal {
-    -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent 60%);
-    mask-image: linear-gradient(to bottom, #000 40%, transparent 60%);
-    -webkit-mask-size: 100% 300%;
-    mask-size: 100% 300%;
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    animation: bpReveal 1.7s cubic-bezier(0.33, 0, 0.2, 1) forwards;
+    animation: bpReveal 1.4s cubic-bezier(0.33, 0, 0.2, 1) both;
   }
   @media (prefers-reduced-motion: reduce) {
+    .bp-scan::after,
     img.bp-reveal {
       animation: none;
-      -webkit-mask-image: none;
-      mask-image: none;
+    }
+    .bp-lt {
+      transition: none;
     }
   }
-  /* what-am-I-looking-at chrome: legend ramp + layer thumbnail rail */
-  .bp-lt-ramp {
+
+  /* View switch (Density, Likely brush, Terrain): a paper plate on the map
+     holding the system's segmented control and the legend. */
+  .bp-viewpanel {
+    position: absolute;
+    top: var(--space-3);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 660;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-1) var(--space-3);
+    box-sizing: border-box;
+    max-width: calc(100% - 2 * (44px + 2 * var(--space-3)));
+    padding: var(--space-1);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    box-shadow: var(--shadow-raise);
+  }
+  .bp-views.jw-seg__track {
+    flex-wrap: nowrap;
+  }
+  .bp-viewlegend {
     display: flex;
     align-items: center;
-    gap: 6px;
-    margin-top: 4px;
-    font-size: 0.66rem;
-    opacity: 0.9;
+    gap: var(--space-2);
+    padding: 0 var(--space-2);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
   }
-  .bp-lt-ramp i {
-    flex: 0 0 92px;
+  .bp-viewlegend i {
+    flex: 0 0 80px;
     height: 8px;
-    border-radius: 4px;
-    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: var(--radius-round);
+    border: 1px solid var(--line);
+  }
+  @media (max-width: 900px) {
+    /* The sticky nav bar floats over the top of the map on phones; dock the
+       switch to the bottom instead, clear of the scale and attribution. */
+    .bp-viewpanel {
+      top: auto;
+      bottom: 34px;
+      max-width: calc(100% - 2 * var(--space-2));
+    }
+    .bp-views .jw-seg__btn {
+      padding: 0 var(--space-3);
+    }
+  }
+
+  /* Legend ramps. Density and likely brush are drawn here (treat = tip
+     orange). Canopy, infrared and greenness are images the server renders:
+     their ramps are data colors that must match those images. */
+  .bp-ramp-density {
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--tip-100) 45%, transparent),
+      var(--tip-300) 45%,
+      var(--tip-600)
+    );
+  }
+  .bp-ramp-plants {
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--tip-500) 10%, transparent),
+      var(--tip-500)
+    );
   }
   .bp-ramp-canopy {
     background: linear-gradient(90deg, #440154, #31688e, #35b779, #fde725);
@@ -975,140 +775,578 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
     background: linear-gradient(90deg, #4a4a52, #8c4a3a, #e03a2a);
   }
   .bp-ramp-greenness {
-    background: linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.12),
-      #7ac943,
-      #1c7a22
-    );
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.12), #7ac943, #1c7a22);
   }
-  .bp-viewpanel {
-    position: absolute;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 660;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 6px 12px;
-    max-width: calc(100% - 90px);
-    background: rgba(20, 24, 18, 0.72);
-    border-radius: 999px;
-    padding: 5px 12px;
-    backdrop-filter: blur(4px);
-  }
-  .bp-mapcard .leaflet-popup-content-wrapper,
-  .bp-mapcard .leaflet-popup-tip {
-    background: var(--color-light);
-    color: var(--color-text-default);
-  }
+
+  /* the zoomed tile popup */
   .bp-tilepop canvas {
     display: block;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
   }
   .bp-tilepop p {
-    margin: 6px 0 0;
-    font-size: 0.74rem;
+    margin: var(--space-2) 0 0;
     max-width: 176px;
-    color: var(--color-text-default);
+    font-size: 15px;
+    line-height: 1.45;
+    color: var(--text-body);
   }
   .bp-tilepop p b {
-    color: var(--color-primary);
+    font-weight: 500;
+    color: var(--text);
   }
   .bp-tilepop-key {
     display: flex;
     align-items: center;
-    gap: 5px;
-    margin-top: 4px;
-    font-size: 0.68rem;
-    color: var(--color-text-default);
-    opacity: 0.85;
+    gap: var(--space-2);
+    margin-top: var(--space-1);
+    font-size: 13.5px;
+    line-height: 1.4;
+    color: var(--text-muted);
   }
   .bp-tilepop-key i {
+    flex: none;
     width: 10px;
     height: 10px;
-    border-radius: 2px;
-    background: #e621d8;
-    opacity: 0.75;
+    border-radius: var(--radius-xs);
+    background: var(--tip-500);
   }
-  .bp-ramp-plants {
-    background: linear-gradient(90deg, rgba(53, 201, 58, 0.08), #35c93a);
+
+  /* ---- the choice sheet over the map ---- */
+  .bp-sheetwrap {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: none;
+    align-items: flex-end;
+    background: color-mix(in srgb, var(--shell-3) 55%, transparent);
   }
-  .bp-views {
+  .bp-sheetwrap.open {
     display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
   }
-  .bp-view {
-    border: 1px solid rgba(255, 255, 255, 0.45);
-    background: transparent;
-    color: #fff3e6;
-    border-radius: 999px;
-    padding: 3px 10px;
-    font-size: 0.72rem;
+  /* The open sheet's scrim covers the whole map, so the map's zoom and
+     full-screen buttons can't be used until it closes. They step out while it
+     is open (not tabbable, not half-covered by the sheet on a phone) and come
+     back with the map. */
+  .bp-mapcard:has(.bp-sheetwrap.open) .leaflet-top {
+    visibility: hidden;
+  }
+  .bp-sheet {
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    max-height: 100%;
+    overflow-y: auto;
+    padding: var(--space-5) var(--space-5) var(--space-4);
+    border-top: 1px solid var(--line);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--shadow-raise-on-band);
+  }
+  .bp-sheet-title {
+    margin: 0 var(--space-10) var(--space-4) 0;
+    color: var(--text);
+  }
+  .bp-sheet-x {
+    appearance: none;
+    position: absolute;
+    top: var(--space-2);
+    right: var(--space-2);
+    width: 44px;
+    height: 44px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: none;
+    color: var(--text-muted);
     cursor: pointer;
   }
-  .bp-view.bp-on {
-    background: var(--color-primary);
-    border-color: var(--color-primary);
-    color: #fff;
+  .bp-sheet-x::before,
+  .bp-sheet-x::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 18px;
+    height: 2px;
+    margin: -1px 0 0 -9px;
+    border-radius: 1px;
+    background: currentColor;
+    transform: rotate(45deg);
   }
-  .bp-viewlegend {
+  .bp-sheet-x::after {
+    transform: rotate(-45deg);
+  }
+  .bp-sheet-x:hover {
+    color: var(--text);
+    background: var(--surface-sunken);
+  }
+  .bp-sheet-x:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+  }
+  .bp-sheet-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+  @media (max-width: 640px) {
+    .bp-sheet-actions {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .bp-sheet-or {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.68rem;
-    color: #fff3e6;
+    gap: var(--space-3);
+    margin: var(--space-4) 0 var(--space-3);
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
   }
-  .bp-viewlegend i {
-    flex: 0 0 80px;
-    height: 8px;
-    border-radius: 4px;
-    border: 1px solid rgba(255, 255, 255, 0.4);
+  .bp-sheet-or::before,
+  .bp-sheet-or::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--line);
   }
-  .bp-ramp-density {
-    background: linear-gradient(
-      90deg,
-      rgba(245, 222, 130, 0.3),
-      #f5c542 45%,
-      #d84315
-    );
-  }
-  .bp-turnstile {
-    margin: 0 0 8px;
-  }
-  .bp-turnstile:empty {
+  /* collapsed, the sheet leaves a shell bar at the foot of the map */
+  .bp-dockbar {
+    appearance: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-height: 48px;
     margin: 0;
-  }
-  .bp-suggest {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-top: 8px;
-  }
-  .bp-suggestion {
-    text-align: left;
-    border: 1px solid var(--color-border-light);
-    background: var(--color-light);
-    border-radius: 6px;
-    padding: 7px 10px;
-    font-size: 0.8rem;
-    color: var(--color-text-default);
+    padding: var(--space-2) var(--space-4);
+    border: 0;
+    border-top: 1px solid var(--shell-edge);
+    background: linear-gradient(160deg, var(--shell-1) 0%, var(--shell-2) 42%, var(--shell-3) 100%);
+    color: var(--on-shell);
+    font-family: var(--font-body);
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.3;
+    text-align: center;
     cursor: pointer;
   }
-  .bp-suggestion:hover,
-  .bp-suggestion.bp-on {
-    border-color: var(--color-primary);
+  .bp-dockbar.show {
+    display: flex;
   }
-  .bp-suggestion small {
+  .bp-dockbar:hover {
+    filter: brightness(1.14);
+  }
+  .bp-dockbar:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--focus);
+  }
+  .bp-dock-caret {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    margin-top: 4px;
+    border-left: 2px solid currentColor;
+    border-top: 2px solid currentColor;
+    transform: rotate(45deg);
+  }
+  /* Keep Leaflet's attribution visible above the docked bar. */
+  .bp-mapcard:has(.bp-dockbar.show) .leaflet-control-attribution {
+    margin-bottom: 48px;
+  }
+
+  /* ---- the panel ---- */
+  .bp-panel {
+    padding: var(--space-6);
+  }
+  @media (max-width: 640px) {
+    .bp-panel {
+      padding: var(--space-5) var(--space-4);
+    }
+  }
+  .bp-panel .bp-h {
+    margin: 0 0 var(--space-1);
+    color: var(--text);
+  }
+  .bp-panel h3 {
+    margin: 0 0 var(--space-1);
+    color: var(--text);
+  }
+  .bp-panelsub {
+    margin: 0 0 var(--space-4);
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--text-body);
+  }
+  .bp-panelsub:empty {
+    display: none;
+  }
+  .bp-gap {
+    margin-top: var(--space-3);
+  }
+  .bp-wide.jw-btn {
+    display: flex;
+    width: 100%;
+  }
+  .bp-ico {
+    flex: none;
+    width: 16px;
+    height: 16px;
+  }
+  .bp-btnrow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+  }
+
+  /* the steps (jw-steps) head the panel */
+  .bp-steps.jw-steps {
+    margin: calc(-1 * var(--space-2)) 0 var(--space-4);
+    padding: 0 0 var(--space-2);
+    border-bottom: 1px solid var(--line);
+    container: bp-steps / inline-size;
+  }
+  /* The three labels need 432px on one line. When the panel is narrower
+     (beside the map from 901px to about 1270px, and in a partner's iframe of
+     that width), only the current step shows its words, as the Stepper does
+     on phones; the others keep them for screen readers. */
+  @container bp-steps (max-width: 440px) {
+    .bp-steps .jw-steps__step:not([aria-current="step"]) {
+      justify-content: center;
+    }
+    .bp-steps .jw-steps__step:not([aria-current="step"]) .jw-steps__label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+
+  /* address row; its suggestions are a jw-listbox */
+  .bp-addr {
+    display: flex;
+    gap: var(--space-2);
+  }
+  .bp-addr .jw-input {
+    flex: 1;
+    min-width: 0;
+  }
+  /* "More ways" and "Advanced": the system's disclosure, flush in the card */
+  .bp-panel .bp-more,
+  .bp-sheet .bp-more {
+    margin-top: var(--space-4);
+    border-top: 1px solid var(--line);
+  }
+  .bp-more > .jw-disclosure__summary {
+    min-height: 48px;
+    padding: var(--space-2) 0;
+    font-size: 16px;
+  }
+  .bp-more > .jw-disclosure__summary:hover {
+    background: none;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+  .bp-more > .jw-disclosure__body {
+    padding: 0 0 var(--space-2);
+  }
+  .bp-sheet .bp-more {
+    margin-top: var(--space-3);
+  }
+
+  /* messages: errors are words in error crimson; good news in success */
+  .bp-filemsg {
+    margin: var(--space-2) 0 0;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--error);
+  }
+  .bp-filemsg.bp-ok {
+    color: var(--success);
+  }
+
+  /* confirm */
+  .bp-acrepill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: var(--space-2) 0 var(--space-3);
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 1.2;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  .bp-acrepill:empty {
+    display: none;
+  }
+  /* a swatch of the marigold line that marks the chosen ground on the map */
+  .bp-acrepill::before {
+    content: "";
+    flex: none;
+    width: 14px;
+    height: 14px;
+    box-sizing: border-box;
+    border: 2px solid var(--selected);
+    border-radius: var(--radius-xs);
+    box-shadow: 0 0 0 1px var(--selected-hairline);
+    background: color-mix(in srgb, var(--selected) 20%, transparent);
+  }
+  .bp-ring {
+    margin: 0 0 var(--space-4);
+  }
+  .bp-advanced {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .bp-ppa .jw-input-wrap {
+    max-width: 160px;
+  }
+
+  /* scan */
+  .bp-bar {
+    position: relative;
+    height: 8px;
+    margin: var(--space-3) 0;
+    overflow: hidden;
+    border-radius: var(--radius-round);
+    background: var(--surface-sunken);
+    box-shadow: var(--shadow-well);
+  }
+  .bp-bar > div {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--land);
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    transition: transform 0.2s linear;
+  }
+  /* the feed: a shell console with mono lines */
+  .bp-stages {
+    list-style: none;
+    margin: 0;
+    padding: var(--space-3) var(--space-4);
+    min-height: 150px;
+    max-height: 210px;
+    overflow-y: auto;
+    border: 1px solid var(--shell-edge);
+    border-radius: var(--radius-sm);
+    background: linear-gradient(160deg, var(--shell-2) 0%, var(--shell-3) 100%);
+    box-shadow: var(--shadow-well);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--on-shell);
+  }
+  .bp-stages li {
+    padding: 1px 0;
+  }
+  .bp-stages li.bp-done,
+  .bp-stages li .bp-tprompt,
+  .bp-stages .bp-tok {
+    color: var(--juniper-300);
+  }
+  .bp-stages li .bp-tprompt {
+    user-select: none;
+  }
+  .bp-stages li.bp-current {
+    color: var(--on-shell);
+  }
+  .bp-cursor {
+    display: inline-block;
+    width: 0.55em;
+    height: 1em;
+    margin-left: 2px;
+    vertical-align: -0.15em;
+    /* steady, not blinking: the typing is the one thing moving in the
+       console (the map's sweep is the other, and the bar creeps) */
+    background: currentColor;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bp-bar > div {
+      transition: none;
+    }
+  }
+  .bp-acts {
+    margin: var(--space-3) 0 var(--space-1);
+  }
+  .bp-act {
+    margin: var(--space-2) 0;
+    padding: var(--space-1) 0 var(--space-1) var(--space-3);
+    border-left: 3px solid var(--line);
+    font-size: 16px;
+    line-height: 1.45;
+    color: var(--text-muted);
+  }
+  .bp-act strong {
+    font-weight: 500;
+  }
+  .bp-act.bp-on {
+    border-left-color: var(--land);
+    color: var(--text);
+  }
+  .bp-actstat {
     display: block;
-    opacity: 0.65;
-    font-size: 0.72rem;
+    font-size: 15px;
+    color: var(--text-body);
+    font-variant-numeric: tabular-nums;
   }
-  [hidden] {
-    display: none !important;
+  .bp-actstat:empty {
+    display: none;
+  }
+  .bp-scannote {
+    margin: var(--space-3) 0 0;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+
+  /* result */
+  .bp-band {
+    margin: var(--space-3) 0 var(--space-5);
+    padding: var(--space-4) 0;
+    border-top: 1px solid var(--line-strong);
+    border-bottom: 1px solid var(--line);
+  }
+  .bp-band-big {
+    display: block;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  .bp-band p {
+    margin: var(--space-2) 0 0;
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--text-body);
+  }
+  .bp-rows caption {
+    padding: 0 0 var(--space-2);
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    line-height: 1.35;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .bp-rows.jw-table tbody th {
+    font-weight: 400;
+    color: var(--text-body);
+  }
+  .bp-rows td {
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .bp-confnote {
+    margin: var(--space-4) 0 var(--space-5);
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--text-muted);
+  }
+  .bp-lead {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--line);
+  }
+  .bp-lead > p {
+    margin: 0 0 var(--space-1);
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--text-body);
+  }
+  .bp-req {
+    margin-left: 2px;
+    color: var(--text-muted);
+  }
+  .bp-opt {
+    margin-left: var(--space-2);
+    font-weight: 400;
+    color: var(--text-muted);
+  }
+  .bp-turnstile:empty {
+    display: none;
+  }
+  .bp-leadmsg {
+    margin: 0;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--line-strong);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--text-body);
+  }
+  .bp-leadmsg.bp-ok {
+    border-left-color: var(--success);
+    color: var(--success);
+  }
+  .bp-leadmsg.bp-err {
+    border-left-color: var(--error);
+    color: var(--error);
+  }
+  .bp-resultactions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-5);
+  }
+
+  /* ---- phones: give the map the fold, then frame map and console ---- */
+  @media (max-width: 640px) {
+    .bp-mapcaption {
+      display: none;
+    }
+    .bp-lt {
+      left: var(--space-2);
+      bottom: 40px;
+      max-width: calc(100% - 2 * var(--space-2));
+    }
+    .bp-lt-line {
+      font-size: 17px;
+    }
+  }
+  @media (max-width: 900px) {
+    /* While the scan runs the map shrinks so the map and the console are
+       in view together. */
+    body.bp-analyzing #bpMap {
+      height: 34vh;
+      min-height: 220px;
+    }
+  }
+
+  /* ---- partner embed: the iframe is sized to its content, so vh units
+     would feed back into its own height. Fixed map heights instead. ---- */
+  .bp-embed #bpMap {
+    height: 560px;
+  }
+  @media (max-width: 900px) {
+    .bp-embed #bpMap {
+      height: 440px;
+      min-height: 0;
+    }
+    body.bp-analyzing .bp-embed #bpMap {
+      height: 260px;
+      min-height: 0;
+    }
   }
 </style>
 
@@ -1167,6 +1405,62 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       "https://feature.geographic.texas.gov/arcgis/rest/services/Parcels/stratmap_land_parcels_48_most_recent/MapServer/identify";
     var ACRE_M2 = 4046.8564224;
     var PARCEL_TIMEOUT_MS = 10000;
+
+    // Colors drawn on the map and in canvases come from the design tokens
+    // (design/tokens/tokens.css), read when they are drawn, so day and
+    // night follow the page. Map jobs: the ground we'll measure is marigold
+    // (selected) over an ink hairline; neighboring property lines are the
+    // dashed boundary; brush to treat is tip orange.
+    function tok(name, fallback) {
+      try {
+        var v = getComputedStyle(document.documentElement)
+          .getPropertyValue(name)
+          .trim();
+        return v || fallback;
+      } catch (e) {
+        return fallback;
+      }
+    }
+    function hexRgb(hex, fallback) {
+      var m = /^#?([0-9a-f]{6})$/i.exec(String(hex).trim());
+      if (!m) return fallback;
+      var n = parseInt(m[1], 16);
+      return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    }
+    function rgba(name, fallback, a) {
+      var c = hexRgb(tok(name, ""), fallback);
+      return "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + a + ")";
+    }
+    function selColor() {
+      return tok("--selected", "#F2A71B");
+    }
+    function treatColor() {
+      return tok("--tip-500", "#E5743A");
+    }
+    function outlineStyle() {
+      return { color: selColor(), weight: 3, fill: false };
+    }
+    function hairlineStyle() {
+      return { color: tok("--selected-hairline", "#20251F"), weight: 5, opacity: 0.55, fill: false };
+    }
+    // The chosen ground: marigold over an ink hairline, so it holds on pale
+    // caliche as well as dark brush.
+    function drawOutline(f, layer) {
+      L.geoJSON(f, { style: hairlineStyle() }).addTo(layer).bpRole = "hair";
+      var top = L.geoJSON(f, { style: outlineStyle() }).addTo(layer);
+      top.bpRole = "line";
+      return top;
+    }
+    // A label inside a button keeps the button's mark when a script swaps
+    // its words.
+    function setLabel(btn, text) {
+      var l = btn.querySelector(".bp-btnlabel");
+      (l || btn).textContent = text;
+    }
+    // Progress fills by transform only.
+    function setBar(bar, pct) {
+      bar.style.transform = "scaleX(" + Math.max(0, Math.min(100, pct)) / 100 + ")";
+    }
 
     // Partner embed (embed/ballpark.astro): ?partner= attributes every
     // event, the estimate trigger, and the lead to the partner site. Only a
@@ -1402,6 +1696,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         var done = c.n < curStep;
         b.classList.toggle("bp-active", on);
         b.classList.toggle("bp-done", done);
+        b.classList.toggle("is-done", done);
         b.classList.toggle("bp-click", c.can);
         b.querySelector(".bp-step-n").textContent = done ? "✓" : String(c.n);
         b.disabled = !c.can;
@@ -1836,9 +2131,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         return;
       }
       st.geometry = u.geometry;
-      var outline = L.geoJSON(u, {
-        style: { color: "#f2b23a", weight: 3, fill: false },
-      }).addTo(boundaryLayer);
+      var outline = drawOutline(u, boundaryLayer);
       if (fit) map.fitBounds(outline.getBounds().pad(0.3));
       var acres = turf.area(u) / ACRE_M2;
       el("bpAcrePill").textContent =
@@ -1849,24 +2142,28 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
     }
     // Selected ground is solid gold; neighboring parcels are visibly
     // grayed ghosts so a wrong-parcel landing is obviously recoverable.
-    var PARCEL_ON = {
-      color: "#f2b23a",
-      weight: 1,
-      dashArray: null,
-      fillColor: "#f2b23a",
-      fillOpacity: 0.12,
-    };
-    var PARCEL_OFF = {
-      color: "#f2efe6",
-      weight: 1.5,
-      dashArray: "5 4",
-      fillColor: "#6d685c",
-      fillOpacity: 0.14,
-    };
+    function PARCEL_ON() {
+      return {
+        color: selColor(),
+        weight: 1,
+        dashArray: null,
+        fillColor: selColor(),
+        fillOpacity: 0.12,
+      };
+    }
+    function PARCEL_OFF() {
+      return {
+        color: tok("--boundary", "#20251F"),
+        weight: 1.5,
+        dashArray: "5 4",
+        fillColor: tok("--line-strong", "#868B80"),
+        fillOpacity: 0.14,
+      };
+    }
     function addParcel(f, isMember) {
       var key = String(f.properties.objectid);
       var lyr = L.geoJSON(f, {
-        style: isMember ? PARCEL_ON : PARCEL_OFF,
+        style: isMember ? PARCEL_ON() : PARCEL_OFF(),
       }).addTo(parcelLayer);
       lyr.feature = f;
       (isMember ? st.members : st.others)[key] = lyr;
@@ -1874,18 +2171,18 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         if (st.others[key]) lyr.setStyle({ fillOpacity: 0.28 });
       });
       lyr.on("mouseout", function () {
-        if (st.others[key]) lyr.setStyle(PARCEL_OFF);
+        if (st.others[key]) lyr.setStyle(PARCEL_OFF());
       });
       lyr.on("click", function () {
         if (st.members[key]) {
           if (Object.keys(st.members).length === 1) return; // keep one
           delete st.members[key];
           st.others[key] = lyr;
-          lyr.setStyle(PARCEL_OFF);
+          lyr.setStyle(PARCEL_OFF());
         } else {
           delete st.others[key];
           st.members[key] = lyr;
-          lyr.setStyle(PARCEL_ON);
+          lyr.setStyle(PARCEL_ON());
         }
         refreshFromMembers(false);
       });
@@ -1989,9 +2286,9 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       if (!st.ringCenter) return;
       L.circle(st.ringCenter, {
         radius: st.ringR,
-        color: "#f2b23a",
+        color: selColor(),
         weight: 3,
-        fillColor: "#f2b23a",
+        fillColor: selColor(),
         fillOpacity: 0.1,
       }).addTo(ringLayer);
       var circ = turf.circle(
@@ -2054,7 +2351,8 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       mbItems.forEach(function (s, i) {
         var b = document.createElement("button");
         b.type = "button";
-        b.className = "bp-suggestion" + (i === mbActive ? " bp-on" : "");
+        b.className =
+          "bp-suggestion jw-listbox__option" + (i === mbActive ? " bp-on" : "");
         b.setAttribute("role", "option");
         b.setAttribute("aria-selected", i === mbActive ? "true" : "false");
         b.innerHTML = "";
@@ -2213,7 +2511,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       }
       function idle() {
         btn.disabled = false;
-        btn.textContent = "Find it";
+        setLabel(btn, "Find it");
       }
       // "Find it" with the dropdown showing means "that one".
       if (!sg.hidden && mbItems.length && mbItemsQ === q) {
@@ -2239,7 +2537,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         return;
       }
       btn.disabled = true;
-      btn.textContent = "Searching…";
+      setLabel(btn, "Searching…");
       say("Looking that up…", true);
       function go(o, provider, list) {
         sg.hidden = true;
@@ -2311,7 +2609,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
           r.list.slice(0, 5).forEach(function (o) {
             var b = document.createElement("button");
             b.type = "button";
-            b.className = "bp-suggestion";
+            b.className = "bp-suggestion jw-listbox__option";
             b.setAttribute("role", "option");
             b.textContent = o.label;
             b.addEventListener("click", function () {
@@ -2377,9 +2675,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       st.geometry = FOX_DEMO;
       st.demoBase = "/demo/fox-canyon/";
       var f = turf.feature(FOX_DEMO);
-      var outline = L.geoJSON(f, {
-        style: { color: "#f2b23a", weight: 3, fill: false },
-      }).addTo(boundaryLayer);
+      var outline = drawOutline(f, boundaryLayer);
       map.fitBounds(outline.getBounds().pad(0.3));
       el("bpAcrePill").textContent =
         "≈ " +
@@ -2440,9 +2736,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       st.county = null;
       st.geometry = geometry;
       var f = turf.feature(geometry);
-      var outline = L.geoJSON(f, {
-        style: { color: "#f2b23a", weight: 3, fill: false },
-      }).addTo(boundaryLayer);
+      var outline = drawOutline(f, boundaryLayer);
       map.fitBounds(outline.getBounds().pad(0.3));
       el("bpAcrePill").textContent =
         "≈ " + Math.round(turf.area(f) / ACRE_M2).toLocaleString() + " acres";
@@ -2508,14 +2802,14 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       st.drawPts.forEach(function (ll) {
         L.circleMarker(ll, {
           radius: 5,
-          color: "#f2b23a",
-          fillColor: "#f2b23a",
+          color: selColor(),
+          fillColor: selColor(),
           fillOpacity: 1,
         }).addTo(drawLayer);
       });
       if (st.drawPts.length >= 2)
         L.polyline(st.drawPts, {
-          color: "#f2b23a",
+          color: selColor(),
           weight: 3,
           dashArray: "6 4",
         }).addTo(drawLayer);
@@ -2633,7 +2927,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       var p = 0;
       var pulse = setInterval(function () {
         p = Math.min(88, p + (88 - p) * 0.04);
-        bar.style.width = p.toFixed(1) + "%";
+        setBar(bar, p);
       }, 200);
       var t0 = Date.now();
       var bigAcres = 0;
@@ -2806,7 +3100,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
                     high: rq.high,
                     demo: false,
                   });
-                  bar.style.width = "100%";
+                  setBar(bar, 100);
                   feedRender(FEED.length, true);
                   st.resp = stt.result;
                   setTimeout(function () {
@@ -2847,7 +3141,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
           .then(function (result) {
             if (mySeq !== st.intakeSeq || !live()) return;
             stopTimers();
-            bar.style.width = "100%";
+            setBar(bar, 100);
             feedRender(FEED.length, true);
             st.resp = result;
             st.runId = null;
@@ -3108,7 +3402,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         if (v.key !== "density" && !showGroups[v.key]) return;
         var b = document.createElement("button");
         b.type = "button";
-        b.className = "bp-view";
+        b.className = "bp-view jw-seg__btn";
         b.dataset.key = v.key;
         b.textContent = v.label;
         b.addEventListener("click", function () {
@@ -3146,6 +3440,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         var pSeq = showSeq;
         pim.onload = function () {
           if (pSeq !== showSeq) return;
+          var psrc = pim.src;
           try {
             var pcv = document.createElement("canvas");
             pcv.width = pim.naturalWidth;
@@ -3153,11 +3448,22 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
             pcv.getContext("2d").drawImage(pim, 0, 0);
             st.plantsCanvas = pcv;
             st.plantsBounds = Ls.plants.bounds;
+            // Brush to treat is tip orange on the map, whatever color
+            // the mask was published in (alpha carries the shape).
+            var tcv = document.createElement("canvas");
+            tcv.width = pcv.width;
+            tcv.height = pcv.height;
+            var tx = tcv.getContext("2d");
+            tx.drawImage(pcv, 0, 0);
+            tx.globalCompositeOperation = "source-in";
+            tx.fillStyle = treatColor();
+            tx.fillRect(0, 0, tcv.width, tcv.height);
+            psrc = tcv.toDataURL("image/png");
           } catch (e) {
             /* popup crops degrade; overlay still works */
           }
           var pg = L.layerGroup();
-          L.imageOverlay(pim.src, Ls.plants.bounds, {
+          L.imageOverlay(psrc, Ls.plants.bounds, {
             opacity: 0.8,
             interactive: false,
           }).addTo(pg);
@@ -3211,11 +3517,12 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
           x2.drawImage(imgs.greenness, dx, dy, dw, dh);
           var B = x2.getImageData(0, 0, W, H);
           var out = x1.createImageData(W, H);
+          var tc = hexRgb(treatColor(), [229, 116, 58]);
           for (var i = 3; i < A.data.length; i += 4) {
             if (A.data[i] > 40 && B.data[i] > 40) {
-              out.data[i - 3] = 53;
-              out.data[i - 2] = 201;
-              out.data[i - 1] = 58;
+              out.data[i - 3] = tc[0];
+              out.data[i - 2] = tc[1];
+              out.data[i - 1] = tc[2];
               out.data[i] = 235;
             }
           }
@@ -3323,13 +3630,21 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
     }
 
     /* ---------------- result ---------------- */
-    // Straw -> amber -> burnt red, keyed to brush cover fraction.
+    // Pale tip -> tip orange -> burnt, keyed to brush cover fraction:
+    // more brush to treat reads as more orange (tip-100, tip-300, tip-600).
+    var densStops = null;
     function densColor(c) {
-      var stops = [
-        [0, 245, 222, 130],
-        [0.25, 245, 197, 66],
-        [0.6, 216, 67, 21],
-      ];
+      if (!densStops) {
+        var a = hexRgb(tok("--tip-100", ""), [252, 228, 211]);
+        var b = hexRgb(tok("--tip-300", ""), [242, 162, 115]);
+        var d = hexRgb(tok("--tip-600", ""), [190, 74, 28]);
+        densStops = [
+          [0, a[0], a[1], a[2]],
+          [0.25, b[0], b[1], b[2]],
+          [0.6, d[0], d[1], d[2]],
+        ];
+      }
+      var stops = densStops;
       var lo = stops[0];
       var hi = stops[stops.length - 1];
       for (var i = 0; i < stops.length - 1; i++) {
@@ -3387,7 +3702,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       c.width = SZ;
       c.height = SZ;
       var cx = c.getContext("2d");
-      cx.fillStyle = "#20261d";
+      cx.fillStyle = tok("--shell-3", "#12141B");
       cx.fillRect(0, 0, SZ, SZ);
       wrap.appendChild(c);
       function overlays() {
@@ -3396,13 +3711,13 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
           cx.beginPath();
           cx.rect(0, 0, SZ, SZ);
           bpBoundaryPath(cx, swc, nec, SZ);
-          cx.fillStyle = "rgba(8, 10, 6, 0.55)";
+          cx.fillStyle = rgba("--shell-3", [18, 20, 27], 0.55);
           cx.fill("evenodd");
           cx.restore();
           cx.save();
           cx.beginPath();
           bpBoundaryPath(cx, swc, nec, SZ);
-          cx.strokeStyle = "#ffd27a";
+          cx.strokeStyle = selColor();
           cx.lineWidth = 2;
           cx.stroke();
           cx.restore();
@@ -3424,9 +3739,9 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
             mx.imageSmoothingEnabled = false;
             mx.drawImage(pc, sx, sy, sw, sh, 0, 0, SZ, SZ);
             mx.globalCompositeOperation = "source-in";
-            mx.fillStyle = "#e621d8";
+            mx.fillStyle = treatColor();
             mx.fillRect(0, 0, SZ, SZ);
-            cx.globalAlpha = 0.55;
+            cx.globalAlpha = 0.7;
             cx.drawImage(m, 0, 0);
             cx.globalAlpha = 1;
           }
@@ -3514,7 +3829,13 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
           function () {
             return tilePopup(t, swc, nec);
           },
-          { maxWidth: 200 },
+          {
+            maxWidth: 200,
+            // keep the popup clear of the view switch (top on wide
+            // screens, docked at the foot on phones)
+            autoPanPaddingTopLeft: L.point(16, 96),
+            autoPanPaddingBottomRight: L.point(16, 120),
+          },
         );
         return r;
       });
@@ -3609,7 +3930,11 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       try {
         tsWidget = window.turnstile.render(el("bpTurnstile"), {
           sitekey: TURNSTILE_KEY,
-          theme: "auto",
+          // Follow the page's day or night, not the device's.
+          theme:
+            document.documentElement.getAttribute("data-theme") === "dark"
+              ? "dark"
+              : "light",
           appearance: "interaction-only",
           // Returning true marks the error handled: a widget failure
           // (unlisted hostname, network) degrades to a tokenless submit
@@ -3710,11 +4035,38 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         });
     });
 
+    /* ---------------- day and night ---------------- */
+    // Lines whose token changes with the theme (the dashed property lines
+    // and the chosen ground's hairline) are redrawn when it switches.
+    new MutationObserver(function () {
+      Object.keys(st.others).forEach(function (k) {
+        st.others[k].setStyle(PARCEL_OFF());
+      });
+      boundaryLayer.eachLayer(function (l) {
+        if (l.bpRole === "hair") l.setStyle(hairlineStyle());
+      });
+    }).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+    // The ring slider's ink fill follows the thumb (jw-slider reads --jw-p).
+    (function () {
+      var r = el("bpRingRange");
+      function sync() {
+        var min = Number(r.min) || 0;
+        var max = Number(r.max) || 1;
+        var p = Math.min(1, Math.max(0, (Number(r.value) - min) / (max - min)));
+        r.style.setProperty("--jw-p", p.toFixed(4));
+      }
+      r.addEventListener("input", sync);
+      sync();
+    })();
+
     /* ---------------- navigation ---------------- */
     function replayShow() {
       if (!st.resp) return;
       el("bpScanErr").hidden = true;
-      el("bpBarFill").style.width = "100%";
+      setBar(el("bpBarFill"), 100);
       feedRender(FEED.length, true);
       panelsShow("bpStepScan");
       playShow(st.resp);
@@ -3771,263 +4123,52 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
 </script>
 
 <!-- ================= Guided intake + mobile presentation ================= -->
-<!-- The choice sheet greets every visitor over the map (the address input
-     lives below the fold on phones, and unguided visitors poke the map
-     instead of finding it). The style/observer block below also carries
-     the mobile presentation fixes: fold reclaim, framed analysis, docked
-     view switcher, and result auto-scroll. -->
-<style is:global>
-  /* --- Fold reclaim: the hero and the tool section each inherit the
-     global 80px section padding — 160px of chrome before the tool at
-     every width. --- */
-  main.has-section-spacing-md section.bp-hero {
-    padding-top: 32px;
-  }
-  main.has-section-spacing-md section.bp-toolwrap {
-    padding-top: 24px;
-  }
-  @media (max-width: 900px) {
-    main.has-section-spacing-md section.bp-toolwrap {
-      padding-top: 16px;
-    }
-  }
-  @media (max-width: 640px) {
-    main.has-section-spacing-md section.bp-hero {
-      padding-top: 20px;
-    }
-    .bp-hero h1 {
-      margin-top: 0.35rem;
-      font-size: calc(var(--text-h1-sm) * 0.9);
-    }
-    .bp-sub {
-      margin-top: 0.5rem;
-      font-size: 0.95rem;
-    }
-    .bp-sub-more {
-      display: none;
-    }
-    .bp-eyebrow {
-      display: none;
-    }
-    .bp-mapcaption {
-      display: none;
-    }
-  }
-
-  /* --- Framed analysis: on mobile the scan panel sits below a map that
-     fills the screen, so the live feed plays out of sight. While the
-     scan step is active the map shrinks and the panel becomes a console
-     directly beneath it — both in view, nothing pinned. --- */
-  @media (max-width: 900px) {
-    body.bp-analyzing #bpMap {
-      height: 34vh;
-      min-height: 220px;
-    }
-    body.bp-analyzing #bpStepScan {
-      background: rgba(20, 16, 12, 0.95);
-      color: #f2efe6;
-      border-radius: 12px;
-      padding: 12px 14px 10px;
-      margin-top: 10px;
-    }
-    body.bp-analyzing #bpStepScan h2 {
-      font-size: 0.95rem;
-      margin: 0 0 8px;
-      color: #f2efe6;
-    }
-    body.bp-analyzing #bpStepScan .bp-scannote {
-      color: #b8b2a4;
-    }
-    /* The sticky site header floats over the top of the map on phones,
-       burying the view switcher. Dock it to the bottom instead, clear
-       of the scale and attribution. */
-    .bp-viewpanel {
-      top: auto;
-      bottom: 34px;
-      max-width: calc(100% - 16px);
-      border-radius: 14px;
-    }
-  }
-
-  /* --- The choice sheet over the map --- */
-  .bp-sheetwrap {
-    position: absolute;
-    inset: 0;
-    z-index: 1100;
-    background: rgba(20, 16, 12, 0.55);
-    display: none;
-    align-items: flex-end;
-  }
-  .bp-sheetwrap.open {
-    display: flex;
-  }
-  .bp-sheet {
-    position: relative;
-    max-height: 100%;
-    overflow-y: auto;
-    background: #fffdf8;
-    color: #1c1917;
-    width: 100%;
-    border-radius: 16px 16px 0 0;
-    padding: 18px 16px 20px;
-    box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.35);
-  }
-  .bp-sheet h3 {
-    margin: 0 0 12px;
-    font-size: 1.05rem;
-  }
-  .bp-sheet button {
-    display: block;
-    width: 100%;
-    margin-top: 8px;
-    padding: 13px 16px;
-    border-radius: 10px;
-    border: 1px solid rgba(0, 0, 0, 0.15);
-    background: #f7f3ea;
-    font-size: 0.95rem;
-    text-align: left;
-    cursor: pointer;
-  }
-  .bp-sheet button.bp-sheet-primary {
-    background: #f2b23a;
-    border-color: #f2b23a;
-    font-weight: 700;
-  }
-  .bp-sheet .bp-sheet-x {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 32px;
-    height: 32px;
-    margin: 0;
-    padding: 0;
-    border-radius: 50%;
-    border: 1px solid rgba(0, 0, 0, 0.15);
-    background: #f7f3ea;
-    font-size: 0.85rem;
-    line-height: 1;
-    text-align: center;
-    cursor: pointer;
-  }
-  .bp-sheet-or {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-top: 14px;
-    color: #8a8577;
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-  .bp-sheet-or::before,
-  .bp-sheet-or::after {
-    content: "";
-    flex: 1;
-    height: 1px;
-    background: rgba(0, 0, 0, 0.12);
-  }
-  .bp-sheet .bp-sheet-demo {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: #1c1917;
-    border: none;
-    color: #f2efe6;
-    text-align: left;
-    padding: 12px 14px;
-  }
-  .bp-sheet-demo-play {
-    flex: none;
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    background: #f2b23a;
-    color: #1c1917;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-    padding-left: 3px;
-  }
-  .bp-sheet-demo-txt strong {
-    display: block;
-    font-size: 0.92rem;
-  }
-  .bp-sheet-demo-txt small {
-    color: #b8b2a4;
-    font-size: 0.78rem;
-  }
-  .bp-sheet-more {
-    margin-top: 10px;
-  }
-  .bp-sheet-more summary {
-    text-align: center;
-    color: #6d685c;
-    font-size: 0.85rem;
-    padding: 6px 0;
-    cursor: pointer;
-  }
-  .bp-dockbar {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 1100;
-    border: none;
-    background: rgba(20, 16, 12, 0.92);
-    color: #f2b23a;
-    padding: 13px 16px;
-    font-size: 0.9rem;
-    font-weight: 700;
-    text-align: center;
-    cursor: pointer;
-    display: none;
-  }
-  .bp-dockbar.show {
-    display: block;
-  }
-  /* Keep Leaflet's attribution visible above the docked bar. */
-  .bp-mapcard:has(.bp-dockbar.show) .leaflet-control-attribution {
-    margin-bottom: 46px;
-  }
-
-  /* --- Partner embed: the iframe is sized to its content, so vh units
-     would feed back into its own height. Fixed map heights instead. --- */
-  .bp-embed.bp-toolwrap {
-    padding-top: 0;
-    padding-bottom: 0;
-  }
-  .bp-embed #bpMap {
-    height: 560px;
-  }
-  @media (max-width: 900px) {
-    .bp-embed #bpMap {
-      height: 440px;
-      min-height: 0;
-    }
-    body.bp-analyzing .bp-embed #bpMap {
-      height: 260px;
-      min-height: 0;
-    }
-  }
-</style>
+<!-- The choice sheet (markup above) greets every visitor over the map; this
+     script runs it, and carries the mobile presentation: framed analysis
+     and the result auto-scroll. -->
 <script is:inline>
   (function () {
     "use strict";
     var mobileMq = window.matchMedia("(max-width: 900px)");
+    var reduceMq = window.matchMedia("(prefers-reduced-motion: reduce)");
     var mapCard = document.getElementById("bpMapCard");
+
+    function behavior() {
+      return reduceMq.matches ? "auto" : "smooth";
+    }
+    // Scroll a block to the top of the screen, clear of the sticky nav bar:
+    // the chrome's own scroll-padding-top says how far down (none in the
+    // partner embed).
+    function scrollToBlock(node) {
+      var pad = 0;
+      try {
+        pad =
+          parseFloat(
+            getComputedStyle(document.documentElement).scrollPaddingTop,
+          ) || 0;
+      } catch (e) {
+        /* no padding */
+      }
+      window.scrollTo({
+        top: node.getBoundingClientRect().top + window.scrollY - pad,
+        behavior: behavior(),
+      });
+    }
 
     function goType() {
       var inp = document.getElementById("bpAddrInput");
-      inp.scrollIntoView({ behavior: "smooth", block: "center" });
-      setTimeout(function () {
-        inp.focus();
-      }, 450);
+      inp.scrollIntoView({ behavior: behavior(), block: "center" });
+      setTimeout(
+        function () {
+          inp.focus();
+        },
+        reduceMq.matches ? 0 : 450,
+      );
     }
 
     // Framed analysis: while the scan step is active on mobile, shrink
-    // the map (CSS above), let Leaflet re-measure, and frame map +
-    // console together.
+    // the map (CSS), let Leaflet re-measure, and frame map + console
+    // together.
     var scanPanel = document.getElementById("bpStepScan");
     new MutationObserver(function () {
       var on = !scanPanel.hidden;
@@ -4035,12 +4176,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       setTimeout(function () {
         window.dispatchEvent(new Event("resize"));
       }, 80);
-      if (on && mobileMq.matches) {
-        window.scrollTo({
-          top: mapCard.getBoundingClientRect().top + window.scrollY - 88,
-          behavior: "smooth",
-        });
-      }
+      if (on && mobileMq.matches) scrollToBlock(mapCard);
     }).observe(scanPanel, { attributes: true, attributeFilter: ["hidden"] });
 
     // When the ballpark lands, bring the numbers into view on mobile —
@@ -4049,10 +4185,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
     new MutationObserver(function () {
       if (!resultPanel.hidden && mobileMq.matches) {
         setTimeout(function () {
-          window.scrollTo({
-            top: resultPanel.getBoundingClientRect().top + window.scrollY - 88,
-            behavior: "smooth",
-          });
+          scrollToBlock(resultPanel);
         }, 150);
       }
     }).observe(resultPanel, {
@@ -4061,32 +4194,8 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
     });
 
     // The choice sheet.
-    var wrap = document.createElement("div");
-    wrap.className = "bp-sheetwrap open";
-    wrap.innerHTML =
-      '<div class="bp-sheet">' +
-      '<button type="button" class="bp-sheet-x" data-act="collapse" aria-label="Collapse">\u2715</button>' +
-      "<h3>How do you want to find your ranch?</h3>" +
-      '<button type="button" class="bp-sheet-primary" data-act="type">\ud83d\udd0e&ensp;Type the address</button>' +
-      '<button type="button" data-act="here">\ud83d\udccd&ensp;I\u2019m standing on it</button>' +
-      '<div class="bp-sheet-or"><span>no ranch handy?</span></div>' +
-      '<button type="button" class="bp-sheet-demo" data-act="demo">' +
-      '<span class="bp-sheet-demo-play">\u25b6</span>' +
-      '<span class="bp-sheet-demo-txt"><strong>Watch a live demo</strong>' +
-      "<small>Fox Canyon \u2014 a real 180-acre West Texas ranch</small></span>" +
-      "</button>" +
-      '<details class="bp-sheet-more"><summary>More ways</summary>' +
-      '<button type="button" data-act="upload">\ud83d\udcc1&ensp;Upload a boundary file</button>' +
-      '<button type="button" data-act="draw">\u270f\ufe0f&ensp;Draw the fence line</button>' +
-      "</details>" +
-      "</div>";
-    var dock = document.createElement("button");
-    dock.type = "button";
-    dock.className = "bp-dockbar";
-    dock.innerHTML =
-      "Find your ranch \u2014 address, GPS, demo & more&ensp;\u25b4";
-    mapCard.appendChild(wrap);
-    mapCard.appendChild(dock);
+    var wrap = document.getElementById("bpSheetWrap");
+    var dock = document.getElementById("bpDock");
     function close(collapse) {
       wrap.classList.remove("open");
       dock.classList.toggle("show", !!collapse);
@@ -4125,12 +4234,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
         // The confirmation — or the geolocation error — lands in the
         // panel below a full-height map; frame map bottom + panel top.
         setTimeout(function () {
-          if (mobileMq.matches) {
-            window.scrollTo({
-              top: mapCard.getBoundingClientRect().top + window.scrollY - 88,
-              behavior: "smooth",
-            });
-          }
+          if (mobileMq.matches) scrollToBlock(mapCard);
         }, 400);
       } else if (act === "demo") {
         close(false);
@@ -4144,7 +4248,7 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_BALLPARK_TOKEN ?? "";
       } else if (act === "draw") {
         close(false);
         document.getElementById("bpBtnDraw").click();
-        mapCard.scrollIntoView({ behavior: "smooth", block: "start" });
+        mapCard.scrollIntoView({ behavior: behavior(), block: "start" });
       }
     });
   })();

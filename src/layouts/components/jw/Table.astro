@@ -1,0 +1,59 @@
+---
+/**
+ * Table (design/components/Table/README.md): a data table. Mono column labels, 16px cells with tabular figures, line
+ * rules; cells wrap to fit, so the page never scrolls sideways.
+ *   columns: [{ key, label, align?: "start" | "end", rowHeader? }]  align end for numbers; rowHeader: that column's cells
+ *     are <th scope="row"> (usually the first).
+ *   rows: [{ [key]: string | number, …, selected?: boolean }]  cell text (plain). A row's `selected` gives it the marigold ring.
+ *   caption: what the table shows (visible, above it). stack (default true): at 640px and below each row becomes a
+ *   block of label–value lines. card: the table sits on its own paper card.
+ * For cells with markup, write the plain HTML from the README instead.
+ */
+import type { HTMLAttributes } from "astro/types";
+
+interface Column {
+  key: string;
+  label: string;
+  align?: "start" | "end";
+  rowHeader?: boolean;
+}
+type Row = Record<string, string | number | boolean | undefined> & { selected?: boolean };
+interface Props extends Omit<HTMLAttributes<"table">, "class"> {
+  columns: Column[];
+  rows: Row[];
+  caption?: string;
+  stack?: boolean;
+  card?: boolean;
+  class?: string;
+}
+const { columns, rows, caption, stack = true, card = false, class: className, ...rest } = Astro.props;
+// Stacked tables switch their cells to display:block on phones, which drops table semantics in some browsers; the ARIA
+// roles keep them.
+const r = (role: string): any => (stack ? role : undefined);
+---
+
+<div class:list={["jw-table-wrap", card && "jw-table-wrap--card"]}>
+  <table class:list={["jw-table", stack && "jw-table--stack", className]} role={r("table")} {...rest}>
+    {caption && <caption>{caption}</caption>}
+    <thead role={r("rowgroup")}>
+      <tr role={r("row")}>
+        {columns.map((c) => <th scope="col" role={r("columnheader")} class:list={[c.align === "end" && "jw-table__num"]}>{c.label}</th>)}
+      </tr>
+    </thead>
+    <tbody role={r("rowgroup")}>
+      {
+        rows.map((row) => (
+          <tr role={r("row")} class:list={[row.selected && "is-selected"]} aria-selected={row.selected ? "true" : undefined}>
+            {columns.map((c) =>
+              c.rowHeader ? (
+                <th scope="row" role={r("rowheader")} class:list={[c.align === "end" && "jw-table__num"]}>{row[c.key]}</th>
+              ) : (
+                <td role={r("cell")} data-label={c.label} class:list={[c.align === "end" && "jw-table__num"]}>{row[c.key]}</td>
+              ),
+            )}
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>

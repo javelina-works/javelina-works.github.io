@@ -1,18 +1,19 @@
 ---
+// The homepage on the design system, in the prototype's order (design/BUILD_BRIEF.md §5,
+// design/reference/night-lamp.html): the hero on flaky rust, how it works on a shell band, the count on corrugated tin,
+// kept and treated on an agave band, then why plant by plant, where we work, and the ask on smooth rust. The nav bar
+// (with the lamp) and the footer (with the status light) come from Base. Head, title, meta and JSON-LD are unchanged:
+// they come from src/content/homepage/english/-index.md through Base.
 import Base from "@/layouts/Base.astro";
-import Team from "@/components/sections/Team.astro";
 import { generatePaths } from "@/lib/utils/i18nUtils";
 import { getEntryCTM } from "@/lib/contentParser.astro";
-import Location from "@/components/sections/Location.astro";
-import HomeVideoHero from "@/components/sections/HomeVideoHero.astro";
-import HowItWorks from "@/components/sections/HowItWorks.astro";
-import BlogSection from "@/components/sections/BlogSection.astro";
-import Features from "@/components/sections/FeaturesSection.astro";
-import ProcessShowcase from "@/components/sections/ProcessShowcase.astro";
-import CallToAction from "@/components/sections/CallToAction.astro";
-import PricingSection from "@/components/sections/PricingSection.astro";
+import HomeHero from "@/components/home/HomeHero.astro";
+import HomeSteps from "@/components/home/HomeSteps.astro";
+import HomeCount from "@/components/home/HomeCount.astro";
+import HomeKept from "@/components/home/HomeKept.astro";
 import BenefitsSection from "@/components/sections/BenefitsSection.astro";
-import TestimonialSection from "@/components/sections/TestimonialSection.astro";
+import Location from "@/components/sections/Location.astro";
+import CallToAction from "@/components/sections/CallToAction.astro";
 
 export function getStaticPaths() {
   return generatePaths();
@@ -22,22 +23,11 @@ const homepage = await getEntryCTM("homepage", "-index", Astro.currentLocale);
 ---
 
 <Base {...homepage.data} homepage={true}>
-  <!-- Custom component; wanted to display our cinematic drone footage -->
-  <HomeVideoHero />
-
-  <Features />
-
-  <ProcessShowcase />
+  <HomeHero />
+  <HomeSteps />
+  <HomeCount />
+  <HomeKept />
   <BenefitsSection />
-
-  <!-- Same as in "company/" -->
   <Location />
-
-  <!-- <Team /> -->
-  <!-- <PricingSection /> -->
-  <!-- <TestimonialSection /> -->
-  <!-- <BlogSection /> -->
-  <!-- <IntegrationSection /> -->
-
   <CallToAction />
 </Base>

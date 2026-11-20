@@ -1,0 +1,62 @@
+---
+/**
+ * Button (design/components/Button/README.md). Renders <a> with href, otherwise <button>.
+ * lamp: the page's one lamp (primary only) → data-jw-light="lamp" data-jw-flicker; the lighting engine flickers and lights it.
+ * attention="flicker" (primary, not lamp) → data-jw-flicker; the engine plays the flicker once on first view. No JS here.
+ */
+import type { HTMLAttributes } from "astro/types";
+
+type Variant = "primary" | "burnt" | "tint" | "ghost" | "shell" | "agave" | "quiet";
+interface Props extends Omit<HTMLAttributes<"a">, "class" | "type"> {
+  variant?: Variant;
+  /** sm: compact label and padding, still 44px tall */
+  size?: "md" | "sm";
+  href?: string;
+  /** the small square before the label; default on for primary and burnt */
+  mark?: boolean;
+  attention?: "none" | "flicker" | "glint" | "breathe";
+  lamp?: boolean;
+  disabled?: boolean;
+  type?: "button" | "submit" | "reset";
+  class?: string;
+}
+
+const {
+  variant = "primary",
+  size = "md",
+  href,
+  mark,
+  attention = "none",
+  lamp = false,
+  disabled = false,
+  type = "button",
+  class: className,
+  ...rest
+} = Astro.props;
+
+const showMark = mark ?? (variant === "primary" || variant === "burnt");
+const primary = variant === "primary" && !disabled;
+const attrs: Record<string, unknown> = { ...rest };
+if (lamp && primary) {
+  attrs["data-jw-light"] = "lamp";
+  attrs["data-jw-flicker"] = "";
+} else if (attention === "flicker" && primary) {
+  attrs["data-jw-flicker"] = "";
+}
+const cls = ["jw-btn", `jw-btn--${variant}`, size === "sm" && "jw-btn--sm", className];
+const label = await Astro.slots.render("default");
+const Tag = href ? "a" : "button";
+const tagAttrs: Record<string, unknown> = href
+  ? { href: disabled ? undefined : href, "aria-disabled": disabled ? "true" : undefined }
+  : { type, disabled };
+---
+
+{
+  attention === "breathe" ? (
+    <span class="jw-attn">
+      <Tag class:list={cls} {...tagAttrs} {...attrs}>{showMark && <span class="jw-btn__mark" aria-hidden="true" />}<Fragment set:html={label} /></Tag>
+    </span>
+  ) : (
+    <Tag class:list={cls} {...tagAttrs} {...attrs}>{attention === "glint" && <span class="jw-btn__glint" aria-hidden="true" />}{showMark && <span class="jw-btn__mark" aria-hidden="true" />}<Fragment set:html={label} /></Tag>
+  )
+}

@@ -1,8 +1,19 @@
 ---
-import { markdownify } from "@/lib/utils/textConverter";
-import Icons from "@/helpers/Icons.astro";
+/**
+ * Card shortcode (MDX), on the design system's IconCard (design/components/IconCard/README.md): a paper card with a
+ * Lucide icon in a small well, an optional figure, a heading and a line of text. Same props as before (icon, title,
+ * value, description, prependValue, appendValue, content, class); a prop wins over the same key in `content`.
+ * value now reads as a figure (prependValue + value + appendValue, in Barlow); the old card drew it as an icon name.
+ * Like before, nothing renders without a value or a description.
 
-type Card = {
+  <CardGrid>
+    <Card icon="Map" value="212" appendValue=" ac" title="Treated" description="Pasture 4, this spring." />
+  </CardGrid>
+ */
+import IconCard from "@/components/jw/IconCard.astro";
+import { markdownify } from "@/lib/utils/textConverter";
+
+type CardData = {
   icon?: string;
   title?: string;
   value?: string;
@@ -11,77 +22,24 @@ type Card = {
   prependValue?: string;
 };
 
-type Props = Card & {
+type Props = CardData & {
   class?: any;
-  content?: Card;
-};
-type LucideIconName = keyof typeof import("lucide");
-
-let {
-  icon,
-  title,
-  value,
-  content,
-  description,
-  appendValue,
-  prependValue,
-  class: className,
-} = Astro.props;
-
-const mergeObjects = (objOne: any, objTwo: any) => {
-  const mergedObj = {} as any;
-  for (const key of new Set([
-    ...Object.keys(objOne || {}),
-    ...Object.keys(objTwo || {}),
-  ])) {
-    const value1 = objOne && objOne[key];
-    const value2 = objTwo && objTwo[key];
-    if (value2) mergedObj[key] = value2;
-    else if (value1) mergedObj[key] = value1;
-  }
-  return mergedObj;
+  content?: CardData;
 };
 
-let actualContent = mergeObjects(content, {
-  icon,
-  title,
-  value,
-  description,
-  prependValue,
-  appendValue,
-}) as Card;
+const { icon, title, value, content, description, appendValue, prependValue, class: className } = Astro.props;
+
+const pick = <K extends keyof CardData>(k: K, v: CardData[K]) => v || content?.[k] || undefined;
+const card = {
+  icon: pick("icon", icon),
+  title: pick("title", title),
+  value: pick("value", value),
+  description: pick("description", description),
+  prependValue: pick("prependValue", prependValue),
+  appendValue: pick("appendValue", appendValue),
+};
+const figure = card.value ? `${card.prependValue || ""}${card.value}${card.appendValue || ""}` : undefined;
+const textHtml = card.description ? ((await markdownify(card.description)) as string) : undefined;
 ---
 
-{
-  (actualContent?.value || actualContent?.description) && (
-    <div
-      class:list={[
-        "flex flex-col gap-4 rounded-xl border bg-white p-5 md:p-8",
-        className,
-      ]}>
-      {actualContent?.icon && (
-        <Icons
-          class="text-text-default text-3xl"
-          icon={actualContent.icon as LucideIconName}
-        />
-      )}
-      <div class="mt-2 space-y-3">
-        {actualContent.value && (
-          <Icons
-            class="text-h4-sm md:text-h4"
-            icon={actualContent.value as any}
-          />
-        )}
-        {actualContent.title && (
-          <h3 class="text-h5-sm md:text-h5" set:html={actualContent.title} />
-        )}
-        {actualContent?.description && (
-          <p
-            class="text-gray-700 opacity-80"
-            set:html={markdownify(actualContent?.description)}
-          />
-        )}
-      </div>
-    </div>
-  )
-}
+{(card.value || card.description) && <IconCard class={className} icon={card.icon} value={figure} titleHtml={card.title} textHtml={textHtml} />}

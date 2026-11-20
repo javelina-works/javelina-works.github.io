@@ -1,4 +1,6 @@
 ---
+// /services/: the page header (h1 and intro on the ground), the four services as picture cards, how a job runs (three
+// step cards on a shell band), why treat brush plant by plant (icon cards), and the closing ask on a smooth-rust wall.
 import Base from "@/layouts/Base.astro";
 import { getEntryCTM } from "@/lib/contentParser.astro";
 import handleDraftPage from "@/lib/utils/handleDraftPage";
@@ -21,12 +23,8 @@ if (response) return response;
 ---
 
 <Base {...entry?.data}>
-  <PageHeader
-    hasBgShape={true}
-    title={entry?.data.title}
-    description={entry?.data.description}
-  />
-  <ServicesList />
+  <PageHeader title={entry?.data.title} description={entry?.data.description} />
+  <ServicesList tight />
   <HowItWorks />
   <BenefitsSection />
   <CallToAction />

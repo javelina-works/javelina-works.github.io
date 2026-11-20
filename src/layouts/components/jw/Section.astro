@@ -1,0 +1,58 @@
+---
+/**
+ * Section (design/components/PageLayout/README.md): one band of a page, with the system's vertical rhythm
+ * (space-20, space-14 on phones) and a Container inside.
+ *   tone="ground"  the page ground (--bg). pool: the lamp's light pools across it (data-jw-pool="ground").
+ *   tone="shell" | "agave"  a full-width sheen band (jw-surface--band-*); holds cards, never running text. Pooled.
+ *   tone="wall"  a LampWall (texture flake | corrugated | smooth, seed); server-rendered static, cards only.
+ * One wall per screen height. Pooled sections clip overflow (menus and focus rings inside them too).
+ * width: the Container's (default, narrow, wide) or "full" for no Container. pad: default, tight (space-10/space-8) or none.
+ */
+import type { HTMLAttributes } from "astro/types";
+import Container from "./Container.astro";
+import LampWall from "./LampWall.astro";
+
+interface Props extends Omit<HTMLAttributes<"section">, "class"> {
+  tone?: "ground" | "shell" | "agave" | "wall";
+  texture?: "flake" | "corrugated" | "smooth";
+  seed?: number;
+  /** ground only: let the lamp's light pool across the section (bands always pool) */
+  pool?: boolean;
+  width?: "default" | "narrow" | "wide" | "full";
+  pad?: "default" | "tight" | "none";
+  as?: string;
+  class?: string;
+}
+const {
+  tone = "ground",
+  texture = "flake",
+  seed,
+  pool = false,
+  width = "default",
+  pad = "default",
+  as = "section",
+  class: className,
+  ...rest
+} = Astro.props;
+const band = tone === "shell" || tone === "agave";
+const cls = [
+  "jw-section",
+  pad !== "default" && `jw-section--${pad}`,
+  band && ["jw-surface", `jw-surface--band-${tone}`, "jw-section--band"],
+  className,
+];
+const Tag = as;
+const pooled = band ? "band" : pool ? "ground" : undefined;
+---
+
+{
+  tone === "wall" ? (
+    <LampWall texture={texture} seed={seed} as={as} class:list={cls} {...rest}>
+      {width === "full" ? <slot /> : <Container width={width}><slot /></Container>}
+    </LampWall>
+  ) : (
+    <Tag class:list={cls} data-jw-pool={pooled} {...rest}>
+      {width === "full" ? <slot /> : <Container width={width}><slot /></Container>}
+    </Tag>
+  )
+}

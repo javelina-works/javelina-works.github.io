@@ -1,0 +1,99 @@
+---
+/**
+ * ServiceBody: the Markdown body of a service page, after the sections built from its frontmatter. It is read from the
+ * entry's rendered HTML (the site's own Markdown pipeline: the heading ids, curly quotes and link handling are exactly
+ * what <Content /> gives), then cut at each h2 into short sections:
+ *   - the h2 becomes a SectionHead (the same heading size as the page's other sections), keeping its id;
+ *   - the text under it goes in Prose (18px, land links);
+ *   - a table becomes the system Table on its own card: mono column labels, row headers, and on phones each row
+ *     stacks into label–value lines (data-label), so the page never scrolls sideways. The table is named by its h2.
+ * From 1024px the sections sit two to a row; a section with a table takes the full width.
+ * Falls back to <Content /> in Prose if the entry has no rendered HTML (an MDX body, say).
+ */
+import Container from "@/components/jw/Container.astro";
+import Prose from "@/components/jw/Prose.astro";
+import SectionHead from "@/components/jw/SectionHead.astro";
+
+interface Props {
+  html?: string;
+}
+const { html = "" } = Astro.props;
+
+const strip = (s: string) => s.replace(/<[^>]*>/g, "").trim();
+const attr = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+
+function tableHtml(table: string, labelledBy?: string): string {
+  const head = table.match(/<thead>([\s\S]*?)<\/thead>/)?.[1] ?? "";
+  const body = table.match(/<tbody>([\s\S]*?)<\/tbody>/)?.[1] ?? "";
+  const headers = [...head.matchAll(/<th[^>]*>([\s\S]*?)<\/th>/g)].map((m) => m[1].trim());
+  const labels = headers.map(strip);
+  const rows = [...body.matchAll(/<tr>([\s\S]*?)<\/tr>/g)].map((r) =>
+    [...r[1].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map((c) => c[1].trim()),
+  );
+  const th = headers.map((h) => `<th scope="col" role="columnheader">${h}</th>`).join("");
+  const tr = rows
+    .map((cells) => {
+      const [first, ...rest] = cells;
+      const tds = rest.map((c, i) => `<td role="cell" data-label="${attr(labels[i + 1] ?? "")}">${c}</td>`).join("");
+      return `<tr role="row"><th scope="row" role="rowheader">${first ?? ""}</th>${tds}</tr>`;
+    })
+    .join("");
+  const named = labelledBy ? ` aria-labelledby="${attr(labelledBy)}"` : "";
+  return `<div class="jw-table-wrap jw-table-wrap--card svc-body__table"><table class="jw-table jw-table--stack" role="table"${named}><thead role="rowgroup"><tr role="row">${th}</tr></thead><tbody role="rowgroup">${tr}</tbody></table></div>`;
+}
+
+const chunks = html
+  .split(/(?=<h2[\s>])/)
+  .map((s) => s.trim())
+  .filter(Boolean)
+  .map((chunk) => {
+    const h = chunk.match(/^<h2([^>]*)>([\s\S]*?)<\/h2>/);
+    const id = h?.[1].match(/id="([^"]+)"/)?.[1];
+    const titleHtml = h?.[2];
+    const rest = h ? chunk.slice(h[0].length).trim() : chunk;
+    const t = rest.match(/<table>[\s\S]*?<\/table>/);
+    if (!t || t.index === undefined) return { id, titleHtml, before: rest, table: "", after: "" };
+    return {
+      id,
+      titleHtml,
+      before: rest.slice(0, t.index).trim(),
+      table: tableHtml(t[0], id ? `${id}` : undefined),
+      after: rest.slice(t.index + t[0].length).trim(),
+    };
+  });
+const hasHtml = chunks.length > 0;
+---
+
+<div class="jw-section svc-body">
+  <Container>
+    {
+      hasHtml ? (
+        <div class="svc-body__grid">
+          {chunks.map((c) => (
+            <section class:list={["svc-body__chunk", c.table && "svc-body__chunk--table"]} aria-labelledby={c.titleHtml ? c.id : undefined}>
+              {c.titleHtml && <SectionHead titleHtml={c.titleHtml} titleId={c.id} />}
+              {c.before && <Prose><Fragment set:html={c.before} /></Prose>}
+              {c.table && <Fragment set:html={c.table} />}
+              {c.after && <Prose><Fragment set:html={c.after} /></Prose>}
+            </section>
+          ))}
+        </div>
+      ) : (
+        <Prose>
+          <slot />
+        </Prose>
+      )
+    }
+  </Container>
+</div>
+
+<style is:global>
+  .svc-body__grid { display: grid; gap: var(--space-14); grid-template-columns: minmax(0, 1fr); }
+  .svc-body__chunk { min-width: 0; }
+  .svc-body__chunk > .jw-sechead { margin-bottom: var(--space-5); }
+  .svc-body__chunk > .jw-prose + .svc-body__table, .svc-body__table + .jw-prose { margin-top: var(--space-6); }
+  @media (min-width: 1024px) {
+    .svc-body__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-14) var(--space-10); }
+    .svc-body__chunk--table { grid-column: 1 / -1; }
+  }
+</style>

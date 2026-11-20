@@ -1,0 +1,56 @@
+<!-- @dsCard group="Content" height=520 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Tabs</title></head>
+<body>
+<!-- Plain HTML with the same small vanilla script the site uses (Tabs.astro). Tab names and questions are the site's FAQ. -->
+<div class="jw-demo" style="max-width: 760px">
+  <div class="jw-tabs" data-jw-tabs>
+    <div class="jw-tabs__list" role="tablist" aria-label="Question topics">
+      <button type="button" class="jw-tabs__tab" role="tab" id="pv-tab-1" aria-controls="pv-panel-1" aria-selected="true" tabindex="0">The instant ballpark</button>
+      <button type="button" class="jw-tabs__tab" role="tab" id="pv-tab-2" aria-controls="pv-panel-2" aria-selected="false" tabindex="-1">Clearing brush</button>
+      <button type="button" class="jw-tabs__tab" role="tab" id="pv-tab-3" aria-controls="pv-panel-3" aria-selected="false" tabindex="-1">From estimate to firm quote</button>
+    </div>
+    <div class="jw-tabs__panel" role="tabpanel" id="pv-panel-1" aria-labelledby="pv-tab-1" tabindex="0">
+      <h2 class="jw-tabs__panel-title t-heading-3">The instant ballpark</h2>
+      <div class="jw-accordion">
+        <details class="jw-disclosure" name="pv-t1" open><summary class="jw-disclosure__summary"><span class="jw-disclosure__title">What is the ballpark estimate?</span><span class="jw-disclosure__icon" aria-hidden="true"></span></summary><div class="jw-disclosure__body"><div class="jw-prose jw-prose--full"><p>A free, roughly one-minute read of your ranch.</p></div></div></details>
+        <details class="jw-disclosure" name="pv-t1"><summary class="jw-disclosure__summary"><span class="jw-disclosure__title">How accurate is it?</span><span class="jw-disclosure__icon" aria-hidden="true"></span></summary><div class="jw-disclosure__body"><div class="jw-prose jw-prose--full"><p>Honest, but wide on purpose.</p></div></div></details>
+      </div>
+    </div>
+    <div class="jw-tabs__panel" role="tabpanel" id="pv-panel-2" aria-labelledby="pv-tab-2" tabindex="0">
+      <h2 class="jw-tabs__panel-title t-heading-3">Clearing brush</h2>
+      <div class="jw-accordion">
+        <details class="jw-disclosure" name="pv-t2" open><summary class="jw-disclosure__summary"><span class="jw-disclosure__title">What kind of brush do you handle?</span><span class="jw-disclosure__icon" aria-hidden="true"></span></summary><div class="jw-disclosure__body"><div class="jw-prose jw-prose--full"><p>Mesquite and cedar.</p></div></div></details>
+      </div>
+    </div>
+    <div class="jw-tabs__panel" role="tabpanel" id="pv-panel-3" aria-labelledby="pv-tab-3" tabindex="0">
+      <h2 class="jw-tabs__panel-title t-heading-3">From estimate to firm quote</h2>
+      <div class="jw-accordion">
+        <details class="jw-disclosure" name="pv-t3" open><summary class="jw-disclosure__summary"><span class="jw-disclosure__title">What is a survey flight?</span><span class="jw-disclosure__icon" aria-hidden="true"></span></summary><div class="jw-disclosure__body"><div class="jw-prose jw-prose--full"><p>The flight that turns a range into a firm quote.</p></div></div></details>
+      </div>
+    </div>
+  </div>
+  <script>(function(r){if(!r||!r.querySelector)return;var s=r.querySelector('.jw-tabs__list [aria-selected="true"]'),c=s&&s.getAttribute("aria-controls");r.classList.add("is-ready");r.querySelectorAll(":scope > .jw-tabs__panel").forEach(function(p){if(p.id!==c)p.hidden=true})})(document.currentScript&&document.currentScript.previousElementSibling)</script>
+  <span class="jw-caption">Without JavaScript every panel shows under its heading; the tab row is hidden.</span>
+</div>
+<script>
+document.querySelectorAll('[data-jw-tabs]').forEach(function (root) {
+  var list = root.querySelector(':scope > .jw-tabs__list');
+  function select(tab, focus) {
+    list.querySelectorAll('[role=tab]').forEach(function (t) {
+      var on = t === tab; t.setAttribute('aria-selected', on ? 'true' : 'false'); t.tabIndex = on ? 0 : -1;
+      var p = document.getElementById(t.getAttribute('aria-controls')); if (p) p.hidden = !on;
+    });
+    if (focus) tab.focus();
+  }
+  list.addEventListener('click', function (e) { var t = e.target.closest('[role=tab]'); if (t) select(t, false); });
+  list.addEventListener('keydown', function (e) {
+    var tabs = [].slice.call(list.querySelectorAll('[role=tab]')), i = tabs.indexOf(document.activeElement);
+    var n = { ArrowRight: i + 1, ArrowDown: i + 1, ArrowLeft: i - 1, ArrowUp: i - 1, Home: 0, End: tabs.length - 1 }[e.key];
+    if (i < 0 || n === undefined) return; e.preventDefault(); select(tabs[(n + tabs.length) % tabs.length], true);
+  });
+});
+</script>
+</body>
+</html>

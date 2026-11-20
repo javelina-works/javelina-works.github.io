@@ -9,95 +9,89 @@
 // Privacy Control signal with no saved choice pre-sets the switches to off.
 ---
 
+<!-- Restyled on the design system (design/components/CookieBanner/README.md): a card at the foot of the screen,
+     non-glowing buttons (the header lamp stays the one glowing action), and Checkbox rows. Unchanged: every id, the
+     button names, the role and aria attributes, the `hidden` class that shows and hides it, the hidden attributes on
+     the two panes, and the script below. -->
 <div
   id="cookie-banner"
-  class="fixed inset-x-0 bottom-0 z-[5000] hidden border-t border-border-light bg-light/95 px-4 py-3 shadow-lg backdrop-blur md:inset-x-auto md:bottom-4 md:left-4 md:max-w-md md:rounded-lg md:border md:p-4"
+  class="jw-consent hidden"
   role="dialog"
   aria-live="polite"
   aria-labelledby="cookie-title">
-  <div class="relative pr-8">
-    <button
-      type="button"
-      id="cookie-close"
-      class="absolute -top-1 -right-1 rounded p-2 text-base leading-none text-text-default/70 hover:bg-theme-light hover:text-text-default"
-      aria-label="Close">
-      ✕
-    </button>
+  <button
+    type="button"
+    id="cookie-close"
+    class="jw-consent__close"
+    aria-label="Close">
+    ✕
+  </button>
 
-    <!-- Short notice; the full detail (what a replay captures, what is
-         masked) lives in the Choices pane below and the privacy policy. -->
-    <div
-      id="cookie-summary"
-      class="flex flex-wrap items-center gap-x-4 gap-y-2">
-      <p id="cookie-title" class="text-sm leading-snug text-text-default">
-        We use cookies and record visits to improve the site.{" "}
-        <a class="underline" href="/privacy-policy/">
-          Privacy policy
-        </a>
-        <span id="cookie-off-note" hidden>
-          Nothing is collected until you accept.
-        </span>
-      </p>
-      <div class="flex shrink-0 gap-2">
-        <button
-          type="button"
-          id="cookie-customize"
-          class="rounded border border-border-light px-3 py-1.5 text-sm font-medium text-text-default hover:bg-theme-light">
-          Choices
-        </button>
-        <button
-          type="button"
-          id="cookie-accept"
-          class="rounded bg-primary px-4 py-1.5 text-sm font-medium text-white hover:opacity-90">
-          OK
-        </button>
-      </div>
+  <!-- Short notice; the full detail (what a replay captures, what is
+       masked) lives in the Choices pane below and the privacy policy. -->
+  <div id="cookie-summary" class="jw-consent__summary">
+    <p id="cookie-title" class="jw-consent__text">
+      We use cookies and record visits to improve the site.{" "}
+      <a href="/privacy-policy/">Privacy policy</a>
+      <span id="cookie-off-note" hidden>
+        Nothing is collected until you accept.
+      </span>
+    </p>
+    <div class="jw-consent__actions">
+      <button
+        type="button"
+        id="cookie-customize"
+        class="jw-btn jw-btn--quiet jw-btn--sm">
+        Choices
+      </button>
+      <button
+        type="button"
+        id="cookie-accept"
+        class="jw-btn jw-btn--shell jw-btn--sm">
+        OK
+      </button>
     </div>
+  </div>
 
-    <div id="cookie-options" class="space-y-4" hidden>
-      <fieldset class="space-y-3">
-        <legend class="mb-1 text-sm font-semibold text-text-default">
-          Choose what we may use
-        </legend>
-        <label class="flex items-start gap-3 text-sm text-text-default">
-          <input type="checkbox" class="mt-1" checked disabled />
-          <span>
-            <strong class="font-semibold text-dark">Essential</strong>— keeps
-            the site working and protects the estimate tools from abuse. Always
-            on.
-          </span>
-        </label>
-        <label class="flex items-start gap-3 text-sm text-text-default">
-          <input type="checkbox" class="mt-1" id="cookie-opt-analytics" />
-          <span>
-            <strong class="font-semibold text-dark">Analytics</strong>— which
-            pages and tools get used, so we can improve them.
-          </span>
-        </label>
-        <label class="flex items-start gap-3 text-sm text-text-default">
-          <input type="checkbox" class="mt-1" id="cookie-opt-replay" />
-          <span>
-            <strong class="font-semibold text-dark">Session recordings</strong>{" "}
-            — a replay of your visit, so we can see what broke and fix it. What
-            you type is masked, except the address you search for on our
-            estimate tools.
-          </span>
-        </label>
-      </fieldset>
-      <div class="flex flex-wrap gap-2">
-        <button
-          type="button"
-          id="cookie-save"
-          class="rounded border border-border-light px-4 py-2 text-sm font-medium text-text-default hover:bg-theme-light">
-          Save choices
-        </button>
-        <button
-          type="button"
-          id="cookie-accept-all"
-          class="rounded bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90">
-          Accept all
-        </button>
-      </div>
+  <div id="cookie-options" class="jw-consent__options" hidden>
+    <fieldset class="jw-consent__fieldset">
+      <legend class="jw-consent__legend">Choose what we may use</legend>
+      <label class="jw-check">
+        <input type="checkbox" class="jw-check__box" checked disabled />
+        <span class="jw-check__text">
+          <strong>Essential</strong> — keeps the site working and protects the
+          estimate tools from abuse. Always on.
+        </span>
+      </label>
+      <label class="jw-check">
+        <input type="checkbox" class="jw-check__box" id="cookie-opt-analytics" />
+        <span class="jw-check__text">
+          <strong>Analytics</strong> — which pages and tools get used, so we can
+          improve them.
+        </span>
+      </label>
+      <label class="jw-check">
+        <input type="checkbox" class="jw-check__box" id="cookie-opt-replay" />
+        <span class="jw-check__text">
+          <strong>Session recordings</strong> — a replay of your visit, so we can
+          see what broke and fix it. What you type is masked, except the
+          address you search for on our estimate tools.
+        </span>
+      </label>
+    </fieldset>
+    <div class="jw-consent__actions">
+      <button
+        type="button"
+        id="cookie-save"
+        class="jw-btn jw-btn--quiet jw-btn--sm">
+        Save choices
+      </button>
+      <button
+        type="button"
+        id="cookie-accept-all"
+        class="jw-btn jw-btn--shell jw-btn--sm">
+        Accept all
+      </button>
     </div>
   </div>
 </div>

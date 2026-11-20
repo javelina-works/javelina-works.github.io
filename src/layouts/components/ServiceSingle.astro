@@ -1,8 +1,29 @@
 ---
+/**
+ * ServiceSingle: one service page (/services/<slug>/), built from its content file, on the design system.
+ * Order (each part only if its frontmatter is there; the page then adds the closing ask, CallToAction):
+ *   1. The hero on a flaky-rust wall (services/ServiceHero): a card with the service's name as the eyebrow, the page's
+ *      one h1 (bento.title when hideHeader, else heading or title), the description, and a shell button to the steps;
+ *      beside it a picture card: brush targeting's first bento point (survey image, heading and line), or the
+ *      service's own image when the page has highlights (the picture that used to sit beside them).
+ *   2. toolsList → the free tools (ToolsList).
+ *   3. The rest of the bento → a row of short points on the ground (services/GlanceRow).
+ *   4. pillars → BenefitsSection. highlights → FeaturesSectionTwo (points as cards; the picture is in the hero).
+ *   5. showcases → FeatureShowcase, every point with its picture; the second showcase sits on an agave band.
+ *   6. exhibits → FeaturesSectionTwo with pictures.
+ *   7. steps → cards on a shell band under the steps' anchor (how-a-job-runs, how-it-goes): StepTimeline for the
+ *      "timeline" layout, HowItWorks otherwise (both now the same StepBand).
+ *   8. uses → BenefitsSection. 9. The Markdown body (services/ServiceBody): short sections, tables as the system Table.
+ *   10. faq → FaqSection (the shared one). 11. "More of what we do": the other services (ServicesList, compact).
+ * Titles, meta and JSON-LD (Service, FAQPage) come from the same frontmatter through Base, unchanged.
+ */
 import { render } from "astro:content";
 import type { CollectionEntry } from "astro:content";
-import PageHeader from "./PageHeader.astro";
-import FeaturesSection from "./sections/FeaturesSection.astro";
+import { markdownify, plainify } from "@/lib/utils/textConverter";
+import ServiceHero from "@/components/services/ServiceHero.astro";
+import GlanceRow from "@/components/services/GlanceRow.astro";
+import ServiceBody from "@/components/services/ServiceBody.astro";
+import { noteFor } from "@/components/services/imageNotes";
 import FeaturesSectionTwo from "./sections/FeaturesSectionTwo.astro";
 import FeatureShowcase from "./sections/FeatureShowcase.astro";
 import StepTimeline from "./sections/StepTimeline.astro";
@@ -23,7 +44,6 @@ const {
   description,
   image,
   imagePosition,
-  imageHeight,
   highlights,
   hideHeader,
   toolsList,
@@ -39,40 +59,44 @@ const {
 
 const { Content } = await render(content);
 const hasBody = Boolean(content.body && content.body.trim().length > 0);
+const bodyHtml = content.rendered?.html;
 
-// Section order: the hook (pillars) → what it is (highlights) → the proof (exhibits) →
-// how it goes → standalone uses → the detail (prose) → FAQ → other services
+// The hero: the h1, the intro, the picture and the jump to the steps
+const h1Source = hideHeader && bento?.title ? bento.title : heading || title;
+const titleHtml = (await markdownify(h1Source)) as string;
+const introHtml = description ? ((await markdownify(description, true)) as string) : undefined;
+const [firstPoint, ...glancePoints] = bento?.list ?? [];
+const heroSrc = firstPoint?.image ?? (highlights && image ? image : undefined);
+const heroNote = heroSrc ? noteFor(heroSrc, plainify(firstPoint?.title ?? title).trim()) : undefined;
+const heroImage = heroSrc && heroNote ? { src: heroSrc, alt: heroNote.alt, dim: heroNote.dim } : undefined;
+const heroFeature = firstPoint
+  ? {
+      titleHtml: (await markdownify(firstPoint.title)) as string,
+      textHtml: firstPoint.description ? ((await markdownify(firstPoint.description)) as string) : undefined,
+    }
+  : undefined;
+const stepsId = steps ? steps.id || "how-it-goes" : undefined;
+const heroAction = steps?.title && stepsId ? { label: plainify(steps.title).trim(), href: `#${stepsId}` } : undefined;
+const glance = await Promise.all(
+  glancePoints.map(async (item) => ({
+    titleHtml: (await markdownify(item.title)) as string,
+    textHtml: item.description ? ((await markdownify(item.description)) as string) : undefined,
+  })),
+);
 ---
 
-{!hideHeader && (
-  <PageHeader
-    hasBgShape={true}
-    title={heading || title}
-    description={description}
-  />
-)}
+<ServiceHero
+  eyebrow={plainify(title).trim()}
+  titleHtml={titleHtml}
+  introHtml={introHtml}
+  image={heroImage}
+  feature={heroFeature}
+  action={heroAction}
+/>
 
 {toolsList && <ToolsList />}
 
-{bento && (
-  <FeaturesSection
-    titleTag={hideHeader ? "h1" : "h2"}
-    content={
-      {
-        enable: true,
-        title: bento.title,
-        featureListLimit: 0,
-        list: bento.list.map((item) => ({
-          halfWidth: false,
-          alternativeDirection: false,
-          imageFit: "cover",
-          imageHeight: 640,
-          ...item,
-        })),
-      } as any
-    }
-  />
-)}
+{glance.length > 0 && <GlanceRow items={glance} />}
 
 {pillars && (
   <BenefitsSection
@@ -87,52 +111,51 @@ const hasBody = Boolean(content.body && content.body.trim().length > 0);
   />
 )}
 
-{highlights && image && (
+{highlights && (
   <FeaturesSectionTwo
-    content={{
-      enable: true,
-      items: [
-        {
-          image,
-          imagePosition: imagePosition || "left",
-          imageHeight,
-          title: highlights.title,
-          description: highlights.description || "",
-          features: highlights.list,
-        },
-      ],
-    }}
+    content={
+      {
+        enable: true,
+        items: [
+          {
+            image: heroSrc === image ? undefined : image,
+            imagePosition: imagePosition || "left",
+            title: highlights.title,
+            description: highlights.description || "",
+            features: highlights.list,
+          },
+        ],
+      } as any
+    }
   />
 )}
 
 {showcases &&
-  showcases.map((showcase) => <FeatureShowcase content={showcase} />)}
+  showcases.map((showcase, i) => (
+    <FeatureShowcase content={showcase} band={i % 2 === 1 ? "agave" : undefined} />
+  ))}
 
 {exhibits && exhibits.length > 0 && (
   <FeaturesSectionTwo
-    content={{
-      enable: true,
-      title: exhibitsTitle,
-      items: exhibits.map((item) => ({
-        ...item,
-        imagePosition: item.imagePosition || "left",
-      })),
-    }}
+    content={
+      {
+        enable: true,
+        title: exhibitsTitle,
+        items: exhibits.map((item) => ({
+          ...item,
+          imagePosition: item.imagePosition || "left",
+        })),
+      } as any
+    }
   />
 )}
 
 {steps && steps.layout === "timeline" && (
-  <StepTimeline
-    id={steps.id || "how-it-goes"}
-    content={{ title: steps.title, list: steps.list }}
-  />
+  <StepTimeline id={stepsId} content={{ title: steps.title, list: steps.list }} />
 )}
 
 {steps && steps.layout !== "timeline" && (
-  <HowItWorks
-    id={steps.id || "how-it-goes"}
-    content={{ enable: true, title: steps.title, list: steps.list } as any}
-  />
+  <HowItWorks id={stepsId} content={{ enable: true, title: steps.title, list: steps.list } as any} />
 )}
 
 {uses && (
@@ -149,13 +172,9 @@ const hasBody = Boolean(content.body && content.body.trim().length > 0);
 )}
 
 {hasBody && (
-  <section>
-    <div class="container">
-      <div class="prose-styles content mx-auto max-w-3xl">
-        <Content />
-      </div>
-    </div>
-  </section>
+  <ServiceBody html={bodyHtml}>
+    <Content />
+  </ServiceBody>
 )}
 
 {faq && (
@@ -180,8 +199,4 @@ const hasBody = Boolean(content.body && content.body.trim().length > 0);
   />
 )}
 
-<ServicesList
-  title="More of **what we do**"
-  exclude={content.id}
-  compact={true}
-/>
+<ServicesList title="More of **what we do**" exclude={content.id} compact={true} />

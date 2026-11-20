@@ -1,0 +1,31 @@
+<!-- @dsCard group="Overlays" height=760 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Dialog</title></head>
+<body>
+<!-- Plain HTML. Both cards are drawn in place (open, non-modal, position: static) so the page can show and scan them; the
+     button opens the same card as a real modal with its scrim. The body text is the site's FAQ answer. -->
+<div class="jw-demo" style="max-width: 760px">
+  <div class="jw-row"><button type="button" class="jw-btn jw-btn--shell" data-pv-open="pv-modal" aria-haspopup="dialog">Open as a modal</button></div>
+  <dialog class="jw-dialog" open style="position: static; margin: 0" aria-labelledby="pv-d1-title">
+    <div class="jw-dialog__head"><h2 class="jw-dialog__title t-heading-3" id="pv-d1-title">What happens to my information?</h2><button type="button" class="jw-dialog__close" aria-label="Close"></button></div>
+    <div class="jw-dialog__body"><p>Your boundary and contact details are used to prepare your quote and nothing else. We keep the estimate and its map imagery so a firm quote can build on it, and we will delete them if you ask.</p></div>
+    <div class="jw-dialog__actions"><button type="button" class="jw-btn jw-btn--quiet">Close</button></div>
+  </dialog>
+  <span class="jw-caption">Media: a 16:9 frame on shell; the player is built only after a press</span>
+  <dialog class="jw-dialog jw-dialog--media" open style="position: static; margin: 0; width: 100%" aria-label="Video">
+    <div class="jw-dialog__head"><button type="button" class="jw-dialog__close" aria-label="Close"></button></div>
+    <div class="jw-dialog__frame"></div>
+  </dialog>
+</div>
+<dialog id="pv-modal" class="jw-dialog" aria-labelledby="pv-d2-title">
+  <div class="jw-dialog__head"><h2 class="jw-dialog__title t-heading-3" id="pv-d2-title">What happens to my information?</h2><button type="button" class="jw-dialog__close" aria-label="Close" data-pv-close></button></div>
+  <div class="jw-dialog__body"><p>Your boundary and contact details are used to prepare your quote and nothing else.</p></div>
+  <div class="jw-dialog__actions"><button type="button" class="jw-btn jw-btn--quiet" data-pv-close>Close</button></div>
+</dialog>
+<script>
+document.querySelector('[data-pv-open]').addEventListener('click', function () { document.getElementById('pv-modal').showModal(); });
+document.querySelectorAll('[data-pv-close]').forEach(function (b) { b.addEventListener('click', function () { b.closest('dialog').close(); }); });
+</script>
+</body>
+</html>

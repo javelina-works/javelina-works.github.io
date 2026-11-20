@@ -1,0 +1,36 @@
+<!-- @dsCard group="Forms" height=330 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Slider</title></head>
+<body>
+<!-- Plain HTML with the same small script the site uses. The labels, ranges and hint are the brush return calculator's. -->
+<div class="jw-demo" style="max-width: 520px; gap: 28px">
+  <div class="jw-slider" data-jw-slider data-unit="%">
+    <div class="jw-slider__head">
+      <label class="jw-slider__label" for="pv-cover">Brush cover today</label>
+      <output class="jw-slider__value" for="pv-cover" aria-hidden="true"><span data-jw-slider-text>18</span><span class="jw-slider__unit">%</span></output>
+    </div>
+    <input type="range" class="jw-slider__input" id="pv-cover" min="1" max="60" step="1" value="18" aria-valuetext="18 %" style="--jw-p: .2881">
+    <div class="jw-slider__scale" aria-hidden="true"><span>1%</span><span>60%</span></div>
+  </div>
+  <div class="jw-slider" data-jw-slider data-unit="%">
+    <div class="jw-slider__head">
+      <label class="jw-slider__label" for="pv-keep">Cover you'd keep</label>
+      <output class="jw-slider__value" for="pv-keep" aria-hidden="true"><span data-jw-slider-text>8</span><span class="jw-slider__unit">%</span></output>
+    </div>
+    <input type="range" class="jw-slider__input" id="pv-keep" min="0" max="60" step="1" value="8" aria-valuetext="8 %" aria-describedby="pv-keep-hint" style="--jw-p: .1333">
+    <span class="jw-slider__hint" id="pv-keep-hint">The mottes, draws and shade trees you want left standing.</span>
+  </div>
+</div>
+<script>
+function sync(i) {
+  var r = i.closest('[data-jw-slider]'), min = Number(i.min) || 0, max = Number(i.max), v = Number(i.value);
+  i.style.setProperty('--jw-p', ((v - min) / (max - min)).toFixed(4));
+  r.querySelector('[data-jw-slider-text]').textContent = v.toLocaleString('en-US');
+  i.setAttribute('aria-valuetext', v + (r.dataset.unit ? ' ' + r.dataset.unit : ''));
+}
+document.addEventListener('input', function (e) { if (e.target.classList.contains('jw-slider__input')) sync(e.target); });
+document.querySelectorAll('.jw-slider__input').forEach(sync);
+</script>
+</body>
+</html>

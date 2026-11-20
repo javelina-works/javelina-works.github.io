@@ -1,0 +1,18 @@
+---
+/**
+ * Container (design/components/PageLayout/README.md): centers content at the page width with the side gutters
+ * (16px on phones, 24px from 641px; never under the safe-area inset). width: default 1200px of content, narrow 760px
+ * (a column of reading text or a form), wide 1280px.
+ */
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends Omit<HTMLAttributes<"div">, "class"> {
+  width?: "default" | "narrow" | "wide";
+  as?: string;
+  class?: string;
+}
+const { width = "default", as = "div", class: className, ...rest } = Astro.props;
+const Tag = as;
+---
+
+<Tag class:list={["jw-container", width !== "default" && `jw-container--${width}`, className]} {...rest}><slot /></Tag>

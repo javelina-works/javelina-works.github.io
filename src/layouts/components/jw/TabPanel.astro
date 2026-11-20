@@ -1,0 +1,23 @@
+---
+/**
+ * TabPanel (design/components/Tabs/README.md): one panel inside <Tabs>. id must match its tab's id in Tabs' `tabs`.
+ * The label shows as the panel's heading only without JavaScript (with it, the tab names the panel).
+ * headingLevel: the heading for that case (default 2; use 3 inside a section that has its own h2).
+ */
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends Omit<HTMLAttributes<"div">, "class"> {
+  id: string;
+  label: string;
+  tabId?: string;
+  headingLevel?: 2 | 3 | 4;
+  class?: string;
+}
+const { id, label, tabId, headingLevel = 2, class: className, ...rest } = Astro.props;
+const H: any = `h${headingLevel}`;
+---
+
+<div class:list={["jw-tabs__panel", className]} role="tabpanel" id={id} aria-labelledby={tabId || `${id}-tab`} tabindex="0" {...rest}>
+  <H class="jw-tabs__panel-title t-heading-3" set:html={label} />
+  <slot />
+</div>

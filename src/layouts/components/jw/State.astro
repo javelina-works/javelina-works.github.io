@@ -1,0 +1,39 @@
+---
+/**
+ * State (design/components/States/README.md): what a panel shows when it has nothing yet, while it works, and when
+ * something went wrong.
+ *   kind: "empty" (a dashed frame), "loading" (a static mono label with one small dot that fades slowly; still under
+ *   reduced motion; role=status) or "error" (words in error crimson on paper with a crimson rule; role=alert). Never a
+ *   red light.
+ *   title, text (plain), or the default slot for the text; label: the loading label (default "Loading").
+ *   center: center the words (for a large empty area such as a map frame). The "actions" slot holds buttons.
+ */
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends Omit<HTMLAttributes<"div">, "class"> {
+  kind: "empty" | "loading" | "error";
+  title?: string;
+  text?: string;
+  label?: string;
+  center?: boolean;
+  class?: string;
+}
+const { kind, title, text, label = "Loading", center = false, class: className, ...rest } = Astro.props;
+const role = kind === "loading" ? "status" : kind === "error" ? "alert" : undefined;
+const hasSlot = Astro.slots.has("default");
+const hasActions = Astro.slots.has("actions");
+---
+
+<div class:list={["jw-state", `jw-state--${kind}`, center && "jw-state--center", className]} role={role} {...rest}>
+  {
+    kind === "loading" && (
+      <span class="jw-state__label">
+        <span class="jw-state__dot" aria-hidden="true" />
+        {label}
+      </span>
+    )
+  }
+  {title && <p class="jw-state__title">{title}</p>}
+  {hasSlot ? <div class="jw-state__text"><slot /></div> : text && <p class="jw-state__text">{text}</p>}
+  {hasActions && <div class="jw-state__actions"><slot name="actions" /></div>}
+</div>

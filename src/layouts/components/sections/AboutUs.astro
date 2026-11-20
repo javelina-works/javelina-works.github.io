@@ -1,17 +1,26 @@
 ---
+// About on the design system (the top of /company/): the page's one h1 in a PageHeader on the ground, the four crew
+// photos as a mosaic, then "Brush management, built and flown in Texas." beside the depot photo, with the intro line
+// and Mission and Vision. Content and props are unchanged: src/content/sections/english/about-us.md, and `content`
+// overrides it.
+// Gone: AnimatedText, AOS, the dashed frame with its SquareElem corners and the image-shape overlay, and AnimatedNumber.
+// If the content ever gets its `stats` list back, the numbers show as they are written (same values, no counting).
+// Alt text: every photo said "Office Image"; each now says what it shows (see PHOTO_ALT).
 import type { Section } from "@/types";
 import type { z } from "astro/zod";
 import { getEntryCTM } from "@/lib/contentParser.astro";
 import { markdownify } from "@/lib/utils/textConverter";
 import overrideObjects from "@/lib/utils/overrideObjects.ts";
 import type { aboutSectionSchema } from "@/sections.schema";
-import OptimizedImage from "../utilities/OptimizedImage.astro";
-import SquareElem from "../widgets/SquareElem.astro";
-import AnimatedNumber from "../widgets/AnimatedNumber.astro";
-import AnimatedText from "../widgets/AnimatedText.astro";
+import PageHeader from "@/components/jw/PageHeader.astro";
+import Container from "@/components/jw/Container.astro";
+import Figure from "@/components/jw/Figure.astro";
 
 // Type
-type SectionType = Section & z.infer<typeof aboutSectionSchema>;
+type SectionType = Section &
+  z.infer<typeof aboutSectionSchema> & {
+    stats?: { value?: string | number; prependValue?: string; appendValue?: string; title?: string; description?: string }[];
+  };
 type Props = {
   content?: SectionType;
 };
@@ -35,133 +44,242 @@ let {
 } = actualContent as SectionType;
 
 if (!enable) return;
+
+// What each photo shows, by file name (the content schema keeps officeImages as plain paths). The loading and depot
+// lines are the alt text the advisors page already uses for the same photos.
+const PHOTO_ALT: Record<string, string> = {
+  "k-t-hardware": "Kellan Cerveny and Thomas Garrison working on drone hardware at a bench in the shop, with grassy hills outside the open walls",
+  "gray-emlid": "Gray Hancock kneeling on rocky rangeland beside a survey instrument on a yellow tripod, with a pickup and a mesa behind him",
+  "loading-drone": "Two crew members kneeling on open rangeland to load a treatment aircraft, with pickups and a shade canopy behind them and mountains on the horizon",
+  "thomas-testflight": "A crew member at a control station in the open door of the shop, watching a test flight over the grassland and hills outside",
+  "depot-setup": "A survey crew working from a shade canopy and pickup on West Texas rangeland while a survey aircraft flies overhead",
+};
+const altFor = (src: string) => PHOTO_ALT[src.split("/").pop()?.replace(/\.[a-z]+$/i, "") ?? ""] ?? "";
+
+// The mosaic: the first photo runs two rows tall and the fourth two columns wide (as before), on phones and wide screens.
+const SIZES = [
+  "(min-width: 901px) 400px, 50vw",
+  "(min-width: 901px) 400px, 50vw",
+  "(min-width: 901px) 400px, 50vw",
+  "(min-width: 901px) 800px, 100vw",
+];
+
+const titleHtml = title ? ((await markdownify(title)) as string) : undefined;
+const aboutTitleHtml = about?.title ? ((await markdownify(about.title)) as string) : undefined;
+const aboutTextHtml = about?.description ? ((await markdownify(about.description)) as string) : undefined;
+const aboutList = await Promise.all(
+  (about?.list || []).map(async (item) => ({
+    titleHtml: (await markdownify(item.title)) as string,
+    textHtml: (await markdownify(item.description)) as string,
+  })),
+);
+const statList = await Promise.all(
+  (stats || []).map(async (stat) => {
+    // Older stats carried prepend/append text around the number.
+    const item = stat as typeof stat & { prependValue?: string; appendValue?: string };
+    return {
+    figure: `${item.prependValue ?? ""}${item.value ?? ""}${item.appendValue ?? ""}`,
+    titleHtml: item.title ? ((await markdownify(item.title)) as string) : undefined,
+    textHtml: item.description ? ((await markdownify(item.description)) as string) : undefined,
+    };
+  }),
+);
 ---
 
-<section class="overflow-hidden">
-  <div class="container space-y-16 md:space-y-32">
-    <div class="space-y-10 md:space-y-16">
-      {
-        title && (
-          <div class="mx-auto max-w-2xl text-center">
-            <h1 class="has-italic-text text-h2 capitalize">
-              <AnimatedText
-                delay={0.2}
-                stagger={0.09}
-                content={markdownify(title)}
+{
+  titleHtml && (
+    <PageHeader titleId="about-title">
+      <Fragment slot="title" set:html={titleHtml} />
+    </PageHeader>
+  )
+}
+
+<section class="jw-section about-us" aria-labelledby={aboutTitleHtml ? "about-us-title" : undefined}>
+  <Container>
+    {
+      officeImages && officeImages.length > 0 && (
+        <ul class="about-us__mosaic" role="list">
+          {officeImages.slice(0, 4).map((src, i) => (
+            <li class={`about-us__tile about-us__tile--${i + 1}`}>
+              <Figure
+                src={src}
+                alt={altFor(src)}
+                sizes={SIZES[i]}
+                widths={i === 3 ? [480, 800, 1200, 1600] : [320, 480, 640, 800]}
+                loading={i < 3 ? "eager" : "lazy"}
+                class="about-us__photo"
               />
-            </h1>
-          </div>
-        )
-      }
-      {
-        officeImages && (
-          <div class="grid gap-4 md:gap-8 lg:grid-cols-3 lg:grid-rows-[300px_300px]">
-            {officeImages.map((item, index) => (
-              <div
-                data-aos="zoom-in-sm"
-                data-aos-delay="200"
-                data-aos-offset="0"
-                class:list={[
-                  index === 0 && "row-span-2",
-                  index === 3 && "col-span-2",
-                ]}>
-                <OptimizedImage
-                  src={item}
-                  class="size-full object-cover"
-                  alt="Office Image"
-                />
-              </div>
-            ))}
-          </div>
-        )
-      }
-    </div>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+
     {
       about && (
-        <div class="space-y-8 p-0 md:space-y-16 lg:px-12 xl:px-24">
-          {about.title && (
-            <h2
-              data-aos="fade-up-sm"
-              class="has-italic-text capitalize"
-              set:html={markdownify(about.title)}
+        <div class="about-us__about">
+          {about.image && (
+            <Figure
+              src={about.image}
+              alt={altFor(about.image)}
+              sizes="(min-width: 901px) 480px, 100vw"
+              widths={[480, 720, 960, 1280]}
+              class="about-us__about-photo"
             />
           )}
-          <div class="grid gap-14 md:grid-cols-12">
-            {about.image && (
-              <div class="relative md:col-span-4" data-aos="fade-right-sm">
-                <OptimizedImage
-                  width={310}
-                  height={270}
-                  class="size-full object-cover"
-                  src={about.image}
-                  alt={about.title || ""}
-                />
-                <div class="pointer-events-none absolute inset-0 size-full select-none">
-                  <span class="translate-x-centered absolute -top-1 h-1 w-[115%] border-b border-dashed border-black/50" />
-                  <span class="translate-x-centered absolute -bottom-px h-1 w-[115%] border-b border-dashed border-black/50" />
-                  <span class="translate-y-centered absolute -left-px h-[115%] w-1 border-s border-dashed border-black/50" />
-                  <span class="translate-y-centered absolute -right-1 h-[115%] w-1 border-s border-dashed border-black/50" />
-                  <SquareElem class="absolute -top-3.5 -left-3.5 fill-white" />
-                  <SquareElem class="absolute -top-3.5 -right-3.5 fill-white" />
-                  <SquareElem class="absolute -bottom-3.5 -left-3.5 fill-white" />
-                  <SquareElem class="absolute -right-3.5 -bottom-3.5 fill-white" />
-                </div>
-                <OptimizedImage
-                  src="/images/about/image-shape.png"
-                  class="absolute bottom-0 left-0 w-full"
-                />
+          <div class="about-us__about-text">
+            {aboutTitleHtml && <h2 class="t-heading-1 about-us__title" id="about-us-title" set:html={aboutTitleHtml} />}
+            {aboutTextHtml && <p class="about-us__lede" set:html={aboutTextHtml} />}
+            {aboutList.length > 0 && (
+              <div class="about-us__list">
+                {aboutList.map((item) => (
+                  <div class="about-us__item">
+                    <h3 class="t-heading-3 about-us__item-title" set:html={item.titleHtml} />
+                    <p class="about-us__item-text" set:html={item.textHtml} />
+                  </div>
+                ))}
               </div>
             )}
-            <div
-              data-aos="fade-right-sm"
-              data-aos-delay="150"
-              class="space-y-7 md:col-span-8 md:space-y-14">
-              {about.description && (
-                <p class="text-lg" set:html={markdownify(about.description)} />
-              )}
-              {about.list && about.list.length > 0 && (
-                <div class="flex flex-wrap gap-7 md:flex-nowrap md:gap-14">
-                  {about.list.map((item) => (
-                    <div class="space-y-4">
-                      <h3
-                        class="text-h5-sm md:text-h5 font-medium"
-                        set:html={markdownify(item.title)}
-                      />
-                      <p set:html={markdownify(item.description)} />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
           </div>
         </div>
       )
     }
+
     {
-      stats && (
-        <div class="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map((item) => (
-            <div class="space-y-3.5 md:text-center">
-              {item.value && (
-                <AnimatedNumber
-                  class="text-h2-sm md:text-h2 block"
-                  transitionTime="1.2s"
-                  content={item}
-                />
-              )}
-              {item.title && (
-                <h3
-                  class="text-h6-sm md:text-h6"
-                  set:html={markdownify(item.title)}
-                />
-              )}
-              {item.description && (
-                <p set:html={markdownify(item.description)} />
-              )}
-            </div>
+      statList.length > 0 && (
+        <ul class="about-us__stats" role="list">
+          {statList.map((s) => (
+            <li class="about-us__stat">
+              <p class="t-number about-us__stat-figure">{s.figure}</p>
+              {s.titleHtml && <h3 class="t-heading-3 about-us__item-title" set:html={s.titleHtml} />}
+              {s.textHtml && <p class="about-us__item-text" set:html={s.textHtml} />}
+            </li>
           ))}
-        </div>
+        </ul>
       )
     }
-  </div>
+  </Container>
 </section>
+
+<style>
+  /* the PageHeader above already gives the space at the top */
+  .about-us {
+    padding-top: 0;
+  }
+
+  /* ---- the photo mosaic: two columns on phones (first photo two rows tall, last one full width), three from 901px ---- */
+  .about-us__mosaic {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: clamp(150px, 42vw, 260px);
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .about-us__tile {
+    min-width: 0;
+    min-height: 0;
+  }
+  .about-us__tile--1 {
+    grid-row: span 2;
+  }
+  .about-us__tile--4 {
+    grid-column: span 2;
+  }
+  /* the photos fill their tiles (cropped, centered) */
+  .about-us__tile :global(.about-us__photo),
+  .about-us__tile :global(.about-us__photo .jw-figure__media) {
+    height: 100%;
+  }
+  .about-us__tile :global(.about-us__photo .jw-figure__media img) {
+    height: 100%;
+    object-fit: cover;
+  }
+  .about-us__tile--2 :global(.jw-figure__media img) {
+    object-position: 50% 35%;
+  }
+
+  /* ---- "Brush management, built and flown in Texas.": the depot photo beside the words ---- */
+  .about-us__about {
+    display: grid;
+    gap: var(--space-8);
+    margin-top: var(--space-14);
+  }
+  .about-us__about-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+  .about-us__title,
+  .about-us__lede {
+    margin: 0;
+  }
+  .about-us__title {
+    color: var(--text);
+  }
+  .about-us__lede {
+    max-width: 60ch;
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--text-body);
+  }
+  /* Mission and Vision: two short columns under a rule */
+  .about-us__list {
+    display: grid;
+    gap: var(--space-6);
+    margin-top: var(--space-4);
+  }
+  .about-us__item {
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--line-strong);
+  }
+  .about-us__item-title {
+    margin: 0 0 var(--space-2);
+    color: var(--text);
+  }
+  .about-us__item-text {
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--text-body);
+  }
+
+  /* ---- stats (only if the content adds them): plain figures, no counting ---- */
+  .about-us__stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-6);
+    margin: var(--space-14) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .about-us__stat-figure {
+    margin: 0 0 var(--space-2);
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (min-width: 641px) {
+    .about-us__mosaic {
+      gap: var(--space-4);
+    }
+    .about-us__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 901px) {
+    .about-us__mosaic {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-auto-rows: 280px;
+      gap: var(--space-5);
+    }
+    .about-us__about {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      align-items: start;
+      gap: var(--space-14);
+      margin-top: var(--space-20);
+    }
+  }
+</style>

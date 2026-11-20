@@ -1,0 +1,46 @@
+---
+/** The editable SurveyMap's behaviour. SurveyMap renders it only when editable, so static maps ship no JS. */
+---
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-jw-map="editable"]').forEach((map) => {
+    if (map.dataset.jwReady) return;
+    map.dataset.jwReady = "1";
+    map.addEventListener("click", (e) => {
+      let m = (e.target as Element).closest<HTMLButtonElement>(".jw-marker");
+      if (!m || !map.contains(m)) return;
+      // A tap where two markers' 44px tap areas overlap goes to the nearest ring (the rings themselves always take their
+      // own taps: jw.css layers every tap area under every ring). A key press (detail 0) keeps its marker.
+      if (e.detail > 0) {
+        let best = m;
+        let bestD = 23;
+        map.querySelectorAll<HTMLButtonElement>(".jw-marker").forEach((x) => {
+          const r = x.getBoundingClientRect();
+          const d = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2));
+          if (d < bestD) {
+            bestD = d;
+            best = x;
+          }
+        });
+        if (best !== m) {
+          if (document.activeElement === m) best.focus({ preventScroll: true });
+          m = best;
+        }
+      }
+      map.querySelectorAll(".jw-marker--selected").forEach((x) => x.classList.remove("jw-marker--selected"));
+      m.classList.add("jw-marker--selected");
+      const keep = m.classList.toggle("jw-marker--keep");
+      const id = m.dataset.plant;
+      m.setAttribute("aria-pressed", String(!keep));
+      m.setAttribute("aria-label", `Plant ${id}: ${keep ? "keep" : "treat"}. Press to ${keep ? "treat" : "keep"} it.`);
+      const tip = m.querySelector(".jw-marker__tip");
+      if (tip) tip.textContent = `Plant ${id} · ${keep ? "Keep" : "Treat"}`;
+      const all = map.querySelectorAll(".jw-marker").length;
+      const kept = map.querySelectorAll(".jw-marker--keep").length;
+      const treat = map.querySelector(".jw-map__counts .jw-chip--treat");
+      const shell = map.querySelector(".jw-map__counts .jw-chip--shell");
+      if (treat?.lastChild) treat.lastChild.textContent = `Treat · ${all - kept}`;
+      if (shell) shell.textContent = `Keep · ${kept}`;
+    });
+  });
+</script>

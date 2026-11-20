@@ -1,0 +1,16 @@
+<!-- @dsCard group="Navigation" height=140 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Theme toggle</title></head>
+<body>
+<div id="root" class="jw-demo"></div>
+<script>
+var J = window.JavelinaWorks, h = React.createElement;
+function Row(p) { return h('div', { className: 'jw-row', style: p.style }, p.children); }
+ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+ h(Row, null, h(J.ThemeToggle, null), h(J.Button, null, 'Get a ballpark'), h(J.Chip, { tone: 'treat', count: 3 }, 'Treat')),
+ h('span', { className: 'jw-caption' }, 'By day the orange is sunlit; at night it glows.')
+));
+</script>
+</body>
+</html>

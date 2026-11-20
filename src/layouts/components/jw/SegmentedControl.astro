@@ -1,0 +1,46 @@
+---
+/**
+ * SegmentedControl (design/components/SegmentedControl/README.md): one choice from two to five short options, side by
+ * side in a sunken well. Real radio inputs: the arrow keys move the choice, it submits with a form, and it needs no
+ * JavaScript. The chosen option is a paper plate with the marigold selected ring.
+ *   name, legend (required); options: [{ value, label, disabled? }]; value: the chosen one.
+ *   hideLegend: keep the legend for screen readers only (when a visible heading already names the choice).
+ *   idPrefix: input ids are "<idPrefix>-<value>" (default the name).
+ * Other props go on the <fieldset>. Listen for "change" on it to react to a choice.
+ * Pages that keep their own state can use the button form instead (plain HTML, see the README): <button class="jw-seg__btn"
+ * aria-pressed="true|false">, which this component does not render.
+ */
+import type { HTMLAttributes } from "astro/types";
+
+interface Option {
+  value: string;
+  label: string;
+  disabled?: boolean;
+}
+interface Props extends Omit<HTMLAttributes<"fieldset">, "class"> {
+  name: string;
+  legend: string;
+  options: Option[];
+  value?: string;
+  hideLegend?: boolean;
+  idPrefix?: string;
+  class?: string;
+}
+const { name, legend, options, value, hideLegend = false, idPrefix, class: className, ...rest } = Astro.props;
+const base = idPrefix || name;
+const chosen = value ?? options[0]?.value;
+---
+
+<fieldset class:list={["jw-seg", className]} {...rest}>
+  <legend class:list={["jw-seg__legend", hideLegend && "jw-sr-only"]}>{legend}</legend>
+  <div class="jw-seg__track">
+    {
+      options.map((o) => (
+        <label class="jw-seg__opt" for={`${base}-${o.value}`}>
+          <input type="radio" class="jw-seg__input" id={`${base}-${o.value}`} name={name} value={o.value} checked={o.value === chosen} disabled={o.disabled} />
+          <span class="jw-seg__label">{o.label}</span>
+        </label>
+      ))
+    }
+  </div>
+</fieldset>

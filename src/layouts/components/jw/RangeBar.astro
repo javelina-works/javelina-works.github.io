@@ -1,0 +1,46 @@
+---
+/**
+ * RangeBar (design/components/RangeBar/README.md): a low–high band on a sunken well, an ink marker for the point
+ * estimate, and the two ends written underneath. The band is land: a range is not an action, so never orange, never a glow.
+ *   min, max: the scale. low, high: the band. value (optional): the marker.
+ *   lowText, highText: how the ends read ("$12,400"); lowLabel, highLabel: optional mono captions over them.
+ *   label: the whole bar's spoken description (default "<lowText> to <highText>").
+ * Positions are CSS properties on the block (--jw-lo, --jw-hi, --jw-at), so a page script can move the band:
+ *   el.style.setProperty("--jw-lo", "22%"). Then update the end texts and the aria-label too.
+ */
+interface Props {
+  min: number;
+  max: number;
+  low: number;
+  high: number;
+  value?: number;
+  lowText?: string;
+  highText?: string;
+  lowLabel?: string;
+  highLabel?: string;
+  label?: string;
+  id?: string;
+  class?: string;
+}
+const { min, max, low, high, value, lowText = String(low), highText = String(high), lowLabel, highLabel, label, id, class: className } = Astro.props;
+const pct = (n: number) => `${(max > min ? Math.min(100, Math.max(0, ((n - min) / (max - min)) * 100)) : 0).toFixed(2)}%`;
+const style = [`--jw-lo: ${pct(low)}`, `--jw-hi: ${pct(high)}`, value !== undefined && `--jw-at: ${pct(value)}`].filter(Boolean).join("; ");
+const spoken = label || `${lowText} to ${highText}`;
+---
+
+<div class:list={["jw-range", className]} id={id} style={style}>
+  <div class="jw-range__track" role="img" aria-label={spoken}>
+    <span class="jw-range__band"></span>
+    {value !== undefined && <span class="jw-range__marker"></span>}
+  </div>
+  <div class="jw-range__ends">
+    <p class="jw-range__end">
+      {lowLabel && <span class="jw-range__end-label">{lowLabel}</span>}
+      <span class="jw-range__end-value" data-jw-range-low>{lowText}</span>
+    </p>
+    <p class="jw-range__end">
+      {highLabel && <span class="jw-range__end-label">{highLabel}</span>}
+      <span class="jw-range__end-value" data-jw-range-high>{highText}</span>
+    </p>
+  </div>
+</div>

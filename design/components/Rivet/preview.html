@@ -1,0 +1,18 @@
+<!-- @dsCard group="Lighting" height=330 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Rivet</title></head>
+<body>
+<div id="root" class="jw-demo"></div>
+<script>
+var J = window.JavelinaWorks, h = React.createElement;
+function Row(p) { return h('div', { className: 'jw-row', style: p.style }, p.children); }
+ReactDOM.createRoot(document.getElementById('root')).render(h(J.LightScene, null,
+  h(J.LampWall, { texture: 'smooth', seed: 4, style: { padding: '40px 32px', borderRadius: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 28 } },
+    h(J.Button, { lamp: true, href: '#ballpark' }, 'Get a ballpark'),
+    h('div', { style: { width: '100%', maxWidth: 420 } }, h(J.Surface, { variant: 'card', castShadow: true, rivets: true, style: { padding: '18px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 } },
+      h('span', { className: 'jw-plate__label' }, 'Pasture 4 · treated'), h('span', { className: 'jw-plate__value' }, '212 ', h('small', null, 'of 640 ac')))))
+));
+</script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 // public /tools/ballpark/ page renders, without site chrome, for partners to
 // frame via public/embed/ballpark.js. English only and outside the [...lang]
 // tree on purpose. noindex (Embed layout) and filtered out of the sitemap
-// (astro.config.mjs); the canonical points at the public page.
+// (astro.config.mjs); the canonical points at the public page. Always by day.
 import Embed from "@/layouts/Embed.astro";
 import BallparkTool from "@/layouts/components/ballpark/BallparkTool.astro";
 
@@ -14,17 +14,19 @@ const canonical = new URL("/tools/ballpark/", Astro.site).href;
   title="Brush Clearing Cost Estimate | Javelina Works"
   description="Find your West Texas ranch and get a measured budget range for clearing mesquite and cedar."
   canonical={canonical}>
-  <div class="container bp-embed-head">
-    <h1>What would it cost to clear your brush?</h1>
+  <div class="jw-container bp-embed-head">
+    <h1 class="t-heading-2">What would it cost to clear your brush?</h1>
     <p>
       Find the ranch and we&rsquo;ll read it with lidar and infrared imagery,
       then hand you a budget range. Free, about a minute.
     </p>
   </div>
 
-  <BallparkTool embed />
+  <div class="jw-container">
+    <BallparkTool embed />
+  </div>
 
-  <p class="container bp-embed-credit">
+  <p class="jw-container bp-embed-credit">
     <a
       id="bpEmbedCredit"
       href="https://javelinaworks.com/?utm_medium=embed&utm_campaign=ballpark"
@@ -32,7 +34,7 @@ const canonical = new URL("/tools/ballpark/", Astro.site).href;
       rel="noopener">
       Estimate powered by Javelina Works
       <span aria-hidden="true">&#8599;</span>
-      <span class="sr-only">(opens in a new tab)</span>
+      <span class="jw-sr-only">(opens in a new tab)</span>
     </a>
   </p>
 </Embed>
@@ -53,38 +55,48 @@ const canonical = new URL("/tools/ballpark/", Astro.site).href;
 
 <style is:global>
   .bp-embed-head {
-    padding-top: 16px;
-    padding-bottom: 12px;
+    padding-top: var(--space-4);
+    padding-bottom: var(--space-4);
   }
   .bp-embed-head h1 {
     margin: 0;
-    font-size: 1.5rem;
-    line-height: 1.2;
+    color: var(--text);
   }
   .bp-embed-head p {
-    margin-top: 0.35rem;
-    font-size: 0.95rem;
-    color: var(--color-text-default);
     max-width: 66ch;
+    margin: var(--space-2) 0 0;
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--text-body);
   }
   .bp-embed-credit {
-    padding-top: 12px;
-    padding-bottom: 16px;
-    font-size: 0.8rem;
+    margin: 0;
+    padding-top: var(--space-2);
+    padding-bottom: var(--space-3);
     text-align: right;
   }
-  .bp-embed-credit a {
-    color: var(--color-text-default);
+  .bp-embed-credit a,
+  .bp-embed-credit a:visited {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    min-height: 44px;
+    font-size: 15px;
+    color: var(--land);
     text-decoration: underline;
-    text-underline-offset: 2px;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
   }
   .bp-embed-credit a:hover {
-    color: var(--color-primary);
+    color: var(--text);
+    text-decoration-thickness: 2px;
+  }
+  .bp-embed-credit a:focus-visible {
+    outline: none;
+    border-radius: var(--radius-xs);
+    box-shadow: var(--shadow-focus);
   }
   @media (max-width: 640px) {
-    .bp-embed-head h1 {
-      font-size: 1.25rem;
-    }
     .bp-embed-credit {
       text-align: center;
     }

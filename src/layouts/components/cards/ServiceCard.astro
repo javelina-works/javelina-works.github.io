@@ -1,62 +1,70 @@
 ---
+/**
+ * ServiceCard: one service as an ImageCard link card (design/components/ImageCard). The heading's link stretches over
+ * the whole card, so the card takes the tap but the link's name is just the service ("Survey work"), not every word on
+ * the card.
+ *   Full: the service's picture (cropped 16:9), its name, the short line (excerpt) and "Learn more" with a right arrow
+ *   (the same cue, type and arrow as the article cards' "Read more"; every link here stays on the site).
+ *   compact (the "More of what we do" row): no picture; the service's Lucide icon in a small sunken well instead.
+ *   level: the heading level (default 3; 2 where the list has no heading of its own).
+ * Hover: the card's edge turns line-strong and the name underlines; focus: the focus ring around the card.
+ * Picture alt text comes from services/imageNotes.ts. No motion (the old image zoom and arrow nudge are gone).
+ */
 import type { CollectionEntry } from "astro:content";
 import Icons from "@/helpers/Icons.astro";
-import OptimizedImage from "../utilities/OptimizedImage.astro";
+import Surface from "@/components/jw/Surface.astro";
+import Figure from "@/components/jw/Figure.astro";
 import { getLocaleUrlCTM } from "@/lib/utils/i18nUtils";
 import { markdownify, plainify } from "@/lib/utils/textConverter";
+import { noteFor } from "@/components/services/imageNotes";
 
 interface Props {
   content: CollectionEntry<"services">;
   class?: string;
   compact?: boolean;
+  level?: 2 | 3;
 }
 
 type LucideIconName = keyof typeof import("lucide");
 
-const { content, class: className, compact = false } = Astro.props;
+const { content, class: className, compact = false, level = 3 } = Astro.props;
 const { title, excerpt, icon, image, customSlug } = content.data;
+const H: any = `h${level}`;
 
-const href = getLocaleUrlCTM(
-  customSlug || content.id,
-  Astro.currentLocale,
-  content.collection,
-);
+const href = getLocaleUrlCTM(customSlug || content.id, Astro.currentLocale, content.collection);
+const titleHtml = (await markdownify(title)) as string;
+const excerptHtml = excerpt ? ((await markdownify(excerpt)) as string) : undefined;
+const note = noteFor(image, plainify(title).trim());
+const showImage = !!image && !compact;
 ---
 
-<a
-  href={href}
-  class:list={[
-    "group bg-theme-light flex flex-col overflow-hidden rounded-4xl text-inherit transition-colors duration-300 hover:bg-slate-100",
-    className,
-  ]}>
-  {image && !compact && (
-    <div class="overflow-hidden">
-      <OptimizedImage
-        src={image}
-        width={960}
-        height={560}
-        alt={plainify(title)}
-        class="h-56 w-full object-cover transition duration-500 group-hover:scale-105 md:h-64"
+<Surface class:list={["jw-imagecard", "jw-imagecard--link", !showImage && "jw-imagecard--compact", className]}>
+  {
+    showImage && (
+      <Figure
+        src={image!}
+        alt={note.alt}
+        dim={note.dim ?? true}
+        ratio="16 / 9"
+        class="jw-imagecard__figure"
+        widths={[400, 640, 800, 1200]}
+        sizes="(min-width: 1248px) 576px, (min-width: 641px) calc(50vw - 56px), calc(100vw - 56px)"
       />
-    </div>
-  )}
-  <div
-    class:list={[
-      "flex flex-1 flex-col gap-4",
-      compact ? "p-6 lg:p-8" : "p-6 lg:p-9",
-    ]}>
-    {icon && <Icons icon={icon as LucideIconName} class="text-3xl" />}
-    <h3
-      class:list={[compact ? "h6" : "h5", "text-black"]}
-      set:html={markdownify(title)}
-    />
-    {excerpt && <p class="opacity-80" set:html={markdownify(excerpt)} />}
-    <span class="group-hover:text-primary mt-auto inline-flex items-center gap-2 pt-2 font-medium text-black transition-colors">
+    )
+  }
+  <div class="jw-imagecard__body">
+    {
+      icon && !showImage && (
+        <span class="jw-iconcard__icon" aria-hidden="true">
+          <Icons icon={icon as LucideIconName} />
+        </span>
+      )
+    }
+    <H class="t-heading-3 jw-imagecard__title"><a class="jw-imagecard__link" href={href} set:html={titleHtml} /></H>
+    {excerptHtml && <p class="jw-imagecard__text" set:html={excerptHtml} />}
+    <span class="t-body-strong jw-imagecard__more" aria-hidden="true">
       Learn more
-      <Icons
-        icon="ArrowUpRight"
-        class="text-lg transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-      />
+      <Icons icon="ArrowRight" />
     </span>
   </div>
-</a>
+</Surface>

@@ -1,88 +1,121 @@
 ---
+/**
+ * FeaturesSectionTwo: a heading and a short intro, then a handful of points (title and a line or two). Service pages
+ * use it for their highlights ("Map first, treat second", "Measured, not remembered").
+ *   Without an image (the service pages now: their picture rides in the hero), the points are paper cards in a grid:
+ *   one column on phones, two from 641px, four from 1024px when there are four.
+ *   With an image (exhibits), the picture sits on a card beside the heading and the points, which are split by line
+ *   rules; imagePosition "right" puts the picture on the right from 1024px.
+ * Content and props are unchanged (default src/content/sections/english/features-section-two.md, `content` overrides).
+ * The image's alt text comes from services/imageNotes.ts; before, it was the raw title Markdown ("Map first,
+ * **treat second**"). Gone: AOS fades, the gradient boxes, has-italic-text/capitalize.
+ */
 import { getEntryCTM } from "@/lib/contentParser.astro";
 import overrideObjects from "@/lib/utils/overrideObjects.ts";
 import type { featuresSectionTwoSchema } from "@/sections.schema";
 import type { Section } from "@/types";
 import type { z } from "astro/zod";
-import OptimizedImage from "../utilities/OptimizedImage.astro";
-import { markdownify } from "@/lib/utils/textConverter";
+import { markdownify, plainify } from "@/lib/utils/textConverter";
+import Container from "@/components/jw/Container.astro";
+import SectionHead from "@/components/jw/SectionHead.astro";
+import IconCard from "@/components/jw/IconCard.astro";
+import Surface from "@/components/jw/Surface.astro";
+import Figure from "@/components/jw/Figure.astro";
+import { noteFor } from "@/components/services/imageNotes";
 
-// Type for this section data
-type FeatureSectionType = Section &
-  NonNullable<z.infer<typeof featuresSectionTwoSchema>>;
+type FeatureSectionType = Section & NonNullable<z.infer<typeof featuresSectionTwoSchema>>;
 
 type Props = {
   content?: FeatureSectionType;
 };
 
-// Fetching the default content for the this section
 let defaultContent = (
   await getEntryCTM("sections", "features-section-two", Astro.currentLocale)
 )?.data as FeatureSectionType;
 
-// Enables content customization (e.g., title, description) with a fallback to 'defaultContent' if not provided.
-// The 'content' prop should match the structure of 'defaultContent'.
-// Allows using this section with different content across multiple pages.
-// If 'content' is missing, 'defaultContent' will be used.
 let actualContent = overrideObjects(
   { ...defaultContent },
   Astro.props.content,
 ) as FeatureSectionType;
 
-// Extracting required values from 'content' object
 let { enable = true, title, items } = actualContent as FeatureSectionType;
 
 if (!enable) return;
+
+const sectionTitleHtml = title ? ((await markdownify(title)) as string) : undefined;
+const level: 2 | 3 = sectionTitleHtml ? 3 : 2;
+const blocks = await Promise.all(
+  (items || []).map(async (item: any) => ({
+    image: item.image as string | undefined,
+    note: noteFor(item.image, plainify(item.title || "")),
+    right: item.imagePosition === "right",
+    titleHtml: item.title ? ((await markdownify(item.title)) as string) : undefined,
+    textHtml: item.description ? ((await markdownify(item.description)) as string) : undefined,
+    features: (item.features || []) as { title: string; description: string }[],
+  })),
+);
 ---
 
-<section>
-  <div class="container space-y-20">
-    {title && (
-      <div class="mx-auto max-w-lg text-center">
-        <h2 class="has-italic-text capitalize" set:html={markdownify(title)} />
-      </div>
-    )}
-    {items.map((item, index) => (
-      <div
-        class:list={[
-          "grid grid-cols-1 items-center gap-16 lg:grid-cols-2 lg:gap-32",
-          item.imagePosition === "right" && "lg:*:first:order-2",
-        ]}>
-        <div
-          data-aos={index % 2 === 0 ? "fade-left-sm" : "fade-right-sm"}
-          data-aos-delay={index % 2 === 0 ? 200 : 250}
-          class="to-primary/5 flex items-center justify-center rounded-2xl bg-linear-to-b from-transparent py-8">
-          <OptimizedImage
-            src={item.image}
-            alt={item.title}
-            height={item.imageHeight || 600}
-            class="rounded-xl"
-          />
-        </div>
-
-        <div class="space-y-16">
-          {item.title && (
-            <div class="space-y-4">
-              <h2
-                class="has-italic-text capitalize"
-                set:html={markdownify(item.title)}
-              />
-              {item.description && (
-                <p set:html={markdownify(item.description)} />
-              )}
-            </div>
-          )}
-
-          <div class="space-y-8 divide-y divide-dashed">
-            {item.features.map((feature) => (
-              <div class="space-y-2.5 odd:pb-8">
-                <h3 class="text-xl font-medium">{feature.title}</h3>
-                <p>{feature.description}</p>
+<section class="jw-section svc-points">
+  <Container>
+    {sectionTitleHtml && <SectionHead titleHtml={sectionTitleHtml} />}
+    <div class="svc-points__blocks">
+      {
+        blocks.map((b) =>
+          b.image ? (
+            <div class:list={["svc-points__split", b.right && "svc-points__split--right"]}>
+              <Surface class="svc-points__media">
+                <Figure
+                  src={b.image}
+                  alt={b.note.alt}
+                  dim={b.note.dim ?? true}
+                  widths={[480, 640, 800, 1000, 1240]}
+                  sizes="(min-width: 1248px) 588px, (min-width: 1024px) 48vw, calc(100vw - 56px)"
+                />
+              </Surface>
+              <div class="svc-points__text">
+                {b.titleHtml && <SectionHead titleHtml={b.titleHtml} textHtml={b.textHtml} level={level} />}
+                <ul class="svc-points__rules" role="list">
+                  {b.features.map((f) => (
+                    <li>
+                      <h3 class="t-heading-3 svc-points__title">{f.title}</h3>
+                      <p class="svc-points__line">{f.description}</p>
+                    </li>
+                  ))}
+                </ul>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    ))}
-  </div>
+            </div>
+          ) : (
+            <div class="svc-points__plain">
+              {b.titleHtml && <SectionHead titleHtml={b.titleHtml} textHtml={b.textHtml} level={level} />}
+              <ul class:list={["jw-cardgrid", b.features.length % 4 === 0 ? "svc-points__grid--four" : b.features.length !== 2 && "jw-cardgrid--3"]} role="list">
+                {b.features.map((f) => (
+                  <li>
+                    <IconCard title={f.title} text={f.description} level={(level + 1) as 3 | 4} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ),
+        )
+      }
+    </div>
+  </Container>
 </section>
+
+<style is:global>
+  .svc-points__blocks { display: flex; flex-direction: column; gap: var(--space-14); }
+  .svc-points__split { display: grid; gap: var(--space-8); grid-template-columns: minmax(0, 1fr); align-items: center; }
+  .svc-points__media { padding: var(--space-3); }
+  .svc-points__text .jw-sechead { margin-bottom: var(--space-6); }
+  .svc-points__rules { margin: 0; padding: 0; list-style: none; }
+  .svc-points__rules > li { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-5) 0; border-top: 1px solid var(--line); }
+  .svc-points__rules > li:last-child { padding-bottom: 0; }
+  .svc-points__title { margin: 0; color: var(--text); }
+  .svc-points__line { margin: 0; font-size: 17px; line-height: 1.6; color: var(--text-body); }
+  @media (min-width: 1024px) {
+    .svc-points__split { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-14); }
+    .svc-points__split--right > .svc-points__media { order: 2; }
+    .jw-cardgrid.svc-points__grid--four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  }
+</style>

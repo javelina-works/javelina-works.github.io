@@ -1,43 +1,31 @@
 ---
+// The old page header's props on the design system's PageHeader (src/layouts/components/jw/PageHeader.astro): the
+// page's one h1 (title through markdownify, so **word** markup in content titles still works) and the description as
+// the intro, on the page ground. overlapShape and hasBgShape drew the old theme's background shapes; they are accepted
+// and ignored. New, optional: eyebrow, wall (put the header on a LampWall: the words sit on a card), seed, titleId.
+// Used by SinglePageLayout (legal pages, advisors, FAQ), ServiceSingle, the services index and the article lists.
+import JwPageHeader from "@/components/jw/PageHeader.astro";
 import { markdownify } from "@/lib/utils/textConverter";
 
-const { title, description, overlapShape } = Astro.props;
+interface Props {
+  title?: string;
+  description?: string;
+  eyebrow?: string;
+  wall?: "flake" | "corrugated" | "smooth";
+  seed?: number;
+  titleId?: string;
+  /** old props, ignored */
+  overlapShape?: boolean;
+  hasBgShape?: boolean;
+  class?: string;
+}
+const { title, description, eyebrow, wall, seed, titleId, class: className } = Astro.props;
+const titleHtml = title ? ((await markdownify(title)) as string) : "";
+const introHtml = description ? ((await markdownify(description)) as string) : "";
 ---
 
-<section
-  class:list={[
-    "relative z-10 mt-0 py-14 md:pt-32 md:pb-24",
-    Astro.props.class,
-  ]}>
-  <div class="container">
-    <div
-      class:list={[
-        "flex max-w-6xl flex-wrap justify-between gap-5 md:gap-10 md:px-8 lg:px-12",
-        overlapShape ? "ms-5 me-5 md:mx-auto" : "mx-auto",
-      ]}>
-      {
-        title && (
-          <h1
-            class="has-italic-text text-h2 max-w-lg capitalize"
-            set:html={markdownify(title)}
-          />
-        )
-      }
-      {
-        description && (
-          <p class="md:max-w-sm" set:html={markdownify(description)} />
-        )
-      }
-    </div>
-  </div>
-  {
-    Astro.props.hasBgShape && (
-      <div
-        class:list={[
-          "bg-theme-light pointer-events-none absolute left-0 -z-10 h-250 w-full",
-          overlapShape ? "-bottom-full" : "bottom-0",
-        ]}
-      />
-    )
-  }
-</section>
+<JwPageHeader eyebrow={eyebrow} wall={wall} seed={seed} titleId={titleId} class={className}>
+  <Fragment slot="title" set:html={titleHtml} />
+  {introHtml && <p slot="intro" set:html={introHtml} />}
+  <slot />
+</JwPageHeader>

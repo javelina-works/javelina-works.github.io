@@ -1,0 +1,73 @@
+---
+/**
+ * NumberField (design/components/NumberField/README.md): a labeled number input with the Field's look, and (steppers,
+ * default on) 44px − and + buttons either side that move the value by `step` within min and max and fire input and
+ * change on the input, as typing does. The browser's tiny spinners are hidden; the arrow keys still step.
+ *   label, id (required); suffix (a unit, aria-hidden: put it in the label when it matters); hint, error, reserveError.
+ *   decreaseLabel / increaseLabel: the buttons' names (default "Decrease <label>" / "Increase <label>").
+ * Every other prop goes on the <input> (name, min, max, step, value, required, inputmode…).
+ */
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends Omit<HTMLAttributes<"input">, "class" | "id" | "type"> {
+  label: string;
+  id: string;
+  suffix?: string;
+  hint?: string;
+  error?: string;
+  reserveError?: boolean;
+  steppers?: boolean;
+  decreaseLabel?: string;
+  increaseLabel?: string;
+  class?: string;
+}
+const {
+  label,
+  id,
+  suffix,
+  hint,
+  error,
+  reserveError = false,
+  steppers = true,
+  decreaseLabel = `Decrease ${label}`,
+  increaseLabel = `Increase ${label}`,
+  class: className,
+  ...rest
+} = Astro.props;
+const describedBy = [hint && !error && `${id}-hint`, error && `${id}-err`].filter(Boolean).join(" ") || undefined;
+---
+
+<div class:list={["jw-field", error && "jw-field--error", className]}>
+  <label class="jw-field__label" for={id}>{label}</label>
+  <div class="jw-number" data-jw-number={steppers ? "" : undefined}>
+    {steppers && <button type="button" class="jw-number__step jw-number__step--down" data-step="-1" aria-label={decreaseLabel} aria-controls={id} />}
+    <div class="jw-input-wrap">
+      <input id={id} type="number" class:list={["jw-input", "jw-number__input", suffix && "jw-input--suffixed"]} aria-invalid={error ? "true" : undefined} aria-describedby={describedBy} {...rest} />
+      {suffix && <span class="jw-input__suffix" aria-hidden="true">{suffix}</span>}
+    </div>
+    {steppers && <button type="button" class="jw-number__step jw-number__step--up" data-step="1" aria-label={increaseLabel} aria-controls={id} />}
+  </div>
+  {hint && !error && <span class="jw-field__hint" id={`${id}-hint`}>{hint}</span>}
+  {error ? <span class="jw-field__error" id={`${id}-err`}>{error}</span> : reserveError && <span class="jw-field__error" id={`${id}-err`} hidden />}
+</div>
+
+<script>
+      document.addEventListener("click", (e) => {
+        const btn = (e.target as HTMLElement).closest<HTMLButtonElement>(".jw-number__step");
+        if (!btn) return;
+        const input = btn.closest(".jw-number")?.querySelector<HTMLInputElement>(".jw-number__input");
+        if (!input || input.disabled || input.readOnly) return;
+        const step = Number(input.step) || 1;
+        const min = input.min === "" ? -Infinity : Number(input.min);
+        const max = input.max === "" ? Infinity : Number(input.max);
+        const now = input.value === "" ? (Number.isFinite(min) ? min : 0) : Number(input.value);
+        const dir = Number(btn.dataset.step) || 0;
+        let next = (Number.isFinite(now) ? now : 0) + dir * step;
+        next = Math.min(max, Math.max(min, next));
+        // keep the step's decimals, so 0.1 steps don't drift to 0.30000000000000004
+        const places = (String(step).split(".")[1] || "").length;
+        input.value = places ? next.toFixed(places) : String(Math.round(next));
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+    </script>

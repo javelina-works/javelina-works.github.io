@@ -1,0 +1,28 @@
+<!-- @dsCard group="Forms" height=520 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>ChoiceRow</title></head>
+<body>
+<!-- Plain HTML. The words are the ballpark's ways to find a ranch. -->
+<div class="jw-demo" style="max-width: 520px; display: flex; flex-direction: column; gap: 16px">
+  <button type="button" class="jw-choice jw-choice--shell">
+    <span class="jw-choice__play" aria-hidden="true"></span>
+    <span class="jw-choice__text"><span class="jw-choice__title">Watch a live demo</span><small class="jw-choice__sub">Fox Canyon — a real 180-acre West Texas ranch</small></span>
+  </button>
+  <div class="jw-choice-list">
+    <button type="button" class="jw-choice">
+      <span class="jw-choice__text"><span class="jw-choice__title">See it work on Fox Canyon</span><small class="jw-choice__sub">a 180-acre slice of West Texas canyon country</small></span>
+    </button>
+    <label class="jw-choice" tabindex="0" role="button">
+      <svg class="jw-choice__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+      <span class="jw-choice__text"><span class="jw-choice__title">Upload a boundary file</span><small class="jw-choice__sub">KMZ or KML from Google Earth, or GeoJSON</small></span>
+      <input type="file" hidden>
+    </label>
+    <button type="button" class="jw-choice is-hover" style="background: var(--surface-sunken)">
+      <span class="jw-choice__text"><span class="jw-choice__title">Draw the fence line on the map</span><small class="jw-choice__sub">Click the corners, then finish</small></span>
+    </button>
+  </div>
+  <p class="jw-caption">The last row is shown on hover.</p>
+</div>
+</body>
+</html>

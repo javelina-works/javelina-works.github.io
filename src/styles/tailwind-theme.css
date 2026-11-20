@@ -1,0 +1,85 @@
+/*
+ * Tailwind's theme for this site: everything that could carry a hard-coded color, font, radius, shadow or animation is
+ * cleared, the breakpoints and spacing follow the system, and the color, font, radius and shadow utilities that remain
+ * write design tokens. Imported by global.css.
+ */
+/* Clear every theme value that could carry a hard-coded color, font, radius, shadow or animation. */
+@theme {
+  --color-*: initial;
+  --font-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --text-shadow-*: initial;
+  --animate-*: initial;
+
+  /* Breakpoints follow the system's own steps (min-width, so each starts one pixel above a jw.css max-width step):
+     sm = past a phone (jw.css 640px), md = past the nav fold (900px), lg = the wordmark shows (1024px),
+     xl = full-bleed bands stop growing (1280px). */
+  --breakpoint-*: initial;
+  --breakpoint-sm: 641px;
+  --breakpoint-md: 901px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+
+  /* The spacing scale is the token grid: p-4 = space-4 = 16px, gap-6 = space-6, py-14 = space-14, py-20 = space-20. */
+  --spacing: 4px;
+
+  /* What preflight uses for html, code and pre */
+  --default-font-family: var(--font-body);
+  --default-mono-font-family: var(--font-mono);
+}
+
+/* The token map. inline: a utility writes the token itself (bg-surface → background-color: var(--surface)), so it
+   follows day and night. reference: Tailwind emits no variables of its own (the token names are the source). */
+@theme inline reference {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-input: var(--surface-input);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-text: var(--text);
+  --color-text-body: var(--text-body);
+  --color-text-muted: var(--text-muted);
+  --color-label: var(--label);
+  --color-land: var(--land);
+  --color-land-soft: var(--land-soft);
+  --color-on-land-soft: var(--on-land-soft);
+  --color-sage: var(--sage);
+  --color-rust: var(--rust);
+  --color-water: var(--water);
+  --color-focus: var(--focus);
+  --color-action: var(--action);
+  --color-on-action: var(--on-action);
+  --color-action-strong: var(--action-strong);
+  --color-on-action-strong: var(--on-action-strong);
+  --color-action-tint: var(--action-tint);
+  --color-on-action-tint: var(--on-action-tint);
+  --color-action-ghost: var(--action-ghost);
+  --color-on-shell: var(--on-shell);
+  --color-on-agave: var(--on-agave);
+
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+
+  --radius-xs: var(--radius-xs);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-round: var(--radius-round);
+
+  --shadow-raise: var(--shadow-raise);
+  --shadow-raise-on-band: var(--shadow-raise-on-band);
+  --shadow-well: var(--shadow-well);
+  --shadow-focus: var(--shadow-focus);
+}
+
+/* Status colors are also emitted as --color-success/--color-warning/--color-error, which older page CSS reads. */
+@theme static inline {
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+}

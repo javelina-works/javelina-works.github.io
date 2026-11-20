@@ -1,0 +1,20 @@
+---
+/**
+ * Checkbox (design/components/Checkbox/README.md): a labeled checkbox. The whole row is the tap target (at least 44px
+ * tall); the 20px box has a line-strong edge, fills with ink when checked, and takes shadow-focus.
+ * The label is the default slot (or the label prop); every other prop goes on the <input> (id, name, checked, disabled,
+ * required, value…).
+ */
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends Omit<HTMLAttributes<"input">, "class" | "type"> {
+  label?: string;
+  class?: string;
+}
+const { label, class: className, ...rest } = Astro.props;
+---
+
+<label class:list={["jw-check", className]}>
+  <input type="checkbox" class="jw-check__box" {...rest} />
+  <span class="jw-check__text"><slot>{label}</slot></span>
+</label>

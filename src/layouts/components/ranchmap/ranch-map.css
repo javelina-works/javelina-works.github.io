@@ -1,0 +1,1148 @@
+/* Ranch Map Studio (/tools/ranch-map/) on the design system. Every color, size, radius and shadow of the page's own
+   chrome comes from design/tokens/tokens.css, so the page works by day and at night.
+   Two things keep literal values on purpose, because they are the product, not the site:
+   - the map sheet (#sheet) and the print page (#page): their four map styles (--s-* per data-style), their type and
+     sizes. Print output must not change with the site's theme.
+   - the style previews (.pv-*): little pictures of those four styles.
+   Classes are namespaced .rm-*; the studio's own pieces sit under #rmStudio. Ids and the classes the engine and the
+   tests use (.rail, .stage, .note, label.swatch, .loading, .warn, html.rm-printing) are unchanged. */
+
+/* hidden means hidden, even on a piece that sets its own display */
+.rm-lookup [hidden],
+#rmStudio [hidden] {
+  display: none !important;
+}
+
+/* ---------------------------------------------------------------- lookup: map card and panel on an agave band */
+.rm-tool {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .rm-tool {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* Phones: the address box comes first, so it is on screen without scrolling past the map (replays showed visitors
+     hunting for it). */
+  .rm-panel {
+    order: -1;
+  }
+}
+.rm-mapcard {
+  overflow: hidden;
+}
+#rmLookupMap {
+  height: 460px;
+  width: 100%;
+  background: var(--surface-sunken);
+  font-family: var(--font-body);
+}
+@media (max-width: 900px) {
+  #rmLookupMap {
+    height: 320px;
+  }
+}
+/* side by side, the map card is as tall as the panel (at least 460px), so there is more ranch to tap */
+@media (min-width: 901px) {
+  .rm-tool {
+    align-items: stretch;
+  }
+  .rm-mapcard {
+    display: flex;
+    flex-direction: column;
+  }
+  #rmLookupMap {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 460px;
+  }
+}
+/* Leaflet's controls on the system: paper plates with ink, 44px zoom buttons */
+#rmLookupMap .leaflet-bar {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: var(--shadow-raise);
+}
+#rmLookupMap .leaflet-bar a {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: var(--surface);
+  color: var(--text);
+  font: 400 22px/44px var(--font-body);
+  text-indent: 0;
+}
+#rmLookupMap .leaflet-bar a:first-child {
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+#rmLookupMap .leaflet-bar a:last-child {
+  border-bottom: 0;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+}
+#rmLookupMap .leaflet-bar a:hover {
+  background: var(--surface-sunken);
+  color: var(--text);
+}
+#rmLookupMap .leaflet-bar a:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  position: relative;
+  z-index: 1;
+}
+#rmLookupMap .leaflet-bar a.leaflet-disabled {
+  background: var(--surface);
+  color: var(--text-muted);
+}
+#rmLookupMap .leaflet-control-attribution {
+  padding: 2px 6px;
+  border-top-left-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-body);
+  font-size: 12px;
+  line-height: 1.5;
+}
+#rmLookupMap .leaflet-control-attribution a {
+  color: var(--land);
+  text-decoration: underline;
+}
+#rmLookupMap .leaflet-control-attribution a:hover {
+  color: var(--text);
+}
+#rmLookupMap .leaflet-control-scale-line {
+  border-color: var(--text);
+  background: var(--surface);
+  color: var(--text);
+  text-shadow: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+#rmLookupMap:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 3px var(--focus);
+}
+/* Satellite imagery is a photo: it dims a little at night, like every photo and like the ballpark's map. Only the
+   tile pane; the parcel lines and the printed sheet keep their colors. */
+[data-theme="dark"] .rm-mapcard .leaflet-tile-pane {
+  filter: brightness(var(--photo-brightness-dark));
+}
+
+.rm-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-6);
+}
+@media (max-width: 640px) {
+  .rm-panel {
+    padding: var(--space-5) var(--space-4);
+  }
+}
+.rm-panel__title {
+  margin: 0;
+  color: var(--text);
+}
+.rm-find__row {
+  display: flex;
+  gap: var(--space-2);
+}
+.rm-find__row .jw-input {
+  flex: 1;
+  min-width: 0;
+}
+.rm-note {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.rm-panel .rm-here {
+  align-self: flex-start;
+}
+/* the parcel line: a marigold ring like the selected parcels on the map ("Gold is your ranch") */
+.rm-acres {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--text);
+}
+.rm-acres:not(:empty)::before {
+  content: "";
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-xs);
+  box-shadow:
+    inset 0 0 0 2px var(--selected),
+    0 0 0 1px var(--selected-hairline);
+}
+.rm-panel .rm-build {
+  width: 100%;
+}
+.rm-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-body);
+  font-variant-numeric: tabular-nums;
+}
+.rm-msg {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-body);
+}
+/* a warning is words with a warning rule beside them, like the Notice; never a light */
+.rm-msg[data-kind="warn"] {
+  padding-left: var(--space-3);
+  border-left: 3px solid var(--warning);
+  color: var(--text);
+}
+/* the sample: a quiet button with a second line (16px label, 15px line under it) */
+.rm-sample {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  box-sizing: border-box;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0);
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: left;
+  cursor: pointer;
+}
+.rm-sample,
+.rm-sample:hover,
+.rm-sample:focus,
+.rm-sample:active {
+  color: var(--text);
+}
+.rm-sample small {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+.rm-sample:hover {
+  background: var(--surface-sunken);
+}
+.rm-sample:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+.rm-sample:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ---------------------------------------------------------------- studio */
+/* The sticky bar clears anchor jumps and scrollIntoView through html's scroll-padding-top (jw.css), so the studio
+   needs no offset of its own (the old page used 90px for the old 88px header). */
+#rmStudio {
+  padding: var(--space-4) 0 var(--space-14);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+}
+#rmStudio * {
+  box-sizing: border-box;
+}
+#rmStudio .app {
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+@media (max-width: 900px) {
+  #rmStudio .app {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* Phones: the map comes first and Print sits right under it, instead of below the whole list of styles and layers. */
+  #rmStudio .stage {
+    order: -1;
+  }
+  #rmStudio .rm-sec-print {
+    order: -1;
+  }
+}
+
+/* rail: a paper card of controls */
+#rmStudio .rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+  padding: var(--space-5);
+  color: var(--text-body);
+}
+@media (max-width: 640px) {
+  #rmStudio .rail {
+    padding: var(--space-5) var(--space-4);
+  }
+}
+/* Side by side, the rail stays beside the map and scrolls inside itself when it is taller than the screen (as the
+   brush-roi form does), so every control is next to the map it changes. 44px rows make it about twice as tall as the
+   stage; without this, the lower layers, the title block and the print settings sat a screen or more below the map.
+   69px is the nav bar (44px controls, space-3 above and below, a 1px rule), as in jw.css. Scrolling past the end of
+   the rail carries on down the page (no overscroll containment), because the wheel over the map zooms it. */
+@media (min-width: 901px) {
+  #rmStudio .rail {
+    position: sticky;
+    top: calc(44px + 2 * var(--space-3) + 1px + var(--space-4));
+    max-height: calc(
+      100vh - 44px - 2 * var(--space-3) - 1px - 2 * var(--space-4)
+    );
+    max-height: calc(
+      100dvh - 44px - 2 * var(--space-3) - 1px - 2 * var(--space-4)
+    );
+    overflow-y: auto;
+  }
+  /* a section keeps its height in the shortened rail; the rail scrolls instead */
+  #rmStudio .rail > * {
+    flex-shrink: 0;
+  }
+}
+#rmStudio .rm-sec {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+#rmStudio .rm-sec__title {
+  margin: 0;
+}
+
+/* map style: radio cards with a picture of each style; the chosen one wears the marigold selected ring */
+#rmStudio .swatches {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+#rmStudio .swatch {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--surface);
+  cursor: pointer;
+}
+#rmStudio .swatch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+#rmStudio .swatch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+#rmStudio .swatch .pv {
+  display: block;
+  height: 58px;
+}
+/* pictures of the four map styles (the product's own paper and ink, so literal colors) */
+#rmStudio .pv-survey {
+  background:
+    repeating-radial-gradient(
+      circle at 70% 120%,
+      transparent 0 7px,
+      rgba(168, 100, 44, 0.55) 7px 8px
+    ),
+    radial-gradient(circle at 30% 30%, #c8d89e 0 18px, transparent 19px),
+    #eee5cb;
+}
+#rmStudio .pv-modern {
+  background:
+    repeating-radial-gradient(
+      circle at 70% 120%,
+      transparent 0 8px,
+      rgba(90, 80, 70, 0.22) 8px 9px
+    ),
+    linear-gradient(120deg, #dfe8d6, #f4f1e8 60%, #e6dccb);
+}
+#rmStudio .pv-blueprint {
+  background:
+    repeating-radial-gradient(
+      circle at 70% 120%,
+      transparent 0 7px,
+      rgba(255, 255, 255, 0.4) 7px 8px
+    ),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px) 0
+      0/12px 12px,
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px) 0
+      0/12px 12px,
+    #1d4c8c;
+}
+#rmStudio .pv-night {
+  background:
+    repeating-radial-gradient(
+      circle at 70% 120%,
+      transparent 0 8px,
+      rgba(240, 200, 140, 0.28) 8px 9px
+    ),
+    radial-gradient(circle at 40% 30%, #5d5442, #23271f 70%);
+}
+#rmStudio .swatch .nm {
+  display: block;
+  padding: var(--space-2) var(--space-3) var(--space-3);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--text);
+}
+#rmStudio .swatch .nm small {
+  display: block;
+  margin-top: 2px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+#rmStudio .swatch:hover .nm {
+  background: var(--surface-sunken);
+}
+#rmStudio .swatch:has(input:checked) {
+  border-color: var(--selected);
+  box-shadow: 0 0 0 1px var(--selected-hairline);
+}
+#rmStudio .swatch:has(input:checked)::after {
+  box-shadow: inset 0 0 0 2px var(--selected);
+}
+#rmStudio .swatch:has(input:focus-visible) {
+  box-shadow: var(--shadow-focus);
+}
+
+/* layers: checkbox rows (Checkbox), grouped in fieldsets, each with its source on a queued chip */
+#rmStudio .rm-group {
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-3) 0 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+#rmStudio .rm-group:first-of-type {
+  padding-top: 0;
+  border-top: 0;
+}
+#rmStudio .rm-group__legend {
+  float: left;
+  width: 100%;
+  margin: 0;
+  padding: 0 0 var(--space-1);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--text);
+}
+#rmStudio .rm-group__legend + * {
+  clear: both;
+}
+#rmStudio .rm-lyr {
+  align-items: center;
+  padding: 10px 0;
+}
+#rmStudio .rm-lyr .jw-check__box {
+  margin-top: 0;
+}
+#rmStudio .rm-lyr .jw-check__text {
+  flex: 1;
+  min-width: 0;
+  color: var(--text);
+}
+#rmStudio .rm-lyr .jw-chip {
+  flex: none;
+}
+#rmStudio .rm-sub {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0 0 var(--space-2) var(--space-8);
+}
+#rmStudio .rm-sub__label {
+  font-size: 16px;
+  color: var(--text-body);
+}
+#rmStudio .rm-sub .jw-select-wrap {
+  flex: 0 1 140px;
+}
+#rmStudio .rm-sub--slider {
+  display: block;
+}
+/* the drainage slider has no number to read out: only Fewer … More */
+#rmStudio .rm-detail .jw-slider__value {
+  display: none;
+}
+
+/* title block and print */
+#rmStudio .rm-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+#rmStudio .plan {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-body);
+}
+#rmStudio .plan b {
+  font-weight: 500;
+  color: var(--text);
+}
+#rmStudio .plan .warn {
+  display: block;
+  margin-top: var(--space-2);
+  padding-left: var(--space-3);
+  border-left: 3px solid var(--warning);
+  color: var(--text-body);
+}
+#rmStudio .rm-print {
+  width: 100%;
+}
+
+/* where the map comes from */
+#rmStudio .how {
+  padding: var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+}
+#rmStudio .how ul {
+  margin: 0;
+  padding-left: 1.1em;
+}
+#rmStudio .how li {
+  margin: 0 0 var(--space-2);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-body);
+}
+#rmStudio .how li:last-child {
+  margin-bottom: 0;
+}
+#rmStudio .how b {
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* stage: a sunken table with a faint grid, the sheet lying on it */
+#rmStudio .stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--space-6) var(--space-6) var(--space-10);
+  border-radius: var(--radius-md);
+  background-color: var(--surface-sunken);
+  background-image:
+    linear-gradient(var(--line) 1px, rgba(0, 0, 0, 0) 1px),
+    linear-gradient(90deg, var(--line) 1px, rgba(0, 0, 0, 0) 1px);
+  background-size: 24px 24px;
+  box-shadow: var(--shadow-well);
+}
+@media (max-width: 640px) {
+  #rmStudio .stage {
+    padding: var(--space-3) var(--space-3) var(--space-6);
+  }
+}
+#rmStudio .stage .note {
+  width: 100%;
+  max-width: 1040px;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-body);
+}
+#rmStudio .rm-stagebar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+}
+/* the view switch: two tabs in a well; the chosen one is a paper plate with the marigold selected ring (as the
+   SegmentedControl), keyed on aria-selected because the engine sets that */
+#rmStudio .modes {
+  display: inline-flex;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  box-shadow: var(--shadow-well);
+}
+#rmStudio .modes button {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 var(--space-4);
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: rgba(0, 0, 0, 0);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  line-height: 1.2;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+}
+#rmStudio .modes button,
+#rmStudio .modes button:focus,
+#rmStudio .modes button:active {
+  color: var(--text-body);
+}
+#rmStudio .modes button:hover {
+  color: var(--text);
+}
+#rmStudio .modes button[aria-selected="true"] {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow:
+    inset 0 0 0 2px var(--selected),
+    0 0 0 1px var(--selected-hairline);
+}
+#rmStudio .modes button:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+#rmStudio .modes button[aria-selected="true"]:focus-visible {
+  box-shadow:
+    inset 0 0 0 2px var(--selected),
+    var(--shadow-focus);
+}
+/* Phones: a Print button beside the view tabs, so it's on screen with the map instead of below the legend. */
+#rmStudio .rm-mprint {
+  display: none;
+}
+@media (max-width: 900px) {
+  #rmStudio .rm-mprint {
+    display: inline-flex;
+  }
+}
+
+/* ---- the explore sheet: the product. Its four styles (data-style) and type are unchanged. ---- */
+#rmStudio .sheet {
+  --s-paper: #eee5cb;
+  --s-ink: #2a2119;
+  --s-mute: #6d5c49;
+  --s-rule: #2a2119;
+  --s-brand: #8e2a12;
+  --s-title: "Old Standard TT", Georgia, serif;
+  --s-body: "Old Standard TT", Georgia, serif;
+  width: 100%;
+  max-width: 1040px;
+  background: var(--s-paper);
+  color: var(--s-ink);
+  /* the type the sheet had inside the old studio (14px Figtree, line-height 1.45), held so the sheet doesn't change */
+  font-family: "Figtree", "Segoe UI", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+  padding: 2.2%;
+  box-shadow: var(--shadow-raise);
+  position: relative;
+}
+#rmStudio .sheet[data-style="survey"] {
+  background-image: radial-gradient(
+    ellipse at center,
+    transparent 55%,
+    rgba(120, 90, 40, 0.16)
+  );
+}
+#rmStudio .sheet[data-style="modern"] {
+  --s-paper: #fbfaf7;
+  --s-ink: #1f2326;
+  --s-mute: #6b7176;
+  --s-rule: #1f2326;
+  --s-brand: #c52c03;
+  --s-title: "Instrument Serif", Georgia, serif;
+  --s-body: "Figtree", system-ui, sans-serif;
+}
+#rmStudio .sheet[data-style="blueprint"] {
+  --s-paper: #1d4c8c;
+  --s-ink: #f2f7ff;
+  --s-mute: #a9c4e8;
+  --s-rule: #f2f7ff;
+  --s-brand: #f2f7ff;
+  --s-title: "IBM Plex Mono", Menlo, monospace;
+  --s-body: "IBM Plex Mono", Menlo, monospace;
+}
+#rmStudio .sheet[data-style="night"] {
+  --s-paper: #16181a;
+  --s-ink: #efe7da;
+  --s-mute: #9a907f;
+  --s-rule: #5b5446;
+  --s-brand: #ff7a4a;
+  --s-title: "Instrument Serif", Georgia, serif;
+  --s-body: "IBM Plex Mono", Menlo, monospace;
+}
+/* The sheet's titles take the style's ink. Before, the site's heading color leaked in: dark on Blueprint and
+   Night Relief (unreadable), and at night it would be the night text color on the paper styles. */
+#rmStudio .sheet h2,
+#rmStudio .page h2 {
+  color: inherit;
+}
+#rmStudio .mapwrap {
+  position: relative;
+}
+#rmStudio .mapwrap canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  cursor: grab;
+  touch-action: none;
+}
+@media (pointer: coarse) {
+  #rmStudio .mapwrap canvas {
+    touch-action: pan-y;
+  }
+}
+#rmStudio .mapwrap canvas.dragging {
+  cursor: grabbing;
+}
+/* map controls on the sheet: paper plates with ink, 44px everywhere */
+#rmStudio .zoom {
+  position: absolute;
+  top: 4.5%;
+  right: 4%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+#rmStudio .zoom button {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font: 400 22px/1 var(--font-body);
+  box-shadow: var(--shadow-raise);
+  cursor: pointer;
+}
+#rmStudio .zoom button,
+#rmStudio .zoom button:hover,
+#rmStudio .zoom button:focus,
+#rmStudio .zoom button:active {
+  color: var(--text);
+}
+#rmStudio .zoom button:hover {
+  background: var(--surface-sunken);
+}
+#rmStudio .zoom button:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+/* the hint is a short label on a small shell plate: text never sits straight on the map */
+#rmStudio .zhint {
+  position: absolute;
+  left: 50%;
+  top: 4.5%;
+  max-width: calc(100% - 128px);
+  transform: translateX(-50%);
+  padding: 6px 10px;
+  border: 1px solid var(--shell-edge);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    160deg,
+    var(--shell-1) 0%,
+    var(--shell-2) 42%,
+    var(--shell-3) 100%
+  );
+  box-shadow: var(--shadow-sheen-shell);
+  color: var(--on-shell);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.35;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+  pointer-events: none;
+  transition: opacity calc(var(--duration-glow) * 2);
+}
+@media (prefers-reduced-motion: reduce) {
+  #rmStudio .zhint {
+    transition: none;
+  }
+}
+/* while the engine draws: the steps on a paper card over a shell scrim */
+#rmStudio .loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: color-mix(in srgb, var(--shell-3) 55%, rgba(0, 0, 0, 0));
+}
+#rmStudio .loading ol {
+  list-style: none;
+  min-width: min(260px, 100%);
+  margin: 0;
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-raise-on-band);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+#rmStudio .loading li {
+  position: relative;
+  padding: 2px 0 2px 1.4em;
+}
+#rmStudio .loading li.on {
+  color: var(--text);
+}
+#rmStudio .loading li.done {
+  color: var(--text-body);
+}
+#rmStudio .loading li.done::before,
+#rmStudio .loading li.on::before {
+  position: absolute;
+  left: 0;
+}
+#rmStudio .loading li.done::before {
+  content: "✓";
+  color: var(--success);
+}
+#rmStudio .loading li.on::before {
+  content: "›";
+  color: var(--text);
+}
+#rmStudio .foot {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1.2fr) minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 3%;
+  align-items: start;
+  padding-top: 2%;
+  margin-top: 1.4%;
+  border-top: 2px solid var(--s-rule);
+  font-family: var(--s-body);
+}
+@media (max-width: 760px) {
+  #rmStudio .foot {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 16px;
+  }
+}
+#rmStudio .sbrand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+#rmStudio .sbrand .mark {
+  width: 64px;
+  height: 57px;
+  background: var(--s-brand);
+  -webkit-mask: var(--logo) center/contain no-repeat;
+  mask: var(--logo) center/contain no-repeat;
+}
+#rmStudio .sbrand b {
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+#rmStudio .sbrand small {
+  font-size: 0.62rem;
+  color: var(--s-mute);
+  letter-spacing: 0.04em;
+}
+#rmStudio .stitle h2 {
+  font-family: var(--s-title);
+  font-weight: 400;
+  font-size: clamp(1.4rem, 3.2vw, 2.4rem);
+  line-height: 1.02;
+  margin: 0;
+  text-wrap: balance;
+}
+#rmStudio .sheet[data-style="survey"] .stitle h2 {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  font-size: clamp(1.1rem, 2.5vw, 1.9rem);
+}
+#rmStudio .sheet[data-style="blueprint"] .stitle h2 {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  font-size: clamp(1.05rem, 2.3vw, 1.7rem);
+}
+#rmStudio .stitle p {
+  margin: 6px 0 0;
+  font-size: 0.78rem;
+  color: var(--s-mute);
+}
+#rmStudio .sheet[data-style="survey"] .stitle p {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.7rem;
+}
+#rmStudio .stitle .meta {
+  font-variant-numeric: tabular-nums;
+}
+#rmStudio .legend {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3px 14px;
+  font-size: 0.7rem;
+}
+#rmStudio .legend .li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+#rmStudio .legend svg {
+  flex: none;
+}
+#rmStudio .legend .lh {
+  grid-column: 1 / -1;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--s-mute);
+  margin-bottom: 2px;
+}
+#rmStudio .snotes {
+  font-size: 0.62rem;
+  color: var(--s-mute);
+  line-height: 1.5;
+}
+#rmStudio .snotes b {
+  color: var(--s-ink);
+  font-weight: 600;
+}
+
+/* ---- the print page: the product at real size. Unchanged apart from its screen shadow. ---- */
+#rmStudio .pgwrap {
+  width: 100%;
+  max-width: 1100px;
+  position: relative;
+}
+#rmStudio .page {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: top left;
+  background: var(--s-paper);
+  color: var(--s-ink);
+  font-family: "Figtree", "Segoe UI", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+  box-shadow: var(--shadow-raise);
+  --s-paper: #eee5cb;
+  --s-ink: #2a2119;
+  --s-mute: #6d5c49;
+  --s-rule: #2a2119;
+  --s-brand: #8e2a12;
+  --s-title: "Old Standard TT", Georgia, serif;
+  --s-body: "Old Standard TT", Georgia, serif;
+}
+#rmStudio .page[data-style="modern"] {
+  --s-paper: #fbfaf7;
+  --s-ink: #2a2e31;
+  --s-mute: #6b7176;
+  --s-rule: #2a2e31;
+  --s-brand: #c52c03;
+  --s-title: "Instrument Serif", Georgia, serif;
+  --s-body: "Figtree", system-ui, sans-serif;
+}
+#rmStudio .page[data-style="blueprint"] {
+  --s-paper: #1d4c8c;
+  --s-ink: #f2f7ff;
+  --s-mute: #a9c4e8;
+  --s-rule: #f2f7ff;
+  --s-brand: #f2f7ff;
+  --s-title: "IBM Plex Mono", Menlo, monospace;
+  --s-body: "IBM Plex Mono", Menlo, monospace;
+}
+#rmStudio .page[data-style="night"] {
+  --s-paper: #181a1c;
+  --s-ink: #d6cfc3;
+  --s-mute: #8f8677;
+  --s-rule: #4a453b;
+  --s-brand: #e0703f;
+  --s-title: "Instrument Serif", Georgia, serif;
+  --s-body: "IBM Plex Mono", Menlo, monospace;
+}
+#rmStudio .page canvas {
+  position: absolute;
+  display: block;
+}
+#rmStudio .pfoot {
+  position: absolute;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1.25fr) minmax(0, 1.6fr) minmax(
+      0,
+      1.25fr
+    );
+  gap: 0 0.35in;
+  align-items: start;
+  border-top: 1.5pt solid var(--s-rule);
+  font-family: var(--s-body);
+  font-size: var(--fs-body);
+}
+#rmStudio .pbrand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.04in;
+  text-align: center;
+}
+#rmStudio .pbrand .mark {
+  width: var(--logo);
+  height: calc(var(--logo) * 0.886);
+  background: var(--s-brand);
+  -webkit-mask: var(--logo-img) center/contain no-repeat;
+  mask: var(--logo-img) center/contain no-repeat;
+}
+#rmStudio .pbrand b {
+  font-size: var(--fs-small);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+#rmStudio .pbrand small {
+  font-size: var(--fs-tiny);
+  color: var(--s-mute);
+}
+#rmStudio .ptitle h2 {
+  font-family: var(--s-title);
+  font-weight: 400;
+  font-size: var(--fs-title);
+  line-height: 1.02;
+  margin: 0;
+}
+#rmStudio .page[data-style="survey"] .ptitle h2,
+#rmStudio .page[data-style="blueprint"] .ptitle h2 {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  font-size: calc(var(--fs-title) * 0.78);
+}
+#rmStudio .ptitle p {
+  margin: 0.05in 0 0;
+  color: var(--s-mute);
+  font-size: var(--fs-body);
+}
+#rmStudio .plegend {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.02in 0.18in;
+  font-size: var(--fs-small);
+}
+#rmStudio .plegend .li {
+  display: flex;
+  align-items: center;
+  gap: 0.06in;
+  min-width: 0;
+}
+#rmStudio .plegend svg {
+  width: calc(var(--fs-small) * 2.6);
+  height: calc(var(--fs-small) * 1.2);
+  flex: none;
+}
+#rmStudio .pscale p {
+  margin: 0.04in 0 0;
+  font-size: var(--fs-small);
+}
+#rmStudio .pscale .pnotes {
+  font-size: var(--fs-tiny);
+  color: var(--s-mute);
+  line-height: 1.45;
+}
+#rmStudio .pscale svg {
+  display: block;
+  overflow: visible;
+}
+#rmStudio b,
+#rmStudio strong {
+  color: inherit;
+}
+
+/* the toast: a paper card at the foot of the screen, above the cookie banner (z 5000), which can sit there too */
+#rmStudio .toast {
+  position: fixed;
+  left: 50%;
+  bottom: var(--space-5);
+  z-index: 5001;
+  max-width: min(520px, calc(100% - 2 * var(--space-4)));
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-raise-on-band);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.5;
+  transform: translateX(-50%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  #rmStudio .toast {
+    animation: rm-rise var(--duration-glow) ease-out;
+  }
+  @keyframes rm-rise {
+    from {
+      transform: translate(-50%, 10px);
+      opacity: 0;
+    }
+  }
+}
+
+/* ---- printing: only the real-size sheet. The @page size is set per plan (#rmPageRule). ---- */
+@media print {
+  html.rm-printing body * {
+    visibility: hidden !important;
+  }
+  html.rm-printing #page,
+  html.rm-printing #page * {
+    visibility: visible !important;
+  }
+  html.rm-printing #page {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  html.rm-printing,
+  html.rm-printing body {
+    overflow: hidden !important;
+    background: #fff !important;
+  }
+}

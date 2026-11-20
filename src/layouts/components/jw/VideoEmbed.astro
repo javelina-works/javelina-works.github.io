@@ -1,0 +1,69 @@
+---
+/**
+ * VideoEmbed (design/components/VideoEmbed/README.md): a video in the page that loads nothing from YouTube or Vimeo until
+ * someone presses Play (the privacy policy says so). A 16:9 frame (the poster, or shell) with a shell "Play video"
+ * button; the press builds the player in place, in YouTube's privacy-enhanced mode (youtube-nocookie.com) or Vimeo with
+ * dnt=1, and starts it. provider "html5" renders a plain <video controls> (no autoplay under reduced motion).
+ *   src (a YouTube or Vimeo id, or a file path for html5); provider (default youtube); poster (an image path); title
+ *   (the player's name for screen readers, default "Video"); playLabel (default "Play video"); type (html5 MIME type);
+ *   autoplay (html5 only: muted autoplay, skipped under reduced motion).
+ */
+import OptimizedImage from "@/components/utilities/OptimizedImage.astro";
+import Button from "./Button.astro";
+
+interface Props {
+  src: string;
+  provider?: "youtube" | "vimeo" | "html5";
+  poster?: string;
+  title?: string;
+  playLabel?: string;
+  type?: string;
+  autoplay?: boolean;
+  class?: string;
+}
+const { src, provider = "youtube", poster, title = "Video", playLabel = "Play video", type, autoplay = false, class: className } = Astro.props;
+const isNative = provider === "html5";
+const embedSrc =
+  provider === "vimeo"
+    ? `https://player.vimeo.com/video/${src}?autoplay=1&dnt=1`
+    : `https://www.youtube-nocookie.com/embed/${src}?autoplay=1&rel=0&playsinline=1`;
+---
+
+{
+  src &&
+    (isNative ? (
+      <div class:list={["jw-video", "jw-video--native", className]}>
+        <video controls playsinline preload="metadata" poster={poster} data-jw-autoplay={autoplay ? "" : undefined} muted={autoplay || undefined} title={title}>
+          <source src={src} type={type} />
+        </video>
+      </div>
+    ) : (
+      <div class:list={["jw-video", className]} data-jw-video={embedSrc} data-jw-video-title={title}>
+        {poster && <OptimizedImage src={poster} alt="" width={1280} height={720} class="jw-video__poster" />}
+        <Button variant="shell" class="jw-video__play" data-jw-video-play>
+          {playLabel}
+        </Button>
+      </div>
+    ))
+}
+
+<script>
+  document.addEventListener("click", (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLElement>("[data-jw-video-play]");
+    const frame = btn?.closest<HTMLElement>("[data-jw-video]");
+    if (!frame || frame.querySelector("iframe")) return;
+    const iframe = document.createElement("iframe");
+    iframe.src = frame.dataset.jwVideo || "";
+    iframe.title = frame.dataset.jwVideoTitle || "Video";
+    iframe.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
+    iframe.allowFullscreen = true;
+    iframe.referrerPolicy = "strict-origin-when-cross-origin";
+    frame.replaceChildren(iframe);
+    iframe.focus();
+  });
+  // html5 autoplay (muted) only when motion is welcome
+  const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  document.querySelectorAll<HTMLVideoElement>("video[data-jw-autoplay]").forEach((v) => {
+    if (!still) v.play().catch(() => {});
+  });
+</script>

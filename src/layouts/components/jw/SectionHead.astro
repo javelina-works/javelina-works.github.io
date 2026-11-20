@@ -1,0 +1,29 @@
+---
+/**
+ * SectionHead (design/components/SectionHead/README.md): the heading block at the top of a page section: an optional
+ * eyebrow, the h2 (heading-1 style), and a short intro. On the page ground or a card; never on a wall or a sheen.
+ *   title / titleHtml (trusted markup, e.g. markdownify output); text / textHtml; eyebrow; titleId; center;
+ *   level (default 2). Buttons go in the default slot.
+ */
+interface Props {
+  title?: string;
+  titleHtml?: string;
+  text?: string;
+  textHtml?: string;
+  eyebrow?: string;
+  titleId?: string;
+  center?: boolean;
+  level?: 2 | 3;
+  class?: string;
+}
+const { title, titleHtml, text, textHtml, eyebrow, titleId, center = false, level = 2, class: className } = Astro.props;
+const H: any = `h${level}`;
+const hasSlot = Astro.slots.has("default");
+---
+
+<div class:list={["jw-sechead", center && "jw-sechead--center", className]}>
+  {eyebrow && <p class="jw-eyebrow">{eyebrow}</p>}
+  {titleHtml ? <H class="t-heading-1 jw-sechead__title" id={titleId} set:html={titleHtml} /> : title && <H class="t-heading-1 jw-sechead__title" id={titleId}>{title}</H>}
+  {textHtml ? <div class="jw-sechead__text" set:html={textHtml} /> : text && <p class="jw-sechead__text">{text}</p>}
+  {hasSlot && <div class="jw-row"><slot /></div>}
+</div>

@@ -1,0 +1,17 @@
+---
+/** Chip (design/components/Chip/README.md). The dot defaults on for treat, success, warning and error. Not interactive. */
+import type { HTMLAttributes } from "astro/types";
+
+type Tone = "treat" | "keep" | "shell" | "selected" | "queued" | "success" | "warning" | "error";
+interface Props extends Omit<HTMLAttributes<"span">, "class"> {
+  tone?: Tone;
+  dot?: boolean;
+  /** appended as " · n" */
+  count?: number | string;
+  class?: string;
+}
+const { tone = "keep", dot, count, class: className, ...rest } = Astro.props;
+const showDot = dot ?? ["treat", "success", "warning", "error"].includes(tone);
+---
+
+<span class:list={["jw-chip", `jw-chip--${tone}`, className]} {...rest}>{showDot && <span class="jw-chip__dot" aria-hidden="true" />}<slot />{count != null && ` · ${count}`}</span>

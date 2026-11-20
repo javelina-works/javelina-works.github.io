@@ -1,0 +1,107 @@
+---
+/**
+ * The article's text in Prose (design/components/Prose; the jw-prose class, written here so the scoped styles below
+ * reach it): 18px Figtree (17px on phones) in text-body, ~66 characters a
+ * line. The rendered Markdown goes in the default slot; enhanceArticleHtml joins side-by-side footnote numbers ("3, 4"),
+ * turns tables into the system's stacking Table (tables with the same column labels share column widths) and holds the
+ * end of each source together. Heading ids, footnote ids, links and words are untouched.
+ */
+import { enhanceArticleHtml } from "./enhanceArticleHtml";
+
+interface Props {
+  class?: string;
+}
+const { class: className } = Astro.props;
+const html = enhanceArticleHtml(await Astro.slots.render("default"));
+---
+
+<div class:list={["jw-prose", "article-body", className]} set:html={html} />
+
+<style>
+  /* The article's own touches on Prose. Prose itself (jw.css) sets the size, measure, color, links, lists and Sources. */
+  .article-body :global(.jw-table-wrap) {
+    margin: var(--space-6) 0 var(--space-8);
+  }
+  .article-body :global(.jw-table-wrap table) {
+    margin: 0;
+  }
+  /* column labels are words a reader needs (some run to "Practice 314 scenario (FY2025, Texas statewide)"), so they are
+     16px text like the cells, not the Table's 11.5px mono label */
+  .article-body :global(.jw-table thead th) {
+    font-family: var(--font-body);
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  /* tables that share their column labels share their column widths (the colgroup), so the columns line up */
+  .article-body :global(.article-table--matched) {
+    table-layout: fixed;
+  }
+  /* an empty cell means "none": it shows a dash, read aloud as "none", in the grid and stacked alike. The text is
+     unchanged. */
+  .article-body :global(.jw-table td:empty::after) {
+    content: "\2014";
+    content: "\2014" / "none";
+  }
+  /* footnote numbers: a little larger than Prose's default and spaced, so "3, 4" reads as two sources */
+  .article-body :global(sup) {
+    font-size: 0.78em;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+  }
+  .article-body :global(sup a[data-footnote-ref]) {
+    padding: 0 0.12em;
+  }
+  /* Sources: each "back to the text" arrow keeps its number with it when the line wraps */
+  .article-body :global(.data-footnote-backref) {
+    display: inline-block;
+    white-space: nowrap;
+  }
+  /* and each source's end holds together (enhanceArticleHtml): the last word or the last part of the URL, the link's
+     arrow and the first key (the last two keys likewise), so neither the arrow nor a key wraps onto a line alone.
+     Every link's arrow stays with the last part of its URL (source-hold); the rest of a URL wraps at its <wbr> seams. */
+  .article-body :global(.source-end),
+  .article-body :global(.source-hold) {
+    white-space: nowrap;
+  }
+  .article-body :global(.source-end > a:not(.data-footnote-backref)) {
+    white-space: normal;
+  }
+  .article-body :global(.footnotes li) {
+    padding-left: 0.2em;
+  }
+  .article-body :global(.footnotes li::marker) {
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  /* on a phone a table row stacks: its row header, then each column label above its value (long values read left to
+     right, not pushed against the right edge as in a short label–value list) */
+  @media (max-width: 640px) {
+    .article-body :global(.jw-table--stack td) {
+      display: block;
+      text-align: start;
+    }
+    .article-body :global(.jw-table--stack td::before) {
+      display: block;
+      margin-bottom: var(--space-1);
+      font-family: var(--font-body);
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 1.4;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+    .article-body :global(.jw-table--stack colgroup) {
+      display: none;
+    }
+    .article-body :global(.jw-table--stack tbody th) {
+      font-size: 17px;
+      padding-bottom: var(--space-2);
+    }
+    .article-body :global(.jw-table--stack td + td) {
+      margin-top: var(--space-2);
+    }
+  }
+</style>

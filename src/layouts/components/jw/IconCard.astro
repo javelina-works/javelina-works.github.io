@@ -1,0 +1,40 @@
+---
+/**
+ * IconCard (design/components/IconCard/README.md): a paper card with a Lucide icon in a small sunken well, an optional
+ * figure (Barlow), a heading (heading-3) and a line or two of text (17px). Set several in a CardGrid (jw-cardgrid:
+ * one column on phones, two from 641px, three from 1024px with cols={3}).
+ *   icon (a Lucide name, as content files give it); value (a figure such as "212 ac"); title; text, or textHtml (trusted
+ *   markup); level (the heading level, default 3); href: the whole card becomes a link; castShadow (on a wall).
+ */
+import Icons from "@/helpers/Icons.astro";
+import Surface from "./Surface.astro";
+
+interface Props {
+  icon?: string;
+  value?: string;
+  title?: string;
+  titleHtml?: string;
+  text?: string;
+  textHtml?: string;
+  level?: 2 | 3 | 4;
+  href?: string;
+  castShadow?: boolean;
+  class?: string;
+}
+const { icon, value, title, titleHtml, text, textHtml, level = 3, href, castShadow = false, class: className } = Astro.props;
+const H: any = `h${level}`;
+---
+
+<Surface href={href} castShadow={castShadow} class:list={["jw-iconcard", className]}>
+  {
+    icon && (
+      <span class="jw-iconcard__icon" aria-hidden="true">
+        <Icons icon={icon as any} />
+      </span>
+    )
+  }
+  {value && <p class="t-number jw-iconcard__value">{value}</p>}
+  {titleHtml ? <H class="t-heading-3 jw-iconcard__title" set:html={titleHtml} /> : title && <H class="t-heading-3 jw-iconcard__title">{title}</H>}
+  {textHtml ? <p class="jw-iconcard__text" set:html={textHtml} /> : text && <p class="jw-iconcard__text">{text}</p>}
+  <slot />
+</Surface>

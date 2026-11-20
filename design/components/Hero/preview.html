@@ -1,0 +1,24 @@
+<!-- @dsCard group="Pages" height=760 page -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Homepage hero</title></head>
+<body>
+<div id="root" class=""></div>
+<script>
+var J = window.JavelinaWorks, h = React.createElement;
+function Row(p) { return h('div', { className: 'jw-row', style: p.style }, p.children); }
+ReactDOM.createRoot(document.getElementById('root')).render(h(J.LightScene, null,
+ h(J.NavBar, { lamp: true, links: [{ label: 'How it works', href: '#how' }, { label: 'Pricing', href: '#pricing' }, { label: 'About', href: '#about' }], action: { label: 'Get a ballpark', href: '#ballpark' } }),
+ h(J.LampWall, { texture: 'flake', seed: 3, style: { padding: '48px 28px 56px' } },
+  h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 28, alignItems: 'center' } },
+   h(J.Surface, { variant: 'card', castShadow: true, style: { padding: 28, display: 'flex', flexDirection: 'column', gap: 16 } },
+    h('span', { className: 'jw-eyebrow' }, 'Brush management · Fort Davis, Texas'),
+    h('h1', { className: 't-display-l', style: { margin: 0, textWrap: 'balance' } }, 'Brush control, one plant at a time.'),
+    h('p', { className: 't-body', style: { margin: 0, color: 'var(--text-body)' } }, 'We survey your pasture from the air, count and map every brush plant, and treat each one by drone to a plan you approve.'),
+    h(Row, null, h(J.Button, { href: '#how', variant: 'shell' }, 'How it works'), h(J.Button, { href: '#example', variant: 'ghost' }, 'See an example'))),
+   h(J.Surface, { variant: 'card', castShadow: true, style: { padding: 12 } },
+    h(J.SurveyMap, { src: '/assets/images/survey-detections.jpg', alt: 'Survey image of a pasture with each woody plant boxed', height: 240, plants: [{id:1,x:24,y:38,status:'treat'},{id:2,x:58,y:64,status:'treat'},{id:3,x:80,y:30,status:'treat'},{id:4,x:40,y:22,status:'keep'},{id:5,x:70,y:80,status:'keep'},{id:6,x:12,y:70,status:'keep'},{id:7,x:88,y:62,status:'keep'}] }))))
+));
+</script>
+</body>
+</html>

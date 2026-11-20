@@ -1,4 +1,6 @@
 ---
+# Homepage "How it works" (src/layouts/components/home/HomeSteps.astro) reads: title, description, button and each
+# step's step, title and description. interval, image, video and videoWebm are no longer shown on the page.
 enable: true
 title: "From a day of flying to a **treatment plan**"
 description: "What happens to your ranch between the survey flight and the first plant treated."

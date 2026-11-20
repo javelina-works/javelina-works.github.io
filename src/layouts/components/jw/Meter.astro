@@ -1,0 +1,24 @@
+---
+/**
+ * Meter (design/components/Meter/README.md). The label and "value of max unit" are always written out above the bar.
+ * animate (default): data-jw-reveal, so the lighting engine fills it by transform on first view when it starts below the fold.
+ */
+interface Props {
+  label: string;
+  value: number;
+  max: number;
+  unit?: string;
+  animate?: boolean;
+  class?: string;
+}
+const { label, value, max, unit = "ac", animate = true, class: className } = Astro.props;
+const pct = max > 0 ? Math.max(0, Math.min(100, (value / max) * 100)) : 0;
+const fmt = (n: number) => Number(n).toLocaleString("en-US");
+---
+
+<div class:list={["jw-meter-block", className]} data-jw-reveal={animate ? "" : undefined}>
+  <div class="jw-meter-block__line"><span>{label}</span><span>{fmt(value)} of {fmt(max)} {unit}</span></div>
+  <div class="jw-meter" role="progressbar" aria-label={label} aria-valuemin="0" aria-valuemax={max} aria-valuenow={value}>
+    <div class="jw-meter__fill" style={`width: ${pct}%`}></div>
+  </div>
+</div>

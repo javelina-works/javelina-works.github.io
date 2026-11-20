@@ -1,0 +1,95 @@
+---
+/**
+ * Tabs (design/components/Tabs/README.md): a row of tabs over their panels. Put one <TabPanel> per tab in the slot,
+ * with the same id as its entry in `tabs`.
+ *   tabs: [{ id, label, tabId? }]  id is the panel's id; tabId the tab button's (default "<id>-tab").
+ *   selected: the index chosen at first (default 0). label: the tab row's accessible name.
+ * Without JavaScript every panel shows under its own heading and the tab row is hidden. The inline line right after the
+ * markup (no wait for the bundle) marks it ready and hides the other panels before they paint; the module script then
+ * handles clicks and the keyboard (arrow keys, Home, End; roving tabindex) and opens the panel a #hash points into.
+ */
+import type { HTMLAttributes } from "astro/types";
+
+export interface TabEntry {
+  id: string;
+  label: string;
+  tabId?: string;
+}
+interface Props extends Omit<HTMLAttributes<"div">, "class"> {
+  tabs: TabEntry[];
+  selected?: number;
+  label?: string;
+  class?: string;
+}
+const { tabs, selected = 0, label, class: className, ...rest } = Astro.props;
+---
+
+<div class:list={["jw-tabs", className]} data-jw-tabs {...rest}>
+  <div class="jw-tabs__list" role="tablist" aria-label={label}>
+    {
+      tabs.map((t, i) => (
+        <button
+          type="button"
+          class="jw-tabs__tab"
+          role="tab"
+          id={t.tabId || `${t.id}-tab`}
+          aria-controls={t.id}
+          aria-selected={i === selected ? "true" : "false"}
+          tabindex={i === selected ? "0" : "-1"}
+          set:html={t.label}
+        />
+      ))
+    }
+  </div>
+  <slot />
+</div>
+<script is:inline>(function(r){if(!r||!r.querySelector)return;var s=r.querySelector('.jw-tabs__list [aria-selected="true"]'),c=s&&s.getAttribute("aria-controls");r.classList.add("is-ready");r.querySelectorAll(":scope > .jw-tabs__panel").forEach(function(p){if(p.id!==c)p.hidden=true})})(document.currentScript&&document.currentScript.previousElementSibling)</script>
+
+<script>
+  const select = (root: HTMLElement, tab: HTMLElement, focus: boolean) => {
+    const tabs = [...root.querySelectorAll<HTMLElement>(":scope > .jw-tabs__list > [role=tab]")];
+    tabs.forEach((t) => {
+      const on = t === tab;
+      t.setAttribute("aria-selected", on ? "true" : "false");
+      t.tabIndex = on ? 0 : -1;
+      const panel = document.getElementById(t.getAttribute("aria-controls") || "");
+      if (panel) panel.hidden = !on;
+    });
+    if (focus) tab.focus();
+    root.dispatchEvent(new CustomEvent("jw-tabs-change", { bubbles: true, detail: { tab, index: tabs.indexOf(tab) } }));
+  };
+  document.querySelectorAll<HTMLElement>("[data-jw-tabs]").forEach((root) => {
+    if (root.dataset.jwTabsBound) return;
+    root.dataset.jwTabsBound = "1";
+    root.classList.add("is-ready");
+    const list = root.querySelector<HTMLElement>(":scope > .jw-tabs__list");
+    if (!list) return;
+    list.addEventListener("click", (e) => {
+      const tab = (e.target as HTMLElement).closest<HTMLElement>("[role=tab]");
+      if (tab && list.contains(tab)) select(root, tab, false);
+    });
+    list.addEventListener("keydown", (e) => {
+      const tabs = [...list.querySelectorAll<HTMLElement>("[role=tab]")];
+      const i = tabs.indexOf(document.activeElement as HTMLElement);
+      if (i < 0) return;
+      const next = { ArrowRight: i + 1, ArrowDown: i + 1, ArrowLeft: i - 1, ArrowUp: i - 1, Home: 0, End: tabs.length - 1 }[e.key];
+      if (next === undefined) return;
+      e.preventDefault();
+      select(root, tabs[(next + tabs.length) % tabs.length], true);
+    });
+  });
+  // a #hash that points into a hidden panel chooses that panel's tab
+  const fromHash = () => {
+    const id = decodeURIComponent(location.hash.slice(1));
+    const el = id && document.getElementById(id);
+    const panel = el && el.closest<HTMLElement>(".jw-tabs__panel");
+    const root = panel && panel.closest<HTMLElement>("[data-jw-tabs]");
+    const tab = root && root.querySelector<HTMLElement>(`[role=tab][aria-controls="${CSS.escape(panel.id)}"]`);
+    if (root && tab && panel.hidden) {
+      select(root, tab, false);
+      el.scrollIntoView();
+    }
+  };
+  fromHash();
+  window.addEventListener("hashchange", fromHash);
+</script>

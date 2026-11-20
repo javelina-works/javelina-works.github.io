@@ -9,6 +9,12 @@ const DX = [1, 1, 0, -1, -1, -1, 0, 1],
   DY = [0, 1, 1, 1, 0, -1, -1, -1];
 const DD = [1, Math.SQRT2, 1, Math.SQRT2, 1, Math.SQRT2, 1, Math.SQRT2];
 
+// "180 acres", but "1 acre" for a town lot
+function acresLabel(acres) {
+  const whole = Math.round(acres);
+  return `${whole.toLocaleString("en-US")} ${whole === 1 ? "acre" : "acres"}`;
+}
+
 function mulberry32(a) {
   return function () {
     a |= 0;
@@ -1870,10 +1876,10 @@ function updateSheet(st, T) {
     items
       .map(([s, t]) => `<div class="li">${s}<span>${t}</span></div>`)
       .join("");
-  $("sTitle").textContent = $("tTitle").value || "Your Ranch";
+  $("sTitle").textContent = $("tTitle").value || "Your ranch";
   $("sSub").textContent = $("tSub").value;
   $("sMeta").textContent =
-    `${Math.round(world.parcelAcres).toLocaleString("en-US")} acres · ${((DATA.ll.s + DATA.ll.n) / 2).toFixed(4)}°N ${Math.abs((DATA.ll.w + DATA.ll.e) / 2).toFixed(4)}°W`;
+    `${acresLabel(world.parcelAcres)} · ${((DATA.ll.s + DATA.ll.n) / 2).toFixed(4)}°N ${Math.abs((DATA.ll.w + DATA.ll.e) / 2).toFixed(4)}°W`;
   const paperName = {
     letter: "Letter",
     tabloid: "Tabloid",
@@ -2100,10 +2106,9 @@ function renderPrintPreview() {
   $("pLegend").innerHTML = legendItems(pst, T)
     .map(([sv, t]) => `<div class="li">${sv}<span>${t}</span></div>`)
     .join("");
-  $("pTitle").textContent = $("tTitle").value || "Your Ranch";
+  $("pTitle").textContent = $("tTitle").value || "Your ranch";
   $("pSub").textContent = $("tSub").value;
-  $("pMeta").textContent =
-    `${Math.round(world.parcelAcres).toLocaleString("en-US")} acres`;
+  $("pMeta").textContent = acresLabel(world.parcelAcres);
   $("pBar").innerHTML = scaleBarSVG(plan);
   $("pScale").textContent =
     `Scale 1:${plan.denom.toLocaleString("en-US")} · ${scaleWords(plan.denom)} · contours every ${plan.ci} ft`;
@@ -2260,7 +2265,7 @@ export async function showRanch(bundle, meta = {}) {
   DATA = {
     ...bundle,
     id: meta.id || "ranch",
-    title: meta.title || "Your Ranch",
+    title: meta.title || "Your ranch",
     county: meta.county || "",
     boundaryLabel: meta.boundaryLabel || "Ranch boundary",
     note: meta.note || "",
@@ -2422,6 +2427,9 @@ const fontsWanted = [
   '400 16px "IBM Plex Mono"',
   '500 16px "IBM Plex Mono"',
   'italic 400 16px "IBM Plex Mono"',
+  // the Modern and Night Relief titles (CSS, not canvas), so a print never
+  // catches them in the fallback serif
+  '400 16px "Instrument Serif"',
 ];
 Promise.race([
   Promise.all(fontsWanted.map((f) => document.fonts.load(f))),

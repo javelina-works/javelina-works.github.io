@@ -1,0 +1,31 @@
+<!-- @dsCard group="Forms" height=260 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Segmented control</title></head>
+<body>
+<!-- Plain HTML, no script for the radio form. Labels: the brush return calculator's year type and the ballpark's map view buttons. -->
+<div class="jw-demo" style="max-width: 640px">
+  <fieldset class="jw-seg">
+    <legend class="jw-seg__legend">This kind of year</legend>
+    <div class="jw-seg__track">
+      <label class="jw-seg__opt" for="pv-year-low"><input type="radio" class="jw-seg__input" id="pv-year-low" name="pv-year" value="low"><span class="jw-seg__label">Dry</span></label>
+      <label class="jw-seg__opt" for="pv-year-normal"><input type="radio" class="jw-seg__input" id="pv-year-normal" name="pv-year" value="normal" checked><span class="jw-seg__label">Normal</span></label>
+      <label class="jw-seg__opt" for="pv-year-high"><input type="radio" class="jw-seg__input" id="pv-year-high" name="pv-year" value="high"><span class="jw-seg__label">Wet</span></label>
+    </div>
+  </fieldset>
+  <span class="jw-caption">Button form (aria-pressed), driven by the page's own script</span>
+  <div class="jw-seg" role="group" aria-label="Map view">
+    <div class="jw-seg__track">
+      <button type="button" class="jw-seg__btn" aria-pressed="true">Density</button>
+      <button type="button" class="jw-seg__btn" aria-pressed="false">Likely brush</button>
+      <button type="button" class="jw-seg__btn" aria-pressed="false">Terrain</button>
+    </div>
+  </div>
+</div>
+<script>
+document.querySelectorAll('.jw-seg__btn').forEach(function (b) {
+  b.addEventListener('click', function () { b.parentNode.querySelectorAll('.jw-seg__btn').forEach(function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); }); });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+---
+/**
+ * LightScene: starts the lighting engine (design/components/lighting.js) once for the page. Put it once in the base layout.
+ * Walls, lights, pools, shadows, rivets, data-jw-flicker and data-jw-reveal are found by their data-jw-* attributes.
+ */
+---
+
+<script>
+  import { mount } from "../../../../design/components/lighting.js";
+  mount();
+</script>

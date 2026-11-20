@@ -1,0 +1,9 @@
+---
+/**
+ * ThemeInit: the tiny head script that sets data-theme on <html> before first paint, from the saved choice (localStorage
+ * "jw-theme", read inside try/catch) or else prefers-color-scheme. Put it in <head> right after StaleChunkReload and before
+ * any stylesheet. Render <html data-theme="light"> as the no-JS default. ThemeToggle saves the choice under the same key.
+ */
+---
+
+<script is:inline>(function(){var t;try{t=localStorage.getItem("jw-theme")}catch(e){}if(t!=="light"&&t!=="dark")t=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.setAttribute("data-theme",t)})()</script>

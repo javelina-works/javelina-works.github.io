@@ -1,12 +1,16 @@
 ---
 // Chrome-free layout for pages that partners frame on their own sites
-// (src/pages/embed/*). No header, nav, footer, cookie banner, page loader,
-// smooth-scroll or AOS: just the theme CSS, fonts, cookieless analytics, and
-// the auto-height bridge the partner loader (public/embed/ballpark.js) reads.
-// Framing is allowed per partner by the /embed/* CSP in netlify.toml.
+// (src/pages/embed/*). No header, nav, footer, cookie banner or lighting:
+// just the design system's CSS and fonts, cookieless analytics, and the
+// auto-height bridge the partner loader (public/embed/ballpark.js) reads.
+// Always by day (data-theme="light", no theme script or toggle): it sits on a
+// partner's page. Framing is allowed per partner by the /embed/* CSP in
+// netlify.toml.
+import "../../design/tokens/tokens.css";
+import "../../design/components/jw.css";
 import "@/styles/global.css";
-import { Font } from "astro:assets";
-import fontsJson from "@/config/fonts.json";
+import figtreeRegular from "../../design/fonts/Figtree-Regular.woff2?url";
+import barlowMedium from "../../design/fonts/Barlow-Medium.woff2?url";
 import PostHog from "@/components/posthog.astro";
 
 interface Props {
@@ -16,15 +20,11 @@ interface Props {
 }
 const { title, description, canonical } = Astro.props;
 
-const fonts = fontsJson.map((font) => ({
-  cssVariable: font.cssVariable as any,
-  preload: font.preload === true,
-}));
 import StaleChunkReload from "@/components/global/StaleChunkReload.astro";
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     {import.meta.env.PROD && <StaleChunkReload />}
@@ -47,9 +47,8 @@ import StaleChunkReload from "@/components/global/StaleChunkReload.astro";
           document.documentElement.classList.add("jw-embed-transparent");
       } catch (e) {}
     </script>
-    {fonts.map((font) => (
-      <Font cssVariable={font.cssVariable} preload={font.preload} />
-    ))}
+    <link rel="preload" href={barlowMedium} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={figtreeRegular} as="font" type="font/woff2" crossorigin />
     {import.meta.env.PROD && <PostHog embed />}
   </head>
   <body class="jw-embed">
@@ -99,9 +98,12 @@ import StaleChunkReload from "@/components/global/StaleChunkReload.astro";
 </html>
 
 <style is:global>
+  /* The system's ground (limestone), so the paper cards read as cards. A
+     partner can let its own page show through with ?bg=transparent. */
   html,
   body.jw-embed {
-    background: #fff;
+    background: var(--bg);
+    color: var(--text);
   }
   html.jw-embed-transparent,
   html.jw-embed-transparent body.jw-embed {

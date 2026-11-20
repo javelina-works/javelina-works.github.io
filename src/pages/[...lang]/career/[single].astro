@@ -1,4 +1,9 @@
 ---
+// A job's own page (/career/<slug>/). None is built in production today: the career index is a draft (no paths in
+// production), and every job entry is a draft too. On the design system: SinglePageLayout (PageHeader and Prose), with
+// the job's facts on a paper card above the body and an "Apply Now" shell button.
+// Analytics: career_apply_clicked {job_title, url} on a click of the apply button, as before. The hook is now
+// [data-career-apply] (was the class .btn-black with target=_blank, which the new button doesn't carry).
 import Base from "@/layouts/Base.astro";
 import { getEntryCTM } from "@/lib/contentParser.astro";
 import config from ".astro/config.generated.json";
@@ -7,7 +12,8 @@ import CallToAction from "@/components/sections/CallToAction.astro";
 import { supportedLanguages, useTranslations } from "@/lib/utils/i18nUtils";
 import SinglePageLayout from "@/components/SinglePageLayout.astro";
 import { markdownify } from "@/lib/utils/textConverter";
-import CustomButton from "@/components/CustomButton.astro";
+import Surface from "@/components/jw/Surface.astro";
+import Button from "@/components/jw/Button.astro";
 
 export async function getStaticPaths() {
   const paths = await Promise.all(
@@ -57,60 +63,97 @@ export async function getStaticPaths() {
 
 const { career } = Astro.props;
 const t = await useTranslations(Astro.currentLocale as string);
+const overviewHtml = t("common.careerJobOverview") ? ((await markdownify(t("common.careerJobOverview"))) as string) : undefined;
+const fields = (career.data.fields || []) as { name: string; content: string }[];
+const button = career.data.button as { enable?: boolean; label?: string; url?: string; rel?: string } | undefined;
 ---
 
 <Base {...career.data}>
   <SinglePageLayout content={career}>
-    <div slot="content" class="bg-theme-light rounded-xl p-5 md:p-8">
-      {
-        t("common.careerJobOverview") && (
-          <h2
-            class="text-h6-sm md:text-h6"
-            set:html={markdownify(t("common.careerJobOverview"))}
-          />
-        )
-      }
-      <div class="mt-5 flex flex-wrap gap-6">
+    <div slot="content">
+      <Surface class="job-facts">
+        {overviewHtml && <h2 class="t-heading-3 job-facts__title" set:html={overviewHtml} />}
         {
-          career.data.fields.map(
-            (field: { name: unknown; content: unknown }) => (
-              <div class="flex flex-wrap gap-2 sm:flex-nowrap sm:items-center">
-                <p class="text-black/55 capitalize">{field.name}:</p>
-                <p class="text-black">{field.content}</p>
-              </div>
-            ),
+          fields.length > 0 && (
+            <dl class="job-facts__list">
+              {fields.map((field) => (
+                <div class="job-facts__row">
+                  <dt class="job-facts__name">{field.name}</dt>
+                  <dd class="job-facts__value">{field.content}</dd>
+                </div>
+              ))}
+            </dl>
           )
         }
-      </div>
-      {
-        career.data.button && (
-          <div class="mt-8">
-            <CustomButton
-              target="_blank"
-              class="btn-black"
-              hoverEffect="text-flip"
-              rel="noopener noreferrer"
-              label={t("common.careerApplyNow")}
-              {...career.data.button}
-            />
-          </div>
-        )
-      }
+        {
+          button && button.enable !== false && button.url && (
+            <div class="job-facts__action">
+              <Button
+                variant="shell"
+                href={button.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-career-apply="">
+                {button.label || t("common.careerApplyNow")}
+              </Button>
+            </div>
+          )
+        }
+      </Surface>
     </div>
   </SinglePageLayout>
   <CallToAction />
 </Base>
 
-<script is:inline>
-  document.addEventListener("DOMContentLoaded", () => {
-    const applyBtn = document.querySelector(".btn-black[target='_blank']");
-    if (applyBtn) {
-      applyBtn.addEventListener("click", () => {
-        window.posthog?.capture("career_apply_clicked", {
-          job_title: document.title,
-          url: applyBtn.getAttribute("href") || undefined,
-        });
-      });
-    }
+<script>
+  const applyBtn = document.querySelector<HTMLElement>("[data-career-apply]");
+  applyBtn?.addEventListener("click", () => {
+    window.posthog?.capture("career_apply_clicked", {
+      job_title: document.title,
+      url: applyBtn.getAttribute("href") || undefined,
+    });
   });
 </script>
+
+<style>
+  :global(.job-facts) {
+    box-sizing: border-box;
+    padding: var(--space-5) var(--space-4);
+  }
+  .job-facts__title {
+    margin: 0 0 var(--space-4);
+    color: var(--text);
+  }
+  .job-facts__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3) var(--space-8);
+    margin: 0;
+  }
+  .job-facts__row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+  .job-facts__name {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--label);
+  }
+  .job-facts__value {
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--text);
+  }
+  .job-facts__action {
+    margin-top: var(--space-6);
+  }
+  @media (min-width: 641px) {
+    :global(.job-facts) {
+      padding: var(--space-6) var(--space-8);
+    }
+  }
+</style>

@@ -2,12 +2,16 @@
 import Base from "@/layouts/Base.astro";
 import { generatePaths } from "@/lib/utils/i18nUtils";
 import BallparkTool from "@/layouts/components/ballpark/BallparkTool.astro";
+import PageHeader from "@/components/jw/PageHeader.astro";
+import Section from "@/components/jw/Section.astro";
 
 export function getStaticPaths() {
   return generatePaths();
 }
 
 const meta = {
+  // The page's name (its Tools menu label): the last item of the JSON-LD breadcrumb. metaTitle stays the <title>.
+  title: "Free ballpark estimate",
   metaTitle: "Brush Clearing Cost Estimate, West Texas | Javelina Works",
   metaDescription:
     "Type your West Texas ranch address, or stand on it, and get a measured budget range for clearing mesquite and cedar, free, in about a minute.",
@@ -15,20 +19,46 @@ const meta = {
 };
 ---
 
-<Base {...meta} sectionSpacing="md">
-  <section class="bp-hero">
-    <div class="container">
-      <p class="bp-eyebrow">Free &middot; about a minute</p>
-      <h1>What would it cost to clear your brush?</h1>
-      <p class="bp-sub">
+<Base {...meta}>
+  <PageHeader
+    eyebrow="Free · about a minute"
+    title="What would it cost to clear your brush?"
+    class="bp-pagehead">
+    <Fragment slot="intro">
+      <p>
         Tell us where the ranch is &mdash; we&rsquo;ll find the property, read
-        it with lidar and infrared imagery, and hand you a budget range.
+        it with lidar and infrared imagery, and hand you a budget range.{" "}
         <span class="bp-sub-more">
           If you like the numbers, we&rsquo;ll fly it and firm them up.
         </span>
       </p>
-    </div>
-  </section>
+    </Fragment>
+  </PageHeader>
 
-  <BallparkTool />
+  <!-- The tool on an agave band: the map card and the panel are paper cards,
+       so no words sit straight on the sheen. -->
+  <Section tone="agave" pad="tight" class="bp-stage">
+    <BallparkTool />
+  </Section>
 </Base>
+
+<style is:global>
+  /* A short header, so the map reaches the fold sooner (the tool is the page). */
+  .bp-pagehead.jw-pagehead {
+    padding-top: var(--space-10);
+    padding-bottom: var(--space-8);
+  }
+  @media (max-width: 640px) {
+    .bp-pagehead.jw-pagehead {
+      padding-top: var(--space-6);
+      padding-bottom: var(--space-5);
+    }
+    .bp-pagehead .jw-pagehead__eyebrow,
+    .bp-pagehead .bp-sub-more {
+      display: none;
+    }
+    .bp-pagehead .jw-pagehead__intro {
+      font-size: 16px;
+    }
+  }
+</style>

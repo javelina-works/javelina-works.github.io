@@ -1,0 +1,18 @@
+<!-- @dsCard group="Actions" height=250 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Button</title></head>
+<body>
+<div id="root" class="jw-demo"></div>
+<script>
+var J = window.JavelinaWorks, h = React.createElement;
+function Row(p) { return h('div', { className: 'jw-row', style: p.style }, p.children); }
+ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+ h(Row, null, h(J.Button, null, 'Get a ballpark'), h(J.Button, { className: 'is-hover' }, 'Lit (hover)'), h(J.Button, { disabled: true }, 'Disabled')),
+ h(Row, null, h(J.Button, { variant: 'burnt' }, 'Approve plan'), h(J.Button, { variant: 'tint' }, 'See pricing'), h(J.Button, { variant: 'ghost' }, 'Download map')),
+ h(Row, null, h(J.Button, { variant: 'shell' }, 'How it works'), h(J.Button, { variant: 'agave' }, 'Land we work'), h(J.Button, { variant: 'quiet' }, 'Log in')),
+ h(Row, null, h(J.Button, { size: 'sm' }, 'Ballpark'), h(J.Button, { variant: 'shell', size: 'sm' }, 'Services'), h(J.Button, { variant: 'quiet', size: 'sm' }, 'Log in'))
+));
+</script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+---
+/**
+ * ScriptSlider: the system's Slider (design/components/Slider/README.md, "Plain HTML") for a page whose own script writes
+ * the readout. Same classes and look as `@/components/jw/Slider.astro`, but without `data-jw-slider`, so the shared Slider
+ * script leaves it alone: the page script owns the readout text (an <output> with the page's existing id), the fill
+ * (`--jw-p` on the input, 0 to 1) and `aria-valuetext`. Used where the readout is not the raw value: the pricing page's
+ * acre steps (an index into the grid) and the return calculator's harvest efficiency (0.25 reads "25%").
+ *   label, id, min, max, value (required); step; outId (the readout's id); text / unit (the first readout, so the page
+ *   reads right before the script runs); hint. Other props go on the <input> (name, data-*).
+ */
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends Omit<HTMLAttributes<"input">, "class" | "id" | "type" | "min" | "max" | "value" | "step"> {
+  label: string;
+  id: string;
+  min: number;
+  max: number;
+  value: number;
+  step?: number;
+  outId: string;
+  text?: string;
+  unit?: string;
+  hint?: string;
+  class?: string;
+}
+const { label, id, min, max, value, step = 1, outId, text, unit, hint, class: className, ...rest } = Astro.props;
+const p = max > min ? Math.min(1, Math.max(0, (value - min) / (max - min))) : 0;
+const shown = text ?? String(value);
+---
+
+<div class:list={["jw-slider", className]}>
+  <div class="jw-slider__head">
+    <label class="jw-slider__label" for={id}>{label}</label>
+    <output class="jw-slider__value" id={outId} for={id} aria-hidden="true">{shown}{unit && <span class="jw-slider__unit">{unit}</span>}</output>
+  </div>
+  <input
+    type="range"
+    class="jw-slider__input"
+    id={id}
+    min={min}
+    max={max}
+    step={step}
+    value={value}
+    aria-valuetext={unit ? `${shown} ${unit}` : shown}
+    aria-describedby={hint ? `${id}-hint` : undefined}
+    style={`--jw-p: ${p.toFixed(4)}`}
+    {...rest}
+  />
+  {hint && <span class="jw-slider__hint" id={`${id}-hint`}>{hint}</span>}
+</div>

@@ -1,15 +1,11 @@
 {
   "common": {
-    "readMore": "Read More",
-    "category": "Category",
-    "publishedOn": "Published On",
-    "learnMoreAbout": "Learn more about",
-    "emailPlaceholder": "Email Address",
+    "readMore": "Read more",
+    "emailPlaceholder": "Email address",
     "paginationNext": "Next",
     "paginationPrevious": "Previous",
-    "backToHome": "Back to Home",
+    "backToHome": "Back to home",
     "careerJobOverview": "Job Overview",
-    "contactDropdownSearch404": "No results wewe found",
     "careerApplyNow": "Apply Now"
   },
   "navigation": {
@@ -18,20 +14,18 @@
   "contactInfo": {
     "locationLabel": "Location",
     "location": "03 Ranch Road, Fort Davis, Texas",
-    "phoneLabel": "Phone Number",
+    "phoneLabel": "Phone number",
     "phone": "432-203-5975",
     "emailLabel": "Email",
     "email": "info@javelinaworks.com"
   },
   "subscription": {
     "label": "Subscribe to our newsletter",
-    "term": "I agree with [privacy policy](/privacy-policy/)"
+    "term": "I agree to the [privacy policy](/privacy-policy/)"
   },
   "footer": {
-    "colTitleOne": "Company",
-    "colTitleTwo": "Resources",
     "colTitleThree": "Contact",
     "description": "Precision drone brush management for Texas ranches. We map the mesquite, cedar and juniper on your place from the air and treat them one plant at a time, from Fort Davis.",
-    "copyright": "Copyright \u00a9 2026 Javelina Works, Inc. All Rights Reserved."
+    "copyright": "Copyright \u00a9 2026 Javelina Works, Inc. All rights reserved."
   }
 }

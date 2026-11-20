@@ -1,0 +1,15 @@
+---
+/** StatusLight (design/components/StatusLight/README.md). One per page, usually in the footer. Never red. */
+interface Props {
+  label: string;
+  /** slow blink (default true); the engine runs it only while the light is near the screen, never with reduced motion */
+  blink?: boolean;
+  class?: string;
+}
+const { label, blink = true, class: className } = Astro.props;
+---
+
+<span class:list={["jw-status", className]}>
+  <span class="jw-pilot jw-pilot--status" aria-hidden="true" data-jw-light="status" data-jw-blink={blink ? "" : undefined}></span>
+  <span class="jw-status__label">{label}</span>
+</span>

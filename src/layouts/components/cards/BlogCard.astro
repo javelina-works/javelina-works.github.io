@@ -1,16 +1,21 @@
 ---
+/**
+ * ArticleCard (design/components/ArticleCard/README.md), the article list's card: a paper card (Surface card) with
+ * the article's picture cropped to 16:9, its category as an eyebrow, the title, the excerpt, the date and a "Read more"
+ * cue (t-body-strong in land with a 20px right arrow, Lucide's ArrowRight: the same cue as the service cards' "Learn
+ * more", since both lead to pages on this site). The title is the card's one link and it covers the whole card, so the
+ * card is one big tap target and one tab stop. Its styles are the ArticleCard block in design/components/jw.css.
+ *   layout: "vertical" (grids) or "horizontal" (the featured card on /articles/: picture beside the words from 900px)
+ *   headingLevel: 2 on the list pages, 3 under a section heading ("Keep reading")
+ * The picture's alt text comes from articleImages.ts (what it shows), not the title. Photos dim at night; survey images
+ * keep their colors.
+ */
 import type { Section } from "@/types";
-import dateFormat from "@/lib/utils/dateFormat";
-import OptimizedImage from "@/components/utilities/OptimizedImage.astro";
-import {
-  humanize,
-  markdownify,
-  plainify,
-  slugifyyy,
-} from "@/lib/utils/textConverter";
-import { getLocaleUrlCTM, useTranslations } from "@/lib/utils/i18nUtils";
-import CustomButton from "../CustomButton.astro";
-import Icons from "@/helpers/Icons.astro";
+import { Picture } from "astro:assets";
+import { humanize, plainify } from "@/lib/utils/textConverter";
+import { getLocaleUrlCTM } from "@/lib/utils/i18nUtils";
+import { findAssetImage } from "@/lib/utils/shareImage";
+import { articleImage } from "@/components/articles/articleImages";
 
 interface Props {
   content: Section & {
@@ -19,101 +24,62 @@ interface Props {
   };
   class?: string;
   layout?: "horizontal" | "vertical";
+  headingLevel?: 2 | 3;
+  loading?: "lazy" | "eager";
 }
 
-const t = await useTranslations(Astro.currentLocale as string);
+const { content, layout = "vertical", headingLevel = 2, loading = "lazy", class: className, ...rest } = Astro.props;
+const { title, image, excerpt, date, categories } = content || ({} as any);
 
-let { content, layout = "vertical", class: className, ...rest } = Astro.props;
-let { title, image, excerpt, date, categories } = content || {};
-
-// Format categories
-const categoriesArray = categories?.map((category: string) => ({
-  name: category,
-  slug: slugifyyy(category),
-}));
-
-let slug = getLocaleUrlCTM(content.id, Astro.currentLocale, content.collection);
-
-const isHorizontal = layout === "horizontal";
+const href = getLocaleUrlCTM(content.id, Astro.currentLocale, content.collection);
+const wide = layout === "horizontal";
+const H: any = `h${headingLevel}`;
+const picture = image ? await findAssetImage(image) : undefined;
+const info = articleImage(image);
+const published = date ? new Date(date) : null;
+// the same date as the article's byline, in Texas time ("Oct 3, 2026"; the byline spells the month out)
+const publishedLabel = published
+  ? new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "America/Chicago" }).format(published)
+  : null;
+const eyebrow = (categories || []).map((c: string) => humanize(c)).join(" · ");
+const sizes = wide
+  ? "(min-width: 1248px) 640px, (min-width: 900px) 52vw, calc(100vw - 32px)"
+  : "(min-width: 1248px) 590px, (min-width: 641px) calc(50vw - 36px), calc(100vw - 32px)";
 ---
 
-<article
-  class:list={[
-    "bg-theme-light rounded-2xl p-6",
-    isHorizontal &&
-      "flex flex-col items-start gap-5 md:flex-row md:items-center md:gap-10",
-    className,
-  ]}
-  {...rest}>
-  <div
-    class="group after:from-theme-light relative flex items-center justify-center overflow-hidden rounded-xl via-20% after:pointer-events-none after:absolute after:inset-0 after:z-10 after:hidden after:bg-linear-to-t after:to-transparent after:transition-opacity after:duration-500 after:md:block after:md:opacity-0 hover:md:after:opacity-100">
-    <span
-      class="text-dark pointer-events-none absolute z-20 hidden h-16 w-16 items-center justify-center rounded-full bg-white transition duration-500 md:flex md:opacity-0 group-hover:md:opacity-100">
-      <Icons class="text-2xl" icon="ArrowUpRight" />
-    </span>
-    {
-      image && (
-        <div class="overflow-hidden rounded-2xl border-4 border-white">
-          <OptimizedImage
-            src={image}
-            width={800}
-            height={800}
-            alt={"Related to " + title?.toLowerCase()}
-            class:list={[
-              "min-w-full object-cover transition duration-500 group-hover:scale-105",
-              isHorizontal ? "h-[300px]! md:h-[400px]!" : "h-62.5!",
-            ]}
-          />
-        </div>
-      )
-    }
-    <a class="absolute inset-0 z-30" href={slug}>
-      <span class="sr-only">
-        {"Learn more about " + title?.toLowerCase()}
-      </span>
-    </a>
-  </div>
-  <div class:list={["space-y-4", layout !== "horizontal" && "mt-4"]}>
-    <div
-      class="font-primary text-text-default flex flex-wrap items-center gap-x-2.5 gap-y-px text-sm font-medium">
-      <span>{date && dateFormat(date)}</span>
-      <span class="bg-dark inline-block h-0.75 w-0.75 rounded-full"></span>
-
-      {
-        categoriesArray?.map((category: any, index: number) => (
-          <>
-            <span class="text-inherit">{humanize(category.name)}</span>
-            {index !== categoriesArray.length - 1 && (
-              <span class="bg-dark inline-block h-0.75 w-0.75 rounded-full" />
-            )}
-          </>
-        ))
-      }
-    </div>
+<article class:list={["jw-surface", "jw-surface--card", "jw-article-card", wide && "jw-article-card--wide", className]} {...rest}>
+  {
+    picture && (
+      <div class:list={["jw-article-card__media", info.diagram ? "jw-article-card__media--diagram" : "jw-article-card__media--photo"]}>
+        <Picture
+          src={picture}
+          alt={info.alt}
+          formats={["avif", "webp"]}
+          widths={wide ? [480, 720, 960, 1280] : [400, 600, 800, 1200]}
+          sizes={sizes}
+          loading={loading}
+          decoding="async"
+          style={info.position ? `object-position: ${info.position}` : undefined}
+        />
+      </div>
+    )
+  }
+  <div class="jw-article-card__body">
+    {eyebrow && <p class="jw-eyebrow jw-article-card__eyebrow">{eyebrow}</p>}
     {
       title && (
-        <h2
-          class:list={[
-            isHorizontal
-              ? "md:text-h4 text-h4-sm mb-8 font-medium"
-              : "md:text-h5 text-h5-sm mb-4",
-          ]}
-          set:html={plainify(title)}
-        />
+        <H class:list={[wide ? "t-heading-2" : "t-heading-3", "jw-article-card__title"]}>
+          <a class="jw-article-card__link" href={href}>{plainify(title)}</a>
+        </H>
       )
     }
-    {
-      isHorizontal && excerpt && (
-        <p class="text-lg" set:html={markdownify(excerpt)} />
-      )
-    }
-    <CustomButton
-      variant="outline"
-      hoverEffect="text-flip"
-      class="btn-sm btn-outline-white mt-3 capitalize"
-      title={"Read more about " + title?.toLowerCase()}
-      label={t("common.readMore")}
-      url={slug}
-    />
+    {excerpt && <p class="jw-article-card__excerpt">{plainify(excerpt)}</p>}
+    <div class="jw-article-card__foot">
+      {published && <time class="jw-article-card__date" datetime={published.toISOString()}>{publishedLabel}</time>}
+      <span class="t-body-strong jw-article-card__more" aria-hidden="true">
+        Read more
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+      </span>
+    </div>
   </div>
 </article>

@@ -1,0 +1,35 @@
+<!-- @dsCard group="Pages" height=980 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Page layout</title></head>
+<body>
+<section class="jw-section jw-section--tight" data-jw-pool="ground">
+  <div class="jw-container">
+    <p class="jw-eyebrow" style="margin: 0 0 8px">Ground</p>
+    <h2 class="t-heading-1" style="margin: 0 0 12px">A section on the page ground</h2>
+    <p class="t-body-l" style="margin: 0; max-width: 60ch; color: var(--text-body)">Running text sits on the ground or on a card. The container keeps it to the page width with 16px gutters on a phone and 24px from 641px.</p>
+  </div>
+</section>
+<section class="jw-section jw-section--tight jw-surface jw-surface--band-shell jw-section--band" data-jw-pool="band">
+  <div class="jw-container">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px">
+      <div class="jw-surface jw-surface--card" style="padding: 24px"><p class="jw-eyebrow" style="margin: 0 0 6px">Shell band</p><h3 class="t-heading-3" style="margin: 0">Holds cards</h3></div>
+      <div class="jw-surface jw-surface--card" style="padding: 24px"><p class="jw-eyebrow" style="margin: 0 0 6px">Full width</p><h3 class="t-heading-3" style="margin: 0">Square ends</h3></div>
+      <div class="jw-surface jw-surface--card" style="padding: 24px"><p class="jw-eyebrow" style="margin: 0 0 6px">Pooled</p><h3 class="t-heading-3" style="margin: 0">The lamp's light</h3></div>
+    </div>
+  </div>
+</section>
+<section class="jw-section jw-section--tight jw-surface jw-surface--band-agave jw-section--band" data-jw-pool="band">
+  <div class="jw-container">
+    <div class="jw-surface jw-surface--card" style="padding: 24px; max-width: 420px"><p class="jw-eyebrow" style="margin: 0 0 6px">Agave band</p><h3 class="t-heading-3" style="margin: 0">For the survey map and its counts</h3></div>
+  </div>
+</section>
+<section class="jw-wall jw-wall--corrugated jw-wall--static jw-section jw-section--tight" data-jw-wall="corrugated" data-jw-seed="5">
+  <canvas class="jw-wall__canvas" aria-hidden="true"></canvas>
+  <div class="jw-container jw-container--narrow">
+    <div class="jw-surface jw-surface--card" style="padding: 24px"><p class="jw-eyebrow" style="margin: 0 0 6px">Wall, narrow container</p><h3 class="t-heading-3" style="margin: 0">Cards only on a wall</h3></div>
+  </div>
+</section>
+<script>window.JavelinaWorks.Lighting.mount();</script>
+</body>
+</html>

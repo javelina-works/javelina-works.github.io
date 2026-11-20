@@ -13,7 +13,7 @@ if (!enable) return;
 
 <div
   class:list={[
-    "bg-theme-light group relative flex w-full flex-col items-start rounded-xl border-4 border-white p-6",
+    "bg-surface group relative flex w-full flex-col items-start rounded-lg border-4 border-surface p-6",
     className,
   ]}
   {...rest}>
@@ -29,7 +29,7 @@ if (!enable) return;
 
     {
       rating && (
-        <div class="inline-flex gap-2 rounded-sm bg-white px-2.5 py-1.5">
+        <div class="inline-flex gap-2 rounded-sm bg-surface px-2.5 py-1.5">
           {generateStars(rating).map((_) => (
             <svg
               class="h-3 w-3 fill-current text-yellow-500"
@@ -96,7 +96,7 @@ if (!enable) return;
     }
     <div class="min-w-0 flex-1 space-y-1">
       {customer.name && <div>{customer.name}</div>}
-      {customer.role && <p class="text-sm text-black">{customer.role}</p>}
+      {customer.role && <p class="text-sm text-text">{customer.role}</p>}
     </div>
   </div>
 </div>

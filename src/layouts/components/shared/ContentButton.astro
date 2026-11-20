@@ -1,0 +1,42 @@
+---
+/**
+ * ContentButton: renders a content file's `button` object ({ enable, label, url, rel, target, … }, sections.schema.ts
+ * sharedButton) as a design-system Button. hoverEffect and the old variant are ignored: the variant is the page's choice
+ * (default ghost; never the glowing primary in a page body, the header lamp is the page's one glowing action).
+ * The URL goes through getLocaleUrlCTM as the old CustomButton did; external links open in a new tab with
+ * rel="noopener noreferrer" unless the content sets its own.
+ */
+import Button from "@/components/jw/Button.astro";
+import { getLocaleUrlCTM } from "@/lib/utils/i18nUtils";
+
+interface ContentButtonData {
+  enable?: boolean;
+  label?: string;
+  url?: string;
+  rel?: string | null;
+  target?: string | null;
+  [key: string]: unknown;
+}
+interface Props {
+  button?: ContentButtonData | null;
+  variant?: "burnt" | "tint" | "ghost" | "shell" | "agave" | "quiet";
+  size?: "md" | "sm";
+  class?: string;
+  [key: string]: unknown;
+}
+const { button, variant = "ghost", size = "md", class: className, ...rest } = Astro.props;
+const show = !!button && button.enable !== false && !!button.label;
+const url = (button?.url as string) || "#";
+const external = url.startsWith("http");
+const href = external ? url : getLocaleUrlCTM(url, Astro.currentLocale);
+const rel = (button?.rel as string) || (external ? "noopener noreferrer" : undefined);
+const target = (button?.target as string) || (external ? "_blank" : undefined);
+---
+
+{
+  show && (
+    <Button variant={variant} size={size} href={href} rel={rel} target={target} class={className} {...rest}>
+      {button!.label}
+    </Button>
+  )
+}

@@ -1,0 +1,32 @@
+---
+/**
+ * Field (design/components/Field/README.md): a labeled text input with an optional unit suffix, hint and error.
+ * Every other prop (name, required, autocomplete, inputmode, pattern, min, max, value, placeholder…) goes on the <input>.
+ * error: shown as given (server-side or pre-filled). reserveError: renders an empty, hidden error span (id "<id>-err") that a
+ * page script can fill: unhide it, add jw-field--error to the field, set aria-invalid="true" and point aria-describedby at it.
+ */
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends Omit<HTMLAttributes<"input">, "class" | "id"> {
+  label: string;
+  id: string;
+  hint?: string;
+  error?: string;
+  /** a unit in mono after the value (ac, %, $); it is aria-hidden, so put the unit in the label when it matters */
+  suffix?: string;
+  reserveError?: boolean;
+  class?: string;
+}
+const { label, id, hint, error, suffix, reserveError = false, type = "text", class: className, ...rest } = Astro.props;
+const describedBy = [hint && !error && `${id}-hint`, error && `${id}-err`].filter(Boolean).join(" ") || undefined;
+---
+
+<div class:list={["jw-field", error && "jw-field--error", className]}>
+  <label class="jw-field__label" for={id}>{label}</label>
+  <div class="jw-input-wrap">
+    <input id={id} class:list={["jw-input", suffix && "jw-input--suffixed"]} type={type} aria-invalid={error ? "true" : undefined} aria-describedby={describedBy} {...rest} />
+    {suffix && <span class="jw-input__suffix" aria-hidden="true">{suffix}</span>}
+  </div>
+  {hint && !error && <span class="jw-field__hint" id={`${id}-hint`}>{hint}</span>}
+  {error ? <span class="jw-field__error" id={`${id}-err`}>{error}</span> : reserveError && <span class="jw-field__error" id={`${id}-err`} hidden />}
+</div>

@@ -1,0 +1,79 @@
+---
+/**
+ * SurveyMap (design/components/SurveyMap/README.md): a survey photo with a marker on every plant and the treat/keep counts.
+ * Static by default (no JS): markers are the same buttons as the React version, with hover/focus labels from CSS.
+ * editable: clicking a marker switches it between treat and keep, selects it and updates the counts (a small script, only
+ * on pages that render an editable map). src: an imported image (served through astro:assets, responsive) or a URL.
+ */
+import type { ImageMetadata } from "astro";
+import { Image } from "astro:assets";
+import SurveyMapScript from "./SurveyMapScript.astro";
+
+interface Plant {
+  id: string | number;
+  /** percent of the photo's width */
+  x: number;
+  /** percent of the photo's height */
+  y: number;
+  status: "treat" | "keep";
+}
+interface Props {
+  src: ImageMetadata | string;
+  alt: string;
+  plants?: Plant[];
+  /** px, default 260 */
+  height?: number;
+  editable?: boolean;
+  showCounts?: boolean;
+  widths?: number[];
+  sizes?: string;
+  loading?: "lazy" | "eager";
+  class?: string;
+  style?: string;
+}
+const {
+  src,
+  alt,
+  plants = [],
+  height = 260,
+  editable = false,
+  showCounts = true,
+  widths = [480, 720, 960, 1280],
+  sizes = "(min-width: 900px) 50vw, 100vw",
+  loading = "lazy",
+  class: className,
+  style,
+} = Astro.props;
+const treat = plants.filter((p) => p.status === "treat").length;
+const keep = plants.length - treat;
+const label = (p: Plant) => {
+  const t = p.status === "treat";
+  return `Plant ${p.id}: ${t ? "treat" : "keep"}.${editable ? ` Press to ${t ? "keep" : "treat"} it.` : ""}`;
+};
+---
+
+<div class:list={["jw-photo", "jw-map", className]} style={`height: ${height}px;${style ? " " + style : ""}`} data-jw-map={editable ? "editable" : undefined}>
+  {typeof src === "string" ? <img src={src} alt={alt} loading={loading} decoding="async" /> : <Image src={src} alt={alt} widths={widths} sizes={sizes} loading={loading} />}
+  {
+    plants.map((p) => (
+      <button
+        type="button"
+        class:list={["jw-marker", p.status === "keep" && "jw-marker--keep"]}
+        style={`left: ${p.x}%; top: ${p.y}%`}
+        aria-label={label(p)}
+        aria-pressed={editable ? (p.status === "treat" ? "true" : "false") : undefined}
+        data-plant={editable ? String(p.id) : undefined}>
+        <span class="jw-marker__tip" aria-hidden="true">Plant {p.id} · {p.status === "treat" ? "Treat" : "Keep"}</span>
+      </button>
+    ))
+  }
+  {
+    showCounts && (
+      <span class="jw-map__counts" aria-live="polite">
+        <span class="jw-chip jw-chip--treat"><span class="jw-chip__dot" aria-hidden="true" />{`Treat · ${treat}`}</span>
+        <span class="jw-chip jw-chip--shell">{`Keep · ${keep}`}</span>
+      </span>
+    )
+  }
+</div>
+{editable && <SurveyMapScript />}

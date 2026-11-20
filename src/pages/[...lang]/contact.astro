@@ -25,5 +25,6 @@ if (response) return response;
 <Base {...contactIndex?.data}>
   <ContactSection />
   <OfficeLocations />
-  <CallToAction />
+  {/* On this page "Let's Talk" goes up to the form (it linked to /contact/, the page itself). */}
+  <CallToAction content={{ button: { url: "#contact-form" } } as any} />
 </Base>

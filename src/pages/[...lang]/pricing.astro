@@ -1,5 +1,15 @@
 ---
 import Base from "@/layouts/Base.astro";
+import Accordion from "@/components/jw/Accordion.astro";
+import Button from "@/components/jw/Button.astro";
+import Checkbox from "@/components/jw/Checkbox.astro";
+import Container from "@/components/jw/Container.astro";
+import Notice from "@/components/jw/Notice.astro";
+import Section from "@/components/jw/Section.astro";
+import SectionHead from "@/components/jw/SectionHead.astro";
+import Surface from "@/components/jw/Surface.astro";
+import ScriptSlider from "@/components/pricing-roi/ScriptSlider.astro";
+import snapshot from "@/data/pricing-grid.json";
 import { getEntryCTM } from "@/lib/contentParser.astro";
 import handleDraftPage from "@/lib/utils/handleDraftPage";
 import { generatePaths } from "@/lib/utils/i18nUtils";
@@ -24,15 +34,41 @@ const steps = [
   { name: "Thicket", pct: 40 },
 ];
 const pad = (n: number) => String(n).padStart(2, "0");
+
+// The explorer's first slider positions, so the readouts are right before the
+// page script runs (it rewrites them from whichever grid it ends up using).
+const startAcresIdx = 7;
+const startAcres = snapshot.acres[startAcresIdx];
+const startCover = 18;
+
+const faq = [
+  {
+    summary: "Why not just quote per acre?",
+    html: "<p>Because two pastures of the same size can hold ten times different amounts of brush. A flat rate would overcharge the light country and lose money on the thick. Counting plants keeps the price tied to the work.</p>",
+    open: true,
+  },
+  {
+    summary: "Can I treat only part of the ranch?",
+    html: "<p>Yes. The firm quote is built from the plant map, so you can drop pastures, protect oaks or hackberry, or start with the thickest draws and come back later.</p>",
+  },
+  {
+    summary: "How close is the ballpark to the final price?",
+    html: "<p>On our audited jobs the firm quote landed inside the ballpark range. The range runs 15% below to 25% above the engine's estimate because imagery from hundreds of feet up can't see every small plant.</p>",
+  },
+  {
+    summary: "What's in the price?",
+    html: "<p>The treatment itself, which is most of it: herbicide by the dose and the crew applying it. Then getting to you, which covers travel, lodging and the survey flight. A contingency is shown as its own line. No separate setup fee.</p>",
+  },
+];
 ---
 
-<Base {...entry?.data} sectionSpacing="md">
-  <div class="pr">
-    <header class="pr-hero container">
-      <div class="pr-hero-copy">
-        <p class="pr-eyebrow">Pricing</p>
-        <h1>
-          You pay for the brush,&#32;<em>not the acres.</em>
+<Base {...entry?.data}>
+  <Section tone="wall" texture="flake" seed={3} as="header" class="pr-hero" aria-labelledby="pr-title">
+    <div class="pr-hero__grid">
+      <Surface castShadow class="pr-hero__card">
+        <p class="jw-eyebrow">Pricing</p>
+        <h1 class="t-display-m pr-title" id="pr-title">
+          You pay for the brush,&#32;not the acres.
         </h1>
         <p class="pr-lede">
           We don't have a flat per-acre rate, because brush doesn't grow at a
@@ -41,269 +77,252 @@ const pad = (n: number) => String(n).padStart(2, "0");
           half its size. This page shows what that looks like.
         </p>
         <div class="pr-ctas">
-          <a class="pr-btn pr-btn-fill" href="#explore">
-            Price a pasture
-          </a>
-          <a class="pr-btn pr-btn-line" href="#ballpark">
+          <Button variant="shell" href="#explore">Price a pasture</Button>
+          <Button variant="ghost" href="#ballpark">
             Run the ballpark on your ranch
-          </a>
+          </Button>
         </div>
-      </div>
-      <div class="pr-facts">
-        <div class="pr-fact">
-          <b>$1,500</b>
-          <span>
+      </Surface>
+      <Surface castShadow rivets class="pr-hero__facts">
+        <p class="pr-fact">
+          <span class="t-number pr-fact__value">$1,500</span>
+          <span class="pr-fact__text">
             is the smallest job we take. Under that, the trip costs more than
             the treatment.
           </span>
-        </div>
-        <div class="pr-fact">
-          <b>−15/+25%</b>
-          <span>
+        </p>
+        <p class="pr-fact">
+          <span class="t-number pr-fact__value">−15/+25%</span>
+          <span class="pr-fact__text">
             is the width of every ballpark range. The firm quote comes after a
             survey flight counts each plant.
           </span>
-        </div>
-      </div>
-    </header>
-
-    <section id="coverage" class="pr-section container">
-      <div class="pr-sec-head">
-        <p class="pr-eyebrow">What coverage looks like</p>
-        <h2>
-          One acre at&#32;<em>each density</em>
-        </h2>
-      </div>
-      <div class="pr-ladder-bar">
-        <label class="pr-toggle" for="prCountedToggle">
-          <input type="checkbox" id="prCountedToggle" />
-          <span>
-            <span class="pr-key" aria-hidden="true"></span>Show what we count
-          </span>
-        </label>
-        <span class="pr-muted pr-small pr-push">Priced for</span>
-        <div
-          class="pr-seg"
-          role="group"
-          aria-label="Ranch size for ladder prices"
-          id="prLadderSize">
-          <button type="button" data-a="100" aria-pressed="false">
-            100 ac
-          </button>
-          <button type="button" data-a="640" aria-pressed="true">
-            640 ac
-          </button>
-          <button type="button" data-a="2000" aria-pressed="false">
-            2,000 ac
-          </button>
-        </div>
-      </div>
-      <div class="pr-ladder" id="prLadder">
-        {steps.map((s) => (
-          <figure class="pr-plot" data-pct={s.pct}>
-            <div class="pr-acre">
-              <img
-                class="pr-photo"
-                src={`/images/pricing/acre-${pad(s.pct)}.jpg`}
-                alt={`One real acre measured at ${s.pct}% brush cover`}
-                width="212"
-                height="212"
-                loading="lazy"
-              />
-              <img
-                class="pr-mask"
-                src={`/images/pricing/acre-${pad(s.pct)}-counted.png`}
-                alt=""
-                width="106"
-                height="106"
-                loading="lazy"
-              />
-            </div>
-            <figcaption class="pr-tag">
-              <span>
-                <b>{s.name}</b> <span class="pr-muted">{s.pct}%</span>
-              </span>
-              <span class="pr-price" data-price />
-            </figcaption>
-          </figure>
-        ))}
-      </div>
-      <p class="pr-cite">Real West Texas acres, USDA NAIP imagery, 2022.</p>
-    </section>
-
-    <section id="explore" class="pr-section container">
-      <div class="pr-sec-head">
-        <p class="pr-eyebrow">Price a pasture</p>
-        <h2>
-          Move the sliders,&#32;<em>watch the brush fill in</em>
-        </h2>
-        <p class="pr-lede">
-          The same pricing engine behind the ballpark and our firm quotes. Pick
-          a size and a density and you'll see the range we'd give before anyone
-          flies. The acre on the left is drawn to scale: grass and dormant shrub
-          stay put, and the living brush we'd count fills in as cover rises.
         </p>
-      </div>
-      <div class="pr-explorer">
-        <div class="pr-ex-plot">
+      </Surface>
+    </div>
+  </Section>
+
+  <section
+    id="coverage"
+    class="jw-section jw-section--none pr-coverage"
+    aria-labelledby="pr-coverage-title">
+    <Container class="pr-head">
+      <SectionHead
+        eyebrow="What coverage looks like"
+        title="One acre at each density"
+        titleId="pr-coverage-title"
+        text="Real West Texas acres, USDA NAIP imagery, 2022."
+      />
+    </Container>
+    <div
+      class="jw-surface jw-surface--band-agave jw-section jw-section--band"
+      data-jw-pool="band">
+      <Container>
+        <div class="jw-surface jw-surface--card pr-ladder-bar">
+          <Checkbox id="prCountedToggle">
+            <span class="pr-key" aria-hidden="true"></span>Show what we count
+          </Checkbox>
+          <div class="pr-ladder-size">
+            <span class="pr-ladder-size__label">Priced for</span>
+            <div class="jw-seg">
+              <div
+                class="jw-seg__track"
+                role="group"
+                aria-label="Ranch size for ladder prices"
+                id="prLadderSize">
+                <button type="button" class="jw-seg__btn" data-a="100" aria-pressed="false">
+                  100 ac
+                </button>
+                <button type="button" class="jw-seg__btn" data-a="640" aria-pressed="true">
+                  640 ac
+                </button>
+                <button type="button" class="jw-seg__btn" data-a="2000" aria-pressed="false">
+                  2,000 ac
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="pr-ladder" id="prLadder">
+          {steps.map((s) => (
+            <figure class="jw-surface jw-surface--card pr-plot" data-pct={s.pct}>
+              <div class="pr-acre">
+                <img
+                  class="pr-photo"
+                  src={`/images/pricing/acre-${pad(s.pct)}.jpg`}
+                  alt={`One real acre measured at ${s.pct}% brush cover`}
+                  width="212"
+                  height="212"
+                  loading="lazy"
+                />
+                <img
+                  class="pr-mask"
+                  src={`/images/pricing/acre-${pad(s.pct)}-counted.png`}
+                  alt=""
+                  width="106"
+                  height="106"
+                  loading="lazy"
+                />
+              </div>
+              <figcaption class="pr-tag">
+                <span class="pr-tag__name">
+                  <b>{s.name}</b> <span class="pr-tag__pct">{s.pct}%</span>
+                </span>
+                <span class="pr-price" data-price />
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </Container>
+    </div>
+  </section>
+
+  <section
+    id="explore"
+    class="jw-section pr-ground"
+    aria-labelledby="pr-explore-title">
+    <Container>
+      <SectionHead
+        eyebrow="Price a pasture"
+        title="Move the sliders, watch the brush fill in"
+        titleId="pr-explore-title"
+        text="The same pricing engine behind the ballpark and our firm quotes. Pick a size and a density and you'll see the range we'd give before anyone flies. The acre on the left is drawn to scale: grass and dormant shrub stay put, and the living brush we'd count fills in as cover rises."
+      />
+      <div class="jw-surface jw-surface--card pr-explorer">
+        <figure class="pr-ex-plot">
           <canvas
             id="prCanvas"
+            class="pr-canvas"
             width="720"
             height="720"
+            role="img"
             aria-label="Illustrated acre of brush at the chosen cover"></canvas>
-          <div class="pr-overlay">
-            <span>One acre, illustrated</span>
-            <span id="prOverlay"></span>
-          </div>
-        </div>
+          <figcaption class="pr-overlay">
+            <span class="jw-chip jw-chip--shell">One acre, illustrated</span>
+            <span class="jw-chip jw-chip--shell" id="prOverlay">
+              {startCover}% cover
+            </span>
+          </figcaption>
+        </figure>
         <div class="pr-ex-ctl">
+          <ScriptSlider
+            label="Treated area"
+            id="prAcres"
+            min={0}
+            max={snapshot.acres.length - 1}
+            value={startAcresIdx}
+            outId="prAcresOut"
+            text={startAcres.toLocaleString("en-US")}
+            unit={"ac" + (startAcres === 640 ? " (a section)" : "")}
+          />
           <div class="pr-field">
-            <div class="pr-field-top">
-              <label for="prAcres">Treated area</label>
-              <output id="prAcresOut" for="prAcres"></output>
-            </div>
-            <input
-              type="range"
-              id="prAcres"
-              min="0"
-              max="12"
-              step="1"
-              value="7"
-            />
-          </div>
-          <div class="pr-field">
-            <div class="pr-field-top">
-              <label for="prCover">Brush cover</label>
-              <output id="prCoverOut" for="prCover"></output>
-            </div>
-            <input
-              type="range"
+            <ScriptSlider
+              label="Brush cover"
               id="prCover"
-              min="1"
-              max="45"
-              step="1"
-              value="18"
+              min={1}
+              max={45}
+              value={startCover}
+              outId="prCoverOut"
+              text={String(startCover)}
+              unit="%"
             />
-            <label class="pr-toggle pr-small" for="prExCounted">
-              <input type="checkbox" id="prExCounted" />
-              <span>
-                <span class="pr-key" aria-hidden="true"></span>Highlight what's
-                counted
-              </span>
-            </label>
-            <div
-              class="pr-chips"
-              id="prPresets"
-              role="group"
-              aria-label="Density presets">
-              {steps.map((s) => (
-                <button type="button" data-c={s.pct} aria-pressed="false">
-                  {s.name}
-                </button>
-              ))}
+            <Checkbox id="prExCounted">
+              <span class="pr-key" aria-hidden="true"></span>Highlight what's
+              counted
+            </Checkbox>
+            <div class="jw-seg pr-presets">
+              <div
+                class="jw-seg__track"
+                id="prPresets"
+                role="group"
+                aria-label="Density presets">
+                {steps.map((s) => (
+                  <button
+                    type="button"
+                    class="jw-seg__btn"
+                    data-c={s.pct}
+                    aria-pressed={s.pct === startCover ? "true" : "false"}>
+                    {s.name}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
           <div class="pr-result" aria-live="polite">
-            <div class="pr-band-row">
-              <div>
-                <div class="pr-band" id="prBand"></div>
-                <p class="pr-muted" id="prPerAcre"></p>
-              </div>
-              <div class="pr-cta-stack">
-                <a
-                  class="pr-btn pr-btn-fill pr-go"
-                  href="/tools/ballpark/"
-                  data-track="explorer">
-                  Measure my ranch
-                  <svg
-                    viewBox="0 0 20 20"
-                    width="18"
-                    height="18"
-                    aria-hidden="true">
-                    <path
-                      d="M4 10h11M11 5l5 5-5 5"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"></path>
-                  </svg>
-                </a>
-                <span>Free ballpark · about a minute</span>
-              </div>
-            </div>
-            <div class="pr-stats">
-              <div>
-                <b id="prPlants"></b>
-                <span>plants to treat</span>
-              </div>
-              <div>
-                <b id="prDays"></b>
-                <span>on the ranch</span>
-              </div>
-              <div>
-                <b id="prPpa"></b>
-                <span>plants per acre</span>
-              </div>
-            </div>
-            <div>
+            <p class="t-display-m jw-results__value" id="prBand"></p>
+            <p class="jw-results__sub" id="prPerAcre"></p>
+            <dl class="jw-results__facts pr-stats">
+              <dt>plants to treat</dt>
+              <dd id="prPlants"></dd>
+              <dt>on the ranch</dt>
+              <dd id="prDays"></dd>
+              <dt>plants per acre</dt>
+              <dd id="prPpa"></dd>
+            </dl>
+            <div class="pr-split">
               <div class="pr-stack" id="prStack" aria-hidden="true"></div>
               <div class="pr-legend" id="prLegend"></div>
             </div>
-            <p class="pr-note" id="prFloorNote"></p>
+            <p class="jw-results__note" id="prFloorNote"></p>
+            <div class="jw-results__actions pr-go-row">
+              <Button variant="shell" href="/tools/ballpark/" data-track="explorer">
+                Measure my ranch
+                <svg
+                  class="pr-arrow"
+                  viewBox="0 0 20 20"
+                  width="16"
+                  height="16"
+                  aria-hidden="true">
+                  <path
+                    d="M4 10h11M11 5l5 5-5 5"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </svg>
+              </Button>
+              <span class="pr-go-note">Free ballpark · about a minute</span>
+            </div>
           </div>
         </div>
-        <aside class="pr-notice" role="note">
-          <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
-            <circle
-              cx="10"
-              cy="10"
-              r="8.5"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.6"></circle>
-            <rect
-              x="9.1"
-              y="8.5"
-              width="1.8"
-              height="6"
-              rx=".9"
-              fill="currentColor"></rect>
-            <circle cx="10" cy="5.9" r="1.1" fill="currentColor"></circle>
-          </svg>
-          <div>
-            <p>
-              <b>This is an estimate, not your ranch.</b>&#32;It shows what a
-              typical place at this density looks like and costs. Brush is never
-              spread evenly, so your land will price differently.
-            </p>
-            <a href="/tools/ballpark/" data-track="notice">
-              Run the ballpark on your place →
-            </a>
-          </div>
-        </aside>
       </div>
-    </section>
-
-    <section id="tradeoff" class="pr-section container">
-      <div class="pr-sec-head">
-        <p class="pr-eyebrow">Size against density</p>
-        <h2>
-          Density moves the price.&#32;<em>Size mostly doesn't.</em>
-        </h2>
-        <p class="pr-lede">
-          Cost per acre across ranch sizes and brush cover. Read down a column
-          and the number barely changes past a few hundred acres. Read across a
-          row and it climbs fivefold.
+      <Notice
+        tone="info"
+        title="This is an estimate, not your ranch."
+        class="pr-notice">
+        <p>
+          It shows what a typical place at this density looks like and costs.
+          Brush is never spread evenly, so your land will price differently.
         </p>
-      </div>
-      <div class="pr-grid-wrap">
+        <p>
+          <a href="/tools/ballpark/" data-track="notice">
+            Run the ballpark on your place →
+          </a>
+        </p>
+      </Notice>
+    </Container>
+  </section>
+
+  <section
+    id="tradeoff"
+    class="jw-section pr-ground"
+    aria-labelledby="pr-tradeoff-title">
+    <Container>
+      <SectionHead
+        eyebrow="Size against density"
+        title="Density moves the price. Size mostly doesn't."
+        titleId="pr-tradeoff-title"
+        text="Cost per acre across ranch sizes and brush cover. Read down a column and the number barely changes past a few hundred acres. Read across a row and it climbs fivefold."
+      />
+      <div class="jw-table-wrap jw-table-wrap--card pr-grid-wrap">
         <table
-          class="pr-grid"
+          class="jw-table jw-table--stack pr-grid"
           id="prGrid"
+          role="table"
           aria-label="Cost per acre by ranch size and brush cover"></table>
       </div>
-      <p class="pr-cite" id="prAsOf"></p>
+      <p class="pr-asof" id="prAsOf"></p>
       <div class="pr-grid-notes">
         <p>
           <b>Small places carry the trip.</b>&#32;Travel, setup and the survey
@@ -317,350 +336,263 @@ const pad = (n: number) => String(n).padStart(2, "0");
           count. A thick 300 acres can outprice a light 1,000.
         </p>
       </div>
-    </section>
+    </Container>
+  </section>
 
-    <section id="ballpark" class="pr-section container">
-      <div class="pr-bp">
-        <div>
-          <p class="pr-eyebrow">The instant ballpark · Free</p>
-          <h2>
-            These are averages.&#32;<em>Your ranch isn't.</em>
-          </h2>
-          <p>
-            Brush is never spread evenly. The ballpark finds your property from
-            an address, reads the real cover tile by tile from public lidar and
-            infrared imagery, and prices it with the same engine as this page.
-            It takes about a minute and asks for no contact details.
-          </p>
-          <ul>
-            <li>Acreage, brush cover and a rough plant count</li>
-            <li>A budget range and a days-on-the-ranch figure</li>
-            <li>A heat map of where the thick stuff is</li>
-          </ul>
-          <div class="pr-ctas">
-            <a
-              class="pr-btn pr-btn-fill"
-              href="/tools/ballpark/"
-              data-track="ballpark_section">
-              Run the ballpark
-            </a>
-          </div>
+  <Section
+    tone="wall"
+    texture="smooth"
+    seed={7}
+    id="ballpark"
+    class="pr-bp-wall"
+    aria-labelledby="pr-bp-title">
+    <div class="pr-bp">
+      <Surface castShadow class="pr-bp__pitch">
+        <p class="jw-eyebrow">The instant ballpark · Free</p>
+        <h2 class="t-heading-1 pr-h" id="pr-bp-title">
+          These are averages.&#32;Your ranch isn't.
+        </h2>
+        <p>
+          Brush is never spread evenly. The ballpark finds your property from
+          an address, reads the real cover tile by tile from public lidar and
+          infrared imagery, and prices it with the same engine as this page.
+          It takes about a minute and asks for no contact details.
+        </p>
+        <ul class="pr-list">
+          <li>Acreage, brush cover and a rough plant count</li>
+          <li>A budget range and a days-on-the-ranch figure</li>
+          <li>A heat map of where the thick stuff is</li>
+        </ul>
+        <div class="pr-ctas">
+          <Button variant="burnt" href="/tools/ballpark/" data-track="ballpark_section">
+            Run the ballpark
+          </Button>
         </div>
+      </Surface>
+      <Surface castShadow class="pr-bp__mock">
         <figure class="pr-bp-mock">
           <canvas
             id="prBpCanvas"
+            class="pr-canvas"
             width="640"
             height="480"
+            role="img"
             aria-label="Example ballpark heat map"></canvas>
-          <div class="pr-bp-card">
+          <figcaption class="pr-bp-card">
             <span>Example ranch · 1,212 ac</span>
             <span class="pr-r">16% cover</span>
-            <b id="prBpBand"></b>
+            <b class="t-heading-2" id="prBpBand"></b>
             <span class="pr-r" id="prBpDays"></span>
-          </div>
+          </figcaption>
         </figure>
-      </div>
-    </section>
+      </Surface>
+    </div>
+  </Section>
 
-    <section id="process" class="pr-section container">
-      <div class="pr-sec-head">
-        <p class="pr-eyebrow">From a guess to a firm number</p>
-        <h2>
-          How a ballpark&#32;<em>becomes a quote</em>
-        </h2>
-      </div>
-      <ol class="pr-steps">
-        <li>
-          <span class="pr-n">1</span>
-          <b>Ballpark</b>
-          <p>
-            A planning range from public data, read from hundreds of feet up.
-            Wide on purpose.
-          </p>
-          <span class="pr-cost">Free · about a minute</span>
-        </li>
-        <li>
-          <span class="pr-n">2</span>
-          <b>Survey flight</b>
-          <p>
-            We fly the ground at 2.5 to 5 cm per pixel and mark every woody
-            plant where it stands.
-          </p>
-          <span class="pr-cost">A line on the quote</span>
-        </li>
-        <li>
-          <span class="pr-n">3</span>
-          <b>Firm quote</b>
-          <p>
-            Priced from the real count. You choose what gets treated and which
-            trees stay.
-          </p>
-          <span class="pr-cost">Plant by plant</span>
-        </li>
-        <li>
-          <span class="pr-n">4</span>
-          <b>Treatment</b>
-          <p>
-            A measured dose at each plant you approved. Your grass and the trees
-            you keep stay put.
-          </p>
-          <span class="pr-cost">Days on the ranch, as quoted</span>
-        </li>
-      </ol>
-    </section>
+  <section
+    id="process"
+    class="jw-section jw-section--none pr-process"
+    aria-labelledby="pr-process-title">
+    <Container class="pr-head">
+      <SectionHead
+        eyebrow="From a guess to a firm number"
+        title="How a ballpark becomes a quote"
+        titleId="pr-process-title"
+      />
+    </Container>
+    <div
+      class="jw-surface jw-surface--band-shell jw-section jw-section--band"
+      data-jw-pool="band">
+      <Container>
+        <ol class="pr-steps">
+          <li class="jw-surface jw-surface--card pr-step">
+            <span class="t-number pr-n" aria-hidden="true">1</span>
+            <h3 class="t-heading-3 pr-h">Ballpark</h3>
+            <p>
+              A planning range from public data, read from hundreds of feet
+              up. Wide on purpose.
+            </p>
+            <span class="pr-cost">Free · about a minute</span>
+          </li>
+          <li class="jw-surface jw-surface--card pr-step">
+            <span class="t-number pr-n" aria-hidden="true">2</span>
+            <h3 class="t-heading-3 pr-h">Survey flight</h3>
+            <p>
+              We fly the ground at 2.5 to 5 cm per pixel and mark every woody
+              plant where it stands.
+            </p>
+            <span class="pr-cost">A line on the quote</span>
+          </li>
+          <li class="jw-surface jw-surface--card pr-step">
+            <span class="t-number pr-n" aria-hidden="true">3</span>
+            <h3 class="t-heading-3 pr-h">Firm quote</h3>
+            <p>
+              Priced from the real count. You choose what gets treated and
+              which trees stay.
+            </p>
+            <span class="pr-cost">Plant by plant</span>
+          </li>
+          <li class="jw-surface jw-surface--card pr-step">
+            <span class="t-number pr-n" aria-hidden="true">4</span>
+            <h3 class="t-heading-3 pr-h">Treatment</h3>
+            <p>
+              A measured dose at each plant you approved. Your grass and the
+              trees you keep stay put.
+            </p>
+            <span class="pr-cost">Days on the ranch, as quoted</span>
+          </li>
+        </ol>
+      </Container>
+    </div>
+  </section>
 
-    <section id="faq" class="pr-section container">
-      <div class="pr-sec-head">
-        <p class="pr-eyebrow">Questions</p>
-        <h2>About the numbers</h2>
-      </div>
-      <div class="pr-faq">
-        <details open>
-          <summary>Why not just quote per acre?</summary>
-          <p>
-            Because two pastures of the same size can hold ten times different
-            amounts of brush. A flat rate would overcharge the light country and
-            lose money on the thick. Counting plants keeps the price tied to the
-            work.
-          </p>
-        </details>
-        <details>
-          <summary>Can I treat only part of the ranch?</summary>
-          <p>
-            Yes. The firm quote is built from the plant map, so you can drop
-            pastures, protect oaks or hackberry, or start with the thickest
-            draws and come back later.
-          </p>
-        </details>
-        <details>
-          <summary>How close is the ballpark to the final price?</summary>
-          <p>
-            On our audited jobs the firm quote landed inside the ballpark range.
-            The range runs 15% below to 25% above the engine's estimate because
-            imagery from hundreds of feet up can't see every small plant.
-          </p>
-        </details>
-        <details>
-          <summary>What's in the price?</summary>
-          <p>
-            The treatment itself, which is most of it: herbicide by the dose and
-            the crew applying it. Then getting to you, which covers travel,
-            lodging and the survey flight. A contingency is shown as its own
-            line. No separate setup fee.
-          </p>
-        </details>
-      </div>
-    </section>
-  </div>
+  <Section id="faq" aria-labelledby="pr-faq-title">
+    <SectionHead eyebrow="Questions" title="About the numbers" titleId="pr-faq-title" />
+    <Accordion exclusive={false} items={faq} class="pr-faq" />
+  </Section>
 </Base>
 
 <style is:global>
-  /* Pricing page — namespaced .pr-*; colors from the site theme tokens. */
-  .pr {
-    --pr-surface: #fffaf8;
-    --pr-sunk: #f3e2dd;
-    --pr-line: #e6d3cd;
-    --pr-muted: #7a6a66;
-    --pr-soft: #f6d6cb;
-    --pr-travel: #6f8f5a;
-    --pr-cont: #a99a94;
-    --pr-counted: #ffc428;
-    --pr-r: 14px;
+  /* Pricing page: namespaced .pr-*, on the design system's tokens and jw- pieces. Every color is a token, except the
+     counted-plant yellow, which has to match the fill baked into the mask images (/images/pricing/*-counted.png). */
+  .pr-hero,
+  .pr-coverage,
+  .pr-ground,
+  .pr-process {
+    --pr-counted: rgb(255 196 40);
+    --pr-treat: var(--action-strong);
+    --pr-travel: var(--shell-1);
+    --pr-cont: var(--line-strong);
   }
-  /* base.css paints every b/strong white (for dark sections); undo it here. */
-  .pr b,
-  .pr strong {
-    color: inherit;
-  }
-  .pr em {
-    color: var(--color-primary);
-  }
-  .pr h1,
-  .pr h2 {
-    font-family: var(--font-secondary);
-    font-weight: 400;
-    text-wrap: balance;
-  }
-  .pr-eyebrow {
-    font-size: 0.75rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--color-primary);
-    font-weight: 500;
-  }
-  .pr-lede {
-    font-size: 1.1rem;
-    max-width: 62ch;
-  }
-  .pr-muted {
-    color: var(--pr-muted);
-  }
-  .pr-small {
-    font-size: 0.85rem;
-  }
-  .pr-push {
-    margin-left: auto;
-  }
-  .pr-cite {
-    font-size: 0.75rem;
-    color: var(--pr-muted);
-    margin-top: 12px;
-  }
-  .pr-section {
-    padding-top: 80px;
-  }
-  .pr-sec-head {
-    display: grid;
-    gap: 10px;
-    max-width: 760px;
-    margin-bottom: 28px;
-  }
-  .pr :is(a, button, input):focus-visible {
-    outline: 3px solid var(--color-primary);
-    outline-offset: 3px;
-  }
-
-  /* buttons */
-  .pr-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 22px;
-    border-radius: 99px;
-    font-weight: 500;
-    text-decoration: none;
-    border: 1.5px solid var(--color-primary);
-    font-size: 0.98rem;
-    white-space: nowrap;
-  }
-  .pr-btn-fill {
-    background: var(--color-primary);
-    color: var(--color-light);
-  }
-  .pr-btn-line {
-    color: var(--color-primary);
+  .pr-h,
+  .pr-title {
+    margin: 0;
+    color: var(--text);
   }
   .pr-ctas {
     display: flex;
-    gap: 12px;
     flex-wrap: wrap;
+    gap: var(--space-3);
   }
-  .pr-go {
-    box-shadow: 0 2px 0 color-mix(in srgb, var(--color-primary) 55%, #000);
-    transition:
-      transform 0.15s ease,
-      box-shadow 0.15s ease;
+  /* Two ground sections in a row share one gap, not two. */
+  .pr-ground + .pr-ground {
+    padding-top: 0;
   }
-  .pr-go svg {
-    transition: transform 0.15s ease;
+  /* A section heading on the ground over a band: the band brings its own padding. */
+  .pr-head {
+    padding-top: var(--space-14);
   }
-  .pr-go:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 3px 0 color-mix(in srgb, var(--color-primary) 55%, #000);
-  }
-  .pr-go:hover svg {
-    transform: translateX(3px);
+  .pr-head .jw-sechead {
+    margin-bottom: var(--space-8);
   }
 
-  /* hero */
-  .pr-hero {
+  /* ---- hero: the headline card and the two facts on the flake wall ---- */
+  .pr-hero__grid {
     display: grid;
-    grid-template-columns: 1.25fr 1fr;
-    gap: 48px;
-    align-items: end;
-    padding-top: 32px;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: var(--space-8);
+    align-items: center;
   }
-  .pr-hero-copy {
-    display: grid;
-    gap: 20px;
-    min-width: 0;
+  .pr-hero__card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-8);
   }
-  .pr-facts {
-    border-top: 1px solid var(--pr-line);
+  .pr-hero__card .jw-eyebrow {
+    margin: 0;
+  }
+  .pr-lede {
+    max-width: 60ch;
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--text-body);
+  }
+  .pr-hero__card .pr-ctas {
+    margin-top: var(--space-2);
+  }
+  .pr-hero__facts {
+    padding: var(--space-3) var(--space-8);
   }
   .pr-fact {
     display: grid;
-    grid-template-columns: 7.5rem 1fr;
-    gap: 16px;
-    padding-block: 14px;
-    border-bottom: 1px solid var(--pr-line);
+    grid-template-columns: 8.5rem minmax(0, 1fr);
+    gap: var(--space-4);
     align-items: baseline;
+    margin: 0;
+    padding: var(--space-5) 0;
   }
-  .pr-fact b {
-    font-family: var(--font-secondary);
-    font-weight: 400;
-    font-size: 2rem;
-    color: var(--color-dark);
-    line-height: 1;
+  .pr-fact + .pr-fact {
+    border-top: 1px solid var(--line);
   }
-  .pr-fact span {
-    font-size: 0.95rem;
+  .pr-fact__value {
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .pr-fact__text {
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--text-body);
   }
 
-  /* coverage ladder */
-  .pr-ladder-bar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 16px;
-  }
-  .pr-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    color: var(--color-dark);
-    font-size: 0.85rem;
-  }
-  .pr-toggle input {
-    accent-color: var(--color-primary);
-    width: 18px;
-    height: 18px;
-  }
+  /* ---- coverage ladder on the agave band ---- */
   .pr-key {
     display: inline-block;
     width: 12px;
     height: 12px;
-    border-radius: 3px;
+    margin-right: var(--space-2);
+    border-radius: var(--radius-xs);
     background: var(--pr-counted);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
     vertical-align: -1px;
-    margin-right: 6px;
   }
-  .pr-seg {
-    display: inline-flex;
-    border: 1px solid var(--pr-line);
-    border-radius: 99px;
-    padding: 3px;
-    background: var(--pr-surface);
+  .pr-ladder-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-6);
+    margin-bottom: var(--space-5);
+    padding: var(--space-2) var(--space-5);
   }
-  .pr-seg button {
-    font-size: 0.8rem;
-    padding: 4px 12px;
-    border-radius: 99px;
-    color: var(--color-text-default);
+  .pr-ladder-size {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    padding: var(--space-2) 0;
   }
-  .pr-seg button[aria-pressed="true"] {
-    background: var(--color-dark);
-    color: var(--color-light);
+  .pr-ladder-size__label,
+  .pr-tag__pct,
+  .pr-cost,
+  .pr-legend {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    line-height: 1.35;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
   }
   .pr-ladder {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 16px;
+    gap: var(--space-5);
   }
   .pr-plot {
-    display: grid;
-    gap: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
     min-width: 0;
     margin: 0;
+    padding: var(--space-3);
   }
   .pr-acre {
     position: relative;
     aspect-ratio: 1;
-    border-radius: 6px;
     overflow: hidden;
-    background: #6b5b45;
+    border-radius: var(--radius-sm);
+    background: var(--surface-sunken);
   }
   .pr-acre img {
     position: absolute;
@@ -671,7 +603,7 @@ const pad = (n: number) => String(n).padStart(2, "0");
   }
   .pr-mask {
     opacity: 0;
-    transition: opacity 0.25s ease;
+    transition: opacity var(--duration-glow) ease;
   }
   .pr-counted .pr-mask {
     opacity: 1;
@@ -679,458 +611,346 @@ const pad = (n: number) => String(n).padStart(2, "0");
   .pr-counted .pr-photo {
     filter: saturate(0.35) brightness(0.8);
   }
+  [data-theme="dark"] .pr-photo {
+    filter: brightness(var(--photo-brightness-dark));
+  }
+  [data-theme="dark"] .pr-counted .pr-photo {
+    filter: saturate(0.35) brightness(0.66);
+  }
   .pr-tag {
     display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding: 0 var(--space-1) var(--space-1);
+  }
+  .pr-tag__name {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
     justify-content: space-between;
-    gap: 8px;
-    font-size: 0.88rem;
-    color: var(--color-dark);
+    gap: 0 var(--space-2);
+    font-size: 16px;
+    line-height: 1.4;
   }
-  .pr-tag b,
-  .pr-price {
+  .pr-tag__name b {
     font-weight: 500;
+    color: var(--text);
   }
   .pr-price {
+    min-height: 1.18em;
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 1.18;
+    color: var(--text);
     font-variant-numeric: tabular-nums;
   }
 
-  /* explorer */
+  /* ---- the explorer: the illustrated acre beside the controls and the answer ---- */
   .pr-explorer {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
-    background: var(--pr-surface);
-    border: 1px solid var(--pr-line);
-    border-radius: var(--pr-r);
-    overflow: hidden;
+    gap: var(--space-8);
+    padding: var(--space-6);
   }
   .pr-ex-plot {
     position: relative;
-    background: #2a2418;
     align-self: start;
+    margin: 0;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    background: var(--surface-sunken);
+  }
+  .pr-ex-plot canvas,
+  .pr-bp-mock canvas {
+    display: block;
+    width: 100%;
+    height: auto;
   }
   .pr-ex-plot canvas {
-    width: 100%;
     aspect-ratio: 1;
-    display: block;
   }
+  [data-theme="dark"] .pr-canvas {
+    filter: brightness(var(--photo-brightness-dark));
+  }
+  /* the caption rides on the picture as two small shell plates */
   .pr-overlay {
     position: absolute;
-    left: 14px;
-    right: 14px;
-    bottom: 14px;
+    left: var(--space-3);
+    right: var(--space-3);
+    bottom: var(--space-3);
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
-    font-size: 0.78rem;
-    color: #fbf3e4;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+    gap: var(--space-2);
     pointer-events: none;
   }
   .pr-ex-ctl {
-    padding: 32px;
-    display: grid;
-    gap: 22px;
-    align-content: start;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
     min-width: 0;
   }
   .pr-field {
-    display: grid;
-    gap: 8px;
-  }
-  .pr-field-top {
     display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 12px;
+    flex-direction: column;
+    gap: var(--space-2);
   }
-  .pr-field label:not(.pr-toggle) {
-    font-weight: 500;
-    color: var(--color-dark);
+  /* The presets share the column's width. When the five don't fit on one
+     line (a phone), they sit in an even grid of three columns, so the
+     second row lines up under the first. */
+  .pr-presets {
+    container-type: inline-size;
   }
-  .pr-field output {
-    font-variant-numeric: tabular-nums;
-    font-weight: 500;
-    color: var(--color-primary);
-  }
-  .pr input[type="range"] {
-    width: 100%;
-    accent-color: var(--color-primary);
-  }
-  .pr-chips {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .pr-chips button {
-    font-size: 0.82rem;
-    border: 1px solid var(--pr-line);
-    background: var(--color-body);
-    border-radius: 99px;
-    padding: 4px 12px;
-  }
-  .pr-chips button[aria-pressed="true"] {
-    border-color: var(--color-primary);
-    color: var(--color-primary);
-    background: var(--pr-soft);
-  }
-  .pr-result {
-    border-top: 1px solid var(--pr-line);
-    padding-top: 20px;
-    display: grid;
-    gap: 14px;
-  }
-  .pr-band-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 14px 20px;
-  }
-  .pr-band-row > div {
-    min-width: 0;
-  }
-  .pr-band {
-    font-family: var(--font-secondary);
-    font-size: clamp(2.2rem, 4.5vw, 3.2rem);
-    line-height: 1;
-    color: var(--color-dark);
-    font-variant-numeric: tabular-nums;
-  }
-  #prPerAcre {
-    font-size: 0.95rem;
-    margin-top: 6px;
-  }
-  .pr-cta-stack {
-    display: grid;
-    justify-items: center;
-    gap: 6px;
-  }
-  .pr-cta-stack span {
-    font-size: 0.76rem;
-    color: var(--pr-muted);
-  }
-  .pr-stats {
+  .pr-presets .jw-seg__track {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px;
+    width: 100%;
   }
-  .pr-stats div {
-    background: var(--pr-sunk);
-    border-radius: 10px;
-    padding: 10px 12px;
-    min-width: 0;
+  .pr-presets .jw-seg__btn {
+    padding: 0;
   }
-  .pr-stats b {
-    display: block;
-    font-size: 1.15rem;
-    font-weight: 500;
-    color: var(--color-dark);
-    font-variant-numeric: tabular-nums;
+  @container (min-width: 440px) {
+    .pr-presets .jw-seg__track {
+      display: flex;
+    }
+    .pr-presets .jw-seg__btn {
+      flex: 1 1 auto;
+      padding: 0 var(--space-3);
+    }
   }
-  .pr-stats span {
-    font-size: 0.78rem;
-    color: var(--pr-muted);
+  .pr-field .jw-check {
+    padding-bottom: var(--space-1);
+  }
+  .pr-result {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--line);
+  }
+  .pr-result .jw-results__value:empty {
+    min-height: 1.05em;
+  }
+  .pr-stats dt::first-letter {
+    text-transform: uppercase;
+  }
+  .pr-split {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
   }
   .pr-stack {
     display: flex;
-    height: 14px;
-    border-radius: 99px;
+    height: 12px;
     overflow: hidden;
-    background: var(--pr-sunk);
+    border-radius: var(--radius-round);
+    background: var(--surface-sunken);
+    box-shadow: var(--shadow-well);
   }
   .pr-stack i {
     display: block;
     height: 100%;
-    transition: width 0.35s ease;
+  }
+  .pr-stack i + i {
+    box-shadow: inset 2px 0 0 var(--surface);
   }
   .pr-legend {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px 20px;
-    font-size: 0.84rem;
-    margin-top: 10px;
+    gap: var(--space-2) var(--space-5);
+    color: var(--text-body);
   }
   .pr-legend span {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-2);
   }
   .pr-legend s {
     width: 10px;
     height: 10px;
-    border-radius: 3px;
+    border-radius: var(--radius-xs);
   }
-  .pr-note {
-    font-size: 0.84rem;
-    color: var(--pr-muted);
+  .pr-go-row {
+    align-items: center;
+    gap: var(--space-3) var(--space-4);
+  }
+  .pr-go-note {
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+  .pr-arrow {
+    flex: none;
   }
   .pr-notice {
-    grid-column: 1 / -1;
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    padding: 16px 32px;
-    background: var(--pr-soft);
-    border-top: 1px solid
-      color-mix(in srgb, var(--color-primary) 35%, transparent);
-    color: var(--color-dark);
-    font-size: 0.9rem;
-    line-height: 1.5;
+    margin-top: var(--space-5);
   }
-  .pr-notice svg {
-    flex: none;
-    color: var(--color-primary);
+  .pr-faq {
+    max-width: 760px;
   }
-  .pr-notice div {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 20px;
-    align-items: baseline;
-    justify-content: space-between;
-    flex: 1;
-    min-width: 0;
-  }
-  .pr-notice p {
-    max-width: 70ch;
-  }
-  .pr-notice a {
-    color: var(--color-primary);
-    font-weight: 500;
-    white-space: nowrap;
+  /* on a wide screen the acre stays in view beside the answer */
+  @media (min-width: 1024px) {
+    .pr-ex-plot {
+      position: sticky;
+      top: calc(44px + 2 * var(--space-3) + 1px + var(--space-4));
+    }
   }
 
-  /* size × density grid */
-  .pr-grid-wrap {
-    overflow-x: auto;
-    border: 1px solid var(--pr-line);
-    border-radius: var(--pr-r);
-    background: var(--pr-surface);
-  }
-  .pr-grid {
-    border-collapse: collapse;
-    width: 100%;
-    min-width: 620px;
-    font-variant-numeric: tabular-nums;
-  }
-  .pr-grid th,
-  .pr-grid td {
-    padding: 12px 14px;
-    text-align: right;
-    font-size: 0.95rem;
-  }
-  .pr-grid thead th {
-    font-weight: 500;
-    color: var(--pr-muted);
-    font-size: 0.78rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    border-bottom: 1px solid var(--pr-line);
-    vertical-align: bottom;
-  }
+  /* ---- size × density grid: the system table on a card, each figure on its heat ---- */
   .pr-grid thead small {
     display: block;
-    text-transform: none;
+    margin-top: 2px;
+    font-family: var(--font-body);
+    font-size: 16px;
     letter-spacing: 0;
-    color: var(--color-dark);
-    font-size: 0.9rem;
-  }
-  .pr-grid tbody th {
-    text-align: left;
-    font-weight: 500;
-    color: var(--color-dark);
-    white-space: nowrap;
+    text-transform: none;
+    color: var(--text-body);
   }
   .pr-grid td {
-    position: relative;
+    color: var(--text);
+    font-weight: 500;
   }
-  .pr-grid td span {
-    position: relative;
-    z-index: 1;
-    color: var(--color-dark);
+  .pr-grid .pr-heat {
+    background-color: var(--pr-heat);
+    box-shadow: inset 0 0 0 3px var(--surface);
   }
-  .pr-grid td::before {
-    content: "";
-    position: absolute;
-    inset: 4px;
-    border-radius: 6px;
-    background: var(--heat);
+  .pr-grid tbody th {
+    white-space: nowrap;
   }
-  .pr-grid td.pr-on::after {
-    content: "";
-    position: absolute;
-    inset: 2px;
-    border: 2px solid var(--color-dark);
-    border-radius: 8px;
+  .jw-table.pr-grid td:last-child {
+    padding-right: var(--space-3);
   }
-  .pr-grid tbody tr + tr > * {
-    border-top: 1px solid var(--pr-line);
+  .pr-asof {
+    margin: var(--space-3) 0 0;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--text-muted);
   }
   .pr-grid-notes {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 24px;
-    margin-top: 20px;
+    gap: var(--space-6) var(--space-10);
+    margin-top: var(--space-8);
   }
   .pr-grid-notes p {
-    font-size: 0.95rem;
     max-width: 52ch;
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--text-body);
   }
   .pr-grid-notes b {
     font-weight: 500;
-    color: var(--color-dark);
+    color: var(--text);
   }
 
-  /* ballpark hand-off */
+  /* ---- the ballpark hand-off on the smooth wall ---- */
   .pr-bp {
     display: grid;
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-    gap: 40px;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: var(--space-8);
     align-items: center;
-    background: var(--color-dark);
-    color: var(--color-body);
-    border-radius: var(--pr-r);
-    padding: 40px;
   }
-  .pr-bp > div {
-    display: grid;
-    gap: 18px;
-    min-width: 0;
+  .pr-bp__pitch {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-8);
   }
-  .pr-bp h2 {
-    color: var(--color-body);
-  }
-  .pr-bp .pr-eyebrow,
-  .pr-bp em {
-    color: #f5c542;
-  }
-  .pr-bp p,
-  .pr-bp ul {
-    color: color-mix(in srgb, var(--color-body) 82%, transparent);
-    max-width: 52ch;
-  }
-  .pr-bp ul {
+  .pr-bp__pitch .jw-eyebrow {
     margin: 0;
-    padding-left: 1.1em;
-    list-style: disc;
-    display: grid;
-    gap: 4px;
   }
-  .pr-bp .pr-btn-fill {
-    background: #f5c542;
-    border-color: #f5c542;
-    color: #2a1a10;
+  .pr-bp__pitch p:not(.jw-eyebrow),
+  .pr-list {
+    max-width: 56ch;
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--text-body);
+  }
+  .pr-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding-left: 1.3em;
+    list-style: disc;
+  }
+  .pr-list li::marker {
+    color: var(--text-muted);
+  }
+  .pr-bp__pitch .pr-ctas {
+    margin-top: var(--space-2);
+  }
+  .pr-bp__mock {
+    padding: var(--space-3);
   }
   .pr-bp-mock {
     margin: 0;
-    background: #121012;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
   }
   .pr-bp-mock canvas {
-    display: block;
-    width: 100%;
     aspect-ratio: 4 / 3;
+    border-radius: var(--radius-sm);
+    background: var(--surface-sunken);
   }
   .pr-bp-card {
     display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 4px 12px;
-    padding: 14px 16px;
-    background: #fbf6ef;
-    color: #2b2420;
-    font-size: 0.82rem;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: var(--space-1) var(--space-3);
+    padding: var(--space-4) var(--space-2) var(--space-2);
+    font-size: 16px;
+    line-height: 1.45;
+    color: var(--text-body);
   }
   .pr-bp-card b {
-    font-family: var(--font-secondary);
-    font-weight: 400;
-    font-size: 1.6rem;
-    line-height: 1;
+    margin-top: var(--space-1);
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
   }
   .pr-bp-card .pr-r {
-    text-align: right;
-    color: #6b5d57;
+    text-align: end;
+    color: var(--text-muted);
   }
 
-  /* steps */
+  /* ---- from a ballpark to a quote: four cards on the shell band ---- */
   .pr-steps {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    border-top: 2px solid var(--color-dark);
-    list-style: none;
+    gap: var(--space-5);
     margin: 0;
     padding: 0;
+    list-style: none;
   }
-  .pr-steps li {
-    padding: 20px 20px 0 0;
-    display: grid;
-    gap: 8px;
-    align-content: start;
+  .pr-step {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
     min-width: 0;
-  }
-  .pr-steps b {
-    font-weight: 500;
-    color: var(--color-dark);
-    font-size: 1.05rem;
-  }
-  .pr-steps p {
-    font-size: 0.93rem;
+    padding: var(--space-6);
   }
   .pr-n {
-    font-family: var(--font-secondary);
-    font-size: 2.2rem;
-    color: var(--color-primary);
-    line-height: 1;
+    color: var(--label);
+  }
+  .pr-step p {
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--text-body);
   }
   .pr-cost {
-    font-size: 0.78rem;
-    font-weight: 500;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--pr-muted);
+    margin-top: auto;
+    padding-top: var(--space-2);
   }
 
-  /* faq */
-  .pr-faq {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px 32px;
-  }
-  .pr-faq details {
-    border-bottom: 1px solid var(--pr-line);
-    padding-block: 14px;
-  }
-  .pr-faq summary {
-    cursor: pointer;
-    font-weight: 500;
-    color: var(--color-dark);
-    list-style: none;
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-  }
-  .pr-faq summary::-webkit-details-marker {
-    display: none;
-  }
-  .pr-faq summary::after {
-    content: "+";
-    color: var(--color-primary);
-    font-size: 1.3rem;
-    line-height: 1;
-  }
-  .pr-faq details[open] summary::after {
-    content: "–";
-  }
-  .pr-faq details p {
-    margin-top: 10px;
-    font-size: 0.95rem;
-    max-width: 60ch;
-  }
-
-  @media (max-width: 980px) {
-    .pr-hero,
+  @media (max-width: 1023px) {
+    .pr-hero__grid,
     .pr-explorer,
     .pr-bp {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .pr-ex-plot {
+      max-width: 560px;
     }
     .pr-ladder {
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1140,33 +960,62 @@ const pad = (n: number) => String(n).padStart(2, "0");
     }
   }
   @media (max-width: 640px) {
-    .pr-section {
-      padding-top: 56px;
+    .pr-hero__card,
+    .pr-bp__pitch {
+      padding: var(--space-5) var(--space-4);
+    }
+    .pr-hero__facts {
+      padding: var(--space-1) var(--space-4);
+    }
+    .pr-fact {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-1);
+      padding: var(--space-4) 0;
     }
     .pr-ladder {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-3);
+    }
+    .pr-ladder-bar {
+      padding: var(--space-1) var(--space-4);
+    }
+    .pr-explorer {
+      gap: var(--space-6);
+      padding: var(--space-4);
     }
     .pr-steps,
-    .pr-faq,
     .pr-grid-notes {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
-    .pr-ex-ctl,
-    .pr-bp {
-      padding: 22px;
+    .pr-step {
+      padding: var(--space-5) var(--space-4);
     }
-    .pr-notice {
-      padding: 16px 22px;
+    /* stacked on a phone: the column's name sits on the paper, the figure on its heat */
+    .jw-table.pr-grid td,
+    .jw-table.pr-grid td:last-child {
+      align-items: center;
+      padding: var(--space-1) 0;
     }
-    .pr-stats {
-      grid-template-columns: 1fr 1fr;
+    .jw-table.pr-grid td::before {
+      flex: 1 1 auto;
+    }
+    .pr-grid .pr-heat {
+      background: none;
+      box-shadow: none;
+    }
+    .pr-grid .pr-heat span {
+      display: inline-block;
+      min-width: 4.5em;
+      padding: 2px var(--space-2);
+      border-radius: var(--radius-sm);
+      background-color: var(--pr-heat);
+    }
+    .jw-table.pr-grid td.is-selected {
+      padding: var(--space-1) var(--space-2);
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .pr-stack i,
-    .pr-mask,
-    .pr-go,
-    .pr-go svg {
+    .pr-mask {
       transition: none;
     }
   }
@@ -1219,7 +1068,7 @@ const pad = (n: number) => String(n).padStart(2, "0");
   }
 
   const BUCKETS = [
-    { i: 5, label: "Treatment", color: "var(--color-primary)" },
+    { i: 5, label: "Treatment", color: "var(--pr-treat)" },
     { i: 6, label: "Getting to you", color: "var(--pr-travel)" },
     { i: 7, label: "Contingency", color: "var(--pr-cont)" },
   ];
@@ -1532,6 +1381,25 @@ const pad = (n: number) => String(n).padStart(2, "0");
   const acresInput = $<HTMLInputElement>("prAcres");
   const coverInput = $<HTMLInputElement>("prCover");
   const countedInput = $<HTMLInputElement>("prExCounted");
+  // A system Slider (jw-slider) driven by this script: the number in the
+  // readout, its unit beside it, the ink fill up to the thumb (--jw-p, 0 to 1)
+  // and the value a screen reader hears.
+  function readout(
+    out: HTMLElement,
+    input: HTMLInputElement,
+    num: string,
+    unit: string,
+  ) {
+    const u = document.createElement("span");
+    u.className = "jw-slider__unit";
+    u.textContent = unit;
+    out.replaceChildren(num, u);
+    input.setAttribute("aria-valuetext", num + " " + unit);
+    const min = Number(input.min) || 0;
+    const max = Number(input.max);
+    const p = max > min ? (Number(input.value) - min) / (max - min) : 0;
+    input.style.setProperty("--jw-p", Math.min(1, Math.max(0, p)).toFixed(4));
+  }
   function update() {
     acresInput.max = String(grid.acres.length - 1);
     // A live grid can have fewer acre steps than the snapshot; clamp before
@@ -1541,9 +1409,13 @@ const pad = (n: number) => String(n).padStart(2, "0");
     const a = grid.acres[idx];
     const pct = Number(coverInput.value);
     const r = cell(a, pct);
-    $("prAcresOut").textContent =
-      a.toLocaleString() + " ac" + (a === 640 ? " (a section)" : "");
-    $("prCoverOut").textContent = pct + "%";
+    readout(
+      $("prAcresOut"),
+      acresInput,
+      a.toLocaleString(),
+      "ac" + (a === 640 ? " (a section)" : ""),
+    );
+    readout($("prCoverOut"), coverInput, String(pct), "%");
     for (const b of $("prPresets").children)
       b.setAttribute(
         "aria-pressed",
@@ -1614,23 +1486,53 @@ const pad = (n: number) => String(n).padStart(2, "0");
     const m = lo[1].map((x, i) => Math.round(x + (hi[1][i] - x) * f));
     return `rgba(${m[0]},${m[1]},${m[2]},${alpha ?? 0.25 + t * 0.55})`;
   }
+  // The same ramp in the table, from the theme's tokens (pale glow → marigold
+  // → burnt tip), laid over the card's paper so each figure keeps 4.5:1 with
+  // the ink by day and at night. Read at render time, so it follows the theme.
+  function cellHeat(v: number) {
+    const t = Math.min(1, Math.max(0, (v - 5) / 140));
+    const css = getComputedStyle(document.documentElement);
+    const rgb = (name: string) => {
+      const h = css.getPropertyValue(name).trim().replace("#", "");
+      return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) || 0);
+    };
+    const stops: [number, number[]][] = [
+      [0, rgb("--glow-100")],
+      [0.45, rgb("--glow-300")],
+      [1, rgb("--tip-600")],
+    ];
+    const [lo, hi] = t <= 0.45 ? [stops[0], stops[1]] : [stops[1], stops[2]];
+    const f = (t - lo[0]) / (hi[0] - lo[0]);
+    const paper = rgb("--surface");
+    const a = 0.18 + t * 0.42;
+    const m = lo[1].map((x, i) =>
+      Math.round((x + (hi[1][i] - x) * f) * a + paper[i] * (1 - a)),
+    );
+    return `rgb(${m[0]}, ${m[1]}, ${m[2]})`;
+  }
+  let gridAt: [number, number] = [640, 18];
   function renderGrid(selA: number, selC: number) {
+    gridAt = [selA, selC];
     const nearC = GRID_C.reduce((b, x) =>
       Math.abs(x.c - selC) < Math.abs(b.c - selC) ? x : b,
     ).c;
     const nearA = GRID_A.reduce((b, x) =>
       Math.abs(Math.log(x / selA)) < Math.abs(Math.log(b / selA)) ? x : b,
     );
-    let h = `<thead><tr><th style="text-align:left">Ranch size</th>${GRID_C.map(
-      (c) => `<th>${c.n}<small>${c.c}% cover</small></th>`,
-    ).join("")}</tr></thead><tbody>`;
+    let h = `<thead role="rowgroup"><tr role="row"><th scope="col" role="columnheader">Ranch size</th>${GRID_C.map(
+      (c) =>
+        `<th scope="col" role="columnheader" class="jw-table__num">${c.n}<small>${c.c}% cover</small></th>`,
+    ).join("")}</tr></thead><tbody role="rowgroup">`;
     for (const a of GRID_A) {
       h +=
-        `<tr><th scope="row">${a.toLocaleString()} ac</th>` +
-        GRID_C.map(({ c }) => {
+        `<tr role="row"><th scope="row" role="rowheader">${a.toLocaleString()} ac</th>` +
+        GRID_C.map(({ n, c }) => {
           const pa = perAcre(cell(a, c), a);
-          const on = a === nearA && c === nearC ? ' class="pr-on"' : "";
-          return `<td${on} style="--heat:${heat(pa)}"><span>${money(pa)}</span></td>`;
+          const on = a === nearA && c === nearC;
+          const look = on
+            ? ' class="jw-table__num is-selected"'
+            : ` class="jw-table__num pr-heat" style="--pr-heat:${cellHeat(pa)}"`;
+          return `<td role="cell" data-label="${n} · ${c}% cover"${look}><span>${money(pa)}</span></td>`;
         }).join("") +
         `</tr>`;
     }
@@ -1718,6 +1620,13 @@ const pad = (n: number) => String(n).padStart(2, "0");
   });
 
   renderAll();
+
+  // The table's heat comes from the theme's tokens: redraw it when the reader
+  // switches between day and night.
+  new MutationObserver(() => renderGrid(...gridAt)).observe(
+    document.documentElement,
+    { attributes: true, attributeFilter: ["data-theme"] },
+  );
 
   // Prefer the live grid so this page always agrees with the ballpark; the
   // committed snapshot only covers an unreachable or older API.

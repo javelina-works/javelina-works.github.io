@@ -1,25 +1,12 @@
 ---
 /**
- * Example Usage
+ * CardGrid shortcode (MDX), on the design system's card grid (jw-cardgrid, design/components/IconCard/README.md): one
+ * column on phones, two from 641px, three from 1024px. Same props as before (class).
 
   <CardGrid>
-    <Card
-      icon="Plus"
-      title="200+"
-      description="Increased Customer Satisfaction"
-    />
-    <Card
-      icon="Clock"
-      title="25+"
-      description="Enhanced Personalization"
-    />
-    <Card
-      icon="Rocket"
-      title="10:1"
-      description="Improved Retention"
-    />
+    <Card icon="Map" value="212" appendValue=" ac" title="Treated" description="Pasture 4, this spring." />
+    <Card … />
   </CardGrid>
-
  */
 interface Props {
   class?: string;
@@ -28,10 +15,6 @@ interface Props {
 const { class: className } = Astro.props;
 ---
 
-<div
-  class:list={[
-    "stats-component grid place-items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-3",
-    className,
-  ]}>
+<div class:list={["jw-cardgrid", "jw-cardgrid--3", "not-prose", className]}>
   <slot />
 </div>

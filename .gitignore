@@ -37,3 +37,7 @@ package-lock.json
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Design check outputs (attached to PRs, not committed)
+/design-previews/
+/site-shots/

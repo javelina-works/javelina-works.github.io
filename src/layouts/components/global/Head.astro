@@ -4,15 +4,13 @@ import JsonLD from "../widgets/JsonLD.astro";
 import Favicons from "@/components/seo/Favicons.astro";
 import OpenGraph from "@/components/seo/OpenGraph.astro";
 import config from ".astro/config.generated.json";
-import { Font } from "astro:assets";
-import fontsJson from "@/config/fonts.json";
 import PostHog from "@/components/posthog.astro";
 import StaleChunkReload from "@/components/global/StaleChunkReload.astro";
-
-const fonts = fontsJson.map((font) => ({
-  cssVariable: font.cssVariable as any,
-  preload: font.preload === true,
-}));
+import ThemeInit from "@/components/jw/ThemeInit.astro";
+// The design system's own fonts (tokens.css @font-face). ?url gives the same hashed file the stylesheet uses, so the
+// preload is the download the page then uses: Barlow for headings and the nav, Figtree for body copy.
+import barlowMedium from "../../../../design/fonts/Barlow-Medium.woff2?url";
+import figtreeRegular from "../../../../design/fonts/Figtree-Regular.woff2?url";
 ---
 
 <head>
@@ -21,22 +19,17 @@ const fonts = fontsJson.map((font) => ({
 -------------->
   <meta charset="UTF-8" />
   {import.meta.env.PROD && <StaleChunkReload />}
+  <!-- Day or night before first paint: the saved choice, else the device's setting. Runs before any stylesheet. -->
+  <ThemeInit />
   <meta http-equiv="Content-Language" content={Astro.currentLocale} />
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1, maximum-scale=5"
   />
   <SEO {...Astro.props} />
-  <meta
-    name="theme-color"
-    media="(prefers-color-scheme: light)"
-    content="#fff"
-  />
-  <meta
-    name="theme-color"
-    media="(prefers-color-scheme: dark)"
-    content="#000"
-  />
+  <!-- Browser chrome matches the nav bar: paper by day, blue-black shell at night (tokens surface and shell-2). -->
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FAF9F6" />
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1D2232" />
   <meta name="generator" content={Astro.generator} />
   {
     config.head?.content && (
@@ -52,17 +45,12 @@ const fonts = fontsJson.map((font) => ({
       ...Astro.props,
     }}
   />
-  <style>
-    body {
-      display: flex;
-      flex-direction: column;
-      min-height: 110vh;
-    }
-  </style>
 
   <!------------------
     Fonts
 -------------------->
-  {fonts.map((font) => <Font cssVariable={font.cssVariable} preload={font.preload} />)}
+  <link rel="preload" href={barlowMedium} as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href={figtreeRegular} as="font" type="font/woff2" crossorigin />
+  <slot name="head" />
   {import.meta.env.PROD && <PostHog />}
 </head>

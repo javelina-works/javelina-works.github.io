@@ -1,0 +1,33 @@
+<!-- @dsCard group="Content" height=640 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Disclosure</title></head>
+<body>
+<!-- Plain HTML, no script: native <details>. The rows share name="pv-faq", so opening one closes the others. Questions and answers are the site's FAQ. -->
+<div class="jw-demo" style="max-width: 760px">
+  <div class="jw-accordion">
+    <details class="jw-disclosure" name="pv-faq" open>
+      <summary class="jw-disclosure__summary"><span class="jw-disclosure__title">What is the ballpark estimate?</span><span class="jw-disclosure__icon" aria-hidden="true"></span></summary>
+      <div class="jw-disclosure__body"><div class="jw-prose jw-prose--full"><p>A free, roughly one-minute read of your ranch. Tell us where the fence line is — by address, by standing on it with your phone, or by drawing it — and we pull public satellite imagery and airborne lidar for that exact ground, measure the standing brush, and hand you a budget range for clearing it. It's a planning number, not a bid.</p></div></div>
+    </details>
+    <details class="jw-disclosure" name="pv-faq">
+      <summary class="jw-disclosure__summary"><span class="jw-disclosure__title">How accurate is it?</span><span class="jw-disclosure__icon" aria-hidden="true"></span></summary>
+      <div class="jw-disclosure__body"><div class="jw-prose jw-prose--full"><p>Honest, but wide on purpose.</p></div></div>
+    </details>
+    <details class="jw-disclosure" name="pv-faq">
+      <summary class="jw-disclosure__summary"><span class="jw-disclosure__title">What data do you use to read my ranch?</span><span class="jw-disclosure__icon" aria-hidden="true"></span></summary>
+      <div class="jw-disclosure__body"><div class="jw-prose jw-prose--full"><p>Public, government-collected sources.</p></div></div>
+    </details>
+    <details class="jw-disclosure" name="pv-faq">
+      <summary class="jw-disclosure__summary"><span class="jw-disclosure__title">The map found the wrong property — now what?</span><span class="jw-disclosure__icon" aria-hidden="true"></span></summary>
+      <div class="jw-disclosure__body"><div class="jw-prose jw-prose--full"><p>Property records in rural Texas can lag reality.</p></div></div>
+    </details>
+  </div>
+  <span class="jw-caption">Solo</span>
+  <details class="jw-disclosure jw-disclosure--solo">
+    <summary class="jw-disclosure__summary"><span class="jw-disclosure__title">Is it really free? What's the catch?</span><span class="jw-disclosure__icon" aria-hidden="true"></span></summary>
+    <div class="jw-disclosure__body"><div class="jw-prose jw-prose--full"><p>Free, no catch.</p></div></div>
+  </details>
+</div>
+</body>
+</html>

@@ -1,0 +1,90 @@
+---
+/**
+ * ServiceHero: the top of a service page, on a flaky-rust wall (the system's hero wall). The words sit on a card, never
+ * on the wall: an eyebrow (the service's name, as the menu calls it), the page's one h1, the intro and an optional
+ * shell button. Beside it, an optional picture card: the service's own field photo or survey image, with an optional
+ * heading and line under it (brush targeting's first bento point; set in heading type but a caption, not a heading,
+ * so the h1 leads straight to the page's sections). Both cards cast shadows that move with the lamp.
+ * Stacks on phones and tablets: the words first, then the picture.
+ */
+import LampWall from "@/components/jw/LampWall.astro";
+import Surface from "@/components/jw/Surface.astro";
+import Figure from "@/components/jw/Figure.astro";
+import Button from "@/components/jw/Button.astro";
+
+interface Props {
+  eyebrow?: string;
+  titleHtml: string;
+  introHtml?: string;
+  image?: { src: string; alt: string; dim?: boolean };
+  feature?: { titleHtml: string; textHtml?: string };
+  action?: { label: string; href: string };
+  seed?: number;
+}
+const { eyebrow, titleHtml, introHtml, image, feature, action, seed = 3 } = Astro.props;
+---
+
+<LampWall as="header" texture="flake" seed={seed} class="jw-section svc-hero">
+  <div class="jw-container">
+    <div class:list={["svc-hero__grid", image && "svc-hero__grid--split"]}>
+      <Surface castShadow class="svc-hero__card">
+        {eyebrow && <p class="jw-eyebrow svc-hero__eyebrow">{eyebrow}</p>}
+        <h1 class="t-display-m svc-hero__title" set:html={titleHtml} />
+        {introHtml && <div class="svc-hero__intro" set:html={introHtml} />}
+        {
+          action && (
+            <div class="svc-hero__actions">
+              <Button variant="shell" href={action.href}>
+                {action.label}
+              </Button>
+            </div>
+          )
+        }
+      </Surface>
+      {
+        image && (
+          <Surface castShadow class="svc-hero__media">
+            <Figure
+              src={image.src}
+              alt={image.alt}
+              dim={image.dim ?? true}
+              loading="eager"
+              fetchpriority="high"
+              widths={[480, 640, 800, 1000, 1240]}
+              sizes="(min-width: 1248px) 620px, (min-width: 1024px) 52vw, calc(100vw - 56px)"
+            />
+            {feature && (
+              <div class="svc-hero__feature">
+                <p class="t-heading-3 svc-hero__feature-title" set:html={feature.titleHtml} />
+                {feature.textHtml && <p class="svc-hero__feature-text" set:html={feature.textHtml} />}
+              </div>
+            )}
+          </Surface>
+        )
+      }
+    </div>
+  </div>
+</LampWall>
+
+<style is:global>
+  .svc-hero__grid { display: grid; gap: var(--space-5); grid-template-columns: minmax(0, 1fr); align-items: center; }
+  .svc-hero__grid:not(.svc-hero__grid--split) { max-width: 760px; }
+  .svc-hero__card { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-5); }
+  .svc-hero__eyebrow, .svc-hero__title { margin: 0; }
+  .svc-hero__title { color: var(--text); }
+  .svc-hero__intro { max-width: 60ch; margin-top: var(--space-1); font-size: 17px; line-height: 1.6; color: var(--text-body); }
+  .svc-hero__intro > * { margin: 0 0 var(--space-3); }
+  .svc-hero__intro > :last-child { margin-bottom: 0; }
+  .svc-hero__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-2); }
+  .svc-hero__media { padding: var(--space-3); }
+  .svc-hero__feature { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-4) var(--space-2) var(--space-2); }
+  .svc-hero__feature-title { margin: 0; color: var(--text); }
+  .svc-hero__feature-text { margin: 0; font-size: 17px; line-height: 1.6; color: var(--text-body); }
+  @media (min-width: 641px) {
+    .svc-hero__card { padding: var(--space-8); }
+    .svc-hero__grid { gap: var(--space-6); }
+  }
+  @media (min-width: 1024px) {
+    .svc-hero__grid--split { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); }
+  }
+</style>

@@ -1,51 +1,58 @@
 ---
+/**
+ * ServicesList: every service as a ServiceCard, in weight order, on the page ground.
+ *   title / description: a SectionHead above the cards (the service pages' "More of what we do"); without a title the
+ *   cards' names are h2 (on /services/, right under the page's h1), with one they are h3.
+ *   exclude: the id of a service to leave out (the page it sits on). compact: icon cards without pictures.
+ *   tight: less space above, for a list that follows the page header directly.
+ * Grid (jw-imagecards): one column on phones, two from 641px, three from 1024px when there are three (as before: 4 → 2 + 2).
+ * Gone: AnimatedText (motion), AOS fades.
+ */
 import { getCollectionCTM } from "@/lib/contentParser.astro";
 import { markdownify } from "@/lib/utils/textConverter";
 import ServiceCard from "../cards/ServiceCard.astro";
-import AnimatedText from "../widgets/AnimatedText.astro";
+import Container from "@/components/jw/Container.astro";
+import SectionHead from "@/components/jw/SectionHead.astro";
 
 type Props = {
   title?: string;
   description?: string;
   exclude?: string; // id of a service to leave out (used on single pages)
   compact?: boolean;
+  tight?: boolean;
 };
 
-const { title, description, exclude, compact = false } = Astro.props;
+const { title, description, exclude, compact = false, tight = false } = Astro.props;
 
 let services = await getCollectionCTM("services", Astro.currentLocale);
 services = services
   .filter((service) => service.id !== exclude)
   .sort((a, b) => (a.data.weight ?? Infinity) - (b.data.weight ?? Infinity));
 
-const cols = services.length % 3 === 0 ? "md:grid-cols-3" : "md:grid-cols-2";
+const three = services.length % 3 === 0;
+const titleHtml = title ? ((await markdownify(title)) as string) : undefined;
+const textHtml = description ? ((await markdownify(description)) as string) : undefined;
+const titleId = titleHtml ? "more-services-title" : undefined;
 ---
 
-<section>
-  <div class="container space-y-10 md:space-y-16">
-    {title && (
-      <div class="mx-auto max-w-2xl space-y-4 text-center">
-        <h2 class="has-italic-text capitalize">
-          <AnimatedText
-            delay={0.2}
-            stagger={0.09}
-            content={markdownify(title)}
-          />
-        </h2>
-        {description && (
-          <p class="opacity-80" set:html={markdownify(description)} />
-        )}
-      </div>
-    )}
-    <div class:list={["grid gap-8", cols]}>
-      {services.map((service, index) => (
-        <ServiceCard
-          content={service}
-          compact={compact}
-          data-aos="fade-up-sm"
-          data-aos-delay={(index + 1) * 100}
-        />
-      ))}
-    </div>
-  </div>
+<section class:list={["jw-section", "svc-list", tight && "svc-list--tight"]} aria-labelledby={titleId}>
+  <Container>
+    {titleHtml && <SectionHead titleHtml={titleHtml} textHtml={textHtml} titleId={titleId} />}
+    <ul class:list={["jw-imagecards", three && "jw-imagecards--3"]} role="list">
+      {
+        services.map((service) => (
+          <li class="jw-imagecards__item">
+            <ServiceCard content={service} compact={compact} level={titleHtml ? 3 : 2} />
+          </li>
+        ))
+      }
+    </ul>
+  </Container>
 </section>
+
+<style is:global>
+  .jw-section.svc-list--tight { padding-top: 0; }
+  /* Two ground sections in a row share one gap (jw.css PageLayout). On the services pages the same goes for a ground
+     section followed by the steps or a showcase band, whose first container carries the top padding. */
+  main:has(.svc-list) > .jw-section:not(.jw-wall, .jw-section--band, .jw-section--none) + :is(.svc-steps, .svc-showcase--band) > .jw-container:first-child { padding-top: 0; }
+</style>

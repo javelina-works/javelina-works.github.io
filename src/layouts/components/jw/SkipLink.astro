@@ -1,0 +1,13 @@
+---
+/**
+ * SkipLink (design/components/SkipLink/README.md): the first thing a keyboard reaches on every page. It stays out of
+ * sight until it has focus, then shows as a small shell plate over the nav bar and jumps to <main id="main">.
+ */
+interface Props {
+  href?: string;
+  label?: string;
+}
+const { href = "#main", label = "Skip to main content" } = Astro.props;
+---
+
+<a class="jw-skip" href={href}>{label}</a>

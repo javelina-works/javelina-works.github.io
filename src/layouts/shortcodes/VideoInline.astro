@@ -1,105 +1,18 @@
 ---
+/**
+ * VideoInline shortcode (MDX), on the design system's VideoEmbed (design/components/VideoEmbed/README.md). Same props
+ * (src, provider, poster, autoplay, type). A YouTube or Vimeo video now loads only when someone presses "Play video":
+ * the old shortcode built the player as soon as it scrolled near the screen, which reached YouTube before anyone chose
+ * to watch (the privacy policy says nothing loads from YouTube until you do). A local (html5) video shows its controls;
+ * autoplay (muted) is kept for it, except under reduced motion.
+ */
+import VideoEmbed from "@/components/jw/VideoEmbed.astro";
 import bgOptimizedImage from "@/lib/utils/bgOptimizedImage";
 import type { VideoConfig } from "@/types";
 
-let {
-  src,
-  provider = "youtube",
-  poster,
-  autoplay = true,
-  type,
-} = Astro.props as VideoConfig;
+let { src, provider = "youtube", poster, autoplay = true, type } = Astro.props as VideoConfig;
 
-const isNativeVideo = provider === "html5";
-poster = poster && (await bgOptimizedImage(poster));
-
-// Browsers only autoplay muted video, so an autoplaying inline embed starts
-// muted. The iframe is created when it scrolls near the viewport.
-const autoplayParam = autoplay === true ? "autoplay=1&mute=1&" : "";
-const embedSrc =
-  provider === "vimeo"
-    ? `https://player.vimeo.com/video/${src}?${autoplay === true ? "autoplay=1&muted=1&" : ""}dnt=1`
-    : `https://www.youtube-nocookie.com/embed/${src}?${autoplayParam}rel=0&playsinline=1`;
+const posterUrl = poster && provider === "html5" ? await bgOptimizedImage(poster) : poster;
 ---
 
-{src && (
-  <div class="not-prose video-inline">
-    {isNativeVideo ? (
-      <video
-        class="video-inline-player w-full rounded-lg bg-black"
-        controls
-        playsinline
-        preload="metadata"
-        poster={poster || undefined}
-        autoplay={autoplay === true}
-        muted={autoplay === true}>
-        <source src={src} type={type} />
-      </video>
-    ) : (
-      <div
-        class="video-inline-frame aspect-video w-full overflow-hidden rounded-lg bg-black"
-        data-embed-src={embedSrc}
-      />
-    )}
-  </div>
-)}
-
-<script>
-  // @ts-nocheck
-  import AOS from "aos";
-
-  // Function to handle AOS-related fixes
-  function removeAosAttributesAfterAnimation() {
-    const handleAosAnimateClass = (mutationsList: MutationRecord[]) => {
-      mutationsList.forEach((mutation: MutationRecord) => {
-        if (
-          mutation.type === "attributes" &&
-          mutation.target.classList.contains("aos-animate")
-        ) {
-          setTimeout(() => {
-            mutation.target.removeAttribute("data-aos");
-            mutation.target.removeAttribute("data-aos-delay");
-          }, 1000);
-        }
-      });
-    };
-
-    const content = document.querySelector(".has-video-modal");
-
-    if (content) {
-      const observer = new MutationObserver(handleAosAnimateClass);
-
-      observer.observe(content, {
-        attributes: true,
-        attributeFilter: ["class"],
-      });
-    }
-  }
-
-  // Create each embed's iframe when it comes near the viewport.
-  const frames = document.querySelectorAll(".video-inline-frame");
-  if (frames.length) {
-    removeAosAttributesAfterAnimation();
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          const frame = entry.target;
-          const iframe = document.createElement("iframe");
-          iframe.src = frame.dataset.embedSrc;
-          iframe.title = "Video";
-          iframe.loading = "lazy";
-          iframe.allow =
-            "autoplay; encrypted-media; picture-in-picture; fullscreen";
-          iframe.allowFullscreen = true;
-          iframe.referrerPolicy = "strict-origin-when-cross-origin";
-          iframe.className = "size-full";
-          frame.replaceChildren(iframe);
-          observer.unobserve(frame);
-        });
-      },
-      { rootMargin: "0px 0px -100px 0px" },
-    );
-    frames.forEach((frame) => observer.observe(frame));
-  }
-</script>
+{src && <VideoEmbed src={src} provider={provider} poster={posterUrl} autoplay={provider === "html5" && autoplay === true} type={type} class="not-prose video-inline" />}

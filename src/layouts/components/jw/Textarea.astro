@@ -1,0 +1,28 @@
+---
+/**
+ * Textarea (design/components/Textarea/README.md): a labeled multi-line input with the Field's look; at least 132px
+ * tall, it grows by dragging downward. hint / error / reserveError as in Field. The value is the default slot or `value`.
+ * Every other prop goes on the <textarea> (name, rows, maxlength, required, placeholder, autocomplete…).
+ */
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends Omit<HTMLAttributes<"textarea">, "class" | "id"> {
+  label: string;
+  id: string;
+  value?: string;
+  hint?: string;
+  error?: string;
+  reserveError?: boolean;
+  class?: string;
+}
+const { label, id, value, hint, error, reserveError = false, class: className, ...rest } = Astro.props;
+const describedBy = [hint && !error && `${id}-hint`, error && `${id}-err`].filter(Boolean).join(" ") || undefined;
+const slotted = Astro.slots.has("default") ? await Astro.slots.render("default") : undefined;
+---
+
+<div class:list={["jw-field", error && "jw-field--error", className]}>
+  <label class="jw-field__label" for={id}>{label}</label>
+  <textarea id={id} class="jw-input jw-textarea" aria-invalid={error ? "true" : undefined} aria-describedby={describedBy} {...rest} set:text={value ?? slotted ?? ""} />
+  {hint && !error && <span class="jw-field__hint" id={`${id}-hint`}>{hint}</span>}
+  {error ? <span class="jw-field__error" id={`${id}-err`}>{error}</span> : reserveError && <span class="jw-field__error" id={`${id}-err`} hidden />}
+</div>

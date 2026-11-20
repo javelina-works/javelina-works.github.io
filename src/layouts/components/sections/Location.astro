@@ -1,20 +1,23 @@
 ---
+// Location on the design system: the heading and line about where we work, then the field photo as a Figure (AVIF and
+// WebP through astro:assets, dimmed a little at night). Content and props are unchanged
+// (src/content/sections/english/location.md; `content` overrides it). Gone: AnimatedText and AOS.
+// The photo's alt text was the section title; it now says what the photo shows (imageAlt in content can override it).
 import type { Section } from "@/types";
 import type { z } from "astro/zod";
 import { getEntryCTM } from "@/lib/contentParser.astro";
 import { markdownify } from "@/lib/utils/textConverter";
 import overrideObjects from "@/lib/utils/overrideObjects.ts";
 import type { benefitsSectionSchema } from "@/sections.schema";
-import OptimizedImage from "../utilities/OptimizedImage.astro";
-import AnimatedText from "../widgets/AnimatedText.astro";
+import Container from "@/components/jw/Container.astro";
+import SectionHead from "@/components/jw/SectionHead.astro";
+import Figure from "@/components/jw/Figure.astro";
 
-// Type
-type SectionType = Section & z.infer<typeof benefitsSectionSchema>;
+type SectionType = Section & z.infer<typeof benefitsSectionSchema> & { imageAlt?: string };
 type Props = {
   content?: SectionType;
 };
 
-// Default content fetch
 let defaultContent = (
   await getEntryCTM("sections", "location", Astro.currentLocale)
 )?.data as SectionType;
@@ -24,45 +27,31 @@ let actualContent = overrideObjects(
   Astro.props.content,
 ) as SectionType;
 
-let { enable = true, title, subtitle, image } = actualContent as SectionType;
+let { enable = true, title, subtitle, image, imageAlt } = actualContent as SectionType;
 
 if (!enable) return;
+
+// The content gives the photo as "/src/assets/images/…"; Figure looks site paths ("/images/…") up in src/assets/images.
+const figureSrc = typeof image === "string" ? image.replace(/^\/?src\/assets(?=\/images\/)/, "") : image;
+// The default photo (texas-effect.jpeg): the same field photo as the default share image.
+const DEFAULT_ALT =
+  "A drone flies over desert grassland and brush under a rain cell, with a person standing in the brush and mesas on the horizon.";
+const alt = imageAlt || (/texas-effect\.jpe?g$/.test(String(image)) ? DEFAULT_ALT : "");
+const titleHtml = title ? ((await markdownify(title)) as string) : undefined;
+const subtitleHtml = subtitle ? ((await markdownify(subtitle)) as string) : undefined;
 ---
 
-<section>
-  <div class="container space-y-10 md:space-y-16">
-    {
-      title && (
-        <div class="mx-auto max-w-2xl text-center">
-          <h2 class="has-italic-text capitalize">
-            <AnimatedText
-              delay={0.2}
-              stagger={0.09}
-              content={markdownify(title)}
-            />
-          </h2>
-          {subtitle && (
-            <p
-              class="mt-4 text-lg text-text-light"
-              data-aos="fade-up-sm"
-              data-aos-delay="100"
-              set:html={markdownify(subtitle)}
-            />
-          )}
-        </div>
-      )
-    }
-
-    {
-      image && (
-        <OptimizedImage
-          data-aos="fade-up-sm"
-          data-aos-delay="200"
-          src={image}
-          alt={title}
-          class="w-full"
-        />
-      )
-    }
-  </div>
+<section class="jw-section location-section" aria-labelledby={titleHtml ? "location-title" : undefined}>
+  <Container>
+    {titleHtml && <SectionHead titleHtml={titleHtml} textHtml={subtitleHtml} titleId="location-title" />}
+    {image && <Figure src={figureSrc as string} alt={alt} ratio="21 / 9" class="location-section__figure" />}
+  </Container>
 </section>
+
+<style>
+  @media (max-width: 640px) {
+    .location-section :global(.location-section__figure .jw-figure__media) {
+      aspect-ratio: 4 / 3 !important;
+    }
+  }
+</style>

@@ -1,0 +1,78 @@
+<!-- @dsCard group="Navigation" height=470 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Nav menu</title></head>
+<body>
+<!-- Plain HTML, no React: the NavBar's Services menu open, the Tools menu closed. The script is the same vanilla behavior the site uses. -->
+<div style="padding-bottom: 380px">
+<nav class="jw-nav" aria-label="Main" data-jw-nav>
+  <a class="jw-nav__brand" href="#home">
+    <img class="jw-logo--light" src="/assets/logos/javelina-rust.svg" alt="" width="32" height="24" style="height:24px;width:auto">
+    <img class="jw-logo--dark" src="/assets/logos/javelina-white.svg" alt="" width="32" height="24" style="height:24px;width:auto">
+    <img class="jw-logo--light jw-nav__wordmark" src="/assets/logos/wordmark-ink.svg" alt="Javelina Works" width="152" height="13" style="height:13px;width:auto">
+    <img class="jw-logo--dark jw-nav__wordmark" src="/assets/logos/wordmark-white.svg" alt="Javelina Works" width="152" height="13" style="height:13px;width:auto">
+  </a>
+  <button type="button" class="jw-nav__menu" aria-expanded="false" aria-controls="pv-nav-links">Menu</button>
+  <div class="jw-nav__links" id="pv-nav-links">
+    <div class="jw-nav__group">
+      <button type="button" class="jw-nav__link jw-nav__trigger is-current" aria-expanded="true" aria-controls="pv-nav-menu-0">Services<span class="jw-nav__caret" aria-hidden="true"></span></button>
+      <div class="jw-navmenu" id="pv-nav-menu-0">
+        <ul class="jw-navmenu__list">
+          <li><a class="jw-navmenu__item" href="#brush-targeting" aria-current="page"><span class="jw-navmenu__label">Brush targeting</span><span class="jw-navmenu__desc">Plant-by-plant treatment from the air.</span></a></li>
+          <li><a class="jw-navmenu__item" href="#survey-work"><span class="jw-navmenu__label">Survey work</span><span class="jw-navmenu__desc">Count and map every mesquite and cedar.</span></a></li>
+          <li><a class="jw-navmenu__item" href="#monitoring"><span class="jw-navmenu__label">Monitoring</span><span class="jw-navmenu__desc">See what the treatment did and what's coming back.</span></a></li>
+          <li><a class="jw-navmenu__item" href="#remote-tools"><span class="jw-navmenu__label">Remote tools</span><span class="jw-navmenu__desc">The instant ballpark and your dashboard.</span></a></li>
+        </ul>
+        <a class="jw-navmenu__all" href="#services">All services</a>
+      </div>
+    </div>
+    <div class="jw-nav__group">
+      <button type="button" class="jw-nav__link jw-nav__trigger" aria-expanded="false" aria-controls="pv-nav-menu-1">Tools<span class="jw-nav__caret" aria-hidden="true"></span></button>
+      <div class="jw-navmenu" id="pv-nav-menu-1" hidden>
+        <ul class="jw-navmenu__list">
+          <li><a class="jw-navmenu__item" href="#ballpark"><span class="jw-navmenu__label">Free ballpark estimate</span><span class="jw-navmenu__desc">A measured budget range from the ranch address.</span></a></li>
+          <li><a class="jw-navmenu__item" href="#ranch-map"><span class="jw-navmenu__label">Free ranch map</span><span class="jw-navmenu__desc">Terrain, creeks and brush on a printable map.</span></a></li>
+          <li><a class="jw-navmenu__item" href="#brush-roi"><span class="jw-navmenu__label">Brush return calculator</span><span class="jw-navmenu__desc">What clearing brush could give back in grass and water.</span></a></li>
+        </ul>
+      </div>
+    </div>
+    <a class="jw-nav__link" href="#pricing">Pricing</a>
+    <a class="jw-nav__link" href="#contact">Contact</a>
+  </div>
+  <a class="jw-btn jw-btn--primary jw-nav__action" href="#ballpark"><span class="jw-btn__mark" aria-hidden="true"></span>Get a ballpark</a>
+</nav>
+</div>
+<script>
+(function () {
+  function initNav(nav) {
+    var phone = window.matchMedia('(max-width: 900px)'), menuBtn = nav.querySelector('.jw-nav__menu');
+    var triggers = [].slice.call(nav.querySelectorAll('.jw-nav__trigger'));
+    // folded, the links follow the action in the DOM, so Tab goes Menu, lamp, then the open panel, as drawn (the links move, never the lamp)
+    var linksEl = nav.querySelector(':scope > .jw-nav__links'), actionEl = nav.querySelector(':scope > .jw-nav__action');
+    function placeLinks() { if (!linksEl || !actionEl || phone.matches === (actionEl.nextElementSibling === linksEl)) return; if (phone.matches) actionEl.after(linksEl); else actionEl.before(linksEl); }
+    placeLinks();
+    function setGroup(t, open) { t.setAttribute('aria-expanded', String(open)); var p = document.getElementById(t.getAttribute('aria-controls')); if (p) p.hidden = !open; }
+    function closeGroups(except) { triggers.forEach(function (t) { if (t !== except && t.getAttribute('aria-expanded') === 'true') setGroup(t, false); }); }
+    function setOpen(open) { nav.classList.toggle('is-open', open); if (menuBtn) { menuBtn.setAttribute('aria-expanded', String(open)); menuBtn.textContent = open ? 'Close' : 'Menu'; } if (!open) closeGroups(); }
+    if (menuBtn) menuBtn.addEventListener('click', function () { setOpen(!nav.classList.contains('is-open')); });
+    triggers.forEach(function (t) { t.addEventListener('click', function () { var open = t.getAttribute('aria-expanded') !== 'true'; closeGroups(t); setGroup(t, open); }); });
+    // on the document: a menu opened with the mouse leaves focus outside the nav in Safari
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape' || e.defaultPrevented) return;
+      var t = triggers.filter(function (x) { return x.getAttribute('aria-expanded') === 'true'; })[0];
+      var at = document.activeElement, refocus = !at || at === document.body || nav.contains(at);
+      if (t) { setGroup(t, false); if (refocus) t.focus(); } else if (nav.classList.contains('is-open')) { setOpen(false); if (menuBtn && refocus) menuBtn.focus(); }
+    });
+    phone.addEventListener('change', function () { setOpen(false); placeLinks(); });
+    nav.addEventListener('focusout', function (e) {
+      if (phone.matches || !e.relatedTarget) return;
+      var g = e.target.closest('.jw-nav__group');
+      if (g && !g.contains(e.relatedTarget)) setGroup(g.querySelector('.jw-nav__trigger'), false);
+    });
+    document.addEventListener('click', function (e) { if (!nav.contains(e.target)) { closeGroups(); if (nav.classList.contains('is-open')) setOpen(false); } });
+  }
+  [].forEach.call(document.querySelectorAll('[data-jw-nav]'), initNav);
+})();
+</script>
+</body>
+</html>

@@ -1,22 +1,43 @@
-@import "tailwindcss";
+/*
+ * Tailwind is the site's layout utility layer and nothing more: grids, stacks, gaps, widths, breakpoints.
+ * Every color, font, radius and shadow a utility can emit is a design token (design/tokens/tokens.css), so a utility
+ * can never hard-code one. Look and type come from the design system: design/tokens/tokens.css and
+ * design/components/jw.css, which Base.astro loads unlayered, so they win over every utility here.
+ *
+ * Layers: theme < base (preflight, site base) < components < utilities. Unlayered CSS (tokens, jw) beats all.
+ * Use utilities around jw- components for layout; never put a color, font or radius utility on a jw- element.
+ */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css" layer(utilities);
 
-@import "./theme.css";
-@plugin "../plugins/fontTailwindPlugin.js";
+/* The token map: no utility can emit a hard-coded color, font, radius or shadow (see the file). */
+@import "./tailwind-theme.css";
 
-/* Preline UI */
-@source "../../node_modules/preline/dist/*.js";
-@import "../../node_modules/preline/variants.css";
-
-@plugin "@tailwindcss/forms";
-@plugin "@tailwindcss/typography";
-@import "./safe.css";
-
+/* Site base. jw.css (unlayered) sets the body type and colors: Figtree 17px on --bg in --text. */
 @layer base {
-  @import "./base.css";
-}
-
-@layer components {
-  @import "./animation.css";
-  @import "./navigation.css";
-  @import "./components.css";
+  /* The footer sits at the foot of short pages. The NavBar is a direct child of <body>, so its sticky works. */
+  body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+  body > main {
+    flex: 1 0 auto;
+  }
+  /* main takes focus from the skip link (tabindex="-1"); it needs no ring of its own */
+  main:focus {
+    outline: none;
+  }
+  /* Tailwind 4's preflight gives buttons the arrow cursor; anything pressable shows the hand */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  /* a border drawn with no color of its own is a hairline in the line token, not the text color */
+  * {
+    border-color: var(--line);
+  }
 }

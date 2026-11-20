@@ -5,10 +5,12 @@ import { getCollectionCTM, getEntryCTM } from "@/lib/contentParser.astro";
 import config from ".astro/config.generated.json";
 import { supportedLanguages } from "@/lib/utils/i18nUtils";
 import BlogSinglePageLayout from "@/components/BlogSinglePageLayout.astro";
-import { markdownify, slugifyyy } from "@/lib/utils/textConverter";
+import { slugifyyy } from "@/lib/utils/textConverter";
 import buildToc from "@/lib/utils/buildToc";
 import { render } from "astro:content";
 import BlogCard from "@/layouts/components/cards/BlogCard.astro";
+import SectionHead from "@/components/jw/SectionHead.astro";
+import Container from "@/components/jw/Container.astro";
 
 export async function getStaticPaths() {
   const paths = await Promise.all(
@@ -111,23 +113,26 @@ if (headings) {
       Content,
     }}
   />
-  {related.length > 0 && (
-    <section>
-      <div class="container space-y-10 md:space-y-16">
-        <div class="mx-auto max-w-2xl text-center">
-          <h2
-            class="has-italic-text"
-            set:html={markdownify("Keep **reading**")}
-          />
+  {
+    related.length > 0 && (
+      <section class="keep-reading" aria-labelledby="keep-reading">
+        <Container>
+          <SectionHead title="Keep reading" titleId="keep-reading" />
+        </Container>
+        <div class="jw-surface jw-surface--band-shell jw-section--band keep-reading__band" data-jw-pool="band">
+          <Container>
+            <ul class="keep-reading__grid" role="list">
+              {related.map((p: any) => (
+                <li>
+                  <BlogCard content={{ ...p.data, ...p }} headingLevel={3} />
+                </li>
+              ))}
+            </ul>
+          </Container>
         </div>
-        <div class="grid gap-x-6 gap-y-10 md:grid-cols-2 xl:grid-cols-3">
-          {related.map((p: any) => (
-            <BlogCard content={{ ...p.data, ...p }} />
-          ))}
-        </div>
-      </div>
-    </section>
-  )}
+      </section>
+    )
+  }
   <CallToAction />
 </Base>
 
@@ -151,3 +156,43 @@ if (headings) {
     });
   });
 </script>
+
+<style>
+  /* "Keep reading": the heading on the ground, then a shell band holding the three cards (a band holds cards, never
+     running text), then the ask's wall. The article above ends on the ground with the system's section gap (space-14,
+     space-20 from 641px); two ground sections share one gap, so this section adds none of its own above. */
+  .keep-reading :global(.jw-sechead) {
+    margin-bottom: var(--space-8);
+  }
+  .keep-reading__band {
+    border-radius: 0;
+    padding: var(--space-14) 0;
+  }
+  .keep-reading__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .keep-reading__grid > li {
+    min-width: 0;
+  }
+  @media (min-width: 641px) {
+    .keep-reading__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-6);
+    }
+  }
+  @media (min-width: 900px) {
+    .keep-reading__band {
+      padding: var(--space-20) 0;
+    }
+  }
+  @media (min-width: 1024px) {
+    .keep-reading__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+</style>

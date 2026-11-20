@@ -1,18 +1,24 @@
 ---
+/**
+ * The article list on the design system (/articles/ and /articles/page/N/; the homepage keeps an import of it but does
+ * not render it). On a list page: the newest featured article as a wide card on page 1, then the other articles in a
+ * grid of cards, `config.settings.pagination` to a page, newest first, then the page links. Elsewhere (listPage off):
+ * a section heading from content and the newest `limit` articles.
+ * The featured split is in components/articles/listing.ts, shared with the page-2 route so both count pages the same.
+ */
 import type { Section } from "@/types";
-import { sortByDate } from "@/lib/utils/sortFunctions";
 import Pagination from "../widgets/Pagination.astro";
-import { getEntryCTM } from "@/lib/contentParser.astro";
+import { getEntryCTM, getCollectionCTM } from "@/lib/contentParser.astro";
 import { markdownify } from "@/lib/utils/textConverter";
-import { getCollectionCTM } from "@/lib/contentParser.astro";
 import overrideObjects from "@/lib/utils/overrideObjects.ts";
 import BlogCard from "@/layouts/components/cards/BlogCard.astro";
+import SectionHead from "@/components/jw/SectionHead.astro";
 import config from ".astro/config.generated.json";
-import AnimatedText from "../widgets/AnimatedText.astro";
+import { articlePageCount, articlesForPage, splitArticles } from "@/components/articles/listing";
 
 const { blogFolder } = config.settings;
+const perPage = config.settings.pagination;
 
-// Type for this section data
 type blogSectionType = Section & {
   featuredPost?: boolean;
 };
@@ -25,103 +31,79 @@ type Props = {
   };
 };
 
-// Fetching the default content for the this section
-let defaultContent = (
-  await getEntryCTM("sections", "blog-section", Astro.currentLocale)
-)?.data as blogSectionType;
+const defaultContent = (await getEntryCTM("sections", "blog-section", Astro.currentLocale))?.data as blogSectionType;
+const actualContent = overrideObjects({ ...defaultContent }, Astro.props.content) as blogSectionType;
+const { enable = true, limit, title } = actualContent as blogSectionType;
+const { listPage = false } = Astro.props as Props;
+const currentPage = Astro.props.pagination?.currentPage || 1;
 
-// Enables content customization (e.g., title, description) with a fallback to 'defaultContent' if not provided.
-// The 'content' prop should match the structure of 'defaultContent'.
-// Allows using this section with different content across multiple pages.
-// If 'content' is missing, 'defaultContent' will be used.
-let actualContent = overrideObjects(
-  { ...defaultContent },
-  Astro.props.content,
-) as blogSectionType;
+const all = await getCollectionCTM(blogFolder as "articles", Astro.currentLocale);
+const { featured, rest } = splitArticles(all);
+const totalPages = articlePageCount(all, perPage);
 
-// Extracting required values from 'content' object
-let { enable = true, limit, title } = actualContent as blogSectionType;
-let { listPage = false } = Astro.props as Props;
-
-let posts = await getCollectionCTM(
-  blogFolder as "articles",
-  Astro.currentLocale,
-);
-
-// Sort posts by date
-posts = sortByDate(posts);
-
-// Limit the number of items to be displayed
-let totalPages = Math.ceil(posts?.length / config.settings.pagination);
-
-const featuredPost = posts.find((post) => post.data.featured);
-
-// Remove featured posts from the main list
-if (featuredPost) {
-  posts = posts.filter((post) => post.data.featured !== true);
-}
-
-if (Astro.props.pagination) {
-  const indexOfLastPost =
-    Astro.props.pagination?.currentPage * config.settings.pagination;
-  const indexOfFirstPost = indexOfLastPost - config.settings.pagination;
-  posts = posts.slice(indexOfFirstPost, indexOfLastPost);
-}
-
-// Limit the number of items to be displayed
-if (limit && !Astro.props.pagination) {
-  posts = posts.slice(0, limit);
-}
+let posts = Astro.props.pagination ? articlesForPage(all, currentPage, perPage) : rest;
+if (limit && !Astro.props.pagination) posts = posts.slice(0, limit);
+const showFeatured = listPage && featured && currentPage === 1;
 
 if (!enable) return;
 ---
 
-{listPage && featuredPost && Astro.props.pagination?.currentPage === 1 && (
-  <section>
-    <div class="container">
-      <BlogCard
-        layout="horizontal"
-        content={{ ...featuredPost.data, ...featuredPost }}
-      />
-    </div>
-  </section>
-)}
+<section class:list={["jw-section", "article-list", listPage && "article-list--page"]}>
+  <div class="jw-container">
+    {!listPage && title && <SectionHead titleHtml={await markdownify(title)} />}
 
-<section>
-  <div class="container space-y-10 md:space-y-16">
-    {!listPage && title && (
-      <div class="mx-auto max-w-2xl text-center">
-        <h2 class="has-italic-text capitalize">
-          <AnimatedText
-            delay={0.2}
-            stagger={0.09}
-            content={markdownify(title)}
-          />
-        </h2>
-      </div>
-    )}
+    {
+      showFeatured && featured && (
+        <div class="article-list__featured">
+          <BlogCard layout="horizontal" loading="eager" content={{ ...featured.data, ...featured }} />
+        </div>
+      )
+    }
 
-    <div class="grid gap-x-6 gap-y-10 md:grid-cols-2 xl:grid-cols-3">
-      {posts &&
-        posts.map((post, index) => (
-          <BlogCard
-            content={{ ...post.data, ...post }}
-            data-aos-delay={!Astro.props.pagination && ((index % 3) + 1) * 100}
-            data-aos={
-              !Astro.props.pagination &&
-              (Math.floor(index / 3) % 2 === 0
-                ? "fade-right-sm"
-                : "fade-left-sm")
-            }
-          />
-        ))}
-    </div>
-    {listPage && (
-      <Pagination
-        collection={blogFolder}
-        currentPage={Astro.props.pagination?.currentPage || 1}
-        totalPages={totalPages}
-      />
-    )}
+    <ul class="article-list__grid" role="list">
+      {
+        posts.map((post, i) => (
+          <li>
+            <BlogCard content={{ ...post.data, ...post }} loading={!showFeatured && i < 2 ? "eager" : "lazy"} />
+          </li>
+        ))
+      }
+    </ul>
+
+    {
+      listPage && (
+        <Pagination class="article-list__pages" collection={blogFolder} currentPage={currentPage} totalPages={totalPages} />
+      )
+    }
   </div>
 </section>
+
+<style>
+  /* under the page header, which already gives the space above */
+  .article-list--page {
+    padding-top: 0;
+  }
+  .article-list__featured {
+    margin-bottom: var(--space-6);
+  }
+  .article-list__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .article-list__grid > li {
+    min-width: 0;
+  }
+  @media (min-width: 641px) {
+    .article-list__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-6);
+    }
+  }
+  .article-list :global(.article-list__pages) {
+    margin-top: var(--space-14);
+  }
+</style>
