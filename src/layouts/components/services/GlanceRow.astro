@@ -4,24 +4,27 @@
  * points of brush targeting's bento that follow the hero (the first point rides in the hero, with its survey image;
  * the pictures of the others are shown, larger, with the longer points further down the page).
  * One column on phones, two from 641px, four from 1024px.
+ * The points are short captions, not page sections: they are h3s under one h2 that only screen readers hear
+ * ("At a glance"), so a heading list shows one entry here beside the page's real sections.
  */
 import Container from "@/components/jw/Container.astro";
 
 interface Props {
   items: { titleHtml: string; textHtml?: string }[];
-  level?: 2 | 3;
+  /** the row's h2, heard by screen readers only */
+  heading?: string;
 }
-const { items, level = 2 } = Astro.props;
-const H: any = `h${level}`;
+const { items, heading = "At a glance" } = Astro.props;
 ---
 
 <div class="jw-section svc-glance">
   <Container>
+    <h2 class="jw-sr-only">{heading}</h2>
     <ul class:list={["svc-glance__list", items.length % 4 === 0 && "svc-glance__list--four"]} role="list">
       {
         items.map((item) => (
           <li class="svc-glance__item">
-            <H class="t-heading-3 svc-glance__title" set:html={item.titleHtml} />
+            <h3 class="t-heading-3 svc-glance__title" set:html={item.titleHtml} />
             {item.textHtml && <p class="svc-glance__text" set:html={item.textHtml} />}
           </li>
         ))

@@ -3,7 +3,8 @@
  * ServiceHero: the top of a service page, on a flaky-rust wall (the system's hero wall). The words sit on a card, never
  * on the wall: an eyebrow (the service's name, as the menu calls it), the page's one h1, the intro and an optional
  * shell button. Beside it, an optional picture card: the service's own field photo or survey image, with an optional
- * heading and line under it (brush targeting's first bento point). Both cards cast shadows that move with the lamp.
+ * heading and line under it (brush targeting's first bento point; set in heading type but a caption, not a heading,
+ * so the h1 leads straight to the page's sections). Both cards cast shadows that move with the lamp.
  * Stacks on phones and tablets: the words first, then the picture.
  */
 import LampWall from "@/components/jw/LampWall.astro";
@@ -54,7 +55,7 @@ const { eyebrow, titleHtml, introHtml, image, feature, action, seed = 3 } = Astr
             />
             {feature && (
               <div class="svc-hero__feature">
-                <h2 class="t-heading-3 svc-hero__feature-title" set:html={feature.titleHtml} />
+                <p class="t-heading-3 svc-hero__feature-title" set:html={feature.titleHtml} />
                 {feature.textHtml && <p class="svc-hero__feature-text" set:html={feature.textHtml} />}
               </div>
             )}
