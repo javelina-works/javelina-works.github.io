@@ -1000,8 +1000,9 @@ a.jw-pages__num:focus-visible { outline: none; box-shadow: var(--shadow-focus); 
    a --tall one two rows; below that one column, with tall pictures held to 520px. Cards stretch to their row (the
    text block takes the spare height), so the bottoms of a row, and of the tall card and its neighbours, line up.
    jw-imagecard--link: the heading's link stretches over the card; hover turns the edge line-strong and underlines the
-   heading, focus rings the card. jw-imagecard__more: "Learn more" in land with an arrow. --compact: no picture, an icon
-   well (jw-iconcard__icon) and IconCard's padding. No motion. */
+   heading, focus rings the card. jw-imagecard__more (with t-body-strong): "Learn more" in land with a 20px right
+   arrow, the same cue as the ArticleCard's "Read more". --compact: no picture, an icon well (jw-iconcard__icon) and
+   IconCard's padding. No motion. */
 .jw-imagecards { display: grid; gap: var(--space-5); grid-template-columns: minmax(0, 1fr); margin: 0; padding: 0; list-style: none; }
 .jw-imagecards__item { display: flex; min-width: 0; }
 .jw-imagecards__item > .jw-lit { display: flex; flex: 1; min-width: 0; }
@@ -1019,7 +1020,7 @@ a.jw-pages__num:focus-visible { outline: none; box-shadow: var(--shadow-focus); 
 .jw-imagecard--link:hover { border-color: var(--line-strong); }
 .jw-imagecard--link:hover .jw-imagecard__link { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .2em; }
 .jw-imagecard--link:has(.jw-imagecard__link:focus-visible) { box-shadow: var(--shadow-raise), var(--shadow-focus); }
-.jw-imagecard__more { display: inline-flex; align-items: center; gap: var(--space-2); margin-top: auto; padding-top: var(--space-3); font-size: 17px; font-weight: 500; line-height: 1.4; color: var(--land); }
+.jw-imagecard__more { display: inline-flex; align-items: center; gap: var(--space-2); margin-top: auto; padding-top: var(--space-3); color: var(--land); }
 .jw-imagecard__more svg { flex: none; width: 20px; height: 20px; }
 .jw-imagecard--compact { padding: var(--space-5) var(--space-4); }
 .jw-imagecard--compact .jw-imagecard__body { gap: var(--space-3); padding: 0; }

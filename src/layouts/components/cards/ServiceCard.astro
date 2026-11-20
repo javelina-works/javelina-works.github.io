@@ -3,7 +3,8 @@
  * ServiceCard: one service as an ImageCard link card (design/components/ImageCard). The heading's link stretches over
  * the whole card, so the card takes the tap but the link's name is just the service ("Survey work"), not every word on
  * the card.
- *   Full: the service's picture (cropped 16:9), its name, the short line (excerpt) and "Learn more" with an arrow.
+ *   Full: the service's picture (cropped 16:9), its name, the short line (excerpt) and "Learn more" with a right arrow
+ *   (the same cue, type and arrow as the article cards' "Read more"; every link here stays on the site).
  *   compact (the "More of what we do" row): no picture; the service's Lucide icon in a small sunken well instead.
  *   level: the heading level (default 3; 2 where the list has no heading of its own).
  * Hover: the card's edge turns line-strong and the name underlines; focus: the focus ring around the card.
@@ -61,9 +62,9 @@ const showImage = !!image && !compact;
     }
     <H class="t-heading-3 jw-imagecard__title"><a class="jw-imagecard__link" href={href} set:html={titleHtml} /></H>
     {excerptHtml && <p class="jw-imagecard__text" set:html={excerptHtml} />}
-    <span class="jw-imagecard__more" aria-hidden="true">
+    <span class="t-body-strong jw-imagecard__more" aria-hidden="true">
       Learn more
-      <Icons icon="ArrowUpRight" />
+      <Icons icon="ArrowRight" />
     </span>
   </div>
 </Surface>

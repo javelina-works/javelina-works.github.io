@@ -7,7 +7,7 @@ A point that comes with a picture: a paper card with the picture at the top, the
 - **Heading:** `heading-3` (22px) in `text`. **Text:** 17px `text-body`; links in it are `land` with an underline, `text` on hover.
 - **ImageCards** (`jw-imagecards`, a `<ul role="list">`): one column on phones, two from 641px; `jw-imagecards--3`: three from 1024px.
 - **Mixed shapes** (`jw-imagecards--mixed`): every picture keeps its own shape and is never cropped. From 1024px three columns, where an item marked `jw-imagecards__item--wide` (a wide chart) spans two columns and `--tall` (a satellite strip) two rows. Below 1024px one column, with tall pictures held to 520px high on the sunken ground. Cards stretch to their row (the words take the spare height), so a row's bottoms line up and the tall card ends level with the cards beside it.
-- **Link card** (`jw-imagecard--link`): the heading's link (`jw-imagecard__link`) stretches over the whole card, so the card takes the tap but the link's name is just the heading. Hover: the edge turns `line-strong` and the heading underlines. Focus: `shadow-focus` around the card. `jw-imagecard__more` adds a "Learn more" line in `land` with a 20px arrow; it is `aria-hidden` (the heading already names the link). Don't give a link card `castShadow`: the lit card's children are positioned, which stops the stretched link at the body.
+- **Link card** (`jw-imagecard--link`): the heading's link (`jw-imagecard__link`) stretches over the whole card, so the card takes the tap but the link's name is just the heading. Hover: the edge turns `line-strong` and the heading underlines. Focus: `shadow-focus` around the card. `jw-imagecard__more` (with `t-body-strong`) adds a "Learn more" cue in `land` with a 20px right arrow (Lucide ArrowRight): the same cue as the ArticleCard's "Read more", since both lead to pages on this site. It is `aria-hidden` (the heading already names the link). Don't give a link card `castShadow`: the lit card's children are positioned, which stops the stretched link at the body.
 - **Compact** (`jw-imagecard--compact`): no picture; an icon in the IconCard well (`jw-iconcard__icon`) instead, and IconCard's padding.
 - **No motion.** Nothing zooms or slides on hover.
 
@@ -31,7 +31,7 @@ A point that comes with a picture: a paper card with the picture at the top, the
       <div class="jw-imagecard__body">
         <h3 class="t-heading-3 jw-imagecard__title"><a class="jw-imagecard__link" href="/services/survey-work/">Survey work</a></h3>
         <p class="jw-imagecard__text">A drone survey of your ranch sharp enough to count every mesquite and cedar, sorted by species.</p>
-        <span class="jw-imagecard__more" aria-hidden="true">Learn more <svg …lucide ArrowUpRight…></svg></span>
+        <span class="t-body-strong jw-imagecard__more" aria-hidden="true">Learn more <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
       </div>
     </div>
   </li>
