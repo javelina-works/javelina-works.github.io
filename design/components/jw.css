@@ -791,6 +791,11 @@ html:has(.jw-dialog:modal) { overflow: hidden; scrollbar-gutter: stable; }
 .jw-notice__body a, .jw-notice__body a:link, .jw-notice__body a:visited { color: var(--land); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .2em; }
 .jw-notice__body a:hover { color: var(--text); text-decoration-thickness: 2px; }
 .jw-notice__body a:focus-visible { outline: none; border-radius: var(--radius-xs); box-shadow: var(--shadow-focus); }
+/* a link takes a 44px-tall tap: an invisible strip centred on its words (as in Checkbox and the cookie notice), so a near miss
+   above or below still opens it. The words, the underline and the focus ring stay as they are. It is for a short link on one line
+   (a link that wraps onto a second line gets only part of the strip), and the link may wrap, so a long one never pushes the page sideways. */
+.jw-notice__body a { position: relative; }
+.jw-notice__body a::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 44px; margin-top: -22px; }
 .jw-notice__body strong { font-weight: 500; color: var(--text); }
 .jw-prose .jw-notice { margin: 0 0 var(--space-5); }
 

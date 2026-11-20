@@ -5,7 +5,7 @@ A short callout set apart from the text around it: a planning-range caveat, a sa
 - A paper card (`surface`, `line` edge, `radius-md`) with a 3px rule on its left, padding `space-4` / `space-5`, 16px Figtree in `text-body`.
 - **Tones:** neutral (`line-strong` rule, the default), info (`land` rule), success, warning and error (rule and title in `success`, `warning`, `error`). The title is 16px Figtree 500; in the neutral and info tones it is `text`.
 - Words carry the meaning. There is no colored dot, icon light or glow: a light is never red, and green stays small.
-- Links inside are `land` with an underline; `strong` is `text` 500.
+- Links inside are `land` with an underline; `strong` is `text` 500. A link takes a 44px-tall tap: an invisible strip centred on its words, as in Checkbox, so a near miss above or below still opens it. Keep notice links short enough to sit on one line (a link that wraps gets only part of the strip).
 - Roles: a plain note is `role="note"`. One that appears after the page loads takes `role="status"` (polite) or, for an error, `role="alert"`.
 - Inside Prose it keeps the paragraph spacing (`space-5` under it).
 
