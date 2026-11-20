@@ -1,7 +1,7 @@
 ---
 enable: true # Control the visibility of this section across all pages where it is used
 title: "**Contact** Javelina Works <br /> in Fort Davis, Texas"
-description: "Fill out the form below, and we’ll get back to you as soon as possible. We’re committed to providing excellent customer service and addressing any inquiries you may have."
+description: "Fill out the form, and we’ll get back to you as soon as possible. We’re committed to providing excellent customer service and addressing any inquiries you may have."
 
 directContact:
   enable: true
@@ -46,10 +46,10 @@ form:
       halfWidth: false
       dropdown:
         items:
-          - label: "Services and Quotes"
-            value: "Services and Quotes"
+          - label: "Services and quotes"
+            value: "Services and Quotes" # values are what Netlify and Discord store: keep them as they are
             selected: true
-          - label: "General Inquiry"
+          - label: "General inquiry"
             value: "General Inquiry"
             selected: false
           - label: "Partnership"
@@ -74,7 +74,8 @@ form:
       halfWidth: false
       error: "Tell us what we can do for you."
 
-    - label: "Google Search" # only valid for type="checkbox" & type === "radio"
+    - label: "Google search" # only valid for type="checkbox" & type === "radio"
+      value: "Google Search" # what the submission stores (was the label): keep it as it is
       id: "google-search"
       checked: false # only valid for type="checkbox" & type === "radio"
       name: "User Source" # This is crucial. It names the field in the submission
@@ -83,13 +84,15 @@ form:
       group: "source" # radios with the same group show together under the groupLabel
       type: "radio"
       error: "Choose how you heard about us." # the group's error (from its first radio)
-    - label: "Social Media" # only valid for type="checkbox" & type === "radio"
+    - label: "Social media" # only valid for type="checkbox" & type === "radio"
+      value: "Social Media"
       id: "social-media"
       name: "User Source"
       required: true
       group: "source"
       type: "radio"
-    - label: "Someone I Know" # only valid for type="checkbox" & type === "radio"
+    - label: "Someone I know" # only valid for type="checkbox" & type === "radio"
+      value: "Someone I Know"
       id: "someone-i-know"
       name: "User Source"
       required: true
