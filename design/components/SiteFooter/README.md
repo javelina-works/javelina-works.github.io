@@ -33,7 +33,7 @@ The foot of every page: the brand, a line about the company and the newsletter s
     <div class="jw-footer__line">
       <span class="jw-status"><span class="jw-pilot jw-pilot--status" aria-hidden="true" data-jw-light="status" data-jw-blink></span><span class="jw-status__label">Taking new surveys</span></span>
       <div class="jw-footer__legal">
-        <p class="jw-footer__copy">Copyright © 2026 Javelina Works, Inc. All Rights Reserved.</p>
+        <p class="jw-footer__copy">Copyright © 2026 Javelina Works, Inc. All rights reserved.</p>
         <ul class="jw-footer__legal-links"><li><a href="/privacy-policy/">Privacy Policy</a></li>…<li><button type="button" id="cookie-preferences-link">Cookie preferences</button></li></ul>
       </div>
     </div>

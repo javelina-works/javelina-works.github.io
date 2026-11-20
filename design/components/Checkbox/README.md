@@ -16,7 +16,7 @@ A labeled checkbox for consent and choices (the cookie banner's switches, the ne
 ```
 
 ## Astro
-`<Checkbox id="privacy-consent" name="privacy-consent" required>I agree with <a href="/privacy-policy/">privacy policy</a></Checkbox>` from `src/layouts/components/jw/Checkbox.astro`. The label is the default slot (or `label`); every other prop goes on the `<input>`.
+`<Checkbox id="privacy-consent" name="privacy-consent" required>I agree to the <a href="/privacy-policy/">privacy policy</a></Checkbox>` from `src/layouts/components/jw/Checkbox.astro`. The label is the default slot (or `label`); every other prop goes on the `<input>`.
 
 ## Rules
 - A checkbox is a choice, not an action: never tip orange.
