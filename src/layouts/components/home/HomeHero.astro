@@ -41,7 +41,7 @@ const video = videoButton?.video;
               aria-haspopup="dialog"
               aria-expanded="false"
               aria-controls={video.id}>
-              {videoButton?.label || "Watch Video"}
+              {videoButton?.label || "Watch the video"}
             </Button>
           )
         }
@@ -103,6 +103,22 @@ const video = videoButton?.video;
     font-size: 16px;
     line-height: 1.5;
     color: var(--text-muted);
+  }
+  /* on phones the count chips (26px tall, jw-chip) sit under the photo, as in the agave band's map, so they cover no
+     ring or its 44px tap area; the photo keeps its own rounded corners */
+  @media (max-width: 640px) {
+    .home-hero__mapcard .jw-map {
+      overflow: visible;
+      margin-bottom: calc(26px + 2 * var(--space-3));
+    }
+    .home-hero__mapcard .jw-map > img {
+      border-radius: inherit;
+    }
+    .home-hero__mapcard .jw-map__counts {
+      left: 0;
+      bottom: auto;
+      top: calc(100% + var(--space-3));
+    }
   }
   @media (min-width: 641px) {
     .home-hero__card {

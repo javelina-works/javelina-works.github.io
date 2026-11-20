@@ -24,7 +24,7 @@ buttons:
     target: ""
     hoverEffect: "magnetic" # "text-flip", "creative-fill", "magnetic", "magnetic-text-flip"
   - enable: true
-    label: "Watch Video"
+    label: "Watch the video"
     tag: "button"
     type: "video"
     hoverEffect: "creative-fill" # "text-flip", "creative-fill", "magnetic", "magnetic-text-flip"
