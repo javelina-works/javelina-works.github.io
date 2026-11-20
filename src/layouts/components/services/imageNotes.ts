@@ -15,6 +15,11 @@ export const imageNotes: Record<string, ImageNote> = {
   "/images/services/brush-targeting/plants-found-boxes.png": {
     alt: "Survey image of brushy pasture from above, with an orange box drawn around each woody plant and a 10 m scale bar.",
   },
+  // a different corner of the targets-and-protected-trees frame (x 0, y 170, 820 x 510), without the popup, so
+  // "Buffers" doesn't repeat the "Only the right targets" picture
+  "/images/services/brush-targeting/protected-tree-buffers.png": {
+    alt: "Survey image of a pasture with protected piñon pines marked in purple, each inside a pink buffer circle, among orange-marked targets.",
+  },
   "/images/services/brush-targeting/bento-protected-tree.png": {
     alt: "Survey image with piñon pines marked as protected, each inside a pink buffer circle, among orange-marked targets.",
   },

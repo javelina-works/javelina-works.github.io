@@ -76,7 +76,7 @@ showcases:
         image: "/images/services/brush-targeting/exclusion-area.png"
       - title: "Buffers around the trees you protect"
         description: "Mark the oaks, piñons or any other trees you want kept as protected, and each one gets a buffer. Set the distance, and any treatable plant inside it is pulled from the plan before a route is drawn."
-        image: "/images/services/brush-targeting/bento-protected-tree.png"
+        image: "/images/services/brush-targeting/protected-tree-buffers.png"
       - title: "Triple-checked"
         description: "First our target audit, where a person confirms every detection is brush. Then your review of the plan. Then the field operator, who checks each target in real time as it is treated."
         image: "/images/services/brush-targeting/bento-review-tiles.png"
