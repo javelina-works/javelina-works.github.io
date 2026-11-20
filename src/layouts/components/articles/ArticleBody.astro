@@ -63,5 +63,11 @@ const html = enhanceArticleHtml(await Astro.slots.render("default"));
     .article-body :global(.jw-table--stack td + td) {
       margin-top: var(--space-2);
     }
+    /* an empty cell means "none" (in the desktop grid a blank under its column reads that way); stacked, a label with
+       nothing under it looks like a missing value, so it shows a dash, read aloud as "none". The text is unchanged. */
+    .article-body :global(.jw-table--stack td:empty::after) {
+      content: "\2014";
+      content: "\2014" / "none";
+    }
   }
 </style>
