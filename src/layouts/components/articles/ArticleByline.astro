@@ -1,0 +1,110 @@
+---
+/**
+ * Who wrote the article and when: the author's photo in a 56px circle, name and role, and the publish date (the same
+ * date as the BlogPosting JSON-LD's datePublished, shown in Texas time).
+ * The author entry (src/content/author/english/<slug>.md) gives title, role and image ("/images/…", from
+ * src/assets/images); imageFocus ("x% y%", the face) and imageZoom (how far to zoom in on it) frame a portrait that is
+ * mostly not face. The photo's alt is empty: the name is right beside it.
+ */
+import { getImage } from "astro:assets";
+import { findAssetImage } from "@/lib/utils/shareImage";
+
+interface Props {
+  author?: { title?: string; role?: string; image?: string; imageFocus?: string; imageZoom?: number };
+  date?: Date | string;
+}
+const { author, date } = Astro.props;
+
+const SIZE = 56;
+const published = date ? new Date(date) : null;
+const publishedLabel = published
+  ? new Intl.DateTimeFormat("en-US", { year: "numeric", month: "long", day: "numeric", timeZone: "America/Chicago" }).format(published)
+  : null;
+
+let photo: { src: string; srcset?: string; style: string; width: number; height: number } | undefined;
+const meta = author?.image ? await findAssetImage(author.image) : undefined;
+if (meta) {
+  const [fx, fy] = (author?.imageFocus || "50% 30%").split(/\s+/).map((v) => parseFloat(v) / 100);
+  const zoom = Math.max(1, author?.imageZoom || 1);
+  // draw the photo `zoom` times the circle's size (by its shorter side), placed so the focus point sits in the middle
+  const scale = (SIZE * zoom) / Math.min(meta.width, meta.height);
+  const w = Math.round(meta.width * scale);
+  const h = Math.round(meta.height * scale);
+  const left = Math.min(0, Math.max(SIZE - w, Math.round(SIZE / 2 - fx * w)));
+  const top = Math.min(0, Math.max(SIZE - h, Math.round(SIZE / 2 - fy * h)));
+  const built = await getImage({ src: meta, width: w * 2, format: "webp" });
+  const built1x = await getImage({ src: meta, width: w, format: "webp" });
+  photo = {
+    src: built.src,
+    srcset: `${built1x.src} 1x, ${built.src} 2x`,
+    style: `width:${w}px;height:${h}px;left:${left}px;top:${top}px`,
+    width: w,
+    height: h,
+  };
+}
+---
+
+{
+  (author?.title || publishedLabel) && (
+    <div class="article-byline">
+      {photo && (
+        <span class="article-byline__photo">
+          <img src={photo.src} srcset={photo.srcset} alt="" width={photo.width} height={photo.height} style={photo.style} loading="eager" decoding="async" />
+        </span>
+      )}
+      <p class="article-byline__text">
+        {author?.title && (
+          <span class="article-byline__who">
+            <span class="article-byline__name">{author.title}</span>
+            {author.role && <span class="article-byline__role">, {author.role}</span>}
+          </span>
+        )}
+        {published && publishedLabel && <time class="article-byline__date" datetime={published.toISOString()}>{publishedLabel}</time>}
+      </p>
+    </div>
+  )
+}
+
+<style>
+  .article-byline {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+  }
+  .article-byline__photo {
+    position: relative;
+    flex: none;
+    width: 56px;
+    height: 56px;
+    overflow: hidden;
+    border-radius: var(--radius-round);
+    background: var(--surface-sunken);
+    box-shadow: 0 0 0 1px var(--line);
+  }
+  .article-byline__photo img {
+    position: absolute;
+    max-width: none;
+  }
+  :global([data-theme="dark"]) .article-byline__photo img {
+    filter: brightness(var(--photo-brightness-dark));
+  }
+  .article-byline__text {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.45;
+    color: var(--text-muted);
+  }
+  .article-byline__who {
+    color: var(--text-body);
+  }
+  .article-byline__name {
+    font-weight: 500;
+    color: var(--text);
+  }
+  .article-byline__date {
+    font-variant-numeric: tabular-nums;
+  }
+</style>

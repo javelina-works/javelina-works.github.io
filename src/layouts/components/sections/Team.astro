@@ -1,15 +1,24 @@
 ---
-import type { Section } from "@/types";
+// Team on the design system (/company/): the heading on the page ground, then one paper card per person on an agave
+// sheen band: the photo (AVIF and WebP through astro:assets, dimmed a little at night), the name and the role. On phones
+// each card lies on its side (photo left, words right) so three people fit on a screen or two.
+// Content and props are unchanged: src/content/sections/english/team.md, and `content` overrides it.
+// Gone: AnimatedText, AOS and the old gradient cards. Alt text was the person's name, which the card's heading already
+// says; it now says what the photo shows (TEAM_ALT, by file name), and falls back to the name.
+import type { Section as SectionData } from "@/types";
 import type { z } from "astro/zod";
 import { getEntryCTM } from "@/lib/contentParser.astro";
-import { markdownify } from "@/lib/utils/textConverter";
+import { markdownify, plainify } from "@/lib/utils/textConverter";
 import overrideObjects from "@/lib/utils/overrideObjects.ts";
 import type { teamSectionSchema } from "@/sections.schema";
-import OptimizedImage from "../utilities/OptimizedImage.astro";
-import AnimatedText from "../widgets/AnimatedText.astro";
+import Container from "@/components/jw/Container.astro";
+import Section from "@/components/jw/Section.astro";
+import SectionHead from "@/components/jw/SectionHead.astro";
+import Surface from "@/components/jw/Surface.astro";
+import Figure from "@/components/jw/Figure.astro";
 
 // Type
-type SectionType = Section & z.infer<typeof teamSectionSchema>;
+type SectionType = SectionData & z.infer<typeof teamSectionSchema>;
 type Props = {
   content?: SectionType;
 };
@@ -27,55 +36,120 @@ let actualContent = overrideObjects(
 let { enable = true, title, list } = actualContent as SectionType;
 
 if (!enable) return;
+
+const TEAM_ALT: Record<string, string> = {
+  "thomas-garrison2": "Thomas Garrison at a desk of flight-control screens in the shop",
+  "kellan-cerveny": "Kellan Cerveny at a workbench with a drone frame and its circuit board, mountains in the window behind",
+  "gray-hancock": "Gray Hancock in a ball cap, out at a survey site by a pickup",
+};
+const altFor = (src: string, name: string) =>
+  TEAM_ALT[src.split("/").pop()?.replace(/\.[a-z]+$/i, "") ?? ""] ?? plainify(name);
+
+const titleHtml = title ? ((await markdownify(title)) as string) : undefined;
+const people = await Promise.all(
+  (list || []).map(async (item) => ({
+    image: item.image,
+    alt: item.image ? altFor(item.image, item.name) : "",
+    nameHtml: item.name ? ((await markdownify(item.name)) as string) : undefined,
+    roleHtml: item.role ? ((await markdownify(item.role)) as string) : undefined,
+  })),
+);
 ---
 
-<section>
-  <div class="container space-y-10 md:space-y-16">
-    {
-      title && (
-        <div class="mx-auto max-w-2xl text-center">
-          <h2 class="has-italic-text capitalize">
-            <AnimatedText
-              delay={0.2}
-              stagger={0.09}
-              content={markdownify(title)}
-            />
-          </h2>
-        </div>
-      )
-    }
-    {
-      list && (
-        <div class="grid grid-cols-2 gap-x-8 gap-y-4 lg:grid-cols-4">
-          {list.map((item, index) => (
-            <div
-              data-aos={
-                Math.floor(index / 4) % 2 === 0
-                  ? "fade-left-sm"
-                  : "fade-right-sm"
-              }
-              data-aos-delay={((index % 4) + 1) * 100}
-              class="from-theme-light mx-auto flex w-fit flex-col justify-between space-y-4 rounded-2xl bg-linear-to-b to-white p-4">
-              {item.image && (
-                <OptimizedImage
-                  src={item.image}
-                  class="w-full max-w-72 rounded-xl"
-                  alt={item.name}
-                />
-              )}
-              <div>
-                {item.name && (
-                  <h3
-                    class="md:text-h6 text-h6-sm text-black"
-                    set:html={markdownify(item.name)}
+<section class="team-section" aria-labelledby={titleHtml ? "team-title" : undefined}>
+  {
+    titleHtml && (
+      <Container class="team-section__head">
+        <SectionHead titleHtml={titleHtml} titleId="team-title" />
+      </Container>
+    )
+  }
+  {
+    people.length > 0 && (
+      <Section as="div" tone="agave">
+        <ul class="team-section__list" role="list">
+          {people.map((p) => (
+            <li>
+              <Surface class="team-card">
+                {p.image && (
+                  <Figure
+                    src={p.image}
+                    alt={p.alt}
+                    ratio="4 / 5"
+                    sizes="(min-width: 641px) 300px, 112px"
+                    widths={[224, 320, 480, 600]}
+                    class="team-card__photo"
                   />
                 )}
-                {item.role && <p set:html={markdownify(item.role)} />}
-              </div>
-            </div>
+                <div class="team-card__words">
+                  {p.nameHtml && <h3 class="t-heading-3 team-card__name" set:html={p.nameHtml} />}
+                  {p.roleHtml && <p class="team-card__role" set:html={p.roleHtml} />}
+                </div>
+              </Surface>
+            </li>
           ))}
-        </div>
-      )
-    }
-  </div>
+        </ul>
+      </Section>
+    )
+  }
 </section>
+
+<style>
+  .team-section {
+    padding-top: var(--space-14);
+  }
+  .team-section__head :global(.jw-sechead) {
+    margin-bottom: var(--space-8);
+  }
+  .team-section__list {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  /* phones: photo left, name and role right */
+  .team-section :global(.team-card) {
+    display: grid;
+    grid-template-columns: 112px minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-4);
+    height: 100%;
+    box-sizing: border-box;
+    padding: var(--space-3);
+  }
+  .team-card__words {
+    min-width: 0;
+  }
+  .team-card__name {
+    margin: 0 0 var(--space-1);
+    color: var(--text);
+  }
+  .team-card__role {
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--text-body);
+  }
+  /* the faces sit high in these portraits */
+  .team-section :global(.team-card__photo .jw-figure__media img) {
+    object-position: 50% 20%;
+  }
+
+  @media (min-width: 641px) {
+    .team-section {
+      padding-top: var(--space-20);
+    }
+    .team-section__list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-6);
+      max-width: 960px;
+    }
+    .team-section :global(.team-card) {
+      grid-template-columns: minmax(0, 1fr);
+      align-items: start;
+      gap: var(--space-4);
+      padding: var(--space-4) var(--space-4) var(--space-5);
+    }
+  }
+</style>

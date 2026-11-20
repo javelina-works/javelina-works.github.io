@@ -1,0 +1,51 @@
+<!-- @dsCard group="Content" height=1180 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>ArticleCard</title></head>
+<body>
+<!-- Plain HTML. The words are the site's (/articles/why-brush-control/ and /articles/paying-for-brush-work-trans-pecos/);
+     the picture is the design system's survey image. Top: the wide card. Below: two cards in a grid, then the same on a
+     shell band. -->
+<div class="jw-demo" style="display: flex; flex-direction: column; gap: 24px; max-width: 920px">
+  <article class="jw-surface jw-surface--card jw-article-card jw-article-card--wide">
+    <div class="jw-article-card__media jw-article-card__media--diagram">
+      <img src="/assets/images/survey-detections.jpg" alt="A drone survey image of brushy grassland with an orange box around each woody plant." width="1600" height="864">
+    </div>
+    <div class="jw-article-card__body">
+      <p class="jw-eyebrow jw-article-card__eyebrow">Brush management</p>
+      <h2 class="t-heading-2 jw-article-card__title"><a class="jw-article-card__link" href="#why-brush-control">Why brush control: what the research says</a></h2>
+      <p class="jw-article-card__excerpt">The long, cited version of why brush matters on a West Texas ranch: how mesquite and cedar got here, what they do to water, grass, wildlife and soil, and when leaving them alone is right.</p>
+      <div class="jw-article-card__foot">
+        <time class="jw-article-card__date" datetime="2026-10-03T17:00:00.000Z">Oct 03, 2026</time>
+        <span class="t-button jw-article-card__more" aria-hidden="true">Read More <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"></path></svg></span>
+      </div>
+    </div>
+  </article>
+  <ul role="list" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin: 0; padding: 0; list-style: none">
+    <li>
+      <article class="jw-surface jw-surface--card jw-article-card">
+        <div class="jw-article-card__media jw-article-card__media--diagram"><img src="/assets/images/survey-detections.jpg" alt="A drone survey image of brushy grassland with an orange box around each woody plant." width="1600" height="864"></div>
+        <div class="jw-article-card__body">
+          <p class="jw-eyebrow jw-article-card__eyebrow">Brush management</p>
+          <h3 class="t-heading-3 jw-article-card__title"><a class="jw-article-card__link" href="#paying">Paying for brush work in the Trans-Pecos</a></h3>
+          <p class="jw-article-card__excerpt">A practical guide to cost-share for brush work in Far West Texas: what EQIP Practice 314 paid in FY2025, how the plant-density tiers work, which regional programs cover the Trans-Pecos, and how to apply.</p>
+          <div class="jw-article-card__foot"><time class="jw-article-card__date" datetime="2026-10-25T17:00:00.000Z">Oct 25, 2026</time><span class="t-button jw-article-card__more" aria-hidden="true">Read More <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"></path></svg></span></div>
+        </div>
+      </article>
+    </li>
+    <li>
+      <div class="jw-surface jw-surface--band-shell" style="padding: 24px; height: 100%; box-sizing: border-box">
+        <article class="jw-surface jw-surface--card jw-article-card">
+          <div class="jw-article-card__media jw-article-card__media--diagram"><img src="/assets/images/survey-detections.jpg" alt="A drone survey image of brushy grassland with an orange box around each woody plant." width="1600" height="864"></div>
+          <div class="jw-article-card__body">
+            <p class="jw-eyebrow jw-article-card__eyebrow">Brush management</p>
+            <h3 class="t-heading-3 jw-article-card__title"><a class="jw-article-card__link" href="#why-brush-control-2">Why brush control: what the research says</a></h3>
+            <div class="jw-article-card__foot"><time class="jw-article-card__date" datetime="2026-10-03T17:00:00.000Z">Oct 03, 2026</time><span class="t-button jw-article-card__more" aria-hidden="true">Read More <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"></path></svg></span></div>
+          </div>
+        </article>
+      </div>
+    </li>
+  </ul>
+</div>
+</body>
+</html>

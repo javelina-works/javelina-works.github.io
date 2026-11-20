@@ -1,114 +1,133 @@
 ---
+/**
+ * One article on the design system.
+ *   Header (PageHeader on the ground): the categories as the eyebrow, the title as the page's one h1, the excerpt, and
+ *   the byline (author photo, name, role, date).
+ *   Then a reading column (up to 760px) with the hero picture shown whole (never cropped; a tall picture is held to the
+ *   screen's height) and its caption, and the text in Prose (ArticleBody). Beside it from 1024px, the table of contents,
+ *   sticky under the nav bar and marking the section being read; below 1024px the same list sits in a closed card
+ *   above the text.
+ * Hero alt text and captions come from articles/articleImages.ts. The page around it (Keep reading, the ask, the
+ * blog_post_viewed event) is in pages/[...lang]/articles/[single].astro.
+ */
 import TOC from "./widgets/TableOfContents.astro";
-import { markdownify } from "@/lib/utils/textConverter";
-import OptimizedImage from "./utilities/OptimizedImage.astro";
+import PageHeader from "@/components/jw/PageHeader.astro";
+import Figure from "@/components/jw/Figure.astro";
+import ArticleBody from "@/components/articles/ArticleBody.astro";
+import ArticleByline from "@/components/articles/ArticleByline.astro";
+import { articleImage } from "@/components/articles/articleImages";
+import { findAssetImage } from "@/lib/utils/shareImage";
+import { humanize } from "@/lib/utils/textConverter";
 
 const { content } = Astro.props;
-const {
-  title,
-  image,
-  date,
-  author,
-  excerpt,
-  Content,
-  categories,
-  tocHeadings,
-  tableOfContents,
-} = content;
+const { title, image, date, author, excerpt, Content, categories, tocHeadings, tableOfContents } = content;
 
-// Visible publish date, matching the datePublished in the page's JSON-LD
-const published = date ? new Date(date) : null;
-const publishedLabel = published
-  ? new Intl.DateTimeFormat("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      timeZone: "America/Chicago",
-    }).format(published)
-  : null;
+const tocEnabled = tableOfContents?.enable && tocHeadings && tocHeadings.length > 0;
+const eyebrow = (categories || []).map((c: string) => humanize(c)).join(" · ");
 
-// Check if table of contents is enable
-const tocEnabled =
-  tableOfContents?.enable && tocHeadings && tocHeadings.length > 0;
+const hero = image ? await findAssetImage(image) : undefined;
+const heroInfo = articleImage(image);
+const heroTall = hero ? hero.height > hero.width : false;
 ---
 
-<section class="grid grid-cols-1 justify-items-center space-y-12">
-  <div class="container">
-    <div
-      class="relative flex w-full flex-col items-center justify-center space-y-8">
-      <div class="space-y-8 text-center lg:max-w-3xl">
-        <div>
-          {
-            categories && categories.length > 0 && (
-              <ul class="flex justify-center gap-2">
-                {categories.map((category: string) => (
-                  <li
-                    class="text-primary inline-block text-sm font-medium tracking-wider"
-                    set:html={markdownify(category)}
-                  />
-                ))}
-              </ul>
-            )
-          }
-          {title && <h1 class="h2" set:html={title} />}
-        </div>
-        {excerpt && <p set:html={markdownify(excerpt)} />}
-        {
-          published && publishedLabel && (
-            <p class="text-sm">
-              <time datetime={published.toISOString()}>{publishedLabel}</time>
-            </p>
-          )
-        }
-        {
-          author && author.title && (
-            <div class="flex flex-wrap items-center justify-center gap-4">
-              {author?.image && (
-                <OptimizedImage
-                  width={64}
-                  height={64}
-                  src={author.image}
-                  alt={author.title || "author image"}
-                  class="h-16 w-16 rounded-full border-4"
-                />
-              )}
-              <div class="text-start">
-                {author.title && (
-                  <p class="font-medium" set:html={markdownify(author.title)} />
-                )}
-                {author.role && <p set:html={markdownify(author.role)} />}
-              </div>
-            </div>
-          )
-        }
-      </div>
+<article class="article">
+  <PageHeader eyebrow={eyebrow || undefined} title={title} intro={excerpt} class="article__head">
+    <ArticleByline author={author} date={date} />
+  </PageHeader>
 
-      <!-- Post/Portfolio Image -->
+  <div class="jw-container article__layout">
+    <div class="article__main">
       {
-        image && Content && (
-          <OptimizedImage
-            src={image as string}
-            width={896}
-            height={384}
-            alt={title}
-            class:list={["h-96 w-full rounded-3xl object-cover lg:max-w-4xl"]}
+        hero && Content && (
+          <Figure
+            src={hero}
+            alt={heroInfo.alt}
+            caption={heroInfo.caption}
+            dim={!heroInfo.diagram}
+            widths={heroTall ? [400, 600, 800] : [480, 760, 1080, 1520]}
+            sizes={heroTall ? "(min-width: 641px) 480px, calc(100vw - 32px)" : "(min-width: 808px) 760px, calc(100vw - 32px)"}
+            loading="eager"
+            fetchpriority="high"
+            class:list={["article__hero", heroTall && "article__hero--tall"]}
           />
         )
       }
 
-      <div class="w-full space-y-8 lg:max-w-3xl">
-        <!-- Table of Contents -->
-        {tocEnabled && tocHeadings && <TOC toc={tocHeadings} marker={false} />}
+      {tocEnabled && <TOC toc={tocHeadings} variant="disclosure" id="toc-top" class="article__toc-top" />}
 
-        <!-- Main Content -->
-        {
-          Content && (
-            <div class="prose-styles content has-video-modal">
-              <Content />
-            </div>
-          )
-        }
-      </div>
+      {
+        Content && (
+          <ArticleBody class="article__body">
+            <Content />
+          </ArticleBody>
+        )
+      }
     </div>
+
+    {
+      tocEnabled && (
+        <aside class="article__aside">
+          <TOC toc={tocHeadings} variant="sidebar" marker id="toc-side" />
+        </aside>
+      )
+    }
   </div>
-</section>
+</article>
+
+<style>
+  /* Text at its real weight: the old global rule (legacy base.css) forces grayscale antialiasing on <html>, which
+     draws Figtree noticeably thinner on a Mac. The article sets it back to the browser's normal rendering. */
+  .article {
+    -webkit-font-smoothing: auto;
+    -moz-osx-font-smoothing: auto;
+  }
+  .article__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    padding-bottom: var(--space-14);
+  }
+  .article__main {
+    min-width: 0;
+    max-width: 760px;
+  }
+  /* the hero, whole: full column width, or for a tall picture as tall as the screen allows, its frame hugging it */
+  .article__main :global(.article__hero) {
+    margin: 0 0 var(--space-10);
+  }
+  .article__main :global(.article__hero--tall .jw-figure__media) {
+    width: fit-content;
+    max-width: 100%;
+  }
+  .article__main :global(.article__hero--tall img) {
+    width: auto;
+    max-width: 100%;
+    max-height: min(78vh, 680px);
+  }
+  .article__main :global(.article__hero .jw-figure__caption) {
+    max-width: 66ch;
+  }
+  .article__main :global(.article__toc-top) {
+    margin: 0 0 var(--space-10);
+  }
+  .article__aside {
+    display: none;
+  }
+  @media (min-width: 641px) {
+    .article__layout {
+      padding-bottom: var(--space-20);
+    }
+  }
+  @media (min-width: 1024px) {
+    .article__layout {
+      grid-template-columns: minmax(0, 760px) minmax(220px, 280px);
+      column-gap: var(--space-14);
+      justify-content: start;
+    }
+    .article__main :global(.article__toc-top) {
+      display: none;
+    }
+    .article__aside {
+      display: block;
+    }
+  }
+</style>

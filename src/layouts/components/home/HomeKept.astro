@@ -1,0 +1,96 @@
+---
+// The agave band (BUILD_BRIEF §5 item 5): the example survey's corner, with a ring on every boxed plant, beside two
+// cards: what is kept and what is treated. The counts are the rings on the map (survey.ts), labelled as an example.
+// Each card's heading and line are from the old bento (src/content/sections/english/features-section.md, cards 2 and 5).
+import { getEntryCTM } from "@/lib/contentParser.astro";
+import Section from "@/components/jw/Section.astro";
+import Surface from "@/components/jw/Surface.astro";
+import StaticMap from "./StaticMap.astro";
+import { band, count, plants } from "./survey";
+
+const features = (await getEntryCTM("sections", "features-section", Astro.currentLocale))?.data as {
+  list?: { title: string; description: string }[];
+};
+const kept = features?.list?.[1];
+const dose = features?.list?.[4];
+const nKeep = count(band.plants, "keep");
+const nTreat = count(band.plants, "treat");
+const cards = [
+  { label: "Kept · example", value: plants(nKeep), item: kept },
+  { label: "To treat · example", value: plants(nTreat), item: dose },
+];
+const alt = `A corner of the example survey photo: ${band.plants.length} woody plants, each boxed and ringed, ${nTreat} to treat and ${nKeep} to keep`;
+---
+
+<Section as="div" tone="agave" class="home-kept">
+  <div class="home-kept__grid">
+    <Surface castShadow class="home-kept__mapcard">
+      <StaticMap
+        src={band.image}
+        alt={alt}
+        plants={band.plants}
+        ratio={band.ratio}
+        widths={[480, 640, 837]}
+        sizes="(min-width: 1240px) 640px, (min-width: 901px) 52vw, calc(100vw - 56px)"
+      />
+    </Surface>
+    <div class="home-kept__stack">
+      {
+        cards.map((c) => (
+          <Surface castShadow class="home-kept__card">
+            <p class="jw-eyebrow">{c.label}</p>
+            <p class="t-number home-kept__value">{c.value}</p>
+            {c.item && <h3 class="t-heading-3 home-kept__title">{c.item.title}</h3>}
+            {c.item && <p class="home-kept__text">{c.item.description}</p>}
+          </Surface>
+        ))
+      }
+    </div>
+  </div>
+</Section>
+
+<style is:global>
+  .home-kept__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-5);
+    align-items: center;
+  }
+  .home-kept__mapcard {
+    padding: var(--space-3);
+  }
+  .home-kept__stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+  .home-kept__card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-5) var(--space-4);
+  }
+  .home-kept__card > * {
+    margin: 0;
+  }
+  .home-kept__value,
+  .home-kept__title {
+    color: var(--text);
+  }
+  .home-kept__text {
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--text-body);
+  }
+  @media (min-width: 641px) {
+    .home-kept__card {
+      padding: var(--space-6);
+    }
+  }
+  @media (min-width: 901px) {
+    .home-kept__grid {
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+      gap: var(--space-6);
+    }
+  }
+</style>

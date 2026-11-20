@@ -7,59 +7,44 @@ directContact:
   enable: true
   title: "Or call or email us directly"
 
-# testimonial:
-#   enable: false
-#   content: "Our remote collaboration improved drastically, saving countless hours every single week"
-#   customer:
-#     avatar: /images/customers/avatar/1.jpg
-#     name: kowsi Han
-#     role: Marketing Director
-
-# Check config.toml file for form action related settings
-# this is also used in the footer of the personal portfolio homepage
+# Check config.toml file for form action related settings (contactFormAction, contactFormProvider).
+# The form is rendered by src/layouts/components/widgets/ContactForm.astro. Netlify finds it in the built HTML by its
+# name ("contact-form") and stores the fields by their `name`, and netlify/functions/submission-created.mts reads
+# "Full Name", "Email Address", "Contact Subject", "Message" and "User Source" by name: never rename them.
 form:
-  emailSubject: "New form submission from folex website" # Customized email subject (applicable when anyone submit form, form submission may receive by email depend on provider)
+  emailSubject: "New form submission from Javelina Works website" # Sent as the hidden "subject" field
   submitButton:
-    # Refer to the `sharedButton` schema in `src/sections.schema.ts` for all available configuration options (e.g., enable, label, url, hoverEffect, variant, icon, tag, rel, class, target, etc.)
     enable: true
     label: "Send message"
-    # hoverEffect: "" # Optional: text-flip | creative-fill | magnetic | magnetic-text-flip
-    # variant: "" # Optional: fill | outline | text
-    # rel: "" # Optional
-    # target: "" # Optional
 
-  # This note will show at the end of form
-  # note: |
-  #   Your data is safe with us. We respect your privacy and never share your information. <br /> Read our [Privacy Policy](/privacy-policy/).
+  # Each input: label (shown above it), name (what the submission calls it), id, type (text, email, radio, checkbox),
+  # tag: textarea, required, halfWidth (beside the next field on wider screens), placeholder, autocomplete,
+  # error (the words shown under it when it is left empty or doesn't fit).
+  # dropdown.items: one choice from a list. Up to five items show as radio rows, six or more as a select.
+  # note: success | error: the words shown after sending (label is the title).
   inputs:
-    - label: ""
-      placeholder: "John *"
-      name: "Full Name" # This is crucial. Its indicate under which name you want to receive this field data
+    - label: "Full name"
+      name: "Full Name" # This is crucial. It names the field in the submission
+      id: "contact-name"
+      autocomplete: "name"
       required: true
       halfWidth: true
-      defaultValue: ""
-    - label: ""
-      placeholder: "Javelina *"
-      name: "Full Name" # This is crucial. Its indicate under which name you want to receive this field data
-      required: true
-      halfWidth: true
-      defaultValue: ""
-    - label: ""
-      placeholder: "john@ranch.com *"
-      name: "Email Address" # This is crucial. Its indicate under which name you want to receive this field data
-      required: true
+      error: "Enter your name."
+    - label: "Email address"
+      placeholder: "john@ranch.com"
+      name: "Email Address" # This is crucial. It names the field in the submission
+      id: "contact-email"
       type: "email"
-      halfWidth: false
-      defaultValue: ""
+      autocomplete: "email"
+      required: true
+      halfWidth: true
+      error: "Enter your email address, like john@ranch.com."
     - label: "Why are you reaching out today?"
-      placeholder: "To what do we owe the pleasure?"
-      name: "Contact Subject" # This is crucial. Its indicate under which name you want to receive this field data
+      name: "Contact Subject" # This is crucial. It names the field in the submission
+      id: "contact-subject"
       required: false
       halfWidth: false
       dropdown:
-        type: "search" # select | search - default is select
-        search: # if type is search then it will work
-          placeholder: "Reason for Outreach"
         items:
           - label: "Services and Quotes"
             value: "Services and Quotes"
@@ -81,52 +66,48 @@ form:
           #   selected: false
     - label: "What can we do for you?"
       tag: "textarea"
-      defaultValue: ""
-      rows: "2" # Only work if tag is textarea
-      placeholder: "Let us know what we can do for you *"
-      name: "Message" # This is crucial. Its indicate under which name you want to receive this field data
+      rows: "4" # Only works if tag is textarea
+      placeholder: "Let us know what we can do for you"
+      name: "Message" # This is crucial. It names the field in the submission
+      id: "contact-message"
       required: true
       halfWidth: false
+      error: "Tell us what we can do for you."
 
     - label: "Google Search" # only valid for type="checkbox" & type === "radio"
+      id: "google-search"
       checked: false # only valid for type="checkbox" & type === "radio"
-      name: "User Source" # This is crucial. Its indicate under which name you want to receive this field data
+      name: "User Source" # This is crucial. It names the field in the submission
       required: true
       groupLabel: "How did you hear about us?" # Radio Inputs Label
-      group: "source" # when you add group then it will omit space between the same group radio input
+      group: "source" # radios with the same group show together under the groupLabel
       type: "radio"
-      halfWidth: true
-      defaultValue: ""
+      error: "Choose how you heard about us." # the group's error (from its first radio)
     - label: "Social Media" # only valid for type="checkbox" & type === "radio"
-      name: "User Source" # This is crucial. Its indicate under which name you want to receive this field data
+      id: "social-media"
+      name: "User Source"
       required: true
-      groupLabel: "" # Radio Inputs Label
-      group: "source" # when you add group then it will omit space between the same group radio input
+      group: "source"
       type: "radio"
-      halfWidth: true
-      defaultValue: ""
     - label: "Someone I Know" # only valid for type="checkbox" & type === "radio"
-      name: "User Source" # This is crucial. Its indicate under which name you want to receive this field data
+      id: "someone-i-know"
+      name: "User Source"
       required: true
-      groupLabel: "" # Radio Inputs Label
-      group: "source" # when you add group then it will omit space between the same group radio input
+      group: "source"
       type: "radio"
-      halfWidth: true
-      defaultValue: ""
 
-    - label: "I agree to the terms and conditions and [privacy policy](/contact/)." # only valid for type="checkbox" & type === "radio"
+    - label: "I agree to the [terms and conditions](/terms-conditions/) and [privacy policy](/privacy-policy/)." # only valid for type="checkbox" & type === "radio"
       id: "privacy-policy"
-      name: "Agreed Privacy" # This is crucial. Its indicate under which name you want to receive this field data
-      value: "Agreed" # Value that will be submit (applicable for type="checkbox" & type === "radio")
+      name: "Agreed Privacy" # This is crucial. It names the field in the submission
+      value: "Agreed" # Value that will be submitted (applicable for type="checkbox" & type === "radio")
       checked: false # only valid for type="checkbox" & type === "radio"
       required: true
       type: "checkbox"
       halfWidth: false
-      defaultValue: ""
-    - note: success # info | warning | success | deprecated | hint
-      parentClass: "hidden text-sm message success"
-      content: We have received your message! We'll get back to you as soon as possible.
-    - note: deprecated # info | warning | success | deprecated | hint
-      parentClass: "hidden text-sm message error"
-      content: Something went wrong! please use this mail - [contact@javelinaworks.com](mailto:contact@javelinaworks.com) to get in touch!
+      error: "Check the box to agree before you send."
+    - note: success
+      content: We have received your message. We'll get back to you as soon as possible.
+    - note: error
+      label: "Your message didn't send."
+      content: Please email us at [info@javelinaworks.com](mailto:info@javelinaworks.com) or call [432-203-5975](tel:+14322035975).
 ---

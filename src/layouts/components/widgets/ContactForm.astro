@@ -1,16 +1,63 @@
 ---
-import LegacyPreline from "@/components/legacy/LegacyPreline.astro";
-import { markdownify, toLowerCase } from "@/lib/utils/textConverter";
-import CustomButton from "@/components/CustomButton.astro";
-import type { z } from "astro/zod";
-import type { contactFormSchema } from "@/sections.schema";
-import type { inputFieldSchema } from "@/sections.schema";
-import { getPrelineSelectConfig } from "@/lib/utils/preline";
+/**
+ * The contact form on the design system: a paper card holding Field, Textarea, radio rows (the RadioGroup markup),
+ * Checkbox and a burnt Send button (it doesn't glow: the header lamp is the page's one glowing action).
+ * Content: `form` from src/content/sections/english/contact-section.md (labels, names, choices, error words, the
+ * messages after sending). Provider and action: src/config/config.toml (contactFormProvider, contactFormAction).
+ *
+ * Kept exactly, so Netlify Forms and netlify/functions/submission-created.mts keep working: the form is in the static
+ * HTML as <form name="contact-form" data-netlify="true" data-netlify-honeypot="bot-field" method="post">, with the hidden
+ * form-name and subject inputs, the bot-field honeypot, and the field names (Full Name, Email Address, Contact Subject,
+ * Message, User Source, Agreed Privacy). The script posts it urlencoded to "/" and sends PostHog contact_form_submitted
+ * { provider } once on success, or captureException + contact_form_error { provider, error } on failure.
+ *
+ * This file's script is the form's only submit handler (the old page had two: one POST and one event per handler).
+ * Without JavaScript the browser checks the required fields and posts the form itself, which Netlify also accepts.
+ * A choice list (dropdown.items) of up to five items is shown as radio rows, so every choice is visible (Select README);
+ * six or more become a Select. Either way it always submits under its name with a value.
+ */
+import { markdownify } from "@/lib/utils/textConverter";
 import config from ".astro/config.generated.json";
-import { useTranslations } from "@/lib/utils/i18nUtils";
+import Field from "@/components/jw/Field.astro";
+import Textarea from "@/components/jw/Textarea.astro";
+import Select from "@/components/jw/Select.astro";
+import Checkbox from "@/components/jw/Checkbox.astro";
+import Notice from "@/components/jw/Notice.astro";
+import Button from "@/components/jw/Button.astro";
 
+interface ChoiceItem {
+  label: string;
+  value?: string;
+  selected?: boolean;
+}
+interface Input {
+  label?: string;
+  name?: string;
+  id?: string;
+  type?: string;
+  tag?: string;
+  rows?: string;
+  placeholder?: string;
+  autocomplete?: string;
+  required?: boolean;
+  halfWidth?: boolean;
+  defaultValue?: string;
+  value?: string | boolean;
+  checked?: boolean;
+  group?: string;
+  groupLabel?: string;
+  error?: string;
+  dropdown?: { items?: ChoiceItem[] };
+  note?: string;
+  content?: string;
+}
 interface Props {
-  form: z.infer<typeof contactFormSchema>;
+  form: {
+    emailSubject?: string;
+    sending?: string;
+    submitButton?: { enable?: boolean; label: string };
+    inputs: Input[];
+  };
   class?: string;
 }
 
@@ -18,93 +65,92 @@ const {
   settings: { contactFormAction, contactFormProvider },
 } = config;
 
-const t = await useTranslations(Astro.currentLocale as string);
+const { form, class: className } = Astro.props;
 
-// Generate ID from label (Required for Input Radio and Checkbox)
-const genIdFromLabel = (label: string) => toLowerCase(label).replace(" ", "-");
+const slug = (s: string) =>
+  String(s)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 
-// Combine same group radio to show them together without space
-const combineRadio = (list: z.infer<typeof inputFieldSchema>[]) => {
-  const groupMap: Record<
-    string,
-    {
-      index: number;
-      groupLabel?: string;
-      items: z.infer<typeof inputFieldSchema>[];
+// One entry per thing on the form, in order. Radios that share a group become one "radios" entry (its legend is the
+// first one's groupLabel, its error words the first one's error).
+type Choice = { id: string; value: string; label: string; checked: boolean; required: boolean };
+type Entry =
+  | { kind: "field" | "textarea"; input: Input; id: string }
+  | { kind: "select"; input: Input; id: string; options: { value: string; label: string }[]; value?: string }
+  | { kind: "radios"; id: string; legend: string; name: string; error?: string; choices: Choice[] }
+  | { kind: "checkbox"; input: Input; id: string; labelHtml: string };
+
+const entries: Entry[] = [];
+const groups = new Map<string, Extract<Entry, { kind: "radios" }>>();
+const notes: Record<string, { title?: string; html: string }> = {};
+
+for (const input of form.inputs || []) {
+  if (input.note) {
+    const kind = input.note === "success" ? "success" : "error";
+    notes[kind] = { title: input.label || undefined, html: (await markdownify(input.content || "", true)) as string };
+    continue;
+  }
+  const name = input.name || input.label || "";
+  if (input.type === "radio") {
+    const key = input.group || name;
+    let group = groups.get(key);
+    if (!group) {
+      group = { kind: "radios", id: slug(input.group || name), legend: input.groupLabel || "", name, error: input.error, choices: [] };
+      groups.set(key, group);
+      entries.push(group);
     }
-  > = {};
-  const result: any[] = [...list];
-
-  list.forEach((item, index) => {
-    if (item.group) {
-      // Track the group items, their first position, and groupLabel
-      if (!groupMap[item.group]) {
-        groupMap[item.group] = {
-          index,
-          groupLabel: item.groupLabel || "", // Capture groupLabel from the first occurrence
-          items: [],
-        };
-      }
-      groupMap[item.group].items.push(item);
+    const value = typeof input.value === "string" && input.value ? input.value : input.label || "";
+    group.choices.push({ id: input.id || slug(value), value, label: input.label || value, checked: !!input.checked, required: !!input.required });
+    continue;
+  }
+  if (input.dropdown?.items?.length) {
+    const items = input.dropdown.items.map((o) => ({ value: o.value ?? o.label, label: o.label, selected: !!o.selected }));
+    const base = input.id || slug(name);
+    if (items.length <= 5) {
+      entries.push({
+        kind: "radios",
+        id: base,
+        legend: input.label || "",
+        name,
+        error: input.error,
+        choices: items.map((o) => ({ id: `${base}-${slug(o.value)}`, value: o.value, label: o.label, checked: o.selected, required: !!input.required })),
+      });
+    } else {
+      entries.push({ kind: "select", input, id: base, options: items, value: items.find((o) => o.selected)?.value });
     }
-  });
+    continue;
+  }
+  if (input.type === "checkbox") {
+    entries.push({ kind: "checkbox", input, id: input.id || slug(name), labelHtml: (await markdownify(input.label || "")) as string });
+    continue;
+  }
+  entries.push({ kind: input.tag === "textarea" ? "textarea" : "field", input, id: input.id || slug(name) });
+}
 
-  // Replace first occurrence of group with combined object and remove others
-  Object.entries(groupMap).forEach(
-    ([groupName, { index, groupLabel, items }]) => {
-      // Replace the first occurrence with the combined group object
-      result[index] = { group: groupName, groupLabel, items };
-
-      // Remove other occurrences from the result array
-      for (let i = result.length - 1; i > index; i--) {
-        if (result[i].group === groupName) {
-          result.splice(i, 1);
-        }
-      }
-    },
-  );
-
-  return result;
-};
-
-let { form } = Astro.props;
-form = {
-  ...form,
-  inputs: combineRadio(form.inputs),
-};
-
-const noteStyles = {
-  info: "border-[#1e90ff]/80 bg-[#f2f7fc]",
-  warning: "border-[#FFA500]/80 bg-[#FFF4E5]",
-  success: "border-[#32CD32]/80 bg-[#E6FFE6]",
-  deprecated: "border-[#4CAF50]/80 bg-[#F1F8F1]",
-  hint: "border-[#8A2BE2]/80 bg-[#F4E6FF]",
-};
+const netlify = contactFormProvider === "netlify";
+const submitLabel = form.submitButton?.enable !== false ? form.submitButton?.label || "Send message" : undefined;
+const sendingText = form.sending || "Sending your message…";
 ---
 
 <form
   id="contact-form"
-  {...{
-    "data-action": contactFormAction,
-    "data-provider": contactFormProvider,
-    "data-netlify": contactFormProvider === "netlify" ? "true" : undefined,
-    "data-netlify-honeypot":
-      contactFormProvider === "netlify" ? "bot-field" : undefined,
-    name: contactFormProvider === "netlify" ? "contact-form" : undefined,
-  }}
+  name={netlify ? "contact-form" : undefined}
   method="post"
-  class:list={[
-    "bg-theme-light grid grid-cols-2 gap-x-4 gap-y-6 rounded-xl p-5 md:p-10",
-    Astro.props.class,
-  ]}>
-  {/* Some Hidden Inputs For Provider Like Netlify, Formspree Etc. */}
+  data-action={contactFormAction}
+  data-provider={contactFormProvider}
+  data-netlify={netlify ? "true" : undefined}
+  data-netlify-honeypot={netlify ? "bot-field" : undefined}
+  data-sending={sendingText}
+  class:list={["jw-surface", "jw-surface--card", "contact-form", className]}>
   {
-    contactFormProvider === "netlify" && (
+    netlify && (
       <>
         <input type="hidden" name="form-name" value="contact-form" />
-        <p class="hidden">
+        <p class="contact-form__trap" hidden>
           <label>
-            Don't fill this out: <input name="bot-field" />
+            Don't fill this out: <input name="bot-field" tabindex="-1" autocomplete="off" />
           </label>
         </p>
       </>
@@ -114,296 +160,280 @@ const noteStyles = {
     form.emailSubject && (
       <input
         type="hidden"
-        name={
-          ["formsubmit.co", "formspree"].includes(contactFormProvider)
-            ? "_subject"
-            : "subject"
-        }
+        name={["formsubmit.co", "formspree"].includes(contactFormProvider) ? "_subject" : "subject"}
         value={form.emailSubject}
       />
     )
   }
+  {contactFormProvider === "formsubmit.co" && <input type="hidden" name="_template" value="table" />}
 
-  {
-    contactFormProvider === "formsubmit.co" && (
-      <input type="hidden" name="_template" value="table" />
-    )
-  }
-
-  {
-    form.inputs.map((input) => (
-      <div
-        input-wrapper
-        class:list={[
-          "flex flex-col",
-          input.halfWidth ? "max-sm:col-span-2" : "col-span-2",
-          input.parentClass,
-        ]}>
-        {!input.note &&
-          input.type !== "checkbox" &&
-          input.type !== "radio" &&
-          (input.groupLabel || input.label) && (
-            <label for="name" class="form-label">
-              {input.groupLabel || input.label || "Please set label"}
-              {input.required && <span class="text-primary">*</span>}
-            </label>
-          )}
-        {input.dropdown ? (
-          <div id="validation-target">
-            <select
-              {...(input.id && { id: input.id })}
-              data-name={input.name || input.label || "Please set name value"}
-              data-hs-select={JSON.stringify(
-                getPrelineSelectConfig({
-                  placeholder: input.placeholder || "Please set placeholder",
-                  searchPlaceholder: input.dropdown?.search?.placeholder,
-                  hasSearch: input.dropdown?.type === "search",
-                  notFoundText: t("common.contactDropdownSearch404"),
-                }),
-              )}
-              class="hidden">
-              <option value="">Choose</option>
-              {input.dropdown?.items?.map((option) => (
-                <option
-                  {...(option.selected && { selected: true })}
-                  value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            <p class="hs-error:block mt-2 hidden text-sm text-red-600">
-              Please select a valid state.
-            </p>
-            <p class="hs-success:flex text-dark mt-2 hidden text-sm">
-              Perfect!
-            </p>
-          </div>
-        ) : input.tag === "textarea" ? (
-          <textarea
-            rows={input.rows || "4"}
-            name={input.name || input.label || "Please set name value"}
-            placeholder={input.placeholder || "Please set placeholder"}
-            class="form-input"
-            {...(input.required && { required: true })}
-            set:html={input.defaultValue || ""}
-          />
-        ) : input.items ? (
-          <div class="form-check-wrapper">
-            {input.items?.map((input) => (
-              <div class="form-check">
-                <input
-                  {...{
-                    value:
-                      typeof input.value === "boolean"
-                        ? String(input.value)
-                        : input.value || input.label,
-                    checked: input.checked ? true : undefined,
-                  }}
-                  type={input.type}
-                  name={
-                    input.name || input.groupLabel || "Please set name value"
-                  }
-                  id={input.id || genIdFromLabel(input.label || "example-id")}
-                  class:list={[
-                    input.type === "radio" ? "form-radio" : "form-checkbox",
-                  ]}
-                  {...(input.required && { required: true })}
-                />
-                <label
-                  for={input.id || genIdFromLabel(input.label || "example-id")}
-                  class="form-check-label"
-                  set:html={markdownify(input.label) || "Example Label"}
-                />
+  <div class="contact-form__grid">
+    {
+      entries.map((e) => {
+        if (e.kind === "field") {
+          const i = e.input;
+          return (
+            <div class:list={["contact-form__cell", i.halfWidth && "contact-form__cell--half"]} data-jw-check data-error={i.error}>
+              <Field
+                label={i.label || i.name || ""}
+                id={e.id}
+                name={i.name || i.label}
+                type={(i.type || "text") as astroHTML.JSX.HTMLInputTypeAttribute}
+                placeholder={i.placeholder || undefined}
+                autocomplete={i.autocomplete as any}
+                value={i.defaultValue || undefined}
+                required={i.required || undefined}
+                reserveError={!!i.error}
+              />
+            </div>
+          );
+        }
+        if (e.kind === "textarea") {
+          const i = e.input;
+          return (
+            <div class="contact-form__cell" data-jw-check data-error={i.error}>
+              <Textarea
+                label={i.label || i.name || ""}
+                id={e.id}
+                name={i.name || i.label}
+                rows={Number(i.rows) || 4}
+                placeholder={i.placeholder || undefined}
+                value={i.defaultValue || undefined}
+                required={i.required || undefined}
+                reserveError={!!i.error}
+              />
+            </div>
+          );
+        }
+        if (e.kind === "select") {
+          const i = e.input;
+          return (
+            <div class="contact-form__cell" data-jw-check data-error={i.error}>
+              <Select label={i.label || ""} id={e.id} name={i.name} options={e.options} value={e.value} required={i.required || undefined} reserveError={!!i.error} />
+            </div>
+          );
+        }
+        if (e.kind === "radios") {
+          return (
+            <fieldset class="jw-radios contact-form__cell contact-form__choices" data-jw-check data-error={e.error}>
+              <legend class="jw-radios__legend">{e.legend}</legend>
+              <div class="jw-radios__list">
+                {e.choices.map((c) => (
+                  <label class="jw-check jw-radio">
+                    <input type="radio" class="jw-radio__dot" id={c.id} name={e.name} value={c.value} checked={c.checked} required={c.required || undefined} />
+                    <span class="jw-check__text">{c.label}</span>
+                  </label>
+                ))}
               </div>
-            ))}
+              {e.error && <span class="jw-field__error" id={`${e.id}-err`} hidden />}
+            </fieldset>
+          );
+        }
+        const i = e.input;
+        return (
+          <div class="contact-form__cell" data-jw-check data-error={i.error}>
+            <Checkbox
+              id={e.id}
+              name={i.name || i.label}
+              value={typeof i.value === "string" ? i.value : String(i.value ?? "on")}
+              checked={i.checked || undefined}
+              required={i.required || undefined}>
+              <Fragment set:html={e.kind === "checkbox" ? e.labelHtml : ""} />
+            </Checkbox>
+            {i.error && <span class="jw-field__error contact-form__check-error" id={`${e.id}-err`} hidden />}
           </div>
-        ) : input.type === "checkbox" || input.type === "radio" ? (
-          <div class="form-check">
-            <input
-              {...{
-                value:
-                  typeof input.value === "boolean"
-                    ? String(input.value)
-                    : input.value || input.label,
-                checked: input.checked ? true : undefined,
-              }}
-              type={input.type || "text"}
-              name={input.name || "Please set name value"}
-              id={input.id || genIdFromLabel(input.label || "example-id")}
-              placeholder={input.placeholder || "Please set placeholder"}
-              class:list={[
-                input.type === "radio" ? "form-radio" : "form-checkbox",
-              ]}
-              {...(input.required && { required: true })}
-            />
-            <label
-              for={input.id || genIdFromLabel(input.label || "example-id")}
-              class="form-check-label"
-              set:html={
-                (input.label && markdownify(input.label)) ||
-                input.label ||
-                "Example Label"
-              }
-            />
-          </div>
-        ) : input.note ? (
-          <div
-            {...{ "data-default": input.content }}
-            class:list={[
-              "prose-styles border px-4 py-2 [font-size:inherit]",
-              noteStyles[input.note] || "border-gray-200 bg-gray-50/25",
-            ]}
-            set:html={markdownify(input.content || "", true)}
-          />
-        ) : (
-          <input
-            {...(input.defaultValue && {
-              value: input.defaultValue,
-            })}
-            type={input.type || "text"}
-            name={input.name || input.label || "Please set name value"}
-            placeholder={input.placeholder || "Please set placeholder"}
-            class="form-input"
-            {...(input.required && { required: true })}
-          />
-        )}
-      </div>
-    ))
-  }
+        );
+      })
+    }
+  </div>
 
   {
-    form.submitButton && (
-      <div class="col-span-2 mt-4 flex flex-col">
-        <CustomButton
-          tag="button"
-          type="submit"
-          hoverEffect="text-flip"
-          {...form.submitButton}
-        />
+    submitLabel && (
+      <div class="contact-form__actions">
+        <Button type="submit" variant="burnt" class="contact-form__submit">
+          {submitLabel}
+        </Button>
+        <p class="contact-form__sending" role="status" data-contact-sending />
       </div>
     )
   }
+
   {
-    form.note && (
-      <div
-        class="prose-a:text-primary prose-a:underline prose-a:underline-offset-2 col-span-2 flex flex-col text-sm/normal"
-        set:html={markdownify(form.note, true)}
-      />
+    notes.success && (
+      <Notice tone="success" title={notes.success.title} class="contact-form__message" hidden tabindex="-1" data-contact-message="success">
+        <Fragment set:html={notes.success.html} />
+      </Notice>
+    )
+  }
+  {
+    notes.error && (
+      <Notice tone="error" title={notes.error.title} class="contact-form__message" hidden tabindex="-1" data-contact-message="error">
+        <Fragment set:html={notes.error.html} />
+      </Notice>
     )
   }
 </form>
 
-<script>
-  import {
-    formspreeSubmit,
-    netlifySubmit,
-    formSubmit,
-    isFormFilled,
-    setMessage,
-    validateSelectTag,
-  } from "@/lib/utils/FormHandle";
-
-  document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById(
-      "contact-form",
-    ) as HTMLFormElement | null;
-
-    let selectTags = form?.querySelectorAll(
-      "[input-wrapper]:not(.hidden) select[data-hs-select]",
-    ) as NodeListOf<HTMLSelectElement>;
-
-    function isSelectStatus(items: HTMLSelectElement[]) {
-      items.forEach((item) => {
-        if (item.value !== "") {
-          item.classList.add("hs-select-active");
-        } else {
-          item.classList.remove("hs-select-active");
-        }
-      });
+<style>
+  .contact-form {
+    padding: var(--space-5) var(--space-4);
+  }
+  .contact-form__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6) var(--space-5);
+  }
+  .contact-form__cell {
+    min-width: 0;
+  }
+  /* the radio rows two to a line once there is room (each row stays the 44px tap target) */
+  .contact-form__choices :global(.jw-radios__list) {
+    margin-top: var(--space-1);
+  }
+  .contact-form__check-error:not([hidden]) {
+    display: block;
+    padding-left: calc(20px + var(--space-3));
+  }
+  .contact-form__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3) var(--space-5);
+    margin-top: var(--space-8);
+  }
+  .contact-form__sending {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--text-body);
+  }
+  .contact-form__sending:empty {
+    display: none;
+  }
+  .contact-form :global(.contact-form__message) {
+    margin-top: var(--space-6);
+  }
+  .contact-form :global(.contact-form__message[hidden]) {
+    display: none;
+  }
+  /* it takes focus after sending, so a screen reader reads it; the words already stand out */
+  .contact-form :global(.contact-form__message:focus) {
+    outline: none;
+  }
+  /* the email and phone links in the message take a 44px-tall tap, as links in a checkbox label do */
+  .contact-form :global(.contact-form__message a) {
+    position: relative;
+    white-space: nowrap;
+  }
+  .contact-form :global(.contact-form__message a::after) {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 44px;
+    margin-top: -22px;
+  }
+  @media (min-width: 480px) {
+    .contact-form__choices :global(.jw-radios__list) {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: var(--space-5);
     }
+  }
+  @media (min-width: 641px) {
+    .contact-form {
+      padding: var(--space-8);
+    }
+    .contact-form__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .contact-form__cell {
+      grid-column: 1 / -1;
+    }
+    .contact-form__cell--half {
+      grid-column: auto;
+    }
+  }
+</style>
 
-    isSelectStatus(Array.from(selectTags));
+<script>
+  import { checkPasses, formReset, setCheckError, submitForm, validateForm } from "@/lib/utils/FormHandle";
 
-    selectTags.forEach((tag) => {
-      tag.addEventListener("change", () => {
-        // Ensure only visible select tag value should submitted
-        selectTags.forEach((tag) => {
-          const name = tag.getAttribute("data-name");
-          tag.setAttribute("name", name || "");
-        });
+  const form = document.getElementById("contact-form") as HTMLFormElement | null;
 
-        validateSelectTag(tag);
+  if (form && !form.dataset.jwBound) {
+    form.dataset.jwBound = "true";
+    // The script shows its own error words under each field, so the browser's bubbles are turned off (they stay on
+    // when JavaScript doesn't run).
+    form.noValidate = true;
 
-        isSelectStatus(Array.from(selectTags));
-      });
+    const provider = form.dataset.provider || "";
+    const action = form.dataset.action || "";
+    const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+    const sending = form.querySelector<HTMLElement>("[data-contact-sending]");
+    const message = (kind: "success" | "error") => form.querySelector<HTMLElement>(`[data-contact-message="${kind}"]`);
+    let busy = false;
+
+    const hideMessages = () => {
+      for (const kind of ["success", "error"] as const) {
+        const el = message(kind);
+        if (el) el.hidden = true;
+      }
+    };
+    const showMessage = (kind: "success" | "error") => {
+      const el = message(kind);
+      if (!el) return;
+      el.hidden = false;
+      el.focus({ preventScroll: true });
+      el.scrollIntoView({ block: "nearest", behavior: "auto" });
+    };
+
+    // Once a field shows an error, its words go away as soon as it is fixed. A filled-in field is also checked when
+    // it loses focus (an email address without an @, say). Empty fields wait for Send.
+    const checkFor = (el: EventTarget | null) => (el instanceof Element ? el.closest<HTMLElement>("[data-jw-check]") : null);
+    const recheck = (event: Event) => {
+      const check = checkFor(event.target);
+      if (check && check.classList.contains("jw-field--error") && checkPasses(check)) setCheckError(check, false);
+    };
+    form.addEventListener("input", recheck);
+    form.addEventListener("change", recheck);
+    form.addEventListener("focusout", (event) => {
+      const check = checkFor(event.target);
+      const el = event.target as HTMLInputElement | HTMLTextAreaElement;
+      if (!check || el.type === "radio" || el.type === "checkbox" || !el.value) return;
+      setCheckError(check, !checkPasses(check));
     });
 
-    form?.addEventListener("submit", async (e: Event) => {
-      e.preventDefault();
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (busy) return;
+      hideMessages();
 
-      const provider = form?.getAttribute("data-provider") || "";
-      const action = form?.getAttribute("data-action") || "";
+      const firstInvalid = validateForm(form);
+      if (firstInvalid) {
+        firstInvalid.focus();
+        return;
+      }
 
-      selectTags = form?.querySelectorAll(
-        "[input-wrapper]:not(.hidden) select[data-hs-select]",
-      ) as NodeListOf<HTMLSelectElement>;
+      busy = true;
+      submit?.setAttribute("aria-disabled", "true");
+      if (sending) sending.textContent = form.dataset.sending || "";
 
-      // Validate all preline select tags
-      selectTags.forEach(validateSelectTag);
-
-      if (isFormFilled(form)) {
-        // Console form data for debugging
-        const formData = Object.fromEntries(new FormData(form).entries());
-        console.log(
-          Object.entries(formData)
-            .map(([key, value]) => `${key}: ${value}`)
-            .join("\n\n"),
-        );
-
-        setMessage("Form Submitting!...", true, true, form);
-
-        try {
-          switch (provider) {
-            case "netlify":
-              await netlifySubmit(form, action);
-              break;
-            case "formsubmit.co":
-              await formSubmit({
-                form,
-                action,
-              });
-              break;
-            case "formspree":
-              await formspreeSubmit(
-                Object.fromEntries(new FormData(form).entries()),
-                5000,
-                form,
-              );
-              break;
-            default:
-              throw new Error("Unknown form provider.");
-          }
-          window.posthog?.capture("contact_form_submitted", {
-            provider,
-          });
-        } catch (error) {
-          window.posthog?.captureException(error);
-          window.posthog?.capture("contact_form_error", {
-            provider,
-            error: String(error),
-          });
-          setMessage(
-            error +
-              "! Please use this mail - [contact@javelinaworks.com](mailto:contact@javelinaworks.com) to get in touch!",
-            false,
-            false,
-            form,
-          );
-        }
+      try {
+        await submitForm(form, provider, action);
+        formReset(form);
+        showMessage("success");
+        window.posthog?.capture("contact_form_submitted", { provider });
+      } catch (error) {
+        showMessage("error");
+        window.posthog?.captureException(error);
+        window.posthog?.capture("contact_form_error", { provider, error: String(error) });
+      } finally {
+        busy = false;
+        submit?.removeAttribute("aria-disabled");
+        if (sending) sending.textContent = "";
       }
     });
-  });
+  }
 </script>
-
-<!-- TEMPORARY: Base no longer loads Preline; this old component loads the part it uses. -->
-<LegacyPreline />

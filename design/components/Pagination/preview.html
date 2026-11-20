@@ -1,0 +1,26 @@
+<!-- @dsCard group="Navigation" height=220 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Pagination</title></head>
+<body>
+<!-- Plain HTML. Top: page 1 of 2 (/articles/). Bottom: page 2 of 3, to show both arrows. The labels are the site's. -->
+<div class="jw-demo" style="display: flex; flex-direction: column; gap: 32px; max-width: 720px">
+  <nav class="jw-pages" aria-label="Pagination">
+    <ul class="jw-pages__list" role="list">
+      <li><span class="jw-pages__num is-current" aria-current="page"><span class="jw-sr-only">Page </span>1</span></li>
+      <li><a class="jw-pages__num" href="#p2"><span class="jw-sr-only">Page </span>2</a></li>
+      <li><a class="jw-btn jw-btn--quiet" href="#p2" rel="next">Next <svg aria-hidden="true" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4" /></svg></a></li>
+    </ul>
+  </nav>
+  <nav class="jw-pages" aria-label="Pagination, second example">
+    <ul class="jw-pages__list" role="list">
+      <li><a class="jw-btn jw-btn--quiet" href="#p1" rel="prev"><svg aria-hidden="true" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 8H3M7 4 3 8l4 4" /></svg> Previous</a></li>
+      <li><a class="jw-pages__num" href="#p1"><span class="jw-sr-only">Page </span>1</a></li>
+      <li><span class="jw-pages__num is-current" aria-current="page"><span class="jw-sr-only">Page </span>2</span></li>
+      <li><a class="jw-pages__num" href="#p3"><span class="jw-sr-only">Page </span>3</a></li>
+      <li><a class="jw-btn jw-btn--quiet" href="#p3" rel="next">Next <svg aria-hidden="true" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4" /></svg></a></li>
+    </ul>
+  </nav>
+</div>
+</body>
+</html>

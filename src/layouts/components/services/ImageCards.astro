@@ -1,0 +1,88 @@
+---
+/**
+ * ImageCards: points that each come with a picture, as ImageCards (design/components/ImageCard) in a grid: the picture
+ * (a survey image, a field photo or a chart) in a small frame at the top of the card, then the point's heading and a
+ * line or two of text. Replaces the old cycling showcase (points that changed every 2 s) and the bento grid: every
+ * point and its picture are in view at once, and nothing moves.
+ *   Pictures of the usual shape are cropped to 16:10 so the cards in a row line up; fit "contain" shows the whole
+ *   picture on the sunken ground instead. A grid with very tall pictures (satellite strips) or very wide charts (fit
+ *   "contain") keeps every picture's own shape (jw-imagecards--mixed): from 1024px three columns, where a wide chart
+ *   spans two columns and a tall strip two rows; below that one column, with tall pictures held to 520px high.
+ *   Grid: 3, 5 or 6 cards → three columns from 1024px; otherwise two.
+ *   href: the card is a link (its heading is the link's name; the whole card takes the tap).
+ *   castShadow: for cards on a wall or a band (not with href).
+ */
+import Surface from "@/components/jw/Surface.astro";
+import Figure from "@/components/jw/Figure.astro";
+import { findAssetImage } from "@/lib/utils/shareImage";
+
+export interface ImageCardItem {
+  src?: string;
+  alt: string;
+  dim?: boolean;
+  fit?: "cover" | "contain";
+  titleHtml: string;
+  textHtml?: string;
+  href?: string;
+}
+interface Props {
+  items: ImageCardItem[];
+  level?: 2 | 3;
+  castShadow?: boolean;
+  class?: string;
+}
+const { items, level = 3, castShadow = false, class: className } = Astro.props;
+const H: any = `h${level}`;
+
+const shaped = await Promise.all(
+  items.map(async (item) => {
+    const meta = item.src ? await findAssetImage(item.src) : undefined;
+    const r = meta ? meta.width / meta.height : 1.6;
+    // a chart (fit contain) is never cropped, so a very wide one needs the width of two columns
+    return { ...item, tall: r < 0.8, wide: r > 2.1 && item.fit === "contain" };
+  }),
+);
+const mixed = shaped.some((i) => i.tall || i.wide);
+const n = items.length;
+const three = n === 3 || n === 5 || n === 6;
+const sizes = {
+  two: "(min-width: 1248px) 576px, (min-width: 641px) calc(50vw - 56px), calc(100vw - 56px)",
+  three: "(min-width: 1248px) 376px, (min-width: 1024px) calc(33vw - 48px), (min-width: 641px) calc(50vw - 56px), calc(100vw - 56px)",
+  mixed: "(min-width: 1248px) 376px, (min-width: 1024px) calc(33vw - 48px), calc(100vw - 56px)",
+  wide: "(min-width: 1248px) 776px, (min-width: 1024px) calc(66vw - 48px), calc(100vw - 56px)",
+};
+const size = (item: (typeof shaped)[number]) =>
+  mixed ? (item.wide ? sizes.wide : sizes.mixed) : three ? sizes.three : sizes.two;
+---
+
+<ul class:list={["jw-imagecards", mixed ? "jw-imagecards--mixed" : three && "jw-imagecards--3", className]} role="list">
+  {
+    shaped.map((item) => (
+      <li class:list={["jw-imagecards__item", item.tall && "jw-imagecards__item--tall", item.wide && "jw-imagecards__item--wide"]}>
+        <Surface castShadow={castShadow && !item.href} class:list={["jw-imagecard", item.href && "jw-imagecard--link"]}>
+          {item.src && (
+            <Figure
+              src={item.src}
+              alt={item.alt}
+              dim={item.dim ?? true}
+              ratio={mixed ? undefined : "16 / 10"}
+              class:list={["jw-imagecard__figure", item.fit === "contain" && "jw-imagecard__figure--contain"]}
+              widths={[400, 640, 800, 1200, 1600]}
+              sizes={size(item)}
+            />
+          )}
+          <div class="jw-imagecard__body">
+            {item.href ? (
+              <H class="t-heading-3 jw-imagecard__title">
+                <a class="jw-imagecard__link" href={item.href} set:html={item.titleHtml} />
+              </H>
+            ) : (
+              <H class="t-heading-3 jw-imagecard__title" set:html={item.titleHtml} />
+            )}
+            {item.textHtml && <p class="jw-imagecard__text" set:html={item.textHtml} />}
+          </div>
+        </Surface>
+      </li>
+    ))
+  }
+</ul>

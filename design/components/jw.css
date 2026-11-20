@@ -890,3 +890,202 @@ html:has(.jw-dialog:modal) { overflow: hidden; scrollbar-gutter: stable; }
 .jw-video__play { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
 .jw-video--native { aspect-ratio: auto; }
 .jw-video--native > video { position: static; height: auto; }
+
+/* ==== TableOfContents (added by articles) ====
+   Links to the sections of a long page. Each entry is a 44px row on a thin line rail; the section being read wears a
+   land rail and land text (aria-current="true"). The sidebar form sits beside the text on wide screens, sticky under the
+   nav bar, every entry in view (it scrolls inside itself only on a screen shorter than the list). The disclosure form is
+   a closed Disclosure card holding the same list (phones). A page's Sources list comes last, after a gap. */
+.jw-toc__list { margin: 0; padding: 0; list-style: none; }
+.jw-toc__list--sub { padding-left: var(--space-4); }
+.jw-toc__item { margin: 0; }
+.jw-toc__link { display: flex; align-items: center; box-sizing: border-box; min-height: 44px; padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+  border-left: 2px solid var(--line); font-family: var(--font-body); font-size: 16px; font-weight: 400; line-height: 1.35; text-decoration: none; }
+.jw-toc__link, .jw-toc__link:link, .jw-toc__link:visited { color: var(--text-body); }
+.jw-toc__link:hover { color: var(--text); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .2em; }
+.jw-toc__link[aria-current="true"] { color: var(--land); border-left-color: var(--land); font-weight: 500; }
+.jw-toc__link:focus-visible { outline: none; border-radius: var(--radius-xs); box-shadow: var(--shadow-focus); }
+.jw-toc__sources { margin: var(--space-4) 0 0; }
+.jw-toc__label { margin: 0 0 var(--space-3); }
+.jw-toc--sidebar { position: sticky; top: calc(44px + 2 * var(--space-3) + 1px + var(--space-6));
+  max-height: calc(100vh - 44px - 2 * var(--space-3) - 1px - 2 * var(--space-6)); overflow-y: auto; overscroll-behavior: contain;
+  margin: -4px; padding: 4px; scrollbar-width: thin; }
+.jw-toc--disclosure .jw-disclosure__body { padding-top: var(--space-1); }
+
+/* ==== Pagination (added by articles) ====
+   Page links under a list: Previous and Next as quiet Buttons (jw-btn--quiet), and a 44px box per page in mono figures.
+   The page you are on is not a link: a paper box with the marigold selected ring and its hairline, aria-current="page". */
+.jw-pages__list { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.jw-pages__num { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; width: 44px; height: 44px; border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 16px; line-height: 1; font-variant-numeric: tabular-nums; text-decoration: none; }
+a.jw-pages__num, a.jw-pages__num:link, a.jw-pages__num:visited { color: var(--text); background: rgba(0,0,0,0); }
+a.jw-pages__num:hover { color: var(--text); background: var(--surface); }
+a.jw-pages__num:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+.jw-pages__num.is-current { color: var(--text); background: var(--surface); border-color: var(--selected); box-shadow: inset 0 0 0 1px var(--selected), 0 0 0 1px var(--selected-hairline); }
+
+/* ==== ArticleCard (added by articles) ====
+   An article in a list, on a paper card (jw-surface jw-surface--card): its picture cropped to 16:9, the category as an
+   eyebrow, the title, the excerpt, the date and a "Read more" cue in land. The title is the card's one link, stretched
+   over the whole card (one tap target, one tab stop); hover underlines it and firms the edge. Photos dim at night
+   (__media--photo); survey images keep their colors (__media--diagram). --wide puts the picture beside the words from 900px. */
+.jw-article-card { display: flex; flex-direction: column; height: 100%; box-sizing: border-box; }
+.jw-article-card:hover { border-color: var(--line-strong); }
+.jw-article-card__media { position: relative; aspect-ratio: 16 / 9; overflow: hidden; border-bottom: 1px solid var(--line); background: var(--surface-sunken);
+  border-radius: calc(var(--radius-md) - 1px) calc(var(--radius-md) - 1px) 0 0; }
+.jw-article-card__media picture { display: block; height: 100%; }
+.jw-article-card__media img { display: block; width: 100%; height: 100%; object-fit: cover; }
+[data-theme="dark"] .jw-article-card__media--photo img { filter: brightness(var(--photo-brightness-dark)); }
+.jw-article-card__body { display: flex; flex: 1; flex-direction: column; gap: var(--space-3); padding: var(--space-5); }
+.jw-article-card__eyebrow, .jw-article-card__title, .jw-article-card__excerpt { margin: 0; }
+.jw-article-card__title { color: var(--text); }
+.jw-article-card__link, .jw-article-card__link:link, .jw-article-card__link:visited, .jw-article-card__link:hover { color: var(--text); text-decoration: none; }
+.jw-article-card__link::after { content: ""; position: absolute; inset: -1px; z-index: 1; border-radius: var(--radius-md); }
+.jw-article-card:hover .jw-article-card__link { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: .15em; }
+.jw-article-card__link:focus-visible { outline: none; }
+.jw-article-card__link:focus-visible::after { box-shadow: var(--shadow-focus); }
+.jw-article-card__excerpt { font-size: 17px; line-height: 1.6; color: var(--text-body); }
+.jw-article-card__foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-4); margin-top: auto; padding-top: var(--space-2); }
+.jw-article-card__date { font-size: 16px; line-height: 1.5; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.jw-article-card__more { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--land); }
+.jw-article-card__more svg { flex: none; }
+@media (max-width: 640px) { .jw-article-card__body { padding: var(--space-4); } }
+@media (min-width: 900px) {
+  .jw-article-card--wide { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+  .jw-article-card--wide .jw-article-card__media { aspect-ratio: auto; min-height: 340px; height: 100%; border-bottom: 0; border-right: 1px solid var(--line);
+    border-radius: calc(var(--radius-md) - 1px) 0 0 calc(var(--radius-md) - 1px); }
+  .jw-article-card--wide .jw-article-card__body { justify-content: center; gap: var(--space-4); padding: var(--space-8); }
+  .jw-article-card--wide .jw-article-card__foot { margin-top: var(--space-2); }
+}
+
+/* ==== StepCards (added by services) ====
+   The steps of a job as paper cards in a numbered list, made to sit on a shell band (the band holds the cards; the
+   heading sits on the ground above it). Each card: the step label (mono eyebrow in label), a heading-3 title, a line or
+   two at 17px, and an optional quiet compact button at the foot. Cards in a row share one height. No motion.
+   jw-stepcards--3: three across from 901px. jw-stepcards--4: two from 641px, four from 1024px. Otherwise two, then three. */
+.jw-stepcards { display: grid; gap: var(--space-4); grid-template-columns: minmax(0, 1fr); margin: 0; padding: 0; list-style: none; }
+.jw-stepcards__item { display: flex; min-width: 0; }
+.jw-stepcards__item > .jw-lit { display: flex; flex: 1; min-width: 0; }
+.jw-stepcard { display: flex; flex: 1; flex-direction: column; gap: var(--space-2); box-sizing: border-box; padding: var(--space-5) var(--space-4); }
+.jw-stepcard__num { margin: 0; }
+.jw-stepcard__num em, .jw-stepcard__num i { font-style: normal; }
+.jw-stepcard__title { margin: var(--space-1) 0 0; color: var(--text); }
+.jw-stepcard__text { margin: 0; font-size: 17px; line-height: 1.6; color: var(--text-body); }
+.jw-stepcard__action { margin-top: auto; padding-top: var(--space-3); }
+@media (min-width: 641px) {
+  .jw-stepcards { gap: var(--space-5); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .jw-stepcards.jw-stepcards--3 { grid-template-columns: minmax(0, 1fr); }
+  .jw-stepcard { padding: var(--space-6); }
+}
+@media (min-width: 901px) { .jw-stepcards.jw-stepcards--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1024px) {
+  .jw-stepcards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .jw-stepcards.jw-stepcards--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .jw-stepcards--4 .jw-stepcard { padding: var(--space-5); }
+}
+
+/* ==== ImageCard (added by services) ====
+   A point with a picture: a paper card with the picture (a Figure) in a 12px frame at the top, then a heading-3 and a
+   line or two at 17px. ImageCards (jw-imagecards): one column on phones, two from 641px, three from 1024px with --3.
+   jw-imagecard__figure--contain shows a whole chart on the sunken ground instead of cropping it.
+   jw-imagecards--mixed keeps every picture's own shape: from 1024px three columns, a --wide item spans two columns and
+   a --tall one two rows; below that one column, with tall pictures held to 520px.
+   jw-imagecard--link: the heading's link stretches over the card; hover turns the edge line-strong and underlines the
+   heading, focus rings the card. jw-imagecard__more: "Learn more" in land with an arrow. --compact: no picture, an icon
+   well (jw-iconcard__icon) and IconCard's padding. No motion. */
+.jw-imagecards { display: grid; gap: var(--space-5); grid-template-columns: minmax(0, 1fr); margin: 0; padding: 0; list-style: none; }
+.jw-imagecards__item { display: flex; min-width: 0; }
+.jw-imagecards__item > .jw-lit { display: flex; flex: 1; min-width: 0; }
+.jw-imagecard { display: flex; flex: 1; flex-direction: column; min-width: 0; box-sizing: border-box; padding: var(--space-3); }
+.jw-imagecard__figure--contain .jw-figure__media img { object-fit: contain; }
+.jw-imagecard__body { display: flex; flex: 1; flex-direction: column; gap: var(--space-2); padding: var(--space-4) var(--space-2) var(--space-2); }
+.jw-imagecard__title { margin: 0; color: var(--text); }
+.jw-imagecard__text { margin: 0; font-size: 17px; line-height: 1.6; color: var(--text-body); }
+.jw-imagecard__text a, .jw-imagecard__text a:link, .jw-imagecard__text a:visited { color: var(--land); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .2em; }
+.jw-imagecard__text a:hover { color: var(--text); text-decoration-thickness: 2px; }
+.jw-imagecard__text a:focus-visible { outline: none; border-radius: var(--radius-xs); box-shadow: var(--shadow-focus); }
+.jw-imagecard__link, .jw-imagecard__link:link, .jw-imagecard__link:visited, .jw-imagecard__link:hover, .jw-imagecard__link:active { color: var(--text); text-decoration: none; }
+.jw-imagecard__link::after { content: ""; position: absolute; inset: 0; z-index: 2; border-radius: var(--radius-md); }
+.jw-imagecard__link:focus-visible { outline: none; }
+.jw-imagecard--link:hover { border-color: var(--line-strong); }
+.jw-imagecard--link:hover .jw-imagecard__link { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .2em; }
+.jw-imagecard--link:has(.jw-imagecard__link:focus-visible) { box-shadow: var(--shadow-raise), var(--shadow-focus); }
+.jw-imagecard__more { display: inline-flex; align-items: center; gap: var(--space-2); margin-top: auto; padding-top: var(--space-3); font-size: 17px; font-weight: 500; line-height: 1.4; color: var(--land); }
+.jw-imagecard__more svg { flex: none; width: 20px; height: 20px; }
+.jw-imagecard--compact { padding: var(--space-5) var(--space-4); }
+.jw-imagecard--compact .jw-imagecard__body { gap: var(--space-3); padding: 0; }
+.jw-imagecards--mixed .jw-imagecards__item--tall .jw-figure__media { display: flex; justify-content: center; }
+.jw-imagecards--mixed .jw-imagecards__item--tall .jw-figure__media img { width: auto; max-width: 100%; max-height: 520px; }
+@media (min-width: 641px) {
+  .jw-imagecards { gap: var(--space-6); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .jw-imagecards.jw-imagecards--mixed { grid-template-columns: minmax(0, 1fr); }
+  .jw-imagecard__body { padding: var(--space-5) var(--space-3) var(--space-3); }
+  .jw-imagecard--compact { padding: var(--space-6); }
+  .jw-imagecard--compact .jw-imagecard__body { padding: 0; }
+}
+@media (min-width: 1024px) {
+  .jw-imagecards.jw-imagecards--3, .jw-imagecards.jw-imagecards--mixed { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .jw-imagecards--mixed { align-items: start; }
+  .jw-imagecards--mixed .jw-imagecards__item--wide { grid-column: span 2; }
+  .jw-imagecards--mixed .jw-imagecards__item--tall { grid-row: span 2; }
+  .jw-imagecards--mixed .jw-imagecards__item--tall .jw-figure__media img { width: 100%; max-height: none; }
+}
+
+/* ==== Stepper (added by ballpark) ====
+   Where a visitor is in a short flow (the ballpark's Find your ranch > Analysis > Get ballpark): 44px step buttons with mono
+   labels and a numbered square, split by a small chevron. The current step (aria-current="step") wears the marigold selected
+   ring on its number; a done step (is-done) is filled in ink; a step that can't be reached is disabled and reads text-muted.
+   Never orange: a step is a place, not the action. On phones only the current step shows its words (the rest stay for
+   screen readers), so the row fits one line. */
+.jw-steps { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--space-1); margin: 0; padding: 0; list-style: none; }
+.jw-steps > li { display: flex; align-items: center; gap: var(--space-1); }
+.jw-steps > li + li::before { content: ""; width: 6px; height: 6px; margin: 0 var(--space-1); border-right: 1.5px solid var(--line-strong); border-top: 1.5px solid var(--line-strong); transform: rotate(45deg); }
+.jw-steps__step { appearance: none; position: relative; display: inline-flex; align-items: center; gap: var(--space-2); min-height: 44px; min-width: 44px; margin: 0; padding: 0 var(--space-1);
+  box-sizing: border-box; border: 0; border-radius: var(--radius-sm); background: none; color: var(--text-body); font-family: var(--font-mono); font-size: 11.5px; line-height: 1.2;
+  letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }
+.jw-steps__step:disabled { color: var(--text-muted); cursor: default; }
+.jw-steps__step[aria-current="step"] { color: var(--text); }
+.jw-steps__n { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 22px; height: 22px; box-sizing: border-box; border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm); font-size: 11.5px; letter-spacing: 0; }
+.jw-steps__step[aria-current="step"] .jw-steps__n { border-color: var(--selected); background: var(--surface); color: var(--text); box-shadow: inset 0 0 0 1px var(--selected), 0 0 0 1px var(--selected-hairline); }
+.jw-steps__step.is-done .jw-steps__n { border-color: var(--text); background: var(--text); color: var(--surface); }
+.jw-steps__step:not(:disabled):hover { color: var(--text); text-decoration: underline; text-underline-offset: .25em; }
+.jw-steps__step:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+@media (max-width: 640px) {
+  .jw-steps__step:not([aria-current="step"]) { justify-content: center; }
+  .jw-steps__step:not([aria-current="step"]) .jw-steps__label { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
+
+/* ==== ChoiceRow (added by ballpark) ====
+   One way to do something, as a full-width row: a title (16px Figtree 500), a line under it (15px, text-muted) and an
+   optional icon. A paper row with a line-strong edge, sunken on hover; a <button>, an <a> or a <label> for a file input.
+   jw-choice--shell is the shell plate for the one choice to point out (the ballpark's live demo), with a tip-orange play
+   mark. It never glows. Stack rows in jw-choice-list. */
+.jw-choice { appearance: none; display: flex; align-items: center; gap: var(--space-3); width: 100%; min-height: 44px; box-sizing: border-box; margin: 0; padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--line-strong); border-radius: var(--radius-sm); background: var(--surface); font-family: var(--font-body); text-align: left; text-decoration: none; cursor: pointer; }
+.jw-choice.jw-choice, .jw-choice.jw-choice:link, .jw-choice.jw-choice:visited, .jw-choice.jw-choice:hover { color: var(--text); text-decoration: none; }
+.jw-choice:hover { background: var(--surface-sunken); }
+.jw-choice:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+.jw-choice__icon { flex: none; width: 16px; height: 16px; color: var(--text-body); }
+.jw-choice__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.jw-choice__title { font-size: 16px; font-weight: 500; line-height: 1.35; color: var(--text); }
+.jw-choice__sub { font-size: 15px; line-height: 1.45; color: var(--text-muted); }
+.jw-choice--shell { border-color: var(--shell-edge); background: linear-gradient(160deg, var(--shell-1) 0%, var(--shell-2) 42%, var(--shell-3) 100%); box-shadow: var(--shadow-sheen-shell); }
+.jw-choice--shell:hover { background: linear-gradient(160deg, var(--shell-1) 0%, var(--shell-2) 42%, var(--shell-3) 100%); filter: brightness(1.14); }
+.jw-choice--shell .jw-choice__title, .jw-choice--shell .jw-choice__sub, .jw-choice--shell .jw-choice__icon { color: var(--on-shell); }
+.jw-choice__play { position: relative; flex: none; width: 36px; height: 36px; border-radius: var(--radius-round); background: var(--action); }
+.jw-choice__play::before { content: ""; position: absolute; left: 14px; top: 11px; border-style: solid; border-width: 7px 0 7px 11px; border-color: rgba(0,0,0,0) rgba(0,0,0,0) rgba(0,0,0,0) var(--on-action); }
+.jw-choice-list { display: flex; flex-direction: column; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+
+/* ==== Listbox (added by ballpark) ====
+   Suggestions under a text field (an address typeahead, "a few matches, pick yours"): one box in the input color with a
+   line-strong edge, 44px option rows split by line rules, the name in text and a second line in text-muted. The highlighted
+   option (aria-selected="true", moved with the arrow keys) wears the marigold selected ring inside its row. */
+.jw-listbox { display: flex; flex-direction: column; margin: var(--space-2) 0 0; border: 1px solid var(--line-strong); border-radius: var(--radius-sm); background: var(--surface-input); overflow: hidden; }
+.jw-listbox__option { appearance: none; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; min-height: 44px; box-sizing: border-box; margin: 0;
+  padding: var(--space-2) var(--space-3); border: 0; border-top: 1px solid var(--line); background: none; color: var(--text); font-family: var(--font-body); font-size: 16px; line-height: 1.35;
+  text-align: left; cursor: pointer; }
+.jw-listbox__option:first-child { border-top: 0; }
+.jw-listbox__option small { font-size: 15px; color: var(--text-muted); }
+.jw-listbox__option:hover { background: var(--surface-sunken); }
+.jw-listbox__option[aria-selected="true"] { background: var(--surface); box-shadow: inset 0 0 0 2px var(--selected), inset 0 0 0 3px var(--selected-hairline); }
+.jw-listbox__option:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--focus); }

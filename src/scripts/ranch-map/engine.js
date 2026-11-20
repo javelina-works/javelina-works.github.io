@@ -2422,6 +2422,9 @@ const fontsWanted = [
   '400 16px "IBM Plex Mono"',
   '500 16px "IBM Plex Mono"',
   'italic 400 16px "IBM Plex Mono"',
+  // the Modern and Night Relief titles (CSS, not canvas), so a print never
+  // catches them in the fallback serif
+  '400 16px "Instrument Serif"',
 ];
 Promise.race([
   Promise.all(fontsWanted.map((f) => document.fonts.load(f))),

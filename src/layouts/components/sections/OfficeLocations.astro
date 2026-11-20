@@ -1,14 +1,22 @@
 ---
+// Where we are, on the design system: an agave sheen band holding one riveted card (the page's brass) with the office
+// photo as a Figure (AVIF and WebP through astro:assets, dimmed a little at night) and, beside it, the heading, the
+// office name and its address. The words are on the card, never on the band.
+// Content and props are unchanged: src/content/sections/english/office-locations.md (title, list of offices: enable,
+// title, image, content), and `content` overrides it. Each office may add imageAlt; the barn photo has its own default.
+// Gone: the dashed frame, the corner squares and the image-shape overlay.
 import type { Section } from "@/types";
-import SquareElem from "../widgets/SquareElem.astro";
 import { markdownify } from "@/lib/utils/textConverter";
 import { getEntryCTM } from "@/lib/contentParser.astro";
-import OptimizedImage from "../utilities/OptimizedImage.astro";
+import Container from "@/components/jw/Container.astro";
+import Surface from "@/components/jw/Surface.astro";
+import Figure from "@/components/jw/Figure.astro";
 
 type OfficeInfo = {
   enable: boolean;
   title: string;
   image: string;
+  imageAlt?: string;
   content: string;
 };
 
@@ -36,67 +44,128 @@ let actual_content = {
 
 // Extracting required values from 'content' object
 let { title, enable, list } = actual_content as SectionType;
+
+// The office photo (barn.png): a drone view of the Texas HQ.
+const BARN_ALT =
+  "Drone view of a rust-red steel barn and parked trailers on a dirt yard, with brushy hills and mountains behind.";
+
+const offices = await Promise.all(
+  (list || [])
+    .filter((item) => item && item.enable !== false)
+    .map(async (item) => ({
+      title: item.title,
+      image: item.image,
+      alt: item.imageAlt || (/barn\.png$/.test(String(item.image)) ? BARN_ALT : ""),
+      html: item.content ? ((await markdownify(item.content, true)) as string) : "",
+    })),
+);
+const titleHtml = title ? ((await markdownify(title)) as string) : "";
 ---
 
 {
-  enable && (
-    <section class="overflow-hidden">
-      <div class="container">
-        <div class="flex flex-col justify-start gap-12 md:gap-16">
-          <div class="flex flex-col flex-wrap justify-between gap-8 lg:flex-row lg:items-center">
-            {title && (
-              <div class="max-w-lg">
-                <h2
-                  class="has-italic-text capitalize"
-                  set:html={markdownify(title)}
+  enable && offices.length > 0 && (
+    <section
+      class="jw-section jw-section--band jw-surface jw-surface--band-agave office-section"
+      data-jw-pool="band"
+      aria-labelledby={titleHtml ? "office-title" : undefined}>
+      <Container>
+        <div class="office-section__list">
+          {offices.map((office, i) => (
+            <Surface rivets class="office-card">
+              {office.image && (
+                <Figure
+                  src={office.image}
+                  alt={office.alt}
+                  ratio="16 / 10"
+                  widths={[400, 640, 900, 1280]}
+                  sizes="(min-width: 1248px) 640px, (min-width: 901px) 58vw, calc(100vw - 64px)"
+                  class="office-card__figure"
                 />
+              )}
+              <div class="office-card__body">
+                {i === 0 && titleHtml && <h2 class="t-heading-1 office-card__heading" id="office-title" set:html={titleHtml} />}
+                {office.title && <h3 class="t-heading-3 office-card__title" set:html={office.title} />}
+                {office.html && <address class="office-card__address" set:html={office.html} />}
               </div>
-            )}
-          </div>
-          <div class="grid gap-x-32 gap-y-16 md:max-w-4xl lg:grid-cols-2 lg:grid-rows-1">
-            {list?.map((item) => (
-              <div class="space-y-5">
-                {item.image && (
-                  <div class="relative mb-16">
-                    <OptimizedImage
-                      width={600}
-                      class="size-full object-cover"
-                      src={item.image}
-                      alt={title || ""}
-                    />
-                    <div class="pointer-events-none absolute inset-0 size-full select-none">
-                      <span class="translate-x-centered absolute -top-1 h-1 w-[115%] border-b border-dashed border-black/50" />
-                      <span class="translate-x-centered absolute -bottom-px h-1 w-[115%] border-b border-dashed border-black/50" />
-                      <span class="translate-y-centered absolute -left-px h-[115%] w-1 border-s border-dashed border-black/50" />
-                      <span class="translate-y-centered absolute -right-1 h-[115%] w-1 border-s border-dashed border-black/50" />
-                      <SquareElem class="absolute -top-3.5 -left-3.5 fill-white" />
-                      <SquareElem class="absolute -top-3.5 -right-3.5 fill-white" />
-                      <SquareElem class="absolute -bottom-3.5 -left-3.5 fill-white" />
-                      <SquareElem class="absolute -right-3.5 -bottom-3.5 fill-white" />
-                    </div>
-                    <OptimizedImage
-                      src="/images/about/image-shape.png"
-                      class="pointer-events-none absolute bottom-0 left-0 w-full select-none"
-                    />
-                  </div>
-                )}
-                {item.title && (
-                  <h3
-                    class="md:text-h4 text-h4-sm font-medium"
-                    set:html={item.title}
-                  />
-                )}
-                {item.content && (
-                  <div
-                    class="prose-styles space-y-1.5"
-                    set:html={markdownify(item.content, true)}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
+            </Surface>
+          ))}
         </div>
-      </div>
+      </Container>
     </section>
   )
 }
+
+<style>
+  .office-section__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+  .office-section :global(.office-card) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+    /* clear of the corner rivets (9-19px in from each edge) */
+    padding: var(--space-6);
+  }
+  .office-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    align-self: center;
+  }
+  .office-card__heading,
+  .office-card__title {
+    margin: 0;
+    color: var(--text);
+  }
+  .office-card__heading {
+    margin-bottom: var(--space-2);
+  }
+  .office-card__address {
+    font-style: normal;
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--text-body);
+  }
+  .office-card__address :global(p) {
+    margin: 0;
+  }
+  .office-card__address :global(a),
+  .office-card__address :global(a:link),
+  .office-card__address :global(a:visited) {
+    color: var(--land);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+  /* the email link takes a 44px-tall tap (an invisible strip centred on the words) */
+  .office-card__address :global(a) {
+    position: relative;
+  }
+  .office-card__address :global(a::after) {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 44px;
+    margin-top: -22px;
+  }
+  .office-card__address :global(a:hover) {
+    color: var(--text);
+    text-decoration-thickness: 2px;
+  }
+  .office-card__address :global(a:focus-visible) {
+    outline: none;
+    border-radius: var(--radius-xs);
+    box-shadow: var(--shadow-focus);
+  }
+  @media (min-width: 901px) {
+    .office-section :global(.office-card) {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      gap: var(--space-10);
+      padding: var(--space-8);
+    }
+  }
+</style>

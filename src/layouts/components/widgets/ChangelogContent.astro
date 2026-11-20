@@ -1,123 +1,153 @@
 ---
+// The changelog list on the design system (/changelog/, shown only if src/content/changelog/english/-index.md is ever
+// published; today it is a draft and the URL serves the "Page Not Found" body). Each entry: the version as a figure and
+// the date as a mono label, the title, its kinds of change as shell chips, the notes in Prose, an optional video
+// (VideoEmbed: nothing loads until Play), and the change groups as an Accordion (the "active" group starts open).
+// Content and props are unchanged. Gone: AccordionList, the Preline video overlay, the gradient pills and the timeline
+// rail. The entries' `color` per change (emerald, indigo…) is not shown: the system has no such colors for words.
 import type { Section } from "@/types";
-import Icons from "@/helpers/Icons.astro";
 import type { InferEntrySchema } from "astro:content";
 import { getEntryCTM } from "@/lib/contentParser.astro";
-import { markdownify } from "@/lib/utils/textConverter";
-import VideoModal from "@/layouts/components/widgets/VideoModal.astro";
-import OptimizedImage from "@/components/utilities/OptimizedImage.astro";
-import AccordionList from "@/layouts/components/widgets/AccordionList.astro";
+import { markdownify, plainify } from "@/lib/utils/textConverter";
+import Prose from "@/components/jw/Prose.astro";
+import Chip from "@/components/jw/Chip.astro";
+import VideoEmbed from "@/components/jw/VideoEmbed.astro";
+import Accordion from "@/components/jw/Accordion.astro";
 
-// Type for this section data
 type SectionType = Section & InferEntrySchema<"changelog">;
 type Props = {
   listPage?: boolean;
 };
 
-// Fetching the default content for the this section
 let content = (await getEntryCTM("changelog", "-index", Astro.currentLocale))
   ?.data as SectionType;
 
-let list = content.list;
+const escape = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+const entries = await Promise.all(
+  (content?.list || []).map(async (entry, i) => ({
+    key: `changelog-${i}`,
+    version: entry.version,
+    date: entry.date,
+    titleHtml: entry.title ? ((await markdownify(entry.title)) as string) : undefined,
+    titleText: entry.title ? plainify(entry.title) : "",
+    types: (entry.types || []).map((t) => plainify(t.label)),
+    notesHtml: entry.content ? ((await markdownify(entry.content, true)) as string) : undefined,
+    video: entry.video,
+    changes: await Promise.all(
+      (entry.changes || []).map(async (change, j) => ({
+        summary: plainify(change.title),
+        open: !!change.active,
+        id: `changelog-${i}-${j}`,
+        html:
+          "<ul>" +
+          (
+            await Promise.all(
+              change.list.map(
+                async (item) => `<li><strong>${escape(plainify(item.label))}</strong> ${(await markdownify(item.content)) as string}</li>`,
+              ),
+            )
+          ).join("") +
+          "</ul>",
+      })),
+    ),
+  })),
+);
 ---
 
-<div class="has-video-modal">
+<ol class="changelog" role="list">
   {
-    list.map((changelog, changelogIndex) => (
-      <div class="relative flex flex-col items-start gap-4 pb-10 last:pb-0 md:pb-20 lg:flex-row before:lg:left-39.5 after:lg:left-41">
-        <div class="w-full max-w-41 space-y-2 max-lg:ps-5 lg:sticky lg:top-40 lg:pe-16">
-          {changelog.version && (
-            <p
-              class="md:text-h4 text-h4-sm font-medium text-black md:mt-3"
-              set:html={markdownify(changelog.version)}
-            />
-          )}
-          {changelog.date && <p set:html={markdownify(changelog.date)} />}
+    entries.map((e) => (
+      <li class="changelog__entry">
+        <div class="changelog__meta">
+          {e.version && <p class="t-number changelog__version">{e.version}</p>}
+          {e.date && <p class="jw-eyebrow changelog__date">{e.date}</p>}
         </div>
-        <div class="lg:from-primary from-primary/25 absolute top-2 left-0 h-full w-px bg-linear-to-b lg:left-46" />
-        <div class="absolute top-10 -left-2 h-4 w-4 rounded-full border bg-white lg:left-44.25" />
-
-        <div class="flex-1 space-y-8 ps-5 lg:space-y-10 lg:ps-16">
-          <div>
-            {changelog.title && (
-              <h2 class="h4 mt-1.5" set:html={markdownify(changelog.title)} />
-            )}
-            {changelog.types && (
-              <div class="mt-8 flex flex-wrap gap-x-3 gap-y-3 lg:gap-x-6">
-                {changelog.types.map((item) => (
-                  <div class="from-primary/10 to-bg-primary/10 text-primary flex items-center gap-3 rounded-full bg-linear-to-r py-1 ps-2.5 pe-5">
-                    <Icons icon={item.icon as any} class="text-primary" />
-                    {markdownify(item.label)}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          {changelog.content && (
-            <div
-              class="prose-styles"
-              set:html={markdownify(changelog.content)}
+        <div class="changelog__body">
+          {e.titleHtml && <h2 class="t-heading-2 changelog__title" set:html={e.titleHtml} />}
+          {e.types.length > 0 && (
+            <ul class="changelog__types" role="list">
+              {e.types.map((label) => (
+                <li>
+                  <Chip tone="shell">{label}</Chip>
+                </li>
+              ))}
+            </ul>
+          )}
+          {e.notesHtml && (
+            <Prose>
+              <Fragment set:html={e.notesHtml} />
+            </Prose>
+          )}
+          {e.video?.src && (
+            <VideoEmbed
+              src={e.video.src}
+              provider={e.video.provider as any}
+              poster={e.video.poster}
+              type={e.video.type}
+              title={e.titleText || "Video"}
             />
           )}
-          {changelog.video && (
-            <div class="relative">
-              <OptimizedImage
-                width={900}
-                height={400}
-                src={changelog.video.poster as any}
-                alt={
-                  "video thumbnail related to" +
-                  markdownify(changelog.title.toLocaleLowerCase())
-                }
-                class="h-72! w-full max-w-full! rounded-2xl object-cover md:h-96!"
-              />
-              {changelog.video.src && (
-                <>
-                  <button
-                    type="button"
-                    title="Play Video"
-                    aria-haspopup="dialog"
-                    aria-expanded="false"
-                    aria-controls={"#" + changelog.video.id + changelogIndex}
-                    data-hs-overlay={"#" + changelog.video.id + changelogIndex}
-                    data-hs-overlay-options={`{"emulateScrollbarSpace" : true}`}
-                    class="video-modal-toggle translate-centered has-animated-waves absolute flex h-20 w-20 items-center justify-center rounded-full transition-transform duration-300 hover:scale-110">
-                    <div class="relative z-10 flex h-20 w-20 items-center justify-center rounded-full">
-                      <Icons
-                        icon="Play"
-                        class="icon fill-white pe-1 text-3xl"
-                      />
-                    </div>
-                  </button>
-                  {changelog.video && (
-                    <VideoModal
-                      video={{
-                        id:
-                          (changelog.video.id || "changelog-video") +
-                          changelogIndex,
-                        src: changelog.video.src,
-                        provider: changelog.video.provider,
-                      }}
-                    />
-                  )}
-                </>
-              )}
-            </div>
-          )}
-          {changelog.changes && (
-            <AccordionList
-              bgColor="light"
-              role="tabpanel"
-              changelogContent={true}
-              content={changelog.changes}
-              class:list={["col-span-5 xl:col-span-6"]}
-              id={"tab-1-" + changelogIndex}
-              tabIndex={"group-1-" + changelogIndex}
-              aria-labelledby={"tab-item-1-" + changelogIndex}
-            />
-          )}
+          {e.changes.length > 0 && <Accordion group={e.key} items={e.changes} />}
         </div>
-      </div>
+      </li>
     ))
   }
-</div>
+</ol>
+
+<style>
+  .changelog {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .changelog__entry {
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-10) 0;
+    border-top: 1px solid var(--line);
+  }
+  .changelog__entry:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+  .changelog__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2) var(--space-4);
+  }
+  .changelog__version,
+  .changelog__date,
+  .changelog__title {
+    margin: 0;
+  }
+  .changelog__version,
+  .changelog__title {
+    color: var(--text);
+  }
+  .changelog__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    min-width: 0;
+  }
+  .changelog__types {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  @media (min-width: 901px) {
+    .changelog__entry {
+      grid-template-columns: 160px minmax(0, 1fr);
+      gap: var(--space-8);
+    }
+    .changelog__meta {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>

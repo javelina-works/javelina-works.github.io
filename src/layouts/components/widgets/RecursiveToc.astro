@@ -1,17 +1,16 @@
 ---
+/** The nested levels of a TableOfContents (an h3 under its h2, and so on). */
 import type { TocHeading } from "@/types";
-const { toc } = Astro.props;
+const { toc } = Astro.props as { toc: TocHeading[] };
 ---
 
 {
-  toc && (
-    <ol class="pl-6">
+  toc && toc.length > 0 && (
+    <ol class="jw-toc__list jw-toc__list--sub" role="list">
       {toc.map((heading: TocHeading) => (
-        <li>
-          <a href={`#${heading.slug}`}>{heading.text}</a>
-          {heading.subheadings && heading.subheadings.length > 0 && (
-            <Astro.self toc={heading.subheadings} />
-          )}
+        <li class="jw-toc__item">
+          <a class="jw-toc__link" href={`#${heading.slug}`}>{heading.text}</a>
+          {heading.subheadings && heading.subheadings.length > 0 && <Astro.self toc={heading.subheadings} />}
         </li>
       ))}
     </ol>

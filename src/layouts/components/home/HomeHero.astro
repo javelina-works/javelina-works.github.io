@@ -1,0 +1,118 @@
+---
+// The homepage hero (BUILD_BRIEF §5 item 2, design/components/Hero): a flaky-rust wall holding two cards that cast
+// shadows from the lamp. The headline card: eyebrow, the page's one h1 (the SEO headline from PR #205), the intro, a
+// shell button down to "How it works" and a ghost button that opens the demo video in the shared Dialog (YouTube loads
+// only after the press). The map card: the example survey, editable (press a ring to switch treat and keep).
+// Words come from src/content/sections/english/home-video-hero.md; the eyebrow and the map caption are new (see the log).
+// The old desktop background video (/videos/hero-background.mp4) is not used here; the file stays.
+import type { VideoConfig } from "@/types";
+import { getEntryCTM } from "@/lib/contentParser.astro";
+import { markdownify } from "@/lib/utils/textConverter";
+import Section from "@/components/jw/Section.astro";
+import Surface from "@/components/jw/Surface.astro";
+import Button from "@/components/jw/Button.astro";
+import SurveyMap from "@/components/jw/SurveyMap.astro";
+import VideoModal from "@/components/widgets/VideoModal.astro";
+import { hero } from "./survey";
+
+const content = (await getEntryCTM("sections", "home-video-hero", Astro.currentLocale))?.data as {
+  title: string;
+  description?: string;
+  buttons?: { enable?: boolean; label?: string; video?: VideoConfig }[];
+};
+const titleHtml = (await markdownify(content.title)) as string;
+const videoButton = content.buttons?.find((b) => b.enable !== false && b.video?.src && b.video?.id);
+const video = videoButton?.video;
+---
+
+<Section tone="wall" texture="flake" seed={3} class="home-hero" aria-labelledby="home-title">
+  <div class="home-hero__grid">
+    <Surface castShadow class="home-hero__card">
+      <p class="jw-eyebrow">Brush management · Fort Davis, Texas</p>
+      <h1 class="t-display-l home-hero__title" id="home-title" set:html={titleHtml} />
+      {content.description && <p class="home-hero__intro">{content.description}</p>}
+      <div class="home-hero__actions">
+        <Button variant="shell" href="#how-it-works">How it works</Button>
+        {
+          video && (
+            <Button
+              variant="ghost"
+              data-jw-dialog-open={video.id}
+              aria-haspopup="dialog"
+              aria-expanded="false"
+              aria-controls={video.id}>
+              {videoButton?.label || "Watch Video"}
+            </Button>
+          )
+        }
+      </div>
+    </Surface>
+    <Surface castShadow class="home-hero__mapcard">
+      <SurveyMap
+        src={hero.image}
+        alt="Survey photo of a pasture with each woody plant boxed"
+        plants={hero.plants}
+        editable
+        loading="eager"
+        widths={[480, 720, 960, 1100]}
+        sizes="(min-width: 1240px) 560px, (min-width: 901px) 45vw, calc(100vw - 56px)"
+        style={`height: auto; aspect-ratio: ${hero.ratio}`}
+      />
+      <p class="home-hero__caption">Example survey. Press a ring to switch a plant between treat and keep.</p>
+    </Surface>
+  </div>
+</Section>
+{video && <VideoModal video={video} />}
+
+<style is:global>
+  .home-hero__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-5);
+    align-items: center;
+  }
+  .home-hero__card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-6) var(--space-5);
+  }
+  .home-hero__card > * {
+    margin: 0;
+  }
+  .home-hero__title {
+    color: var(--text);
+  }
+  .home-hero__intro {
+    max-width: 34em;
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--text-body);
+  }
+  .home-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-1);
+  }
+  .home-hero__mapcard {
+    padding: var(--space-3);
+  }
+  .home-hero__caption {
+    margin: var(--space-3) var(--space-1) var(--space-1);
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+  @media (min-width: 641px) {
+    .home-hero__card {
+      padding: var(--space-8);
+    }
+  }
+  @media (min-width: 901px) {
+    .home-hero__grid {
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+      gap: var(--space-8);
+    }
+  }
+</style>

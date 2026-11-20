@@ -1,4 +1,6 @@
 ---
+# Homepage hero (src/layouts/components/home/HomeHero.astro) reads: title (the h1), description, and the video button
+# (its label and video: id, src). backgroundVideo and the "Get an estimate" button are no longer shown on the page.
 title: "Precision brush management for **Texas** ranches"
 # preTitle:
 #   enable: false

@@ -1,4 +1,10 @@
 ---
+// The top of /contact/ on the design system, on the page ground: the page's one h1 and its intro, a card with the phone
+// number and email as large links, and the contact form card beside them (below them on phones and tablets).
+// Content: src/content/sections/english/contact-section.md (title, description, directContact, form); the phone and
+// email come from src/i18n/en.json (contactInfo), the tel: link is +1 and the ten digits, as before.
+// The form's only submit handler lives in widgets/ContactForm.astro (this file used to carry a second one).
+// Gone: the commented-out testimonial block (its five stars and template customer), Preline and AOS.
 import type { Section } from "@/types";
 import ContactForm from "../widgets/ContactForm.astro";
 import { useTranslations } from "@/lib/utils/i18nUtils";
@@ -8,8 +14,8 @@ import { markdownify } from "@/lib/utils/textConverter";
 import overrideObjects from "@/lib/utils/overrideObjects.ts";
 import type { contactSectionSchema } from "@/sections.schema";
 import type { z } from "astro/zod";
-import { generateStars } from "@/shortcodes/Testimonial.astro";
-import OptimizedImage from "../utilities/OptimizedImage.astro";
+import Container from "@/components/jw/Container.astro";
+import Surface from "@/components/jw/Surface.astro";
 
 type ContactSection = Section & z.infer<typeof contactSectionSchema>;
 
@@ -26,11 +32,12 @@ let actualContent = overrideObjects(
   Astro.props.content,
 ) as ContactSection;
 
-let { enable = true, testimonial, title, description, form } = actualContent;
+let { enable = true, title, description, form } = actualContent;
 
 // Direct contact box: phone and email as real links (mobile-first)
 const direct = (actualContent as any).directContact as
-  { enable?: boolean; title?: string } | undefined;
+  | { enable?: boolean; title?: string }
+  | undefined;
 const tx = await useTranslations(Astro.currentLocale as string);
 const phone = tx("contactInfo.phone") as string;
 const email = tx("contactInfo.email") as string;
@@ -38,201 +45,166 @@ const phoneDigits = (phone || "").replace(/[^\d+]/g, "");
 const telHref =
   "tel:" + (phoneDigits.length === 10 ? "+1" + phoneDigits : phoneDigits);
 
+const titleHtml = title ? ((await markdownify(title)) as string) : "";
+const descriptionHtml = description ? ((await markdownify(description)) as string) : "";
+const directTitleHtml = (await markdownify(direct?.title || "Or call or email us directly")) as string;
+const showDirect = direct?.enable !== false && (phone || email);
+
 if (!enable) return null;
 ---
 
-<section class="relative">
-  <div class="container">
-    <div class="grid grid-cols-1 grid-rows-1 gap-10 lg:grid-cols-2">
-      <div class="flex flex-col lg:sticky lg:top-32 lg:max-w-md">
-        <div class="mb-10">
-          {title && (
-            <h1
-              class="has-italic-text text-h2 capitalize"
-              set:html={markdownify(title)}
-            />
-          )}
-          {description && (
-            <p class="mt-6" set:html={markdownify(description)} />
-          )}
-          {direct?.enable !== false && (phone || email) && (
-            <div class="bg-theme-light mt-8 space-y-4 rounded-2xl p-6">
-              <p
-                class="font-medium text-black"
-                set:html={markdownify(
-                  direct?.title || "Or call or email us directly",
-                )}
-              />
-              <ul class="space-y-3">
+<section class="jw-section contact-section" aria-labelledby="contact-title">
+  <Container>
+    <div class="contact-section__grid">
+      <div class="contact-section__intro">
+        <h1 class="t-display-m contact-section__title" id="contact-title" set:html={titleHtml} />
+        {descriptionHtml && <p class="contact-section__lede" set:html={descriptionHtml} />}
+        {
+          showDirect && (
+            <Surface class="contact-direct">
+              <p class="contact-direct__title" set:html={directTitleHtml} />
+              <ul class="contact-direct__list" role="list">
                 {phone && (
                   <li>
-                    <a
-                      href={telHref}
-                      class="hover:text-primary flex items-center gap-3 text-lg transition-colors">
-                      <Icons icon="Phone" class="text-primary text-xl" />
-                      <span>{phone}</span>
+                    <a class="contact-direct__link" href={telHref}>
+                      <span class="contact-direct__icon" aria-hidden="true">
+                        <Icons icon="Phone" />
+                      </span>
+                      <span class="contact-direct__value">{phone}</span>
                     </a>
                   </li>
                 )}
                 {email && (
                   <li>
-                    <a
-                      href={"mailto:" + email}
-                      class="hover:text-primary flex items-center gap-3 text-lg transition-colors">
-                      <Icons icon="Mail" class="text-primary text-xl" />
-                      <span class="break-all">{email}</span>
+                    <a class="contact-direct__link" href={"mailto:" + email}>
+                      <span class="contact-direct__icon" aria-hidden="true">
+                        <Icons icon="Mail" />
+                      </span>
+                      <span class="contact-direct__value contact-direct__value--email">{email}</span>
                     </a>
                   </li>
                 )}
               </ul>
-            </div>
-          )}
-        </div>
-        {testimonial && (
-          <div class="mt-auto">
-            <div class="flex flex-col items-start space-y-4">
-              <div class="mb-6 inline-flex gap-2">
-                {generateStars(5).map((_) => (
-                  <svg
-                    class="h-6 w-6 fill-current text-yellow-500"
-                    viewBox="0 0 20 20"
-                    fill="currentColor">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                ))}
-              </div>
-              {testimonial.content && (
-                <blockquote
-                  class="text-lg leading-relaxed"
-                  set:html={markdownify(testimonial.content)}
-                />
-              )}
-            </div>
-
-            <div class="mt-8 flex items-center gap-4">
-              {testimonial.customer.avatar && (
-                <OptimizedImage
-                  src={testimonial.customer.avatar}
-                  alt={testimonial.customer.name}
-                  class="h-12 w-12 rounded-full object-cover"
-                />
-              )}
-              <div class="min-w-0 flex-1 space-y-1">
-                {testimonial.customer.name && (
-                  <div class="text-black">{testimonial.customer.name}</div>
-                )}
-                {testimonial.customer.role && (
-                  <p class="text-sm">{testimonial.customer.role}</p>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
+            </Surface>
+          )
+        }
       </div>
-      {form && (
-        <div class="lg:ms-auto lg:max-w-full">
-          <ContactForm class="w-full max-w-full lg:w-lg" form={form} />
-        </div>
-      )}
+      {
+        form && (
+          <div class="contact-section__form">
+            <ContactForm form={form as any} />
+          </div>
+        )
+      }
     </div>
-  </div>
+  </Container>
 </section>
 
-<!-- https://preline.co/docs/select.html -->
-<script>
-  import {
-    formspreeSubmit,
-    netlifySubmit,
-    formSubmit,
-    isFormFilled,
-    setMessage,
-    validateSelectTag,
-  } from "@/lib/utils/FormHandle";
+<style>
+  .contact-section__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-10);
+  }
+  .contact-section__intro {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-width: 760px;
+  }
+  .contact-section__title {
+    margin: 0;
+    color: var(--text);
+  }
+  /* the title's line break only where the two lines fit */
+  @media (max-width: 640px) {
+    .contact-section__title :global(br) {
+      display: none;
+    }
+  }
+  .contact-section__lede {
+    max-width: 60ch;
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--text-body);
+  }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById(
-      "contact-form",
-    ) as HTMLFormElement | null;
+  .contact-section__intro :global(.contact-direct) {
+    margin-top: var(--space-4);
+    padding: var(--space-5) var(--space-4);
+  }
+  .contact-direct__title {
+    margin: 0 0 var(--space-2);
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--text);
+  }
+  .contact-direct__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .contact-direct__link,
+  .contact-direct__link:link,
+  .contact-direct__link:visited {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 56px;
+    color: var(--text);
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+  }
+  .contact-direct__link:hover .contact-direct__value {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
+  }
+  .contact-direct__link:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+  }
+  .contact-direct__icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    background: var(--surface-sunken);
+    color: var(--text);
+  }
+  .contact-direct__icon :global(svg) {
+    width: 20px;
+    height: 20px;
+  }
+  .contact-direct__value {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+  }
+  .contact-direct__value--email {
+    overflow-wrap: anywhere;
+  }
 
-    let selectTags = form?.querySelectorAll(
-      "[input-wrapper]:not(.hidden) select[data-hs-select]",
-    ) as NodeListOf<HTMLSelectElement>;
-
-    selectTags.forEach((tag) => {
-      tag.addEventListener("change", () => {
-        // Ensure only visible select tag value should submitted
-        selectTags.forEach((tag) => {
-          const name = tag.getAttribute("data-name");
-          tag.setAttribute("name", name || "");
-        });
-
-        validateSelectTag(tag);
-      });
-    });
-
-    form?.addEventListener("submit", async (e: Event) => {
-      e.preventDefault();
-
-      const provider = form?.getAttribute("data-provider") || "";
-      const action = form?.getAttribute("data-action") || "";
-
-      selectTags = form?.querySelectorAll(
-        "[input-wrapper]:not(.hidden) select[data-hs-select]",
-      ) as NodeListOf<HTMLSelectElement>;
-
-      // Validate all preline select tags
-      selectTags.forEach(validateSelectTag);
-
-      if (isFormFilled(form)) {
-        // Console.log form data for debugging
-        // const formData = Object.fromEntries(new FormData(form).entries());
-        // console.log(
-        //   Object.entries(formData)
-        //     .map(([key, value]) => `${key}: ${value}`)
-        //     .join("\n\n"),
-        // );
-
-        setMessage("Form Submitting!...", true, true, form);
-
-        try {
-          switch (provider) {
-            case "netlify":
-              await netlifySubmit(form, action);
-              break;
-            case "formsubmit.co":
-              await formSubmit({
-                form,
-                action,
-              });
-              break;
-            case "formspree":
-              await formspreeSubmit(
-                Object.fromEntries(new FormData(form).entries()),
-                5000,
-                form,
-              );
-              break;
-            default:
-              throw new Error("Unknown form provider.");
-          }
-          window.posthog?.capture("contact_form_submitted", {
-            provider,
-          });
-        } catch (error) {
-          window.posthog?.captureException(error);
-          window.posthog?.capture("contact_form_error", {
-            provider,
-            error: String(error),
-          });
-          setMessage(
-            error +
-              "! Please use this mail - [info@javelinaworks.com](mailto:info@javelinaworks.com) to submit a ticket!",
-            false,
-            false,
-            form,
-          );
-        }
-      }
-    });
-  });
-</script>
+  @media (min-width: 641px) {
+    .contact-section__intro :global(.contact-direct) {
+      padding: var(--space-6);
+    }
+  }
+  @media (min-width: 1024px) {
+    .contact-section__grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: var(--space-14);
+      align-items: start;
+    }
+  }
+</style>

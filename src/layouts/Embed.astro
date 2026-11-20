@@ -10,6 +10,7 @@ import "../../design/tokens/tokens.css";
 import "../../design/components/jw.css";
 import "@/styles/global.css";
 import figtreeRegular from "../../design/fonts/Figtree-Regular.woff2?url";
+import barlowMedium from "../../design/fonts/Barlow-Medium.woff2?url";
 import PostHog from "@/components/posthog.astro";
 
 interface Props {
@@ -46,6 +47,7 @@ import StaleChunkReload from "@/components/global/StaleChunkReload.astro";
           document.documentElement.classList.add("jw-embed-transparent");
       } catch (e) {}
     </script>
+    <link rel="preload" href={barlowMedium} as="font" type="font/woff2" crossorigin />
     <link rel="preload" href={figtreeRegular} as="font" type="font/woff2" crossorigin />
     {import.meta.env.PROD && <PostHog embed />}
   </head>
@@ -96,9 +98,12 @@ import StaleChunkReload from "@/components/global/StaleChunkReload.astro";
 </html>
 
 <style is:global>
+  /* The system's ground (limestone), so the paper cards read as cards. A
+     partner can let its own page show through with ?bg=transparent. */
   html,
   body.jw-embed {
-    background: #fff;
+    background: var(--bg);
+    color: var(--text);
   }
   html.jw-embed-transparent,
   html.jw-embed-transparent body.jw-embed {

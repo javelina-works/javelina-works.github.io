@@ -1,0 +1,69 @@
+---
+// How we work (/company/): the heading on the page ground, then the values as IconCards on a shell sheen band (the
+// prototype's "heading on the ground, cards on the band" pattern). The band holds cards only, never running text.
+// Content: the same entry the page passed to BenefitsSection before (src/content/sections/english/our-values.md:
+// title, and benefits with title, description and a Lucide icon). Words unchanged; `**work**` in the title reads plain.
+import Container from "@/components/jw/Container.astro";
+import Section from "@/components/jw/Section.astro";
+import SectionHead from "@/components/jw/SectionHead.astro";
+import IconCard from "@/components/jw/IconCard.astro";
+import { markdownify } from "@/lib/utils/textConverter";
+
+interface Props {
+  content: {
+    enable?: boolean;
+    title?: string;
+    benefits?: { title?: string; description?: string; icon?: string }[];
+  };
+}
+
+const { enable = true, title, benefits = [] } = Astro.props.content || {};
+if (!enable) return;
+
+const titleHtml = title ? ((await markdownify(title)) as string) : undefined;
+const cards = await Promise.all(
+  benefits.map(async (item) => ({
+    icon: item.icon,
+    titleHtml: item.title ? ((await markdownify(item.title)) as string) : undefined,
+    textHtml: item.description ? ((await markdownify(item.description)) as string) : undefined,
+  })),
+);
+---
+
+<section class="company-values" aria-labelledby={titleHtml ? "company-values-title" : undefined}>
+  {
+    titleHtml && (
+      <Container class="company-values__head">
+        <SectionHead titleHtml={titleHtml} titleId="company-values-title" />
+      </Container>
+    )
+  }
+  {
+    cards.length > 0 && (
+      <Section as="div" tone="shell">
+        <ul class="jw-cardgrid jw-cardgrid--3" role="list">
+          {cards.map((c) => (
+            <li>
+              <IconCard icon={c.icon} titleHtml={c.titleHtml} textHtml={c.textHtml} />
+            </li>
+          ))}
+        </ul>
+      </Section>
+    )
+  }
+</section>
+
+<style>
+  .company-values {
+    padding-top: var(--space-14);
+  }
+  /* the heading sits just above the band it introduces */
+  .company-values__head :global(.jw-sechead) {
+    margin-bottom: var(--space-8);
+  }
+  @media (min-width: 641px) {
+    .company-values {
+      padding-top: var(--space-20);
+    }
+  }
+</style>

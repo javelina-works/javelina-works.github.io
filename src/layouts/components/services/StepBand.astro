@@ -1,0 +1,73 @@
+---
+/**
+ * StepBand: the steps of a job as StepCards (design/components/StepCards) on a shell band. The heading sits on the page
+ * ground above the band (running text never sits on a sheen); the band holds only the cards. Each card: the step label
+ * (mono eyebrow), the step's title, a line or two, and an optional quiet button to the page that tells more. The cards
+ * cast shadows that move with the lamp, and the band takes the lamp's pool of light. No script and no motion: every
+ * step is always in view. The section carries the anchor id (how-a-job-runs, how-it-goes); the sticky bar's scroll
+ * padding keeps the heading clear of the bar after a jump.
+ * Columns: 3 steps → jw-stepcards--3; 4 or 8 → jw-stepcards--4; others → the default (two, then three).
+ */
+import Section from "@/components/jw/Section.astro";
+import SectionHead from "@/components/jw/SectionHead.astro";
+import Surface from "@/components/jw/Surface.astro";
+import Button from "@/components/jw/Button.astro";
+
+export interface StepCard {
+  stepHtml?: string;
+  titleHtml: string;
+  textHtml?: string;
+  button?: { label: string; href: string };
+}
+interface Props {
+  id?: string;
+  titleHtml?: string;
+  steps: StepCard[];
+}
+const { id, titleHtml, steps } = Astro.props;
+const titleId = id ? `${id}-title` : undefined;
+const n = steps.length;
+const cols = n === 3 ? "jw-stepcards--3" : n % 4 === 0 ? "jw-stepcards--4" : undefined;
+---
+
+<section id={id} class="jw-section jw-section--none svc-steps" aria-labelledby={titleHtml ? titleId : undefined}>
+  {
+    titleHtml && (
+      <div class="jw-container svc-steps__head">
+        <SectionHead titleHtml={titleHtml} titleId={titleId} />
+      </div>
+    )
+  }
+  <Section tone="shell" as="div" class="svc-steps__band">
+    <ol class:list={["jw-stepcards", cols]} role="list">
+      {
+        steps.map((s) => (
+          <li class="jw-stepcards__item">
+            <Surface castShadow class="jw-stepcard">
+              {s.stepHtml && <p class="jw-eyebrow jw-stepcard__num" set:html={s.stepHtml} />}
+              <h3 class="t-heading-3 jw-stepcard__title" set:html={s.titleHtml} />
+              {s.textHtml && <p class="jw-stepcard__text" set:html={s.textHtml} />}
+              {s.button && (
+                <div class="jw-stepcard__action">
+                  <Button variant="quiet" size="sm" href={s.button.href}>
+                    {s.button.label}
+                  </Button>
+                </div>
+              )}
+            </Surface>
+          </li>
+        ))
+      }
+    </ol>
+  </Section>
+</section>
+
+<style is:global>
+  /* the heading block above the band, on the page ground */
+  .svc-steps__head { padding-top: var(--space-14); }
+  .svc-steps__head .jw-sechead { margin-bottom: var(--space-8); }
+  @media (min-width: 641px) {
+    .svc-steps__head { padding-top: var(--space-20); }
+    .svc-steps__head .jw-sechead { margin-bottom: var(--space-10); }
+  }
+</style>

@@ -1,0 +1,87 @@
+---
+// The corrugated-tin wall (BUILD_BRIEF §5 item 4): a feature card beside the light tube and its riveted plate. The card
+// holds cards 1 and 3 of the old "future of brush management" bento (src/content/sections/english/features-section.md,
+// which only the homepage reads): the count, then who checks it. The tube counts the example survey
+// in the agave band below: plants marked to treat, of all the plants marked there. The tube and plate bring the page's
+// brass; nothing else on the page carries rivets.
+import { getEntryCTM } from "@/lib/contentParser.astro";
+import Section from "@/components/jw/Section.astro";
+import Surface from "@/components/jw/Surface.astro";
+import LightTube from "@/components/jw/LightTube.astro";
+import { band, count } from "./survey";
+
+const features = (await getEntryCTM("sections", "features-section", Astro.currentLocale))?.data as {
+  list?: { title: string; description: string }[];
+};
+const feature = features?.list?.[0];
+const checked = features?.list?.[2];
+if (!feature) return;
+const toTreat = count(band.plants, "treat");
+---
+
+<Section tone="wall" texture="corrugated" seed={5} class="home-count" aria-labelledby="home-count-title">
+  <div class="home-count__grid">
+    <Surface castShadow class="home-count__card">
+      <h2 class="t-heading-1 home-count__title" id="home-count-title">{feature.title}</h2>
+      <p class="home-count__text">{feature.description}</p>
+      {
+        checked && (
+          <div class="home-count__more">
+            <h3 class="t-heading-3 home-count__subtitle">{checked.title}</h3>
+            <p class="home-count__text">{checked.description}</p>
+          </div>
+        )
+      }
+    </Surface>
+    <LightTube label="Example survey · to treat" value={toTreat} max={band.plants.length} unit="plants" />
+  </div>
+</Section>
+
+<style is:global>
+  .home-count__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-10);
+    align-items: center;
+  }
+  .home-count__card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-6) var(--space-5);
+  }
+  .home-count__card > * {
+    margin: 0;
+  }
+  .home-count__title,
+  .home-count__subtitle {
+    color: var(--text);
+  }
+  .home-count__more {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--line);
+  }
+  .home-count__more > * {
+    margin: 0;
+  }
+  .home-count__text {
+    max-width: 34em;
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--text-body);
+  }
+  @media (min-width: 641px) {
+    .home-count__card {
+      padding: var(--space-8);
+    }
+  }
+  @media (min-width: 901px) {
+    .home-count__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    }
+  }
+</style>

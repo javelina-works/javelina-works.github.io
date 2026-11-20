@@ -1,86 +1,127 @@
 ---
-import LegacyPreline from "@/components/legacy/LegacyPreline.astro";
+/**
+ * TableOfContents (design/components/TableOfContents/README.md): links to the sections of a long page.
+ *   variant="sidebar"     a plain list beside the text, sticky under the nav bar (wide screens). Every entry shows;
+ *                         it scrolls inside itself only if the screen is shorter than the list.
+ *   variant="disclosure"  (default) a closed paper card, "Table of contents", that opens to the same list (phones).
+ * Each entry is a 44px row on a thin rail. "Sources" (the footnote heading the Markdown pipeline adds) is never listed as
+ * a section: it comes last, after a gap, as its own link.
+ *   marker: mark the section being read (aria-current="true", land rail) with a small scroll script.
+ *   id:     a base for the label id (the article page renders both variants and shows one per width).
+ * No Preline. The small script below ships with the component (about 0.6 KB) and does nothing unless marker is on;
+ * the list works without it. Styles: the TableOfContents block in design/components/jw.css.
+ */
 import type { TocHeading } from "@/types";
 import RecursiveToc from "@/layouts/components/widgets/RecursiveToc.astro";
-import Icons from "@/helpers/Icons.astro";
-import config from ".astro/config.generated.json";
+import Disclosure from "@/components/jw/Disclosure.astro";
 
 interface Props {
   toc: TocHeading[];
   marker?: boolean;
   className?: string;
+  class?: string;
+  variant?: "sidebar" | "disclosure";
+  label?: string;
+  id?: string;
 }
 
-const { tableOfContents } = config.settings.markup;
+const {
+  toc = [],
+  marker = false,
+  className,
+  class: cls,
+  variant = "disclosure",
+  label = "Table of contents",
+  id = `jw-toc-${variant}`,
+} = Astro.props;
 
-const { toc, className, marker = true, ...rest } = Astro.props;
+// The footnote section's heading ("Sources", id footnote-label) is a list of references, not a section of the text.
+const SOURCES = "footnote-label";
+let sources: TocHeading | undefined;
+const strip = (list: TocHeading[]): TocHeading[] =>
+  list.flatMap((h) => {
+    if (h.slug === SOURCES) {
+      sources = h;
+      return [];
+    }
+    return [{ ...h, subheadings: h.subheadings ? strip(h.subheadings) : [] }];
+  });
+const entries = strip(toc);
+const labelId = `${id}-label`;
 ---
 
 {
-  toc && (
-    <div
-      class:list={[
-        "hs-accordion",
-        { active: tableOfContents?.expanded },
-        className,
-      ]}
-      {...rest}>
-      <button
-        class="hs-accordion-toggle mb-2 flex w-full items-center justify-between border-b pb-2"
-        aria-expanded="true"
-        aria-controls="toc-collapse">
-        <span class="text-base-sm font-primary font-normal tracking-widest uppercase md:text-base">
-          Table of Contents
-        </span>
-        <span class="hs-accordion-active:rotate-180 flex h-9 w-9 items-center justify-center rounded-full transition duration-300">
-          <Icons class="hs-accordion-active:hidden" icon="Plus" />
-          <Icons class="hs-accordion-active:block hidden" icon="Minus" />
-        </span>
-      </button>
+  entries.length > 0 &&
+    (variant === "sidebar" ? (
       <nav
-        id="toc-collapse"
-        class:list={[
-          "hs-accordion-content toc prose-styles prose-a:text-text-default prose-ul:pl-0 overflow-hidden transition-[height] duration-300",
-          marker && "scroll-menu",
-          { hidden: tableOfContents?.expanded === false },
-        ]}>
-        <ol class="max-h-60 overflow-auto">
-          {toc.map((heading: TocHeading) => (
-            <li>
-              <a href={`#${heading.slug}`}>{heading.text}</a>
-              {heading.subheadings && heading.subheadings.length > 0 && (
-                <RecursiveToc toc={heading.subheadings} />
-              )}
+        class:list={["jw-toc", "jw-toc--sidebar", className, cls]}
+        aria-labelledby={labelId}
+        data-jw-toc-track={marker ? "" : undefined}>
+        <p class="jw-eyebrow jw-toc__label" id={labelId}>{label}</p>
+        <ol class="jw-toc__list" role="list">
+          {entries.map((h) => (
+            <li class="jw-toc__item">
+              <a class="jw-toc__link" href={`#${h.slug}`}>{h.text}</a>
+              {h.subheadings && h.subheadings.length > 0 && <RecursiveToc toc={h.subheadings} />}
             </li>
           ))}
         </ol>
+        {sources && (
+          <p class="jw-toc__sources">
+            <a class="jw-toc__link" href={`#${sources.slug}`}>{sources.text}</a>
+          </p>
+        )}
       </nav>
-    </div>
-  )
+    ) : (
+      <nav class:list={["jw-toc", "jw-toc--disclosure", className, cls]} aria-labelledby={labelId} data-jw-toc-track={marker ? "" : undefined}>
+        <Disclosure solo prose={false} class="jw-toc__details">
+          <span slot="summary" id={labelId}>{label}</span>
+          <ol class="jw-toc__list" role="list">
+            {entries.map((h) => (
+              <li class="jw-toc__item">
+                <a class="jw-toc__link" href={`#${h.slug}`}>{h.text}</a>
+                {h.subheadings && h.subheadings.length > 0 && <RecursiveToc toc={h.subheadings} />}
+              </li>
+            ))}
+          </ol>
+          {sources && (
+            <p class="jw-toc__sources">
+              <a class="jw-toc__link" href={`#${sources.slug}`}>{sources.text}</a>
+            </p>
+          )}
+        </Disclosure>
+      </nav>
+    ))
 }
 
 <script>
-  import { ScrollMenu } from "@/plugins/scroll-menu.ts";
-
-  const toc = document.querySelector(".scroll-menu > ol") as HTMLElement;
-
-  document.addEventListener("DOMContentLoaded", function () {
-    if (toc)
-      new ScrollMenu(".scroll-menu a", {
-        activeOffset: 128, // Custom active offset from top
-        scrollOffset: 128, // Custom scroll offset
-        smoothScroll: false, // Disable smooth scrolling for immediate scroll
-        // autoSetFirstActive: true,
-        afterActive: (activeItem) => {
-          const offset = activeItem.offsetTop + 3;
-
-          if (toc) {
-            toc.setAttribute("style", `--active-offset: ${offset}px`);
-          }
-        },
-      });
-  });
+  // Marks the section being read in each tracked table of contents (data-jw-toc-track, set by marker): the last
+  // heading that has passed a line just under the nav bar. It reads the headings' positions at most every 120ms while
+  // the page scrolls (a timer, no animation frames), so nothing runs while the page is still. Does nothing on a page
+  // without a tracked table of contents.
+  const navs = [...document.querySelectorAll<HTMLElement>("[data-jw-toc-track]")];
+  const tracks = navs
+    .map((nav) =>
+      [...nav.querySelectorAll<HTMLAnchorElement>("a.jw-toc__link[href^='#']")]
+        .map((a) => ({ a, el: document.getElementById(decodeURIComponent(a.hash.slice(1))) }))
+        .filter((p): p is { a: HTMLAnchorElement; el: HTMLElement } => !!p.el),
+    )
+    .filter((pairs) => pairs.length > 0);
+  if (tracks.length) {
+    let timer = 0;
+    const update = () => {
+      timer = 0;
+      const line = Math.min(window.innerHeight * 0.3, 180);
+      for (const pairs of tracks) {
+        let current = -1;
+        pairs.forEach((p, i) => {
+          if (p.el.getBoundingClientRect().top <= line) current = i;
+        });
+        pairs.forEach((p, i) => (i === current ? p.a.setAttribute("aria-current", "true") : p.a.removeAttribute("aria-current")));
+      }
+    };
+    window.addEventListener("scroll", () => (timer ||= window.setTimeout(update, 120)), { passive: true });
+    window.addEventListener("hashchange", update);
+    update();
+  }
 </script>
-
-<!-- TEMPORARY: Base no longer loads Preline; this old component loads the part it uses. -->
-<LegacyPreline />

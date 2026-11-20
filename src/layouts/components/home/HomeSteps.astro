@@ -1,0 +1,119 @@
+---
+// "How it works" (BUILD_BRIEF §5 item 3): the heading on the ground, then a shell band holding the five step cards.
+// Steps, title, intro and the link to /services/brush-targeting/#how-a-job-runs come from
+// src/content/sections/english/process-showcase.md, word for word. The old ProcessShowcase's timed tabs, step photos and
+// the step 5 clip are not here (see the log). The eyebrow "How it works" is new.
+import { getEntryCTM } from "@/lib/contentParser.astro";
+import { markdownify } from "@/lib/utils/textConverter";
+import Section from "@/components/jw/Section.astro";
+import SectionHead from "@/components/jw/SectionHead.astro";
+import Surface from "@/components/jw/Surface.astro";
+import Button from "@/components/jw/Button.astro";
+
+const content = (await getEntryCTM("sections", "process-showcase", Astro.currentLocale))?.data as {
+  enable?: boolean;
+  title: string;
+  description?: string;
+  button?: { enable?: boolean; label?: string; url?: string };
+  list: { step: string; title: string; description: string }[];
+};
+if (content.enable === false) return;
+const titleHtml = (await markdownify(content.title)) as string;
+const button = content.button && content.button.enable !== false && content.button.label && content.button.url ? content.button : undefined;
+---
+
+<section class="jw-section jw-section--none home-steps" id="how-it-works" aria-labelledby="how-it-works-title">
+  <Section as="div" pool class="home-steps__head">
+    <SectionHead eyebrow="How it works" titleHtml={titleHtml} titleId="how-it-works-title" text={content.description}>
+      {button && <Button variant="ghost" href={button.url}>{button.label}</Button>}
+    </SectionHead>
+  </Section>
+  <Section as="div" tone="shell">
+    <ol class="home-steps__list" role="list">
+      {
+        content.list.map((s) => (
+          <li class="home-steps__item">
+            <Surface castShadow class="home-step">
+              <p class="jw-eyebrow">Step {s.step}</p>
+              <h3 class="t-heading-3 home-step__title">{s.title}</h3>
+              <p class="home-step__text">{s.description}</p>
+            </Surface>
+          </li>
+        ))
+      }
+    </ol>
+  </Section>
+</section>
+
+<style is:global>
+  .home-steps__head.jw-section {
+    padding-bottom: var(--space-8);
+  }
+  .home-steps__head .jw-sechead {
+    margin-bottom: 0;
+  }
+  .home-steps__list {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .home-steps__item,
+  .home-steps__item > .jw-lit {
+    display: flex;
+    flex-direction: column;
+  }
+  .home-steps__item > .jw-lit {
+    flex: 1;
+  }
+  .home-step {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-5) var(--space-4);
+  }
+  .home-step > * {
+    margin: 0;
+  }
+  .home-step__title {
+    color: var(--text);
+  }
+  .home-step__text {
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--text-body);
+  }
+  @media (min-width: 641px) {
+    .home-steps__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-6);
+    }
+    .home-steps__item:last-child:nth-child(odd) {
+      grid-column: 1 / -1;
+    }
+    .home-step {
+      padding: var(--space-6);
+    }
+    .home-steps__head.jw-section {
+      padding-bottom: var(--space-10);
+    }
+  }
+  @media (min-width: 1024px) {
+    .home-steps__list {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+    .home-steps__item {
+      grid-column: span 2;
+    }
+    .home-steps__item:nth-child(4),
+    .home-steps__item:nth-child(5) {
+      grid-column: span 3;
+    }
+    .home-steps__item:last-child:nth-child(odd) {
+      grid-column: span 3;
+    }
+  }
+</style>

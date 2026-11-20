@@ -1,4 +1,11 @@
 ---
+// The markdown pages in src/content/pages/ (/advisors/, /privacy-policy/, /terms-conditions/): SinglePageLayout
+// (PageHeader with the page's one h1, then the body in Prose, a reading column on the page ground), then the closing
+// ask. Words come from the markdown unchanged; the legal text is rendered exactly as written.
+// Captions: the advisors page writes each picture's caption as an italic paragraph right under the image
+// (_A drawing, not survey data._). Those read as the system's figure captions (16px, text-muted, upright, close
+// under the picture), as Figure and Prose figcaption draw them. Only a paragraph that follows an image paragraph and
+// holds a single <em> is styled, so ordinary paragraphs and emphasis are untouched.
 import Base from "@/layouts/Base.astro";
 import { getCollectionCTM } from "@/lib/contentParser.astro";
 import { supportedLanguages } from "@/lib/utils/i18nUtils";
@@ -42,6 +49,26 @@ const { page } = Astro.props;
 ---
 
 <Base {...page.data}>
-  <SinglePageLayout content={page} />
+  <div class="md-page">
+    <SinglePageLayout content={page} />
+  </div>
   <CallToAction />
 </Base>
+
+<style>
+  /* a picture's caption: the italic paragraph right under an image paragraph */
+  .md-page :global(.jw-prose p:has(> img) + p:has(> em:only-child)) {
+    margin-top: calc(var(--space-2) - var(--space-5));
+    margin-bottom: var(--space-8);
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+  .md-page :global(.jw-prose p:has(> img) + p > em:only-child) {
+    font-style: normal;
+  }
+  /* a picture in the reading column gets the same air above it as a figure */
+  .md-page :global(.jw-prose p:has(> img)) {
+    margin-top: var(--space-8);
+  }
+</style>

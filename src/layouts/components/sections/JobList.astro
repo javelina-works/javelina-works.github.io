@@ -1,4 +1,10 @@
 ---
+// Job list on the design system (/career/): a section heading, then one paper card per published job (type and
+// deadline as mono labels, the title, the excerpt, and an "Apply Now" shell button to the job's page).
+// Only published entries show: drafts are left out in every environment (before, dev showed the nine theme drafts).
+// With none published (today), the section renders nothing.
+// Analytics: job_listing_apply_clicked {job_title, url} on a click of .job-apply-btn, as before.
+// Gone: AnimatedText, AOS, the text-flip button.
 import type { Section } from "@/types";
 import Icons from "@/helpers/Icons.astro";
 import { sortByDate } from "@/lib/utils/sortFunctions";
@@ -7,165 +13,167 @@ import overrideObjects from "@/lib/utils/overrideObjects.ts";
 import { getCollectionCTM, getEntryCTM } from "@/lib/contentParser.astro";
 import config from ".astro/config.generated.json";
 import formatRelativeDate from "@/lib/utils/formatRelativeDate";
-import CustomButton from "../CustomButton.astro";
 import { getLocaleUrlCTM } from "@/lib/utils/i18nUtils";
-import AnimatedText from "../widgets/AnimatedText.astro";
+import Container from "@/components/jw/Container.astro";
+import SectionHead from "@/components/jw/SectionHead.astro";
+import Surface from "@/components/jw/Surface.astro";
+import Button from "@/components/jw/Button.astro";
 
 const { careerFolder } = config.settings;
 
-// Type for this section data
-type ectionType = Section;
+type SectionType = Section;
 type Props = {
   listPage?: boolean;
-  content?: ectionType;
+  content?: SectionType;
   pagination?: {
     enable: boolean;
     currentPage: number;
   };
 };
 
-// Fetching the default content for the this section
+// The list page's own content, overridable through `content`
 let defaultContent = (
   await getEntryCTM(careerFolder as "career", "-index", Astro.currentLocale)
-)?.data as ectionType;
+)?.data as SectionType;
 
-// Enables content customization (e.g., title, description) with a fallback to 'defaultContent' if not provided.
-// The 'content' prop should match the structure of 'defaultContent'.
-// Allows using this section with different content across multiple pages.
-// If 'content' is missing, 'defaultContent' will be used.
 let actualContent = overrideObjects(
   { ...defaultContent },
   Astro.props.content,
-) as ectionType;
+) as SectionType;
 
-// Extracting required values from 'content' object
-let { enable = true, limit, title } = actualContent as ectionType;
+let { enable = true, limit, title } = actualContent as SectionType;
 
-let list = await getCollectionCTM(
-  careerFolder as "career",
-  Astro.currentLocale,
-);
+let list = (
+  await getCollectionCTM(careerFolder as "career", Astro.currentLocale)
+).filter((post) => !post.data.draft);
 
-// Sort list by date
 list = sortByDate(list);
 
 const featuredPost = list.find((post) => post.data.featured);
-
-// Remove featured list from the main list
 if (featuredPost) {
   list = list.filter((post) => post.data.featured !== true);
 }
 
-// Limit the number of items to be displayed
 if (limit) {
   list = list.slice(0, limit);
 }
 
-list = list.map((item) => {
-  return {
-    ...item,
-    data: {
-      ...item.data,
-      deadline: item.data.fields?.filter(
-        (field: any) => field.name.toLowerCase() === "deadline",
-      )[0]?.content,
-      type: item.data.fields?.filter(
-        (field: any) => field.name.toLowerCase() === "type",
-      )[0]?.content,
-    },
-  };
-});
+const field = (item: any, name: string) =>
+  item.data.fields?.find((f: any) => String(f.name).toLowerCase() === name)?.content;
 
-if (!enable) return;
+const jobs = await Promise.all(
+  list.map(async (item) => ({
+    id: item.id,
+    href: getLocaleUrlCTM(item.data.customSlug || item.id, Astro.currentLocale, careerFolder),
+    title: item.data.title as string | undefined,
+    titleHtml: item.data.title ? ((await markdownify(item.data.title)) as string) : undefined,
+    excerptHtml: item.data.excerpt ? ((await markdownify(item.data.excerpt)) as string) : undefined,
+    type: field(item, "type") as string | undefined,
+    deadline: field(item, "deadline") as string | undefined,
+  })),
+);
+
+if (!enable || jobs.length === 0) return;
+
+const titleHtml = title ? ((await markdownify(title)) as string) : undefined;
 ---
 
-<section>
-  <div class="container space-y-10 md:space-y-16">
-    {
-      title && (
-        <div class="mx-auto max-w-2xl text-center">
-          <h2 class="has-italic-text capitalize">
-            <AnimatedText
-              delay={0.2}
-              stagger={0.09}
-              content={markdownify(title)}
-            />
-          </h2>
-        </div>
-      )
-    }
-
-    {
-      list && (
-        <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {list.map((item, index) => (
-            <div
-              data-aos={
-                Math.floor(index / 3) % 2 === 0
-                  ? "fade-right-sm"
-                  : "fade-left-sm"
-              }
-              data-aos-delay={((index % 3) + 1) * 100}
-              class="flex flex-col items-start gap-4 border p-5 md:p-8">
-              <div class="flex flex-wrap items-center gap-4">
-                {item.data.type && (
-                  <div class="flex items-center gap-2">
-                    <Icons class="text-lg" icon="Clock7" />
-                    <span set:html={item.data.type} />
-                  </div>
-                )}
-                {item.data.deadline && (
-                  <div class="flex items-center gap-2">
-                    <Icons class="text-lg" icon="FileClock" />
-                    <span set:html={formatRelativeDate(item.data.deadline)} />
-                  </div>
-                )}
-              </div>
-              <div class="mt-4 mb-8 space-y-3">
-                {item.data.title && (
-                  <h3
-                    class="text-h5-sm md:text-h5 font-medium"
-                    set:html={markdownify(item.data.title)}
-                  />
-                )}
-                {item.data.excerpt && (
-                  <p
-                    class="opacity-80"
-                    set:html={markdownify(item.data.excerpt)}
-                  />
-                )}
-              </div>
-              {item.id && (
-                <CustomButton
-                  class="job-apply-btn mt-auto"
-                  hoverEffect="text-flip"
-                  variant="outline"
-                  label="Apply Now"
-                  data-job-title={item.data.title}
-                  url={getLocaleUrlCTM(
-                    item.data.customSlug || item.id,
-                    Astro.currentLocale,
-                    careerFolder,
+<section class="jw-section job-list" aria-labelledby={titleHtml ? "job-list-title" : undefined}>
+  <Container>
+    {titleHtml && <SectionHead titleHtml={titleHtml} titleId="job-list-title" />}
+    <ul class="jw-cardgrid jw-cardgrid--3" role="list">
+      {
+        jobs.map((job) => (
+          <li>
+            <Surface class="job-card">
+              {(job.type || job.deadline) && (
+                <p class="job-card__meta">
+                  {job.type && (
+                    <span class="job-card__fact">
+                      <Icons icon="Clock7" />
+                      <span set:html={job.type} />
+                    </span>
                   )}
-                />
+                  {job.deadline && (
+                    <span class="job-card__fact">
+                      <Icons icon="FileClock" />
+                      <span set:html={formatRelativeDate(job.deadline)} />
+                    </span>
+                  )}
+                </p>
               )}
-            </div>
-          ))}
-        </div>
-      )
-    }
-  </div>
+              {job.titleHtml && <h3 class="t-heading-3 job-card__title" set:html={job.titleHtml} />}
+              {job.excerptHtml && <p class="job-card__text" set:html={job.excerptHtml} />}
+              <div class="job-card__action">
+                <Button variant="shell" size="sm" href={job.href} class="job-apply-btn" data-job-title={job.title}>
+                  Apply Now
+                </Button>
+              </div>
+            </Surface>
+          </li>
+        ))
+      }
+    </ul>
+  </Container>
 </section>
 
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll(".job-apply-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        window.posthog?.capture("job_listing_apply_clicked", {
-          job_title: btn.getAttribute("data-job-title") || undefined,
-          url: btn.getAttribute("href") || undefined,
-        });
+  document.querySelectorAll<HTMLElement>(".job-apply-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      window.posthog?.capture("job_listing_apply_clicked", {
+        job_title: btn.getAttribute("data-job-title") || undefined,
+        url: btn.getAttribute("href") || undefined,
       });
     });
   });
 </script>
+
+<style>
+  .job-list :global(.job-card) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    height: 100%;
+    box-sizing: border-box;
+    padding: var(--space-6);
+  }
+  .job-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+  }
+  .job-card__fact {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .job-card__fact :global(svg) {
+    width: 16px;
+    height: 16px;
+    flex: none;
+  }
+  .job-card__title {
+    margin: 0;
+    color: var(--text);
+  }
+  .job-card__text {
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--text-body);
+  }
+  .job-card__action {
+    margin-top: auto;
+    padding-top: var(--space-3);
+  }
+  @media (max-width: 640px) {
+    .job-list :global(.job-card) {
+      padding: var(--space-5) var(--space-4);
+    }
+  }
+</style>

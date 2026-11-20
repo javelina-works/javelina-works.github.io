@@ -1,4 +1,6 @@
 ---
+# The homepage reads four of these cards by position (src/layouts/components/home/): cards 1 and 3 on the tin wall
+# (HomeCount.astro), cards 2 and 5 beside the example map (HomeKept.astro). Keep that order, or update those files.
 enable: true
 title: "**The future** of brush management"
 
