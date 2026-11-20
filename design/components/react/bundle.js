@@ -651,14 +651,29 @@
     const showDot = dot != null ? dot : !!DOT_TONES[tone];
     return /* @__PURE__ */ React.createElement("span", { className: cx("jw-chip", `jw-chip--${tone}`, className), ...rest }, showDot && /* @__PURE__ */ React.createElement("span", { className: "jw-chip__dot", "aria-hidden": "true" }), children, count != null && /* @__PURE__ */ React.createElement(React.Fragment, null, " \xB7 ", count));
   }
+  function nearestMarker(e) {
+    const own = e.currentTarget;
+    if (!e.detail) return own;
+    let best = own, bestD = 23;
+    own.parentElement.querySelectorAll(".jw-marker[data-plant]").forEach((m) => {
+      const r = m.getBoundingClientRect();
+      const d = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2));
+      if (d < bestD) {
+        bestD = d;
+        best = m;
+      }
+    });
+    if (best !== own && document.activeElement === own) best.focus({ preventScroll: true });
+    return best;
+  }
   function SurveyMap({ src, alt = "Survey image", plants: initial = [], height = 260, editable = true, showCounts = true, onChange, className, style }) {
     const [plants, setPlants] = useState(initial);
     const [selected, setSelected] = useState(null);
     const toggle = useCallback((id) => {
-      setSelected(id);
+      setSelected(String(id));
       if (!editable) return;
       setPlants((prev) => {
-        const next = prev.map((p) => p.id === id ? { ...p, status: p.status === "treat" ? "keep" : "treat" } : p);
+        const next = prev.map((p) => String(p.id) === String(id) ? { ...p, status: p.status === "treat" ? "keep" : "treat" } : p);
         if (onChange) onChange(next);
         return next;
       });
@@ -673,11 +688,12 @@
         {
           key: p.id,
           type: "button",
-          className: cx("jw-marker", !isTreat && "jw-marker--keep", selected === p.id && "jw-marker--selected"),
+          className: cx("jw-marker", !isTreat && "jw-marker--keep", selected === String(p.id) && "jw-marker--selected"),
           style: { left: `${p.x}%`, top: `${p.y}%` },
           "aria-label": label,
           "aria-pressed": editable ? isTreat : void 0,
-          onClick: () => toggle(p.id)
+          "data-plant": p.id,
+          onClick: (e) => toggle(nearestMarker(e).getAttribute("data-plant"))
         },
         /* @__PURE__ */ React.createElement("span", { className: "jw-marker__tip", "aria-hidden": "true" }, "Plant ", p.id, " \xB7 ", isTreat ? "Treat" : "Keep")
       );

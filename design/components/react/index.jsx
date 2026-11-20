@@ -58,14 +58,28 @@ function Chip({ tone = 'keep', dot, count, className, children, ...rest }) {
 }
 
 /* ---------------------------------------------------------------- SurveyMap */
+/* A tap where two markers' 44px tap areas overlap goes to the nearest ring (the rings themselves always take their own
+   taps: jw.css layers every tap area under every ring). A key press (detail 0) keeps its marker. */
+function nearestMarker(e) {
+  const own = e.currentTarget;
+  if (!e.detail) return own;
+  let best = own, bestD = 23;
+  own.parentElement.querySelectorAll('.jw-marker[data-plant]').forEach((m) => {
+    const r = m.getBoundingClientRect();
+    const d = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2));
+    if (d < bestD) { bestD = d; best = m; }
+  });
+  if (best !== own && document.activeElement === own) best.focus({ preventScroll: true });
+  return best;
+}
 function SurveyMap({ src, alt = 'Survey image', plants: initial = [], height = 260, editable = true, showCounts = true, onChange, className, style }) {
   const [plants, setPlants] = useState(initial);
   const [selected, setSelected] = useState(null);
   const toggle = useCallback((id) => {
-    setSelected(id);
+    setSelected(String(id));
     if (!editable) return;
     setPlants((prev) => {
-      const next = prev.map((p) => (p.id === id ? { ...p, status: p.status === 'treat' ? 'keep' : 'treat' } : p));
+      const next = prev.map((p) => (String(p.id) === String(id) ? { ...p, status: p.status === 'treat' ? 'keep' : 'treat' } : p));
       if (onChange) onChange(next);
       return next;
     });
@@ -79,8 +93,9 @@ function SurveyMap({ src, alt = 'Survey image', plants: initial = [], height = 2
         const isTreat = p.status === 'treat';
         const label = `Plant ${p.id}: ${isTreat ? 'treat' : 'keep'}.${editable ? ` Press to ${isTreat ? 'keep' : 'treat'} it.` : ''}`;
         return (
-          <button key={p.id} type="button" className={cx('jw-marker', !isTreat && 'jw-marker--keep', selected === p.id && 'jw-marker--selected')}
-            style={{ left: `${p.x}%`, top: `${p.y}%` }} aria-label={label} aria-pressed={editable ? isTreat : undefined} onClick={() => toggle(p.id)}>
+          <button key={p.id} type="button" className={cx('jw-marker', !isTreat && 'jw-marker--keep', selected === String(p.id) && 'jw-marker--selected')}
+            style={{ left: `${p.x}%`, top: `${p.y}%` }} aria-label={label} aria-pressed={editable ? isTreat : undefined} data-plant={p.id}
+            onClick={(e) => toggle(nearestMarker(e).getAttribute('data-plant'))}>
             <span className="jw-marker__tip" aria-hidden="true">Plant {p.id} · {isTreat ? 'Treat' : 'Keep'}</span>
           </button>
         );
