@@ -24,6 +24,8 @@ const server = http.createServer((q, r) => {
 }).listen(0, async () => {
   const base = `http://127.0.0.1:${server.address().port}`;
   const b = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist'] });
+  // lighting.js keeps walls static where WebGL is drawn in software, as it is here; light them anyway so previews show the lit walls
+  const newPage = b.newPage.bind(b); b.newPage = async (o) => { const p = await newPage(o); await p.addInitScript(() => { try { localStorage.setItem('jw-gl', 'any'); } catch (e) {} }); return p; };
   let fails = 0;
   for (const comp of fs.readdirSync(path.join(D, 'components')).sort()) {
     const pv = path.join(D, 'components', comp, 'preview.html'); if (!fs.existsSync(pv)) continue;

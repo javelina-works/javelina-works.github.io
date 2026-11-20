@@ -20,7 +20,13 @@
    frames only run while something changes (scroll, resize, hover, a flicker, a blink fade, a tube filling, the day/night switch).
    A status light blinks only while it is near the screen, and its fades run at about 30 frames a second. Pools, shadows and
    glints only move by transform and fade by opacity. Reduced motion: no flicker or blink, lights simply on, nothing waits to
-   fill. No WebGL: walls keep the static drawing. */
+   fill. No WebGL: walls keep the static drawing.
+
+   Start-up: walls are set up one at a time while the page is idle after load, nearest the screen first, so their shader work
+   never lands on first paint or on a tap; until then they show the static drawing. A wall is never set up where WebGL would be
+   drawn in software (no graphics chip: SwiftShader, llvmpipe and the like), because there setting up one wall blocks the page for
+   over a second; those walls keep the static drawing. A check that wants the lit walls on such a machine sets localStorage
+   'jw-gl' to 'any' before the page loads (or adds ?jw-gl=any to the URL). */
 
 const NOISE = [
   'vec3 mod289(vec3 x){return x-floor(x*(1.0/289.0))*289.0;}vec2 mod289(vec2 x){return x-floor(x*(1.0/289.0))*289.0;}vec3 permute(vec3 x){return mod289(((x*34.0)+1.0)*x);}',
@@ -63,6 +69,11 @@ const SUN = (() => { const x = -0.5, y = -0.55, z = 0.67, l = Math.hypot(x, y, z
 const FLICKER = [[0, 0], [0.035, 0.7], [0.055, 0.08], [0.085, 0.9], [0.11, 0.2], [0.135, 0.62], [0.155, 0.3], [0.19, 1], [1, 1]];
 const mix = (a, b, t) => a + (b - a) * t;
 const ease = (x) => x * x * (3 - 2 * x);
+// software WebGL: see Start-up in the header. 'jw-gl' = 'any' lets a check light the walls anyway.
+const anyGL = () => { try { return /[?&]jw-gl=any(&|$)/.test(location.search) || localStorage.getItem('jw-gl') === 'any'; } catch (e) { return false; } };
+const SOFTWARE = /swiftshader|llvmpipe|softpipe|software|basic render/i;
+const idle = (f) => (window.requestIdleCallback ? window.requestIdleCallback(f, { timeout: 1500 }) : setTimeout(f, 120));
+const unidle = (id) => (window.cancelIdleCallback ? window.cancelIdleCallback(id) : clearTimeout(id));
 const flickAt = (t) => { for (let i = 1; i < FLICKER.length; i++) { if (t <= FLICKER[i][0]) { const a = FLICKER[i - 1], b = FLICKER[i]; return a[1] + (b[1] - a[1]) * (t - a[0]) / (b[0] - a[0]); } } return 1; };
 
 function prog(gl, vs, fs) {
@@ -79,8 +90,15 @@ class Wall {
     if (!this.canvas) { this.canvas = document.createElement('canvas'); this.canvas.className = 'jw-wall__canvas'; this.canvas.setAttribute('aria-hidden', 'true'); el.insertBefore(this.canvas, el.firstChild); }
     this.style = STYLE[el.getAttribute('data-jw-wall')] ?? 1;
     this.seed = (+(el.getAttribute('data-jw-seed') || 3)) * 173.0;
-    const gl = this.canvas.getContext('webgl', { alpha: false, antialias: false, premultipliedAlpha: false, preserveDrawingBuffer: false });
+    const any = anyGL();
+    const gl = this.canvas.getContext('webgl', { alpha: false, antialias: false, premultipliedAlpha: false, preserveDrawingBuffer: false, failIfMajorPerformanceCaveat: !any });
     if (!gl) throw new Error('no webgl');
+    if (!any) {
+      // browsers that ignore failIfMajorPerformanceCaveat still name a software renderer (Chrome masks RENDERER, so ask the debug extension)
+      let r = String(gl.getParameter(gl.RENDERER) || '');
+      if (!SOFTWARE.test(r) && /webkit webgl/i.test(r)) { const dbg = gl.getExtension('WEBGL_debug_renderer_info'); if (dbg) r = String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) || ''); }
+      if (SOFTWARE.test(r)) { const lose = gl.getExtension('WEBGL_lose_context'); if (lose) lose.loseContext(); throw new Error('software webgl'); }
+    }
     const hp = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT);
     if (!hp || hp.precision < 16) throw new Error('no highp');
     this.gl = gl;
@@ -161,14 +179,15 @@ function scan() {
   const q = (sel) => Array.prototype.slice.call(root.querySelectorAll(sel));
   // walls
   const wallEls = q('[data-jw-wall]');
-  S.walls.forEach((w, el) => { if (!wallEls.includes(el) || !el.isConnected) { w && w.dispose(); S.walls.delete(el); S.io.unobserve(el); } });
+  S.walls.forEach((w, el) => { if (!wallEls.includes(el) || !el.isConnected) { w && w.dispose(); S.walls.delete(el); S.pending.delete(el); S.io.unobserve(el); } });
   wallEls.forEach((el) => {
     if (S.walls.has(el)) return;
-    let w = null;
-    // the wall keeps jw-wall--static (and its canvas stays hidden) until its first frame is drawn, so it never shows black
-    try { w = new Wall(el); } catch (e) { el.classList.add('jw-wall--static'); const c = el.querySelector(':scope > canvas.jw-wall__canvas'); if (c) c.hidden = true; }
-    S.walls.set(el, w); S.io.observe(el); if (w) { w.resize(); if (S.ro) S.ro.observe(w.canvas); }
+    // the wall keeps jw-wall--static (and its canvas stays hidden) until its first frame is drawn, so it never shows black;
+    // build() sets it up later, when the page is idle
+    el.classList.add('jw-wall--static');
+    S.walls.set(el, null); S.io.observe(el); S.pending.add(el);
   });
+  build();
   const stateOf = (el) => { let st = S.lightState.get(el); if (!st) { st = { flickerStart: null, blinkT0: performance.now() }; S.lightState.set(el, st); } return st; };
   // flicker once on first view: the lamp (its light level follows the flicker) or any primary Button with data-jw-flicker
   q('[data-jw-flicker]').forEach((el) => {
@@ -324,12 +343,43 @@ function frame(now) {
   else if (S.wakeIn < Infinity) S.timer = setTimeout(request, S.wakeIn);
 }
 
+// set up one waiting wall per idle moment, nearest the screen first, and none before the page has loaded
+function build() {
+  const s = S;
+  if (!s || s.building || !s.pending.size) return;
+  if (document.readyState !== 'complete') {
+    if (!s.onLoad) { s.onLoad = () => { s.onLoad = null; build(); }; window.addEventListener('load', s.onLoad); }
+    return;
+  }
+  s.building = true;
+  s.idleId = idle(() => {
+    s.building = false;
+    if (S !== s) return;
+    const vh = window.innerHeight;
+    let el = null, best = Infinity;
+    s.pending.forEach((p) => {
+      if (!p.isConnected) { s.pending.delete(p); return; }
+      const r = p.getBoundingClientRect(), d = r.bottom < 0 ? -r.bottom : (r.top > vh ? r.top - vh : 0);
+      if (d < best) { best = d; el = p; }
+    });
+    if (el) {
+      s.pending.delete(el);
+      let w = null;
+      // one failure (no WebGL, software WebGL, no highp, a shader error) holds for every wall on the page: stop trying
+      if (!s.noGL) { try { w = new Wall(el); } catch (e) { s.noGL = true; } }
+      if (w) { s.walls.set(el, w); w.resize(); if (s.ro) s.ro.observe(w.canvas); request(); }
+      else { const c = el.querySelector(':scope > canvas.jw-wall__canvas'); if (c) c.hidden = true; }
+    }
+    build();
+  });
+}
+
 function request() { if (S && !S.queued) { S.queued = true; requestAnimationFrame(frame); } }
 
 export function mount(root) {
   if (S) { S.count++; scan(); return api; }
   S = { count: 1, root: root || document, walls: new Map(), pools: new Map(), shadows: new Map(), lightState: new WeakMap(), lights: [], rivets: [], visible: new Set(),
-    blinkEls: new Set(), reveals: new Set(), flickerIOs: new Set(),
+    blinkEls: new Set(), reveals: new Set(), flickerIOs: new Set(), pending: new Set(), noGL: false,
     day: 0, dayTarget: 0, queued: false, timer: null, reduce: !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) };
   S.revealIO = new IntersectionObserver((es) => { es.forEach((e) => { if (e.isIntersecting) { e.target.classList.remove('is-pending'); S.revealIO.unobserve(e.target); request(); } }); }, { threshold: 0.6 });
   readTheme(); S.day = S.dayTarget;
@@ -362,6 +412,7 @@ export function unmount() {
   document.removeEventListener('transitionrun', S.onPointer, true); document.removeEventListener('transitionend', S.onPointer, true);
   S.themeObs.disconnect(); S.domObs.disconnect(); S.io.disconnect(); if (S.ro) S.ro.disconnect(); clearTimeout(S.timer);
   S.revealIO.disconnect(); S.reveals.forEach((el) => el.classList.remove('is-pending')); S.flickerIOs.forEach((io) => io.disconnect());
+  if (S.building) unidle(S.idleId); if (S.onLoad) window.removeEventListener('load', S.onLoad);
   S.walls.forEach((w, el) => { if (w) w.dispose(); el.classList.add('jw-wall--static'); });
   S = null;
 }

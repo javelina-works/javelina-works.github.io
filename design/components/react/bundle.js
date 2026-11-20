@@ -18,6 +18,16 @@
   var FLICKER = [[0, 0], [0.035, 0.7], [0.055, 0.08], [0.085, 0.9], [0.11, 0.2], [0.135, 0.62], [0.155, 0.3], [0.19, 1], [1, 1]];
   var mix = (a, b, t) => a + (b - a) * t;
   var ease = (x) => x * x * (3 - 2 * x);
+  var anyGL = () => {
+    try {
+      return /[?&]jw-gl=any(&|$)/.test(location.search) || localStorage.getItem("jw-gl") === "any";
+    } catch (e) {
+      return false;
+    }
+  };
+  var SOFTWARE = /swiftshader|llvmpipe|softpipe|software|basic render/i;
+  var idle = (f) => window.requestIdleCallback ? window.requestIdleCallback(f, { timeout: 1500 }) : setTimeout(f, 120);
+  var unidle = (id) => window.cancelIdleCallback ? window.cancelIdleCallback(id) : clearTimeout(id);
   var flickAt = (t) => {
     for (let i = 1; i < FLICKER.length; i++) {
       if (t <= FLICKER[i][0]) {
@@ -56,8 +66,21 @@
       }
       this.style = (_a = STYLE[el.getAttribute("data-jw-wall")]) != null ? _a : 1;
       this.seed = +(el.getAttribute("data-jw-seed") || 3) * 173;
-      const gl = this.canvas.getContext("webgl", { alpha: false, antialias: false, premultipliedAlpha: false, preserveDrawingBuffer: false });
+      const any = anyGL();
+      const gl = this.canvas.getContext("webgl", { alpha: false, antialias: false, premultipliedAlpha: false, preserveDrawingBuffer: false, failIfMajorPerformanceCaveat: !any });
       if (!gl) throw new Error("no webgl");
+      if (!any) {
+        let r = String(gl.getParameter(gl.RENDERER) || "");
+        if (!SOFTWARE.test(r) && /webkit webgl/i.test(r)) {
+          const dbg = gl.getExtension("WEBGL_debug_renderer_info");
+          if (dbg) r = String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) || "");
+        }
+        if (SOFTWARE.test(r)) {
+          const lose = gl.getExtension("WEBGL_lose_context");
+          if (lose) lose.loseContext();
+          throw new Error("software webgl");
+        }
+      }
       const hp = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT);
       if (!hp || hp.precision < 16) throw new Error("no highp");
       this.gl = gl;
@@ -190,26 +213,18 @@
       if (!wallEls.includes(el) || !el.isConnected) {
         w && w.dispose();
         S.walls.delete(el);
+        S.pending.delete(el);
         S.io.unobserve(el);
       }
     });
     wallEls.forEach((el) => {
       if (S.walls.has(el)) return;
-      let w = null;
-      try {
-        w = new Wall(el);
-      } catch (e) {
-        el.classList.add("jw-wall--static");
-        const c = el.querySelector(":scope > canvas.jw-wall__canvas");
-        if (c) c.hidden = true;
-      }
-      S.walls.set(el, w);
+      el.classList.add("jw-wall--static");
+      S.walls.set(el, null);
       S.io.observe(el);
-      if (w) {
-        w.resize();
-        if (S.ro) S.ro.observe(w.canvas);
-      }
+      S.pending.add(el);
     });
+    build();
     const stateOf = (el) => {
       let st = S.lightState.get(el);
       if (!st) {
@@ -476,6 +491,59 @@
     else if (S.blinking) S.timer = setTimeout(request, 33);
     else if (S.wakeIn < Infinity) S.timer = setTimeout(request, S.wakeIn);
   }
+  function build() {
+    const s = S;
+    if (!s || s.building || !s.pending.size) return;
+    if (document.readyState !== "complete") {
+      if (!s.onLoad) {
+        s.onLoad = () => {
+          s.onLoad = null;
+          build();
+        };
+        window.addEventListener("load", s.onLoad);
+      }
+      return;
+    }
+    s.building = true;
+    s.idleId = idle(() => {
+      s.building = false;
+      if (S !== s) return;
+      const vh = window.innerHeight;
+      let el = null, best = Infinity;
+      s.pending.forEach((p) => {
+        if (!p.isConnected) {
+          s.pending.delete(p);
+          return;
+        }
+        const r = p.getBoundingClientRect(), d = r.bottom < 0 ? -r.bottom : r.top > vh ? r.top - vh : 0;
+        if (d < best) {
+          best = d;
+          el = p;
+        }
+      });
+      if (el) {
+        s.pending.delete(el);
+        let w = null;
+        if (!s.noGL) {
+          try {
+            w = new Wall(el);
+          } catch (e) {
+            s.noGL = true;
+          }
+        }
+        if (w) {
+          s.walls.set(el, w);
+          w.resize();
+          if (s.ro) s.ro.observe(w.canvas);
+          request();
+        } else {
+          const c = el.querySelector(":scope > canvas.jw-wall__canvas");
+          if (c) c.hidden = true;
+        }
+      }
+      build();
+    });
+  }
   function request() {
     if (S && !S.queued) {
       S.queued = true;
@@ -501,6 +569,8 @@
       blinkEls: /* @__PURE__ */ new Set(),
       reveals: /* @__PURE__ */ new Set(),
       flickerIOs: /* @__PURE__ */ new Set(),
+      pending: /* @__PURE__ */ new Set(),
+      noGL: false,
       day: 0,
       dayTarget: 0,
       queued: false,
@@ -587,6 +657,8 @@
     S.revealIO.disconnect();
     S.reveals.forEach((el) => el.classList.remove("is-pending"));
     S.flickerIOs.forEach((io) => io.disconnect());
+    if (S.building) unidle(S.idleId);
+    if (S.onLoad) window.removeEventListener("load", S.onLoad);
     S.walls.forEach((w, el) => {
       if (w) w.dispose();
       el.classList.add("jw-wall--static");

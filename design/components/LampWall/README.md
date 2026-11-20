@@ -17,7 +17,7 @@ A section wall that takes light from the lamp, tubes and status lights near it: 
 `texture` (`'flake'` | `'corrugated'` | `'smooth'`), `seed`, `as` (default `section`), plus style and other props. Needs a LightScene on the page.
 
 ## Plain HTML
-Render the wall with `jw-wall--static`: it shows its static drawing (in its own day and night colors) until the engine has drawn its first WebGL frame, and keeps it without WebGL or JavaScript. The engine removes the class once the wall is lit; until then the canvas stays hidden, so a wall is never black while the page loads.
+Render the wall with `jw-wall--static`: it shows its static drawing (in its own day and night colors) until the engine has drawn its first WebGL frame, and keeps it without WebGL or JavaScript. The engine removes the class once the wall is lit; until then the canvas stays hidden, so a wall is never black while the page loads. The engine sets walls up one at a time while the page is idle after load, nearest the screen first, so their shader work never lands on first paint or a tap. Where WebGL would be drawn in software (no graphics chip), setting up a wall blocks the page for over a second, so there the wall simply keeps its static drawing; a check that needs the lit walls on such a machine sets localStorage `jw-gl` to `any` first.
 ```html
 <section class="jw-wall jw-wall--flake jw-wall--static" data-jw-wall="flake" data-jw-seed="3">
   <canvas class="jw-wall__canvas" aria-hidden="true"></canvas>

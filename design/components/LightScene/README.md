@@ -9,7 +9,7 @@ Wrap the page (or the part of it that has lights) once. Without React, import th
 - A status light blinks only while it is near the screen, and its fades step at about 30 frames a second (about 21 frames in 3 seconds).
 - Up to six lights reach any one wall: the nearest six.
 - Light pools, card shadows and rivet glints are pre-drawn and only slide (transform) and fade (opacity).
-- With reduced motion turned on there is no flicker or blink and nothing waits to fill: lights are simply on. Without WebGL, walls keep the static drawing (`jw-wall--static`, server-rendered) in their own colors.
+- With reduced motion turned on there is no flicker or blink and nothing waits to fill: lights are simply on. Without WebGL, or where WebGL is drawn in software, walls keep the static drawing (`jw-wall--static`, server-rendered) in their own colors. Walls are set up after load, while the page is idle.
 - It also plays the once-only flicker for any `data-jw-flicker` element, and fills Meter and LightTube blocks marked `data-jw-reveal` on first view.
 - The flicker length is `duration-flicker`.
 - It reads the light colors (`light-*`) and distances (`lamp-reach`, `lamp-height` …) from the tokens, and day or night from `data-theme` on `<html>`.

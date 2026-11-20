@@ -9,6 +9,8 @@
 // Once per page:
 //   - reduced motion: with prefers-reduced-motion on, no animation keeps running (no flicker, blink or ping)
 //   - no WebGL: with WebGL off, the page still renders, walls fall back (.jw-wall--static) and nothing throws
+// The browser draws WebGL in software (SwiftShader), where the site keeps walls static; this check sets localStorage 'jw-gl' to
+// 'any' so the walls are lit and the lit path is what gets checked.
 //   - cost: JavaScript bytes, total bytes, long tasks while scrolling, and animation frames while the page sits still
 // Exit code 1 if any hard check fails. Cost numbers are reported against the budget in BUILD_BRIEF.md.
 const fs = require('fs'), path = require('path');
@@ -23,6 +25,8 @@ let hard = 0; const fail = m => { hard++; console.log('FAIL ' + m); };
 (async () => {
   const gl = ['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist'];
   const b = await chromium.launch({ args: gl });
+  // lighting.js keeps walls static where WebGL is drawn in software, as it is here; light them anyway so the lit path is checked
+  const newContext = b.newContext.bind(b); b.newContext = async (o) => { const c = await newContext(o); await c.addInitScript(() => { try { localStorage.setItem('jw-gl', 'any'); } catch (e) {} }); return c; };
   for (const pg of pages) {
     const url = base.replace(/\/$/, '') + pg;
     for (const [vw, vh, label] of [[390, 844, 'phone'], [1280, 860, 'desktop']]) for (const theme of ['day', 'night']) {
