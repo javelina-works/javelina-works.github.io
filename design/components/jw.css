@@ -997,7 +997,8 @@ a.jw-pages__num:focus-visible { outline: none; box-shadow: var(--shadow-focus); 
    line or two at 17px. ImageCards (jw-imagecards): one column on phones, two from 641px, three from 1024px with --3.
    jw-imagecard__figure--contain shows a whole chart on the sunken ground instead of cropping it.
    jw-imagecards--mixed keeps every picture's own shape: from 1024px three columns, a --wide item spans two columns and
-   a --tall one two rows; below that one column, with tall pictures held to 520px.
+   a --tall one two rows; below that one column, with tall pictures held to 520px. Cards stretch to their row (the
+   text block takes the spare height), so the bottoms of a row, and of the tall card and its neighbours, line up.
    jw-imagecard--link: the heading's link stretches over the card; hover turns the edge line-strong and underlines the
    heading, focus rings the card. jw-imagecard__more: "Learn more" in land with an arrow. --compact: no picture, an icon
    well (jw-iconcard__icon) and IconCard's padding. No motion. */
@@ -1033,7 +1034,6 @@ a.jw-pages__num:focus-visible { outline: none; box-shadow: var(--shadow-focus); 
 }
 @media (min-width: 1024px) {
   .jw-imagecards.jw-imagecards--3, .jw-imagecards.jw-imagecards--mixed { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .jw-imagecards--mixed { align-items: start; }
   .jw-imagecards--mixed .jw-imagecards__item--wide { grid-column: span 2; }
   .jw-imagecards--mixed .jw-imagecards__item--tall { grid-row: span 2; }
   .jw-imagecards--mixed .jw-imagecards__item--tall .jw-figure__media img { width: 100%; max-height: none; }
