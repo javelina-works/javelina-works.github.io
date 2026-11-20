@@ -10,6 +10,8 @@ export function getStaticPaths() {
 }
 
 const meta = {
+  // The page's name (its Tools menu label): the last item of the JSON-LD breadcrumb. metaTitle stays the <title>.
+  title: "Free ballpark estimate",
   metaTitle: "Brush Clearing Cost Estimate, West Texas | Javelina Works",
   metaDescription:
     "Type your West Texas ranch address, or stand on it, and get a measured budget range for clearing mesquite and cedar, free, in about a minute.",
@@ -17,7 +19,7 @@ const meta = {
 };
 ---
 
-<Base {...meta} sectionSpacing="md">
+<Base {...meta}>
   <PageHeader
     eyebrow="Free · about a minute"
     title="What would it cost to clear your brush?"

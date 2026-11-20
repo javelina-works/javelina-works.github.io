@@ -185,9 +185,10 @@ html:has(.jw-nav--sticky) { scroll-padding-top: calc(44px + 2 * var(--space-3) +
 
 /* ---- field ---- */
 .jw-field { display: flex; flex-direction: column; gap: 6px; }
-.jw-field__label { font-size: 15px; font-weight: 500; line-height: 1.4; color: var(--text); }
-.jw-field__hint { font-size: 13.5px; line-height: 1.5; color: var(--text-muted); }
-.jw-field__error { font-size: 13.5px; line-height: 1.5; color: var(--error); }
+/* label, hint and error words are all 16px: body copy is never under 16px, and these are read to fill the form */
+.jw-field__label { font-size: 16px; font-weight: 500; line-height: 1.4; color: var(--text); }
+.jw-field__hint { font-size: 16px; line-height: 1.5; color: var(--text-muted); }
+.jw-field__error { font-size: 16px; line-height: 1.5; color: var(--error); }
 .jw-input-wrap { position: relative; display: flex; align-items: center; }
 .jw-input { width: 100%; height: 44px; padding: 0 12px; box-sizing: border-box; border-radius: var(--radius-sm); border: 1px solid var(--line-strong); background: var(--surface-input);
   color: var(--text); font-family: var(--font-body); font-size: 16px; transition: border-color var(--duration-hover) ease, box-shadow var(--duration-hover) ease; }
@@ -421,6 +422,9 @@ html:has(.jw-nav--sticky) { scroll-padding-top: calc(44px + 2 * var(--space-3) +
   .jw-section--tight { padding-top: var(--space-10); padding-bottom: var(--space-10); }
   .jw-section--none { padding-top: 0; padding-bottom: 0; }
 }
+/* Two sections on the plain ground in a row share one gap (the first one's bottom padding) instead of stacking both.
+   Walls and bands keep their own padding. Specificity is one class, so a page that sets a section's top padding wins. */
+:where(.jw-section:not(.jw-wall, .jw-section--band, .jw-section--none)) + .jw-section:where(:not(.jw-wall, .jw-section--band, .jw-section--none)) { padding-top: 0; }
 
 /* ---- skip link (SkipLink): first in the tab order, out of sight until it has focus, then a small shell plate ---- */
 .jw-skip { position: fixed; z-index: 60; left: var(--space-4); top: var(--space-2); display: inline-flex; align-items: center; min-height: 44px; padding: 0 var(--space-4);
@@ -642,8 +646,8 @@ html:has(.jw-nav--sticky) { scroll-padding-top: calc(44px + 2 * var(--space-3) +
    One choice from a few: a fieldset whose legend reads like a Field label, and Checkbox-style rows. The dot is neutral:
    checked, a thick ink ring around the input color (never orange or green). */
 .jw-radios { min-width: 0; margin: 0; padding: 0; border: 0; }
-.jw-radios__legend { padding: 0 0 2px; font-family: var(--font-body); font-size: 15px; font-weight: 500; line-height: 1.4; color: var(--text); }
-.jw-radios__hint { display: block; margin: 0 0 2px; font-size: 13.5px; line-height: 1.5; color: var(--text-muted); }
+.jw-radios__legend { padding: 0 0 2px; font-family: var(--font-body); font-size: 16px; font-weight: 500; line-height: 1.4; color: var(--text); }
+.jw-radios__hint { display: block; margin: 0 0 2px; font-size: 16px; line-height: 1.5; color: var(--text-muted); }
 .jw-radios__list { display: flex; flex-direction: column; }
 .jw-radios--inline .jw-radios__list { flex-direction: row; flex-wrap: wrap; gap: 0 var(--space-6); }
 .jw-radio__dot { appearance: none; -webkit-appearance: none; flex: none; width: 20px; height: 20px; margin: 2px 0 0; box-sizing: border-box;
@@ -697,14 +701,14 @@ html:has(.jw-nav--sticky) { scroll-padding-top: calc(44px + 2 * var(--space-3) +
 .jw-slider__input:active::-moz-range-thumb { cursor: grabbing; background: radial-gradient(circle closest-side, var(--surface) 0, var(--surface) 9px, var(--text) 9.5px, var(--text) 12px, var(--selected) 12.5px, var(--selected) 15px, var(--selected-hairline) 15.5px, var(--selected-hairline) 16.5px, rgba(0,0,0,0) 17px); }
 .jw-slider__input:disabled { opacity: .5; cursor: not-allowed; }
 .jw-slider__scale { display: flex; justify-content: space-between; gap: var(--space-3); font-family: var(--font-mono); font-size: 11.5px; line-height: 1.35; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
-.jw-slider__hint { font-size: 13.5px; line-height: 1.5; color: var(--text-muted); }
+.jw-slider__hint { font-size: 16px; line-height: 1.5; color: var(--text-muted); }
 
 /* ==== SegmentedControl (added by shared) ====
    One choice from two to five short options, side by side in a sunken well (like the ThemeToggle). Real radio inputs, so
    the arrow keys move the choice and it works without JavaScript. The chosen option is a paper plate with the marigold
    selected ring. Pages that drive their own state can use <button aria-pressed> options (jw-seg__btn) instead. */
 .jw-seg { min-width: 0; margin: 0; padding: 0; border: 0; }
-.jw-seg__legend { padding: 0 0 6px; font-family: var(--font-body); font-size: 15px; font-weight: 500; line-height: 1.4; color: var(--text); }
+.jw-seg__legend { padding: 0 0 6px; font-family: var(--font-body); font-size: 16px; font-weight: 500; line-height: 1.4; color: var(--text); }
 .jw-seg__track { display: inline-flex; flex-wrap: wrap; gap: 3px; max-width: 100%; box-sizing: border-box; padding: 3px; border-radius: var(--radius-sm); background: var(--surface-sunken); box-shadow: var(--shadow-well); }
 .jw-seg__opt { position: relative; display: inline-flex; margin: 0; }
 .jw-seg__input { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; appearance: none; }

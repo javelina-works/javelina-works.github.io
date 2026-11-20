@@ -2,7 +2,7 @@
 
 One choice from two to five options, each with a few words: a tool's "Main brush" or "Ground underneath". New for the site; it extends the Checkbox.
 
-- A `<fieldset>` with its `<legend>` styled as a Field label (15px Figtree 500 in `text`), an optional hint under it, then one row per option.
+- A `<fieldset>` with its `<legend>` styled as a Field label (16px Figtree 500 in `text`), an optional hint under it, then one row per option.
 - Each row is the Checkbox row (`jw-check`): the whole row is the `<label>` and takes the tap; it is at least 44px tall; the words are 16px `text-body`. A row can carry a hint of its own.
 - The dot (`jw-radio__dot`) is 20px round with a `line-strong` edge on `surface-input`. Checked, a 6px ink (`text`) ring closes around a small `surface-input` center. It stays neutral by day and at night: never orange (action) or green (running, kept).
 - Focus draws `shadow-focus` on the dot. Disabled fades to .55. An error goes under the rows in `error` words.

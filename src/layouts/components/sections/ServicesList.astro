@@ -52,8 +52,7 @@ const titleId = titleHtml ? "more-services-title" : undefined;
 
 <style is:global>
   .jw-section.svc-list--tight { padding-top: 0; }
-  /* On the services pages (every one ends with this list), two sections on the plain ground in a row share one gap
-     (space-20, space-14 on phones) instead of stacking both paddings. Walls and bands keep theirs. */
-  main:has(.svc-list) > .jw-section:not(.jw-wall, .jw-section--band, .jw-section--none) + .jw-section:not(.jw-wall, .jw-section--band, .jw-section--none) { padding-top: 0; }
+  /* Two ground sections in a row share one gap (jw.css PageLayout). On the services pages the same goes for a ground
+     section followed by the steps or a showcase band, whose first container carries the top padding. */
   main:has(.svc-list) > .jw-section:not(.jw-wall, .jw-section--band, .jw-section--none) + :is(.svc-steps, .svc-showcase--band) > .jw-container:first-child { padding-top: 0; }
 </style>

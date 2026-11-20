@@ -4,6 +4,7 @@ How a page is laid out: the **container** (the page width and side gutters) and 
 
 - `jw-container`: centered, 1200px of content (`--narrow` 760px for a reading column or a form, `--wide` 1280px), side gutters `space-4` (16px) on phones and `space-6` from 641px, never under the safe-area inset.
 - `jw-section`: padding `space-20` top and bottom (`space-14` on phones); `jw-section--tight` space-10 (space-8); `jw-section--none` none.
+- Two ground sections in a row share one gap: the second one's top padding is 0, so the space between them is the first one's bottom padding, not both stacked. Walls and bands keep their own padding. The rule has one class of specificity, so a page can still set a section's top padding itself.
 - Tones:
   - ground: the page `bg`. Add `data-jw-pool="ground"` to let the lamp's light pool faintly across it.
   - sheen bands: `jw-surface jw-surface--band-shell` or `--band-agave` plus `jw-section--band`, which makes the band full width and square (its gutters come from the container inside) and keeps the band's sheen, streak and grain. Bands take `data-jw-pool="band"`. They hold cards, never running text.

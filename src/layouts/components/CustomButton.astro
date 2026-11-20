@@ -1,28 +1,18 @@
 ---
 /**
- * Example Usage
-
-  // Default button (anchor tag)
-  <CustomButton label="Visit Home" url="/" />
-
-  // Outline variant linking externally
-  <CustomButton variant="outline" label="Astro Docs" url="https://astro.build" />
-
-  // Text variant with hover effect
-  <CustomButton variant="text" hoverEffect="text-flip" label="Learn More" url="/learn" />
-
-  // Button tag for form actions
-  <CustomButton tag="button" label="Submit" onClick={() => alert('Submitted!')} />
-
-  // Creative hover effect with fill variant
-  <CustomButton hoverEffect="creative-fill" label="Explore" url="/explore" />
-
-  // Magnetic text flip with outline variant
-  <CustomButton hoverEffect="magnetic-text-flip" variant="outline" label="Join Now" url="/join" />
+ * CustomButton: the MDX shortcode for a button (AutoImported in astro.config.mjs), on the design system's Button.
+ * Same props as before; the old theme's hover effects (`hoverEffect`) are ignored. The variant maps onto non-glowing
+ * Buttons, because the header lamp is a page's one glowing action: fill → shell, outline → ghost, text → quiet.
+ *
+ *   <CustomButton label="Visit Home" url="/" />
+ *   <CustomButton variant="outline" label="Astro Docs" url="https://astro.build" />
+ *   <CustomButton tag="button" label="Submit" />
+ *
+ * The URL goes through getLocaleUrlCTM; an external link opens in a new tab with rel="noopener noreferrer" unless the
+ * content sets its own. A "learn more" / "read more" label gets the `title` as screen-reader text, as before.
  */
-
+import Button from "@/components/jw/Button.astro";
 import { getLocaleUrlCTM } from "@/lib/utils/i18nUtils";
-import CustomButtonContent from "./CustomButtonContent.astro";
 import type { sharedButton, sharedButtonTag } from "@/sections.schema";
 import type { z } from "astro/zod";
 
@@ -36,7 +26,7 @@ const {
   url = "#",
   rel,
   target,
-  hoverEffect = "text-flip",
+  hoverEffect: _hoverEffect,
   variant = "fill",
   class: className,
   ...rest
@@ -44,66 +34,29 @@ const {
 
 if (!enable) return;
 
-const isCreativeHoverEffect = hoverEffect === "creative-fill";
-const isTextFlipHoverEffect = hoverEffect === "text-flip";
-const isMagneticHoverEffect = hoverEffect === "magnetic";
-const isMagneticTextFlipHoverEffect = hoverEffect === "magnetic-text-flip";
-
-const resolvedRel = url.startsWith("http")
-  ? rel || "noopener noreferrer"
-  : rel || undefined;
-const resolvedTarget = url.startsWith("http")
-  ? target || "_blank"
-  : target || undefined;
-
-const buttonClasses = [
-  "btn",
-  {
-    "creative-hover-anim": isCreativeHoverEffect,
-    "btn-outline": variant === "outline",
-    "btn-primary": variant === "fill",
-    "btn-text has-icon-moving-animation no-underline": variant === "text",
-  },
-
-  (isTextFlipHoverEffect || isMagneticTextFlipHoverEffect) &&
-    "text-flip-hover-anim",
-  (isMagneticHoverEffect || isMagneticTextFlipHoverEffect) &&
-    "magnetic-hover-anim",
-  className,
-];
+const jwVariant = variant === "outline" ? "ghost" : variant === "text" ? "quiet" : "shell";
+const external = url.startsWith("http");
+const resolvedRel = external ? rel || "noopener noreferrer" : rel || undefined;
+const resolvedTarget = external ? target || "_blank" : target || undefined;
+const vague = /learn more|read more/i.test(label ?? "");
 ---
 
 {
   tag === "a" ? (
-    <a
+    <Button
+      variant={jwVariant}
+      href={getLocaleUrlCTM(url, Astro.currentLocale)}
       rel={resolvedRel}
       target={resolvedTarget}
-      class:list={buttonClasses}
-      href={getLocaleUrlCTM(url, Astro.currentLocale)}
+      class={className}
       {...rest}>
-      <CustomButtonContent
-        {...{
-          label,
-          title,
-          variant,
-          isCreativeHoverEffect,
-          isTextFlipHoverEffect,
-          isMagneticTextFlipHoverEffect,
-        }}
-      />
-    </a>
+      <Fragment set:html={label} />
+      {vague && title && <span class="jw-sr-only" set:html={title} />}
+    </Button>
   ) : (
-    <button class:list={buttonClasses} {...rest}>
-      <CustomButtonContent
-        {...{
-          label,
-          title,
-          variant,
-          isCreativeHoverEffect,
-          isTextFlipHoverEffect,
-          isMagneticTextFlipHoverEffect,
-        }}
-      />
-    </button>
+    <Button variant={jwVariant} class={className} {...rest}>
+      <Fragment set:html={label} />
+      {vague && title && <span class="jw-sr-only" set:html={title} />}
+    </Button>
   )
 }

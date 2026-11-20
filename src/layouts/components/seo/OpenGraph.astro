@@ -15,6 +15,7 @@ let {
   twitterCard = config.opengraph.twitterCard,
   ogType = config.opengraph.ogType,
   ogLocale = config.opengraph.ogLocale,
+  status,
 } = Astro.props;
 
 // Get the possible value for title and description and remove any line breaks and extra spaces
@@ -34,8 +35,8 @@ description = removeWhitespace(description);
 // The share image as an absolute URL to a real built file (content paths under /images/ often live in src/assets)
 const imageUrl = await shareImageUrl(image, Astro);
 
-// Generate the full URL for the current page
-const pageUrl = new URL(Astro.url.pathname, Astro.site);
+// Generate the full URL for the current page. The 404 page has none of its own (its path 301s), so it names none.
+const pageUrl = status === 404 ? undefined : new URL(Astro.url.pathname, Astro.site);
 
 // Add tagline & separator to title
 if (!disableTagline) {

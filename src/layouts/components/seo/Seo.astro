@@ -19,6 +19,11 @@ let {
 title = plainify(metaTitle ? metaTitle : title ? title : config.site.title);
 keywords = keywords.join(", ");
 
+// A page that asks not to be indexed (404, /career/, /changelog/, /testimonial/) names no canonical: there is no
+// indexed URL for it to point at, and the 404's own URL 301s. Read from the page's own robots, before the preview
+// override below, so deploy previews keep every page's canonical as production has it.
+const pageNoindex = /noindex/i.test(String(robots ?? ""));
+
 // Netlify sets CONTEXT at build time. Anything but the production deploy
 // (deploy previews, branch deploys such as staging) must stay out of search
 // results; netlify.toml adds the matching X-Robots-Tag header.
@@ -43,16 +48,18 @@ description = plainify(
       : config.site.description,
 );
 
-canonical = getLocaleUrlCTM(
-  new URL(Astro.url.href, Astro.site).href,
-  Astro.currentLocale,
-);
+canonical = pageNoindex
+  ? undefined
+  : getLocaleUrlCTM(
+      new URL(Astro.url.href, Astro.site).href,
+      Astro.currentLocale,
+    );
 
 const alternateTags: Array<{ hreflang: string; href: string }> = [];
 // If multilingual is enabled, add rel alternate link tags
 if (
   config.settings.multilingual.enable &&
-  !canonical.includes("blog/category/")
+  !canonical?.includes("blog/category/")
 ) {
   supportedLanguages.forEach((lang) => {
     alternateTags.push({

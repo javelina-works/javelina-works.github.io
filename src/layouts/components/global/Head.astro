@@ -11,8 +11,6 @@ import ThemeInit from "@/components/jw/ThemeInit.astro";
 // preload is the download the page then uses: Barlow for headings and the nav, Figtree for body copy.
 import barlowMedium from "../../../../design/fonts/Barlow-Medium.woff2?url";
 import figtreeRegular from "../../../../design/fonts/Figtree-Regular.woff2?url";
-// dayOnly (Base prop, temporary): the page stays by day, so no theme script and only the day theme-color.
-const { dayOnly = false } = Astro.props;
 ---
 
 <head>
@@ -22,7 +20,7 @@ const { dayOnly = false } = Astro.props;
   <meta charset="UTF-8" />
   {import.meta.env.PROD && <StaleChunkReload />}
   <!-- Day or night before first paint: the saved choice, else the device's setting. Runs before any stylesheet. -->
-  {!dayOnly && <ThemeInit />}
+  <ThemeInit />
   <meta http-equiv="Content-Language" content={Astro.currentLocale} />
   <meta
     name="viewport"
@@ -30,16 +28,8 @@ const { dayOnly = false } = Astro.props;
   />
   <SEO {...Astro.props} />
   <!-- Browser chrome matches the nav bar: paper by day, blue-black shell at night (tokens surface and shell-2). -->
-  {
-    dayOnly ? (
-      <meta name="theme-color" content="#FAF9F6" />
-    ) : (
-      <>
-        <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FAF9F6" />
-        <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1D2232" />
-      </>
-    )
-  }
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FAF9F6" />
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1D2232" />
   <meta name="generator" content={Astro.generator} />
   {
     config.head?.content && (

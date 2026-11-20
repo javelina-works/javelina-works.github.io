@@ -71,10 +71,12 @@ const current = (href?: string) => (isCurrent(href) ? "page" : undefined);
 
 <nav class:list={["jw-nav", sticky && "jw-nav--sticky", className]} aria-label="Main" data-jw-nav>
   <a class="jw-nav__brand" href={homeHref}>
-    <img class="jw-logo--light" src={logos.light.mark} alt="" width="32" height="24" style="height:24px;width:auto" loading="lazy" decoding="async" />
-    <img class="jw-logo--dark" src={logos.dark.mark} alt="" width="32" height="24" style="height:24px;width:auto" loading="lazy" decoding="async" />
-    <img class="jw-logo--light jw-nav__wordmark" src={logos.light.wordmark} alt="Javelina Works" width="152" height="13" style="height:13px;width:auto" loading="lazy" decoding="async" />
-    <img class="jw-logo--dark jw-nav__wordmark" src={logos.dark.wordmark} alt="Javelina Works" width="152" height="13" style="height:13px;width:auto" loading="lazy" decoding="async" />
+    {/* Eager, so the bar has its logo on first paint (lazy ones are only fetched after layout). All four load; the
+        hidden pair is never boosted, so it stays at the browser's low image priority. */}
+    <img class="jw-logo--light" src={logos.light.mark} alt="" width="32" height="24" style="height:24px;width:auto" />
+    <img class="jw-logo--dark" src={logos.dark.mark} alt="" width="32" height="24" style="height:24px;width:auto" />
+    <img class="jw-logo--light jw-nav__wordmark" src={logos.light.wordmark} alt="Javelina Works" width="152" height="13" style="height:13px;width:auto" />
+    <img class="jw-logo--dark jw-nav__wordmark" src={logos.dark.wordmark} alt="Javelina Works" width="152" height="13" style="height:13px;width:auto" />
   </a>
   <button type="button" class="jw-nav__menu" aria-expanded="false" aria-controls={`${id}-links`}>Menu</button>
   <div class="jw-nav__links" id={`${id}-links`}>

@@ -7,14 +7,8 @@
 import NavBar from "@/components/jw/NavBar.astro";
 import ThemeToggle from "@/components/jw/ThemeToggle.astro";
 import { primaryNav, moreNav, lampAction } from "@/config/siteNav";
-
-interface Props {
-  /** false on a page that stays by day (Base dayOnly), so there is no switch that would do nothing */
-  themeToggle?: boolean;
-}
-const { themeToggle = true } = Astro.props;
 ---
 
 <NavBar sticky lamp links={primaryNav} moreLinks={moreNav} action={lampAction}>
-  {themeToggle && <ThemeToggle />}
+  <ThemeToggle />
 </NavBar>

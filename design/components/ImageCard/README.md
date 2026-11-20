@@ -39,7 +39,7 @@ A point that comes with a picture: a paper card with the picture at the top, the
 ```
 
 ## Astro
-- `<ImageCards items={[{ src, alt, dim?, fit?: "cover" | "contain", titleHtml, textHtml?, href? }]} [level] [castShadow] />` from `src/layouts/components/services/ImageCards.astro`. It picks the grid from the count and marks very tall pictures and wide `contain` charts itself. FeatureShowcase and FeaturesSection render it from content.
+- `<ImageCards items={[{ src, alt, dim?, fit?: "cover" | "contain", titleHtml, textHtml?, href? }]} [level] [castShadow] />` from `src/layouts/components/services/ImageCards.astro`. It picks the grid from the count and marks very tall pictures and wide `contain` charts itself. FeatureShowcase renders it from content.
 - `src/layouts/components/cards/ServiceCard.astro`: a link card with a 16:9 picture and "Learn more", or `compact` with the service's icon.
 
 ## Rules

@@ -92,7 +92,7 @@ const servicesCollection = defineCollection({
           }),
         ),
       })
-      .optional(), // image-led card grid right under the header (FeaturesSection)
+      .optional(), // the first point sits beside the hero, the rest form the glance row (ServiceSingle)
     pillars: serviceIconCards, // icon cards rendered first (BenefitsSection)
     showcases: z
       .array(

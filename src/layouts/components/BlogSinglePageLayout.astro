@@ -75,12 +75,6 @@ const heroTall = hero ? hero.height > hero.width : false;
 </article>
 
 <style>
-  /* Text at its real weight: the old global rule (legacy base.css) forces grayscale antialiasing on <html>, which
-     draws Figtree noticeably thinner on a Mac. The article sets it back to the browser's normal rendering. */
-  .article {
-    -webkit-font-smoothing: auto;
-    -moz-osx-font-smoothing: auto;
-  }
   .article__layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr);

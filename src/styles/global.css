@@ -4,7 +4,7 @@
  * can never hard-code one. Look and type come from the design system: design/tokens/tokens.css and
  * design/components/jw.css, which Base.astro loads unlayered, so they win over every utility here.
  *
- * Layers: theme < base (preflight, site base) < components (legacy) < utilities. Unlayered CSS (tokens, jw) beats all.
+ * Layers: theme < base (preflight, site base) < components < utilities. Unlayered CSS (tokens, jw) beats all.
  * Use utilities around jw- components for layout; never put a color, font or radius utility on a jw- element.
  */
 @layer theme, base, components, utilities;
@@ -14,10 +14,6 @@
 
 /* The token map: no utility can emit a hard-coded color, font, radius or shadow (see the file). */
 @import "./tailwind-theme.css";
-
-/* TEMPORARY: the styles the not-yet-rebuilt pages still use (old components, Preline state variants, .prose-styles).
-   Delete this import, legacy.css and the files it pulls in once the last old page is rebuilt. */
-@import "./legacy.css";
 
 /* Site base. jw.css (unlayered) sets the body type and colors: Figtree 17px on --bg in --text. */
 @layer base {
@@ -34,5 +30,14 @@
   /* main takes focus from the skip link (tabindex="-1"); it needs no ring of its own */
   main:focus {
     outline: none;
+  }
+  /* Tailwind 4's preflight gives buttons the arrow cursor; anything pressable shows the hand */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  /* a border drawn with no color of its own is a hairline in the line token, not the text color */
+  * {
+    border-color: var(--line);
   }
 }

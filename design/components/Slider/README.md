@@ -5,7 +5,7 @@ A value picked along a scale, with the number always in view: brush cover, rainf
 - **Head:** the label in IBM Plex Mono (11.5px, uppercase, tracked, `text-body`) on the left, the readout on the right: the number in Barlow 22px `text` with tabular figures, its unit in mono `text-muted`.
 - **Track:** an 8px well (`surface-sunken`, `shadow-well`, round ends), filled in ink (`text`) from the start up to the thumb. Ink, not orange: picking a value is not the page's action, and nothing on it glows.
 - **Thumb:** a 24px circle (`surface` center, 2.5px ink ring) inside a 44px hit area, so it takes a thumb or an unsteady hand. Focused from the keyboard, or held, it wears the marigold `selected` ring with its `selected-hairline` outside.
-- **Under it:** optional end labels in mono `text-muted`, and an optional hint (13.5px, like a Field hint).
+- **Under it:** optional end labels in mono `text-muted`, and an optional hint (16px, like a Field hint).
 - The input is 44px tall. The arrow keys, Page Up/Down, Home and End work (the browser's own range input).
 - A small script keeps the fill (`--jw-p`, 0 to 1), the readout and `aria-valuetext` ("18 %") in step as it moves. A page script that sets the value itself dispatches `input` afterwards. Without JavaScript the slider still works and submits; the readout and fill keep their first values.
 - Nothing animates, so there is nothing to stop under reduced motion.

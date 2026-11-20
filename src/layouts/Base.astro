@@ -28,34 +28,21 @@ type Props = JSONLDProps & {
   keywords?: string[]; // Array of strings
   disableTagline?: boolean;
   structuredData?: Props;
-  /** Top padding for the old (not yet rebuilt) sections. Rebuilt sections (jw- classes) set their own. */
-  sectionSpacing?: "md" | "lg";
-  /**
-   * TEMPORARY, for old pages whose own CSS hard-codes white panels (pricing and the three tools). The page always shows
-   * by day: no theme script, no ThemeToggle in the header, and a day-only theme-color. A saved night choice is kept for
-   * the other pages. Remove it when the page is rebuilt on the tokens.
-   */
-  dayOnly?: boolean;
 };
 
-// destructure frontmatter
-let { sectionSpacing = "lg", structuredData, dayOnly = false } = Astro.props;
-
-// Section spacing class (applies only to old sections; see src/styles/base.css)
-const sectionSpacingClass =
-  sectionSpacing === "md" ? "has-section-spacing-md" : "has-section-spacing-lg";
+const { structuredData } = Astro.props;
 ---
 
 <!doctype html>
 <html lang={config.settings.multilingual.defaultLanguage || "en"} data-theme="light">
-  <Head {...Astro.props} structuredData={structuredData} dayOnly={dayOnly}>
+  <Head {...Astro.props} structuredData={structuredData}>
     <slot name="head" slot="head" />
   </Head>
   <body>
     <SkipLink />
     <!-- The nav bar must stay a direct child of <body>: it is sticky, and carries the lamp down the page. -->
-    <SiteHeader themeToggle={!dayOnly} />
-    <main id="main" tabindex="-1" class:list={[sectionSpacingClass, Astro.props.class]}>
+    <SiteHeader />
+    <main id="main" tabindex="-1" class:list={[Astro.props.class]}>
       <slot />
     </main>
     <Footer />

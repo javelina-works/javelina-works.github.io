@@ -1,8 +1,7 @@
 ---
 // The 404 page on the design system (Netlify serves dist/404.html with status 404 for unknown paths).
 // robots: "noindex, follow" (was "index, follow"): a not-found page should never be indexed.
-// Its canonical and og:url still point at /404/, which 301s to /404. Seo.astro builds the canonical from the URL for
-// every page and has no way to leave it out; the fix belongs there (see log/company.md, Notes for the lead).
+// It has no canonical (Seo.astro leaves it out on noindex pages) and no og:url (OpenGraph.astro, status 404).
 import Base from "@/layouts/Base.astro";
 import NotFound from "@/components/company/NotFound.astro";
 ---

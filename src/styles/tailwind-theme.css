@@ -1,7 +1,7 @@
 /*
  * Tailwind's theme for this site: everything that could carry a hard-coded color, font, radius, shadow or animation is
  * cleared, the breakpoints and spacing follow the system, and the color, font, radius and shadow utilities that remain
- * write design tokens. Imported by global.css before legacy.css (whose old names are added after the clearing).
+ * write design tokens. Imported by global.css.
  */
 /* Clear every theme value that could carry a hard-coded color, font, radius, shadow or animation. */
 @theme {

@@ -159,10 +159,15 @@ if (headings) {
 
 <style>
   /* "Keep reading": the heading on the ground, then a shell band holding the three cards (a band holds cards, never
-     running text), then the ask's wall */
+     running text), then the ask's wall. The gap above it is the one the old global section rule gave it (80px, 128px
+     from 901px), kept as it was when that rule was deleted. */
   .keep-reading {
-    -webkit-font-smoothing: auto;
-    -moz-osx-font-smoothing: auto;
+    padding-top: var(--space-20);
+  }
+  @media (min-width: 901px) {
+    .keep-reading {
+      padding-top: calc(4 * var(--space-8));
+    }
   }
   .keep-reading :global(.jw-sechead) {
     margin-bottom: var(--space-8);
