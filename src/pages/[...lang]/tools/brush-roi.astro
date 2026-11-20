@@ -462,15 +462,16 @@ const start = { ...DEFAULTS, ...SCENARIOS[0].inputs };
       max-height: calc(100vh - 44px - 2 * var(--space-3) - 1px - 2 * var(--space-4));
       overflow-y: auto;
       overscroll-behavior: contain;
-      /* a control reached by Tab scrolls clear of the fade below */
-      scroll-padding-bottom: 80px;
+      /* a control reached by Tab scrolls clear of the strip below */
+      scroll-padding-bottom: 56px;
     }
   }
-  /* While the form has more below its bottom edge, a fade and a small chevron
-     sit on that edge; the page script sets has-more and drops it at the end.
-     The negative margin takes back the gap and its own height, so it adds
-     nothing to the scroll; the negative bottom carries it over the form's
-     bottom padding to the card's edge. Opacity only. */
+  /* While the form has more below its bottom edge, a solid strip with a small
+     chevron sits on that edge; the page script sets has-more and drops it at
+     the end. The strip is opaque, so a line under it is cut off, never dimmed
+     below 4.5:1. The negative margin takes back the gap and its own height, so
+     it adds nothing to the scroll; the negative bottom carries it over the
+     form's bottom padding to the card's edge. Opacity only. */
   .roi-form__more {
     display: none;
   }
@@ -481,10 +482,11 @@ const start = { ...DEFAULTS, ...SCENARIOS[0].inputs };
       bottom: calc(-1 * var(--space-6));
       z-index: 1;
       flex: none;
-      height: 80px;
-      margin: calc(-1 * (var(--space-6) + 80px)) calc(-1 * var(--space-6)) 0;
+      height: 40px;
+      margin: calc(-1 * (var(--space-6) + 40px)) calc(-1 * var(--space-6)) 0;
+      border-top: 1px solid var(--line);
       border-radius: 0 0 var(--radius-md) var(--radius-md);
-      background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, var(--surface) 62%);
+      background: var(--surface);
       pointer-events: none;
       opacity: 0;
       transition: opacity var(--duration-hover) ease-out;
@@ -1014,4 +1016,21 @@ const start = { ...DEFAULTS, ...SCENARIOS[0].inputs };
   ro.observe(form);
   for (const part of Array.from(form.children)) ro.observe(part);
   showMore();
+
+  // Opening "Grazing, money and cost share" near the form's foot would leave
+  // its answer below the edge: scroll the form so the opened part shows,
+  // never past its own row.
+  for (const d of Array.from(form.querySelectorAll("details"))) {
+    d.addEventListener("toggle", () => {
+      if (!d.open || form.scrollHeight <= form.clientHeight) return;
+      const top = d.getBoundingClientRect().top - form.getBoundingClientRect().top;
+      const over = top + d.offsetHeight - (form.clientHeight - 56);
+      if (over <= 0) return;
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      form.scrollTo({
+        top: form.scrollTop + Math.min(over, top - 16),
+        behavior: reduce ? "auto" : "smooth",
+      });
+    });
+  }
 </script>
