@@ -73,7 +73,7 @@ At night the page is lit by its own lights, and you can see where each one is fr
 ## Motion
 
 - The glow fades in over `duration-glow` and out over 1.5 times that. Other hover changes take `duration-hover`.
-- Treat markers pulse every `duration-ping`. The main action can take `attention: 'flicker'`: when it comes into view its light stutters on like a lamp warming up (`duration-flicker`), then settles. It plays once per page view and never on a click, hover or switch. A sun glint (`duration-glint`) and a night breath (`duration-breathe`) are the quieter options.
+- Treat markers pulse (`duration-ping`) twice when pointed at, focused or pressed, then rest, so a still page runs no frames. The main action can take `attention: 'flicker'`: when it comes into view its light stutters on like a lamp warming up (`duration-flicker`), then settles. It plays once per page view and never on a click, hover or switch. A sun glint (`duration-glint`) and a night breath (`duration-breathe`) are the quieter options.
 - One moving thing in view at a time. Animate only opacity and transform. Everything stops for reduced motion.
 
 ## Components
