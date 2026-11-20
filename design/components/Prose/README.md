@@ -10,7 +10,8 @@ Long-form text: articles, legal pages, the about page and service bodies, as the
 - Tables fill the column, wrap their cells to fit (never scroll the page sideways), use 16px tabular figures, a `line-strong` rule under the header and `line` between rows.
 - Figures: images get `radius-md` and dim to `photo-brightness-dark` at night; captions are 16px `text-muted`.
 - Code: `code` sits on `surface-sunken` in IBM Plex Mono (at least 16px); a code block scrolls inside itself. Shiki's light colors are held to `text` at night.
-- Footnotes (GFM): reference numbers are small superscript links; the Sources list sits under a `line` rule in 16px, its heading at `heading-3`, and long URLs wrap anywhere.
+- Footnotes (GFM): reference numbers are small superscript links, raised a fixed .45em (not `vertical-align: super`, which lifts them into the line above); the Sources list sits under a `line` rule in 16px, its heading at `heading-3`, and long URLs wrap anywhere. Each "back to the text" arrow is a 44px key with a `line` edge and space on either side, so it is a real tap target.
+- Tables in prose take a 1.55 line height, so footnote numbers in a cell have room.
 - Nothing in it is under 16px except the superscript reference numbers.
 
 ## Rules

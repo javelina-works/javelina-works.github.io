@@ -381,7 +381,7 @@ html:has(.jw-nav--sticky) { scroll-padding-top: calc(44px + 2 * var(--space-3) +
 .jw-prose blockquote > :last-child { margin-bottom: 0; }
 .jw-prose hr { height: 0; margin: var(--space-10) 0; border: 0; border-top: 1px solid var(--line); }
 /* tables wrap their cells to fit (no sideways scroll); figures are tabular */
-.jw-prose table { width: 100%; border-collapse: collapse; font-size: 16px; line-height: 1.45; font-variant-numeric: tabular-nums; }
+.jw-prose table { width: 100%; border-collapse: collapse; font-size: 16px; line-height: 1.55; font-variant-numeric: tabular-nums; }
 .jw-prose caption { margin-bottom: var(--space-2); text-align: start; color: var(--text-muted); }
 .jw-prose th, .jw-prose td { padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--line); text-align: start; vertical-align: top; overflow-wrap: anywhere; }
 .jw-prose th { color: var(--text); font-weight: 500; border-bottom-color: var(--line-strong); }
@@ -397,8 +397,9 @@ html:has(.jw-nav--sticky) { scroll-padding-top: calc(44px + 2 * var(--space-3) +
 /* Shiki writes inline colors for a light theme; hold the block on the system's well, and keep it readable at night */
 .jw-prose pre.astro-code { background-color: var(--surface-sunken) !important; }
 [data-theme="dark"] .jw-prose pre.astro-code, [data-theme="dark"] .jw-prose pre.astro-code span { color: var(--text) !important; }
-/* footnote references and the Sources list (GFM footnotes) */
-.jw-prose sup { font-size: .75em; line-height: 0; vertical-align: super; }
+/* footnote references and the Sources list (GFM footnotes). The number is raised a fixed .45em instead of
+   vertical-align: super, which lifted it into the line above (most of all in table cells). */
+.jw-prose sup { position: relative; top: -.45em; font-size: .75em; line-height: 0; vertical-align: baseline; }
 .jw-prose sup a { padding: 0 .1em; text-underline-offset: .15em; }
 .jw-prose .footnotes { margin-top: var(--space-14); padding-top: var(--space-6); border-top: 1px solid var(--line); font-size: 16px; line-height: 1.5; }
 .jw-prose .footnotes h2 { margin: 0 0 var(--space-4); font-size: 22px; line-height: 1.18; }
@@ -406,7 +407,11 @@ html:has(.jw-nav--sticky) { scroll-padding-top: calc(44px + 2 * var(--space-3) +
 .jw-prose .footnotes li { margin: 0 0 var(--space-3); }
 .jw-prose .footnotes p { margin: 0; }
 .jw-prose .footnotes a { overflow-wrap: anywhere; }
-.jw-prose .data-footnote-backref { margin-left: .2em; text-decoration: none; }
+/* "Back to the text" arrows: each one a 44px key with a line edge and space between (like the page numbers), so a
+   finger lands on the one it means and an older reader sees it is a button */
+.jw-prose .footnotes a.data-footnote-backref { display: inline-block; min-width: 44px; min-height: 44px; margin: 0 var(--space-1); padding: 0 var(--space-1);
+  box-sizing: border-box; border: 1px solid var(--line); border-radius: var(--radius-sm); line-height: 42px; text-align: center; text-decoration: none; vertical-align: middle; }
+.jw-prose .footnotes a.data-footnote-backref:hover { border-color: var(--line-strong); background: var(--surface); }
 @media (max-width: 640px) {
   .jw-prose { font-size: 17px; }
   .jw-prose h2 { margin-top: var(--space-8); font-size: 24px; }
