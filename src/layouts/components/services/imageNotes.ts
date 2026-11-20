@@ -80,7 +80,7 @@ export const imageNotes: Record<string, ImageNote> = {
   },
   // remote tools (screenshots of the tools the page describes)
   "/images/tools/ballpark.png": {
-    alt: "Screenshot of the instant ballpark: a satellite map of Texas beside a panel that asks where the ranch is, with an address box and an I'm standing on it button.",
+    alt: "Screenshot of the instant ballpark: a satellite map of Texas that asks how you want to find your ranch, beside a panel with an address box, a Find it button and an I'm standing on it button.",
     dim: false,
     caption: "The instant ballpark, ready for an address.",
   },
@@ -90,7 +90,7 @@ export const imageNotes: Record<string, ImageNote> = {
     caption: "A ranch map made with the tool, for the 180-acre Fox Canyon sample.",
   },
   "/images/tools/brush-roi.png": {
-    alt: "Screenshot of the brush return calculator: settings for the place on the left, and results for grass, cattle, water, fire, wildlife and cost share on the right.",
+    alt: "Screenshot of the brush return calculator: settings for the place on the left, and what they give back in grazing value, grass, cattle, water and fire on the right.",
     dim: false,
     caption: "The calculator with example settings on the left and what they give back on the right.",
   },
