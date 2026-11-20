@@ -255,6 +255,7 @@ const start = { ...DEFAULTS, ...SCENARIOS[0].inputs };
               />
             </div>
           </Disclosure>
+          <div class="roi-form__more" aria-hidden="true"></div>
         </form>
 
         <div class="roi-results" aria-live="polite">
@@ -461,6 +462,52 @@ const start = { ...DEFAULTS, ...SCENARIOS[0].inputs };
       max-height: calc(100vh - 44px - 2 * var(--space-3) - 1px - 2 * var(--space-4));
       overflow-y: auto;
       overscroll-behavior: contain;
+      /* a control reached by Tab scrolls clear of the fade below */
+      scroll-padding-bottom: 80px;
+    }
+  }
+  /* While the form has more below its bottom edge, a fade and a small chevron
+     sit on that edge; the page script sets has-more and drops it at the end.
+     The negative margin takes back the gap and its own height, so it adds
+     nothing to the scroll; the negative bottom carries it over the form's
+     bottom padding to the card's edge. Opacity only. */
+  .roi-form__more {
+    display: none;
+  }
+  @media (min-width: 901px) {
+    .roi-form__more {
+      display: block;
+      position: sticky;
+      bottom: calc(-1 * var(--space-6));
+      z-index: 1;
+      flex: none;
+      height: 80px;
+      margin: calc(-1 * (var(--space-6) + 80px)) calc(-1 * var(--space-6)) 0;
+      border-radius: 0 0 var(--radius-md) var(--radius-md);
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, var(--surface) 62%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity var(--duration-hover) ease-out;
+    }
+    .roi-form__more::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: var(--space-3);
+      width: 10px;
+      height: 10px;
+      margin-left: -5px;
+      border-right: 2px solid var(--text-muted);
+      border-bottom: 2px solid var(--text-muted);
+      transform: rotate(45deg);
+    }
+    .roi-form.has-more .roi-form__more {
+      opacity: 1;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .roi-form__more {
+      transition: none;
     }
   }
   /* In the narrow form column a segmented well spans the column, and its options share the width (a long label
@@ -482,9 +529,25 @@ const start = { ...DEFAULTS, ...SCENARIOS[0].inputs };
   .roi-form .jw-seg__btn {
     padding: 0 var(--space-3);
   }
-  /* five presets: three over two, never four over one */
-  .roi-ticks .jw-seg__btn {
-    flex-basis: 30%;
+  /* Five presets: on one line when they fit, otherwise an even grid of three
+     columns (never four over one), so the second row lines up under the first. */
+  .roi-ticks {
+    container-type: inline-size;
+  }
+  .roi-form .roi-ticks .jw-seg__track {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .roi-form .roi-ticks .jw-seg__btn {
+    padding: 0;
+  }
+  @container (min-width: 440px) {
+    .roi-form .roi-ticks .jw-seg__track {
+      display: flex;
+    }
+    .roi-form .roi-ticks .jw-seg__btn {
+      padding: 0 var(--space-3);
+    }
   }
   .roi-group {
     display: flex;
@@ -935,4 +998,20 @@ const start = { ...DEFAULTS, ...SCENARIOS[0].inputs };
   });
   form.addEventListener("submit", (e) => e.preventDefault());
   applyScenario(SCENARIOS[0].id);
+
+  // From 901px the form sticks beside the answers and scrolls inside itself
+  // when it is taller than the screen. Say so: the fade at its foot shows
+  // while there is more below and goes at the end (CSS, opacity only).
+  // Checked on scroll and whenever the form or a part of it changes size
+  // (the window, the "Grazing, money and cost share" disclosure).
+  const showMore = () =>
+    form.classList.toggle(
+      "has-more",
+      form.scrollHeight - form.clientHeight - form.scrollTop > 2,
+    );
+  form.addEventListener("scroll", showMore, { passive: true });
+  const ro = new ResizeObserver(showMore);
+  ro.observe(form);
+  for (const part of Array.from(form.children)) ro.observe(part);
+  showMore();
 </script>
