@@ -14,7 +14,8 @@
                (empty) and fills on first view; if it is already in view it is simply shown full
 
    Server-render walls with jw-wall--static: they show their static drawing until their first WebGL frame (and keep it without
-   WebGL or JS).
+   WebGL or JS). A new size clears a canvas: a wall in view is lit again at once, and a wall out of view goes back to its static
+   drawing until its next frame, so a wall never shows black.
 
    Cost: each wall's relief is drawn once per size; after that a wall is lit again only when the light falling on it changes, and
    frames only run while something changes (scroll, resize, hover, a flicker, a blink fade, a tube filling, the day/night switch).
@@ -130,8 +131,13 @@ class Wall {
     gl.uniform2f(gl.getUniformLocation(this.pH, 'uSeed'), this.seed, this.seed * 0.37); gl.uniform1f(gl.getUniformLocation(this.pH, 'uStyle'), this.style);
     gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    // the new size cleared the canvas: light it again now if it is in view (no black frame), else show the static drawing
+    // until the wall's next frame (frame() takes jw-wall--static off again)
+    if (this.last && S && S.visible.has(this.el)) this.draw(...this.last);
+    else this.el.classList.add('jw-wall--static');
   }
   draw(lights, rect, day, sunC, params) {
+    this.last = [lights, rect, day, sunC, params];
     const gl = this.gl, u = this.u; gl.viewport(0, 0, this.w, this.h); gl.useProgram(this.pL);
     gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, this.tex); gl.uniform1i(u.uH, 0);
     gl.uniform2f(u.uRes, this.w, this.h); gl.uniform1f(u.uDpr, this.dpr);

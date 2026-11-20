@@ -131,8 +131,11 @@
       gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      if (this.last && S && S.visible.has(this.el)) this.draw(...this.last);
+      else this.el.classList.add("jw-wall--static");
     }
     draw(lights, rect, day, sunC, params) {
+      this.last = [lights, rect, day, sunC, params];
       const gl = this.gl, u = this.u;
       gl.viewport(0, 0, this.w, this.h);
       gl.useProgram(this.pL);
