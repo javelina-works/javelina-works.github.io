@@ -24,22 +24,43 @@ const canonical = new URL("/tools/ballpark/", Astro.site).href;
 
   <BallparkTool embed />
 
-  <p class="container bp-embed-credit">
-    <a
-      id="bpEmbedCredit"
-      href="https://javelinaworks.com/?utm_medium=embed&utm_campaign=ballpark"
-      target="_blank"
-      rel="noopener">
-      Estimate powered by Javelina Works
-      <span aria-hidden="true">&#8599;</span>
-      <span class="sr-only">(opens in a new tab)</span>
-    </a>
-  </p>
+  <!-- Our logo, and the partner's name when the slug is a known partner
+       (PARTNERS below). The logo is what a visitor remembers us by; it is
+       not a backlink, since this page is noindex, nofollow. -->
+  <footer class="container">
+    <div class="bp-embed-credit">
+      <a
+        id="bpEmbedCredit"
+        class="bp-embed-credit-logo"
+        href="https://javelinaworks.com/?utm_medium=embed&utm_campaign=ballpark"
+        target="_blank"
+        rel="noopener">
+        <img
+          src="/assets/logos/javelina-rust.svg"
+          alt=""
+          width="54"
+          height="40"
+          decoding="async"
+        />
+        <img
+          src="/assets/logos/wordmark-ink.svg"
+          alt="Javelina Works"
+          width="164"
+          height="14"
+          decoding="async"
+        />
+        <span class="sr-only">(opens in a new tab)</span>
+      </a>
+      <p id="bpEmbedPartner" class="bp-embed-credit-partner" hidden></p>
+    </div>
+  </footer>
 </Embed>
 
 <script is:inline>
-  // Credit the partner on the way out, same slug rule as the tool.
+  // Credit the partner on the way out (same slug rule as the tool), and
+  // name them in the footer when they are a known partner.
   (function () {
+    var PARTNERS = { brushbullet: "Brush Bullet" };
     try {
       var p = new URLSearchParams(location.search).get("partner");
       if (!p || !/^[a-z0-9-]{1,40}$/.test(p)) return;
@@ -47,6 +68,11 @@ const canonical = new URL("/tools/ballpark/", Astro.site).href;
       var u = new URL(a.href);
       u.searchParams.set("utm_source", p);
       a.href = u.href;
+      if (Object.prototype.hasOwnProperty.call(PARTNERS, p)) {
+        var line = document.getElementById("bpEmbedPartner");
+        line.textContent = "Provided in partnership with " + PARTNERS[p];
+        line.hidden = false;
+      }
     } catch (e) {}
   })();
 </script>
@@ -68,25 +94,44 @@ const canonical = new URL("/tools/ballpark/", Astro.site).href;
     max-width: 66ch;
   }
   .bp-embed-credit {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 24px;
+    margin-top: 24px;
     padding-top: 12px;
     padding-bottom: 16px;
-    font-size: 0.8rem;
-    text-align: right;
+    border-top: 1px solid var(--color-border-light);
   }
-  .bp-embed-credit a {
+  .bp-embed-credit-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    border-radius: 4px;
+  }
+  .bp-embed-credit-logo img {
+    display: block;
+    height: 40px;
+    width: auto;
+  }
+  .bp-embed-credit-logo img + img {
+    height: 14px;
+  }
+  .bp-embed-credit-logo:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 4px;
+  }
+  .bp-embed-credit-partner {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.45;
     color: var(--color-text-default);
-    text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-  .bp-embed-credit a:hover {
-    color: var(--color-primary);
   }
   @media (max-width: 640px) {
     .bp-embed-head h1 {
       font-size: 1.25rem;
-    }
-    .bp-embed-credit {
-      text-align: center;
     }
   }
 </style>
