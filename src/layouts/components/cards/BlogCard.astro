@@ -2,8 +2,9 @@
 /**
  * ArticleCard (design/components/ArticleCard/README.md), the article list's card: a paper card (Surface card) with
  * the article's picture cropped to 16:9, its category as an eyebrow, the title, the excerpt, the date and a "Read more"
- * cue. The title is the card's one link and it covers the whole card, so the card is one big tap target and one tab
- * stop. Its styles are the ArticleCard block in design/components/jw.css.
+ * cue (t-body-strong in land with a 20px right arrow, Lucide's ArrowRight: the same cue as the service cards' "Learn
+ * more", since both lead to pages on this site). The title is the card's one link and it covers the whole card, so the
+ * card is one big tap target and one tab stop. Its styles are the ArticleCard block in design/components/jw.css.
  *   layout: "vertical" (grids) or "horizontal" (the featured card on /articles/: picture beside the words from 900px)
  *   headingLevel: 2 on the list pages, 3 under a section heading ("Keep reading")
  * The picture's alt text comes from articleImages.ts (what it shows), not the title. Photos dim at night; survey images
@@ -12,7 +13,7 @@
 import type { Section } from "@/types";
 import { Picture } from "astro:assets";
 import { humanize, plainify } from "@/lib/utils/textConverter";
-import { getLocaleUrlCTM, useTranslations } from "@/lib/utils/i18nUtils";
+import { getLocaleUrlCTM } from "@/lib/utils/i18nUtils";
 import { findAssetImage } from "@/lib/utils/shareImage";
 import { articleImage } from "@/components/articles/articleImages";
 
@@ -26,8 +27,6 @@ interface Props {
   headingLevel?: 2 | 3;
   loading?: "lazy" | "eager";
 }
-
-const t = await useTranslations(Astro.currentLocale as string);
 
 const { content, layout = "vertical", headingLevel = 2, loading = "lazy", class: className, ...rest } = Astro.props;
 const { title, image, excerpt, date, categories } = content || ({} as any);
@@ -77,9 +76,9 @@ const sizes = wide
     {excerpt && <p class="jw-article-card__excerpt">{plainify(excerpt)}</p>}
     <div class="jw-article-card__foot">
       {published && <time class="jw-article-card__date" datetime={published.toISOString()}>{publishedLabel}</time>}
-      <span class="t-button jw-article-card__more" aria-hidden="true">
-        {t("common.readMore")}
-        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"></path></svg>
+      <span class="t-body-strong jw-article-card__more" aria-hidden="true">
+        Read more
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
       </span>
     </div>
   </div>
