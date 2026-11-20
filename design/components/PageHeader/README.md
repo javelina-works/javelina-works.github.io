@@ -4,7 +4,7 @@ The top of an inner page: an eyebrow, the page's one `<h1>`, a short intro, and 
 
 - On the ground by default: no card, the words straight on `bg`. Padding space-20 / space-14 (space-14 / space-10 on phones).
 - On a wall (`jw-pagehead--wall`, a LampWall): the words sit on a card (text never sits on a wall), up to 760px wide, padded space-8 (space-5 on phones), and its shadow moves with the lamp (`jw-lit` with `data-jw-shadow`). The wall is server-rendered `jw-wall--static` and keeps that drawing without WebGL.
-- Eyebrow: `jw-eyebrow` (mono label in `label`). Title: `t-display-m` (42px, 32px on phones) in `text`. Intro: 17px `text-body`, at most 60 characters a line.
+- Eyebrow: `jw-eyebrow` (mono label in `label`). Title: `t-display-m` (42px, 32px on phones) in `text`. Intro: 17px `text-body`, at most 60 characters a line, `text-wrap: pretty` so a last word never sits alone.
 
 ## Plain HTML
 ```html
