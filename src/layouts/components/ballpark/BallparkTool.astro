@@ -68,12 +68,12 @@ const brushLevels = [
       <div class="bp-sheetwrap open" id="bpSheetWrap">
         <div class="bp-sheet">
           <button type="button" class="bp-sheet-x" data-act="collapse" aria-label="Collapse"></button>
-          <h3 class="t-heading-3 bp-sheet-title">How do you want to find your ranch?</h3>
+          <h2 class="t-heading-3 bp-sheet-title">How do you want to find your ranch?</h2>
           <div class="bp-sheet-actions">
             <Button variant="burnt" mark={false} class="bp-wide" data-act="type">
               <Icons icon="Search" class="bp-ico" />Type the address
             </Button>
-            <Button variant="shell" class="bp-wide" data-act="here">
+            <Button variant="quiet" class="bp-wide" data-act="here">
               <Icons icon="LocateFixed" class="bp-ico" />I&rsquo;m standing on it
             </Button>
           </div>
@@ -146,7 +146,7 @@ const brushLevels = [
           aria-label="Address suggestions"
           hidden>
         </div>
-        <Button variant="shell" id="bpBtnHere" class="bp-wide bp-gap">
+        <Button variant="quiet" id="bpBtnHere" class="bp-wide bp-gap">
           <Icons icon="LocateFixed" class="bp-ico" />I&rsquo;m standing on it
         </Button>
         <button type="button" class="bp-option jw-choice bp-gap" id="bpBtnSample">
@@ -371,11 +371,32 @@ const brushLevels = [
   }
   /* Pseudo-fullscreen: the map fills the screen under the sticky nav bar
      (the bar, z 40, and the cookie notice, z 5000, stay on top). The card
-     and its section step above the rest of the page, below the bar. */
-  .bp-mapcard:has(.leaflet-pseudo-fullscreen),
-  .bp-stage:has(.leaflet-pseudo-fullscreen) {
+     and its section step above the rest of the page, below the bar. The
+     band keeps its clipping: the map is position: fixed and the band makes
+     no containing block, so nothing cuts it off, while the band's 1100px
+     light pools stay inside the page (no sideways scroll). */
+  .bp-mapcard:has(.leaflet-pseudo-fullscreen) {
     z-index: 30;
     overflow: visible;
+  }
+  .bp-stage:has(.leaflet-pseudo-fullscreen) {
+    z-index: 30;
+  }
+  /* The band clips its light pools without becoming a scroll container
+     (clip, not hidden), so the map card can stay in view beside a long
+     panel (below). Browsers without clip keep hidden. */
+  .jw-section.bp-stage {
+    overflow: clip;
+  }
+  /* From 901px, when the screen is tall enough to hold it, the map card stays
+     beside the panel while the results and the lead form scroll by, so "use
+     the map views" never points at a map that has scrolled away. 69px is the
+     sticky nav bar's height, as below. */
+  @media (min-width: 901px) and (min-height: 760px) {
+    .bp-toolwrap:not(.bp-embed) .bp-mapcard {
+      position: sticky;
+      top: calc(44px + 2 * var(--space-3) + 1px + var(--space-4));
+    }
   }
   html:has(.jw-nav--sticky) .bp-mapcard .leaflet-container.leaflet-pseudo-fullscreen {
     /* 69px: the nav bar's height (44px controls, space-3 above and below, a 1px rule), as in jw.css */
@@ -397,13 +418,20 @@ const brushLevels = [
   }
   .bp-mapcaption {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
-    gap: var(--space-3);
+    align-items: baseline;
+    gap: var(--space-1) var(--space-3);
     padding: var(--space-2) var(--space-4);
     border-top: 1px solid var(--line);
     font-size: 13.5px;
     line-height: 1.5;
     color: var(--text-muted);
+  }
+  /* the status line is instructions ("County parcel records didn't answer
+     ..."), so it is body size; only the image credit stays small */
+  #bpMapMsg {
+    font-size: 16px;
   }
   /* Survey imagery is a photo: it dims a little at night, like every photo. */
   [data-theme="dark"] .bp-mapcard .leaflet-tile-pane {
@@ -790,6 +818,13 @@ const brushLevels = [
   }
   .bp-sheetwrap.open {
     display: flex;
+  }
+  /* The open sheet's scrim covers the whole map, so the map's zoom and
+     full-screen buttons can't be used until it closes. They step out while it
+     is open (not tabbable, not half-covered by the sheet on a phone) and come
+     back with the map. */
+  .bp-mapcard:has(.bp-sheetwrap.open) .leaflet-top {
+    visibility: hidden;
   }
   .bp-sheet {
     position: relative;
