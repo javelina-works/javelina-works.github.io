@@ -114,11 +114,29 @@ const { embed = false } = Astro.props;
   // so a page that loops on an error can't pile them up.
   var earlyErrors = [];
   function holdError(e) {
-    if (earlyErrors && earlyErrors.length < 20)
-      earlyErrors.push(e.error || new Error(e.message || "Script error"));
+    if (!earlyErrors || earlyErrors.length >= 20) return;
+    if (e.error) {
+      earlyErrors.push([e.error, { $early_error: true }]);
+      return;
+    }
+    // No error object: a script from another origin (an extension, something
+    // the browser injects) failed and the browser hid the details. An Error
+    // made here takes its stack from this function, so it would blame this
+    // page. Drop the bare "Script error."; keep where the others came from.
+    if (/^(Script error\.?)?$/.test(e.message || "")) return;
+    earlyErrors.push([
+      new Error(e.message),
+      {
+        $early_error: true,
+        filename: e.filename,
+        lineno: e.lineno,
+        colno: e.colno,
+      },
+    ]);
   }
   function holdRejection(e) {
-    if (earlyErrors && earlyErrors.length < 20) earlyErrors.push(e.reason);
+    if (earlyErrors && earlyErrors.length < 20)
+      earlyErrors.push([e.reason, { $early_error: true }]);
   }
   window.addEventListener("error", holdError);
   window.addEventListener("unhandledrejection", holdRejection);
@@ -129,7 +147,7 @@ const { embed = false } = Astro.props;
     earlyErrors = null;
     for (var i = 0; i < held.length; i++) {
       try {
-        ph.captureException(held[i], { $early_error: true });
+        ph.captureException(held[i][0], held[i][1]);
       } catch (err) {}
     }
   }
