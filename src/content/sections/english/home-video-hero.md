@@ -28,7 +28,7 @@ buttons:
     hoverEffect: "creative-fill" # "text-flip", "creative-fill", "magnetic", "magnetic-text-flip"
     variant: "outline" # "fill", "outline", "text"
     video:
-      src: "oBrUMVt6W5Q" # YouTube video ID: "Treat the Plant, Not the Pasture: Precision Brush Control"
+      src: "eX9g-RZPfX8" # YouTube video ID: "Cedar Control in West Texas, One Plant at a Time"
       provider: youtube
       autoplay: true
       id: home-drone-promo-video

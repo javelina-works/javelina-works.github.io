@@ -12,14 +12,30 @@ work exactly as on [/tools/ballpark/](https://javelinaworks.com/tools/ballpark/)
 | The tool (shared with the public page) | `src/layouts/components/ballpark/BallparkTool.astro` |
 | Loader partners include                | `public/embed/ballpark.js`                           |
 | Local end-to-end test page             | `public/embed/demo.html`                             |
-| Framing + cache headers                | `netlify.toml` (`/embed/*`)                          |
+| Framing + cache headers                | `netlify.toml` (`/*`, `/embed/*`)                    |
+| Logo files in the footer               | `public/assets/logos/`                               |
 
 ## Partner snippet
 
 ```html
 <div data-javelina-ballpark data-partner="brushbullet"></div>
 <script src="https://javelinaworks.com/embed/ballpark.js" async></script>
+<p>
+  Brush estimate by
+  <a href="https://javelinaworks.com/tools/ballpark/">Javelina Works</a>
+</p>
 ```
+
+The credit line is the only part search engines count as a link from the
+partner's site to ours. Everything inside the iframe belongs to our own page,
+which is `noindex, nofollow`. So:
+
+- keep the line **outside** the div (the loader empties the div);
+- a plain link with our name as its text, without `rel="nofollow"`;
+- ask for it as a partner credit, not as a condition of using the tool. Google
+  treats links traded for goods or services as paid links.
+
+React sites can't use this snippet as is: see [React sites](#react-sites).
 
 The loader swaps the div's contents for an iframe (`width: 100%`, no border,
 `allow="geolocation"` for "I'm standing on it", `loading="lazy"`) and resizes
@@ -37,6 +53,82 @@ Optional attributes on the div:
 Without the loader, a fixed-height iframe of
 `https://javelinaworks.com/embed/ballpark/?partner=<slug>` also works (it just
 scrolls inside instead of growing).
+
+## React sites
+
+React never runs a `<script>` tag written inside a component, so on a React
+site (Lovable, Next.js, Vite) the snippet above shows an empty box. Use this
+component instead. It renders the box and the credit line as normal HTML, so
+the link is in the page's HTML for search engines, and loads the loader once
+in the browser. It copes with moving between pages and with React running
+effects twice in development.
+
+```tsx
+// Javelina Works brush-clearing estimate, for React sites.
+// Usage: <JavelinaBallpark partner="your-slug" />
+import { useEffect } from "react";
+
+const LOADER_SRC = "https://javelinaworks.com/embed/ballpark.js";
+
+declare global {
+  interface Window {
+    JavelinaBallpark?: { mount: () => void };
+  }
+}
+
+export function JavelinaBallpark({ partner }: { partner: string }) {
+  useEffect(() => {
+    // The loader already ran (an earlier page of this app): fill this box.
+    if (window.JavelinaBallpark) {
+      window.JavelinaBallpark.mount();
+      return;
+    }
+    // The loader is on its way (React runs effects twice in development);
+    // it fills every box on the page when it arrives.
+    if (document.querySelector(`script[src="${LOADER_SRC}"]`)) return;
+    const script = document.createElement("script");
+    script.src = LOADER_SRC;
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
+
+  return (
+    <div>
+      <div data-javelina-ballpark data-partner={partner} />
+      <p style={{ marginTop: "1rem", textAlign: "center" }}>
+        Brush estimate by{" "}
+        <a
+          href="https://javelinaworks.com/tools/ballpark/"
+          style={{ textDecoration: "underline" }}
+        >
+          Javelina Works
+        </a>
+      </p>
+    </div>
+  );
+}
+
+export default JavelinaBallpark;
+```
+
+On a Lovable site, the partner can paste the component above with this
+prompt (Brush Bullet's slug filled in):
+
+> Create `src/components/JavelinaBallpark.tsx` with exactly the code below,
+> unchanged. Render `<JavelinaBallpark partner="brushbullet" />` on the
+> calculator page in place of the current calculator, inside the page's
+> normal content container. Keep the "Javelina Works" credit a plain link,
+> without nofollow.
+
+## Credit inside the embed
+
+The embed ends with a footer: our logo (javelina mark and wordmark, linking
+to javelinaworks.com with `utm_source=<slug>`) and, for a known partner,
+"Provided in partnership with <Partner>". Known partners are the `PARTNERS`
+map in `src/pages/embed/ballpark.astro` (slug to display name); any other
+slug gets the logo alone. The logo files are rust and ink, made for light
+backgrounds, so `data-background="transparent"` suits light partner pages
+only.
 
 ## The `partner` parameter
 
@@ -82,8 +174,13 @@ document
    `frame-ancestors 'self' https://brushbullet.com https://*.brushbullet.com https://newpartner.com http://localhost:*`.
    Browsers refuse to render the iframe on any origin not listed. Keep the
    header to `frame-ancestors` only, so it can never block scripts or APIs.
-2. Give them the snippet with their slug in `data-partner`.
-3. If Turnstile ever starts failing in the embed, check the widget's hostname
+   Every other page sends `X-Frame-Options: SAMEORIGIN` (the `/*` rule), which
+   browsers ignore where `frame-ancestors` is present, so only `/embed/*` can
+   be framed by partners.
+2. Add their slug and display name to `PARTNERS` in
+   `src/pages/embed/ballpark.astro`, for the footer's partnership line.
+3. Give them the snippet (or the React component) with their slug.
+4. If Turnstile ever starts failing in the embed, check the widget's hostname
    list in Cloudflare: it validates the iframe's host (javelinaworks.com), not
    the partner's.
 

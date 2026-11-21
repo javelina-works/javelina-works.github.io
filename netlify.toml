@@ -30,6 +30,17 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
+# No other site may frame our pages, so nobody can wrap the public tools in
+# their own site. Partners get /embed/* only (next rule). That rule's CSP
+# frame-ancestors also arrives on /embed/*, and browsers ignore
+# X-Frame-Options whenever frame-ancestors is present, so the partner list
+# there wins. Don't swap this for a CSP frame-ancestors 'self' on /*: two
+# CSP policies on /embed/* would both have to pass, which blocks partners.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+
 # Partner embeds (src/pages/embed/, public/embed/). frame-ancestors is the
 # ONLY directive on purpose, so this policy can never block a script, tile or
 # API call. To add a partner, append its origins here and see
