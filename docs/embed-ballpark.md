@@ -61,9 +61,12 @@ site (Lovable, Next.js, Vite) the snippet above shows an empty box. Use this
 component instead. It renders the box and the credit line as normal HTML, so
 the link is in the page's HTML for search engines, and loads the loader once
 in the browser. It copes with moving between pages and with React running
-effects twice in development.
+effects twice in development, and if the loader fails to download, the next
+page that shows the box tries again. The `"use client"` line is for the
+Next.js App Router; other React sites ignore it.
 
 ```tsx
+"use client";
 // Javelina Works brush-clearing estimate, for React sites.
 // Usage: <JavelinaBallpark partner="your-slug" />
 import { useEffect } from "react";
@@ -89,6 +92,8 @@ export function JavelinaBallpark({ partner }: { partner: string }) {
     const script = document.createElement("script");
     script.src = LOADER_SRC;
     script.async = true;
+    // A failed download leaves no tag behind, so the next box tries again.
+    script.addEventListener("error", () => script.remove());
     document.body.appendChild(script);
   }, []);
 
