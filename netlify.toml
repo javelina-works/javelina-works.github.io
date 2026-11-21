@@ -36,6 +36,8 @@
 # X-Frame-Options whenever frame-ancestors is present, so the partner list
 # there wins. Don't swap this for a CSP frame-ancestors 'self' on /*: two
 # CSP policies on /embed/* would both have to pass, which blocks partners.
+# To undo the frame lock, delete this table and redeploy; keep the /embed/*
+# rule below, or partners lose their own frame-ancestors list.
 [[headers]]
   for = "/*"
   [headers.values]
