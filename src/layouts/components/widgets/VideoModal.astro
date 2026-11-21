@@ -4,8 +4,7 @@
 // from YouTube or Vimeo until a visitor chooses to watch. The player (privacy-enhanced youtube-nocookie.com, or Vimeo with
 // dnt=1) is built only after the dialog opens, one frame after the click so the dialog paints first, and is removed on
 // close, which stops playback. A dialog closed before its player was built never builds one.
-// Openers: any element with data-jw-dialog-open="<id>" (new markup), and the old triggers that still carry
-// data-hs-overlay="#<id>" with the video-modal-toggle class (the home hero and the ImageItem shortcode).
+// Openers: any element with data-jw-dialog-open="<id>".
 import Dialog from "@/components/jw/Dialog.astro";
 import type { VideoConfig } from "@/types";
 
@@ -41,19 +40,6 @@ const embedSrc =
 }
 
 <script>
-  // Old triggers (data-hs-overlay="#id" + .video-modal-toggle) open the same dialog.
-  document.addEventListener("click", (e) => {
-    const t = (e.target as HTMLElement).closest<HTMLElement>(".video-modal-toggle[data-hs-overlay]");
-    if (!t) return;
-    const dlg = document.querySelector(t.getAttribute("data-hs-overlay") || "");
-    if (!(dlg instanceof HTMLDialogElement) || !dlg.classList.contains("video-modal") || dlg.open) return;
-    e.preventDefault();
-    dlg.showModal();
-    t.setAttribute("aria-expanded", "true");
-    dlg.dispatchEvent(new CustomEvent("jw-dialog-open", { detail: { opener: t } }));
-    dlg.addEventListener("close", () => t.setAttribute("aria-expanded", "false"), { once: true });
-  });
-
   // Build the player after the dialog has painted; tear it down on close.
   const openings = new WeakMap<HTMLDialogElement, number>();
   document.querySelectorAll<HTMLDialogElement>("dialog.video-modal").forEach((dlg) => {

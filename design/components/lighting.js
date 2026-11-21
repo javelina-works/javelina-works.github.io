@@ -66,6 +66,8 @@ const FS_LIGHT = 'precision highp float;uniform sampler2D uH;uniform vec2 uRes;u
   'gl_FragColor=vec4(mix(night,day,uDay)+acc,1.0);}';
 
 const STYLE = { smooth: 0, flake: 1, corrugated: 2 };
+const PIECE_ATTRS = ['data-jw-light', 'data-jw-wall', 'data-jw-pool', 'data-jw-shadow', 'data-jw-flicker', 'data-jw-blink', 'data-jw-reveal'];
+const PIECES = PIECE_ATTRS.map((a) => '[' + a + ']').join(',') + ',.jw-rivet';
 const SUN = (() => { const x = -0.5, y = -0.55, z = 0.67, l = Math.hypot(x, y, z); return [x / l, y / l, z / l]; })();
 const FLICKER = [[0, 0], [0.035, 0.7], [0.055, 0.08], [0.085, 0.9], [0.11, 0.2], [0.135, 0.62], [0.155, 0.3], [0.19, 1], [1, 1]];
 const mix = (a, b, t) => a + (b - a) * t;
@@ -185,7 +187,7 @@ function scan() {
   const q = (sel) => Array.prototype.slice.call(root.querySelectorAll(sel));
   // walls
   const wallEls = q('[data-jw-wall]');
-  S.walls.forEach((w, el) => { if (!wallEls.includes(el) || !el.isConnected) { w && w.dispose(); S.walls.delete(el); S.pending.delete(el); S.io.unobserve(el); } });
+  S.walls.forEach((w, el) => { if (!wallEls.includes(el) || !el.isConnected) { if (w) { w.dispose(); if (S.ro) S.ro.unobserve(w.canvas); } S.walls.delete(el); S.pending.delete(el); S.io.unobserve(el); } });
   wallEls.forEach((el) => {
     if (S.walls.has(el)) return;
     // the wall keeps jw-wall--static (and its canvas stays hidden) until its first frame is drawn, so it never shows black;
@@ -402,9 +404,13 @@ export function mount(root) {
   S.themeObs = new MutationObserver(() => { readTheme(); request(); });
   S.themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class', 'style'] });
   let pending = null;
-  S.domObs = new MutationObserver(() => { clearTimeout(pending); pending = setTimeout(() => { if (S) scan(); }, 60); });
-  S.domObs.observe(S.root === document ? document.body : S.root, { childList: true, subtree: true, attributes: true,
-    attributeFilter: ['data-jw-light', 'data-jw-wall', 'data-jw-pool', 'data-jw-shadow', 'data-jw-flicker', 'data-jw-blink', 'data-jw-reveal'] });
+  // rescan only when a piece comes or goes: other DOM churn (map tiles, the canvases and pools added here) is skipped
+  const piece = (n) => n.nodeType === 1 && (n.matches(PIECES) || !!n.querySelector(PIECES));
+  S.domObs = new MutationObserver((recs) => {
+    if (!recs.some((r) => r.type === 'attributes' || Array.prototype.some.call(r.addedNodes, piece) || Array.prototype.some.call(r.removedNodes, piece))) return;
+    clearTimeout(pending); pending = setTimeout(() => { if (S) scan(); }, 60);
+  });
+  S.domObs.observe(S.root === document ? document.body : S.root, { childList: true, subtree: true, attributes: true, attributeFilter: PIECE_ATTRS });
   scan();
   return api;
 }

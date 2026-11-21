@@ -1023,6 +1023,7 @@ const faq = [
 
 <script>
   import snapshot from "@/data/pricing-grid.json";
+  import { setSliderFill } from "@/lib/utils/sliderFill";
 
   // Grid shape shared by the committed snapshot and the live API:
   // rows[acresIdx][coverIdx] = [low, high, mid, plants, day_band, treatment,
@@ -1395,10 +1396,7 @@ const faq = [
     u.textContent = unit;
     out.replaceChildren(num, u);
     input.setAttribute("aria-valuetext", num + " " + unit);
-    const min = Number(input.min) || 0;
-    const max = Number(input.max);
-    const p = max > min ? (Number(input.value) - min) / (max - min) : 0;
-    input.style.setProperty("--jw-p", Math.min(1, Math.max(0, p)).toFixed(4));
+    setSliderFill(input);
   }
   function update() {
     acresInput.max = String(grid.acres.length - 1);
