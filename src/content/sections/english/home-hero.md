@@ -24,7 +24,7 @@ buttons:
     hoverEffect: "creative-fill" # "text-flip", "creative-fill", "magnetic", "magnetic-text-flip"
     variant: "outline" # "fill", "outline", "text"
     video:
-      src: "oBrUMVt6W5Q" # YouTube video ID, or a video url/path for html5 eg: "/videos/test-video.mp4"
+      src: "eX9g-RZPfX8" # YouTube video ID, or a video url/path for html5 eg: "/videos/test-video.mp4"
       provider: youtube # "youtube" | "vimeo" | "html5" (default is "youtube")
       autoplay: true # Optional: true to autoplay, false to start manually (default is false)
       id: home-hero-video # required if same video is used on multiple time on same page
