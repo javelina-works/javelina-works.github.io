@@ -10,6 +10,7 @@
  * still works and submits; the readout and fill keep their first values.
  * Other props go on the <input> (data-*, aria-*, disabled, form…).
  */
+import { sliderFill } from "@/lib/utils/sliderFill";
 import type { HTMLAttributes } from "astro/types";
 
 interface Props extends Omit<HTMLAttributes<"input">, "class" | "id" | "type" | "min" | "max" | "value" | "step"> {
@@ -28,7 +29,7 @@ interface Props extends Omit<HTMLAttributes<"input">, "class" | "id" | "type" | 
   class?: string;
 }
 const { label, id, min, max, value, step = 1, unit, prefix = "", decimals = 0, minLabel, maxLabel, hint, class: className, ...rest } = Astro.props;
-const p = max > min ? Math.min(1, Math.max(0, (value - min) / (max - min))) : 0;
+const p = sliderFill(value, min, max);
 const fmt = (n: number) => prefix + n.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 const valueText = `${fmt(value)}${unit ? " " + unit : ""}`;
 ---
@@ -63,16 +64,15 @@ const valueText = `${fmt(value)}${unit ? " " + unit : ""}`;
 </div>
 
 <script>
+  import { setSliderFill } from "@/lib/utils/sliderFill";
+
   // Keep the fill (--jw-p), the readout and aria-valuetext in step with the thumb. Runs for every .jw-slider on the page,
   // including ones a page script changes: set input.value, then dispatch "input".
   const sync = (input: HTMLInputElement) => {
     const root = input.closest<HTMLElement>("[data-jw-slider]");
     if (!root) return;
-    const min = Number(input.min) || 0;
-    const max = Number(input.max);
+    setSliderFill(input);
     const v = Number(input.value);
-    const p = max > min ? Math.min(1, Math.max(0, (v - min) / (max - min))) : 0;
-    input.style.setProperty("--jw-p", p.toFixed(4));
     const d = Number(root.dataset.decimals) || 0;
     const text = (root.dataset.prefix || "") + v.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
     const out = root.querySelector("[data-jw-slider-text]");
