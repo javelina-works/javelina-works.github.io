@@ -64,8 +64,8 @@ importers:
         specifier: ^8.1.6
         version: 8.1.6(@astrojs/markdown-remark@7.3.8)(@astrojs/markdown-satteri@0.4.10)(astro@7.4.13(@astrojs/markdown-remark@7.3.8)(@netlify/blobs@11.1.9)(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.1)(yaml@2.9.1))
       '@astrojs/sitemap':
-        specifier: ^3.7.5
-        version: 3.7.5
+        specifier: ^3.7.6
+        version: 3.7.6
       '@emnapi/core':
         specifier: ^1.11.3
         version: 1.11.3
@@ -112,8 +112,8 @@ importers:
         specifier: ^4.0.3
         version: 4.0.3
       ignore:
-        specifier: ^7.0.14
-        version: 7.0.14
+        specifier: ^7.0.16
+        version: 7.0.16
       jest:
         specifier: ^30.5.2
         version: 30.5.2(@types/node@26.6.6)(ts-node@10.9.2(@types/node@26.6.6)(typescript@6.0.3))
@@ -364,8 +364,8 @@ packages:
   '@astrojs/runtime@0.1.2':
     resolution: {integrity: sha512-qLNoKPjASZmKtkvQNYqax7DHIe5+0TC1PX8n2AkA87Bv+JxiaFZtPepdm0lwcRbL/jLoiRvHXVCliFC1CRFQxA==}
 
-  '@astrojs/sitemap@3.7.5':
-    resolution: {integrity: sha512-rxSbFcxdcOoVRR02q0aFxyZ6chwXZpUOHMg8e+3iWPo7xYV4hlYBU4ztFd1Xl/pWtr6pe+TVCFKJfyPe0sp8iA==}
+  '@astrojs/sitemap@3.7.6':
+    resolution: {integrity: sha512-QEKD3ubC0iJxpNzC4KvcKdxSP97U5SjuQ16+VkmUwx1TT+Hq7TIV8QGm/d2pvkN6+3GqGXLRzm7j6lZxHETm3A==}
 
   '@astrojs/telemetry@3.4.2':
     resolution: {integrity: sha512-2JOMRUxJrBSfiVDfeKLv1wBmvSIx1Y6u2YEO8awZ9qSq3u/rNAiUyFdOYi8dHv91kHrmYEQX7pRDw0J4xyj3UA==}
@@ -4238,8 +4238,8 @@ packages:
   ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
 
-  ignore@7.0.14:
-    resolution: {integrity: sha512-wCBiZ77u1tuWde6G/nfOtLaCTYcFDU5yCzARzK10y+rLhzYoL7a7yEemcopcc2Mzow7gZOIjnV2ym1NYmdiJOQ==}
+  ignore@7.0.16:
+    resolution: {integrity: sha512-52N+Y4HRMOJmbLmr+DqO4iSRyyB7N52gm7PWCT6h0p978+oKbqHCB7gIJIwZvBUsjlSdWbrBFqUSmIFNZMpn0A==}
     engines: {node: '>= 4'}
 
   image-size@2.0.4:
@@ -7024,7 +7024,7 @@ snapshots:
       '@oslojs/encoding': 1.1.0
       clsx: 2.1.1
 
-  '@astrojs/sitemap@3.7.5':
+  '@astrojs/sitemap@3.7.6':
     dependencies:
       sitemap: 10.0.0
       zod: 4.6.7
@@ -11005,7 +11005,7 @@ snapshots:
 
   ieee754@1.2.1: {}
 
-  ignore@7.0.14: {}
+  ignore@7.0.16: {}
 
   image-size@2.0.4: {}
 
